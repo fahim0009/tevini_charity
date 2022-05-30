@@ -8,11 +8,11 @@ bootstrap/compiled.php
 app/storage/
 
 # Laravel 5 & Lumen specific
-# public/storage
-# public/hot
-# public/images
-# public/invoices
-# public/master
+public/storage
+public/hot
+public/images
+public/invoices
+public/master
 
 # Laravel 5 & Lumen specific with changed public path
 public_html/storage

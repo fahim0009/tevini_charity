@@ -1,0 +1,278 @@
+
+/*
+ *
+ *   INSPINIA - Responsive Admin Theme
+ *   version 2.8
+ *
+*/
+
+/*loader css*/
+#loading {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0.7;
+  background-color: #fff;
+  z-index: 99;
+}
+
+#loading-image {
+  z-index: 100;
+}
+
+
+/* DATATABLES */
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc,
+table.dataTable thead .sorting_asc_disabled,
+table.dataTable thead .sorting_desc_disabled {
+  background: transparent;
+}
+.dataTables_wrapper {
+  padding-bottom: 30px;
+}
+.dataTables_length {
+  float: left;
+}
+.dataTables_filter label {
+  margin-right: 5px;
+}
+.dataTables_info{
+	    float: left;
+}
+.html5buttons {
+  float: right;
+}
+.html5buttons a {
+  border: 1px solid #e7eaec;
+  background: #fff;
+  color: #676a6c;
+  box-shadow: none;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.html5buttons a:hover,
+.html5buttons a:focus:active {
+  background-color: #eee;
+  color: inherit;
+  border-color: #d2d2d2;
+}
+div.dt-button-info {
+  z-index: 100;
+}
+@media (max-width: 768px) {
+  .html5buttons {
+    float: none;
+    margin-top: 10px;
+  }
+  .dataTables_length {
+    float: none;
+  }
+}
+
+
+/*
+ * Misc: print
+ * -----------
+ */
+ @media print {
+  .no-print, .main-sidebar,
+  .main-header,
+  .content-header {
+    display: none !important;
+  }
+  .content-wrapper,
+  .main-footer {
+    margin-left: 0 !important;
+    min-height: 0 !important;
+    -webkit-transform: translate(0, 0);
+    transform: translate(0, 0);
+  }
+  .layout-fixed .content-wrapper {
+    padding-top: 0 !important;
+  }
+  .invoice {
+    width: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .invoice-col {
+    float: left;
+    width: 33.3333333%;
+  }
+  .table-responsive {
+    overflow: auto;
+  }
+  .table-responsive > .table tr th,
+  .table-responsive > .table tr td {
+    white-space: normal !important;
+  }
+}
+
+@media print {
+  .d-print-none {
+    display: none !important;
+  }
+
+  .d-print-inline {
+    display: inline !important;
+  }
+
+  .d-print-inline-block {
+    display: inline-block !important;
+  }
+
+  .d-print-block {
+    display: block !important;
+  }
+
+  .d-print-table {
+    display: table !important;
+  }
+
+  .d-print-table-row {
+    display: table-row !important;
+  }
+
+  .d-print-table-cell {
+    display: table-cell !important;
+  }
+
+  .d-print-flex {
+    display: -webkit-box !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+  }
+
+  .d-print-inline-flex {
+    display: -webkit-inline-box !important;
+    display: -ms-inline-flexbox !important;
+    display: inline-flex !important;
+  }
+}
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    text-shadow: none !important;
+    -webkit-box-shadow: none !important;
+            box-shadow: none !important;
+  }
+
+  a:not(.btn) {
+    text-decoration: underline;
+  }
+
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #adb5bd;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+
+@page {
+    size: a4;
+    margin: 0;
+}
+
+  body {
+    min-width: 992px !important;
+  }
+
+  .container {
+    min-width: 992px !important;
+  }
+
+  .navbar {
+    display: none;
+  }
+
+  .badge {
+    border: 1px solid #000;
+  }
+
+  .table {
+    border-collapse: collapse !important;
+  }
+
+  .table td,
+  .table th {
+    background-color: #fff !important;
+  }
+
+  .table-bordered th,
+  .table-bordered td {
+    border: 1px solid #dee2e6 !important;
+  }
+
+  .table-dark {
+    color: inherit;
+  }
+
+  .table-dark th,
+  .table-dark td,
+  .table-dark thead th,
+  .table-dark tbody + tbody {
+    border-color: #dee2e6;
+  }
+
+  .table .thead-dark th {
+    color: inherit;
+    border-color: #dee2e6;
+  }
+}
+
+@media print {
+  .nav.nav-tabs li:not(.active) {
+    display: none;
+  }
+
+  .invoice {
+    padding: 10px 20px;
+  }
+
+  .invoice {
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  .table-responsive table {
+    background-color: transparent !important;
+  }
+}

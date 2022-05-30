@@ -1,0 +1,182 @@
+ //  variables
+
+ $primary:#42C7EE;
+ $secondary:#3A6188;
+
+ .navbar {
+     background: $primary;
+
+     .navbar-nav {
+         &.custom {
+             .nav-item {
+                 margin: 3px 5px;
+
+                 .nav-link {
+                     font-size: 16px;
+                     font-weight: 500;
+                     color: #fff;
+
+                     &.active {
+                         color: $secondary !important;
+                     }
+
+                     &:hover {
+                         color: $secondary;
+                     }
+                 }
+             }
+         }
+     }
+ }
+
+
+ .theme-btn {
+     border-radius: 4px;
+     padding: 8px 14px !important;
+     background: lighten($primary, 10%);
+
+     &:hover {
+         background: $secondary;
+     }
+
+     &.register {
+         background: $secondary;
+     }
+ }
+
+
+ .theme-color {
+     color: $secondary;
+ }
+
+ .introBanner {
+     padding: 90px 0 110 0;
+     background: $secondary;
+     color: #fff;
+ }
+
+ .feature {
+     img {
+         transform: translatey(-68px);
+     }
+
+     background-image: linear-gradient(to right, #ff000000, #59caf005),
+     url(../images/tech.png);
+     background-position: 33% 13%;
+     background-repeat: no-repeat;
+     background-size: cover;
+ }
+
+ .nav-tabs {
+     &.custom {
+         .nav-link {
+             color: $secondary;
+
+             &.active {
+                 background-color: $primary;
+                 color: #fff;
+                 border-bottom: 2px solid #3eafd7;
+                 font-weight: bold;
+             }
+         }
+
+     }
+ }
+
+ .translate {
+     transform: translateY(-68px);
+ }
+
+ footer {
+     li {
+         a {
+             color: $primary;
+
+             &:hover {
+                 color: #fff !important;
+             }
+         }
+     }
+ }
+
+
+ .contactForm {
+     .form-group {
+         margin-bottom: 10px;
+         label{
+            color: #2a2727;
+    margin-bottom: 7px;
+         }
+     }
+ }
+
+// login panel 
+
+
+ .login-panel{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image: url(../images/auth-bg.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    &.logBg{
+        background-image: url(../images/auth-login-bg.png);
+    }
+    .box{ 
+       width: 380px;
+       padding: 50px;
+       position: relative;
+       display: -webkit-box;
+       display: -ms-flexbox;
+       display: flex;
+       -webkit-box-orient: vertical;
+       -webkit-box-direction: normal;
+       -ms-flex-direction: column;
+       flex-direction: column;
+       box-shadow: 1px 2px 20px 15px #0000000f;
+       border-radius: 10px;
+       background: #fff;
+        h3{
+            color: #FC5252;
+        }
+        .social{
+           font-size: 28px;
+           margin: 7px 0 17px;
+        }
+        a{
+           color: #FC5252;
+        }
+        input.form-control{
+            height: 46px;
+            background:#F4F5F6;
+            border-radius: 5px;
+            border-color: #D3E1E5;
+            font-size: 15px;
+            &::placeholder{
+                color: #919191;
+                text-transform: capitalize;
+            }
+        }
+    }
+}
+.btn-custom{
+    background-color: #FC5252;
+    background-color: #FC5252;
+    width: 90%;
+    border-radius: 5px;
+    color: #fff;
+    &.btn-outline{
+        border: 2px solid #F89B9B;
+        background-color: transparent;
+        color:#FC5252 ;
+    }
+}
+
+.alert-custom{
+    width: 100%;
+    position: absolute;
+    top: -95px; 
+    left: 0%;
+}

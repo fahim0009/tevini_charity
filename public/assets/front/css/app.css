@@ -1,0 +1,216 @@
+.navbar {
+  background: white;
+}
+
+.navbar .navbar-nav.custom .nav-item {
+  margin: 3px 5px;
+}
+
+.navbar .navbar-nav.custom .nav-item .nav-link {
+  font-size: 16px;
+  font-weight: 500;
+  color: black;
+}
+
+.navbar .navbar-nav.custom .nav-item .nav-link.active {
+  color: #3A6188 !important;
+}
+
+.navbar .navbar-nav.custom .nav-item .nav-link:hover {
+  color: #3A6188;
+}
+
+.theme-btn {
+  border-radius: 4px;
+  padding: 8px 14px !important;
+  background: #71d5f2;
+}
+
+.theme-btn:hover {
+  background: #3A6188;
+}
+
+.theme-btn.register {
+  background: #3A6188;
+}
+
+.theme-color {
+  color: #3A6188;
+}
+
+.introBanner {
+  padding: 50px 0 70 0;
+  background: #23234B;
+  color: #fff;
+}
+
+.bannerRight {
+  padding: 50px 50px 50px 30px;
+}
+.loginBtn{
+  background: #7C7456;
+  color: #fff;
+  border-radius: 50px;
+  padding: 1px 25px 1px 25px;
+}
+.regBtn{
+  background: #23234B;
+  color: #fff;
+  border-radius: 50px;
+  border-color: #7C7456;
+  padding: 1px 25px 1px 25px;
+}
+.regBtn:hover {
+  background-color: #7C7456;
+}
+
+.feature {
+  background-image: -webkit-gradient(linear, left top, right top, from(#ff000000), to(#59caf005)), url(../images/tech.png);
+  background-image: linear-gradient(to right, #ff000000, #59caf005), url(../images/tech.png);
+  background-position: 33% 13%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.feature img {
+  -webkit-transform: translatey(-68px);
+          transform: translatey(-68px);
+}
+
+.nav-tabs.custom .nav-link {
+  color: #3A6188;
+}
+
+.nav-tabs.custom .nav-link.active {
+  background-color: #42C7EE;
+  color: #fff;
+  border-bottom: 2px solid #3eafd7;
+  font-weight: bold;
+}
+
+.translate {
+  -webkit-transform: translateY(-68px);
+          transform: translateY(-68px);
+}
+
+footer li a {
+  color: #42C7EE;
+}
+
+footer li a:hover {
+  color: #fff !important;
+}
+
+.contactForm .form-group {
+  margin-bottom: 10px;
+}
+
+.contactForm .form-group label {
+  color: #2a2727;
+  margin-bottom: 7px;
+}
+
+.hfooter{
+    background-color:#7C7456;
+}
+
+.login-panel {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  height: 130vh;
+  /*background-image: url(../images/auth-bg.png);*/
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color:#23234B;
+}
+
+.login-panel.logBg {
+  /*background-image: url(../images/auth-login-bg.png);*/
+}
+
+.login-panel .box {
+  width: 380px;
+  padding: 50px;
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-shadow: 1px 2px 20px 15px #0000000f;
+          box-shadow: 1px 2px 20px 15px #0000000f;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.login-panel .box h3 {
+  color: #FC5252;
+}
+
+.login-panel .box .social {
+  font-size: 28px;
+  margin: 7px 0 17px;
+}
+
+.login-panel .box a {
+  color: #FC5252;
+}
+
+.login-panel .box input.form-control {
+  height: 46px;
+  background: #F4F5F6;
+  border-radius: 5px;
+  border-color: #D3E1E5;
+  font-size: 15px;
+}
+
+.login-panel .box input.form-control::-webkit-input-placeholder {
+  color: #919191;
+  text-transform: capitalize;
+}
+
+.login-panel .box input.form-control:-ms-input-placeholder {
+  color: #919191;
+  text-transform: capitalize;
+}
+
+.login-panel .box input.form-control::-ms-input-placeholder {
+  color: #919191;
+  text-transform: capitalize;
+}
+
+.login-panel .box input.form-control::placeholder {
+  color: #919191;
+  text-transform: capitalize;
+}
+
+.btn-custom {
+  background-color: #FC5252;
+  background-color: #FC5252;
+  width: 90%;
+  border-radius: 5px;
+  color: #fff;
+}
+
+.btn-custom.btn-outline {
+  border: 2px solid #F89B9B;
+  background-color: transparent;
+  color: #FC5252;
+}
+
+.alert-custom {
+  width: 100%;
+  position: absolute;
+  top: -95px;
+  left: 0%;
+}
+/*# sourceMappingURL=app.css.map */

@@ -40,24 +40,32 @@ class TransactionController extends Controller
             $charity = Charity::where('id','=',$charityid)->first();
             $remittance = Provoucher::where([
                 ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['status', '!=', '3']
             ])->where('charity_id','=', $charityid)->get();
 
             $total = Provoucher::where([
                 ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['status', '=', '1']
             ])->where('charity_id','=', $charityid)->sum('amount');
 
         }elseif(empty($request->input('fromdate')) && empty($request->input('todate'))&& !empty($request->input('charityid'))){
             $charityid = $request->input('charityid');
             $charity = Charity::where('id','=',$charityid)->first();
-            $remittance = Provoucher::where('charity_id','=', $charityid)->orderBy('id','DESC')->get();
-            $total = Provoucher::where('charity_id','=', $charityid)->sum('amount');
+            $remittance = Provoucher::where([
+                ['charity_id','=', $charityid],
+                ['status', '!=', '3']
+                ])->orderBy('id','DESC')->get();
+            $total = Provoucher::where([
+                ['charity_id','=', $charityid],
+                ['status', '=', '1']
+                ])->sum('amount');
             $fromDate = "";
             $toDate   = "";
         }else{
             $remittance = Provoucher::orderBy('id','DESC')->get();
-            $total = Provoucher::sum('amount');
+            $total = Provoucher::where('status', '=', '1')->sum('amount');
             $charity = "";
             $fromDate = "";
             $toDate   = "";

@@ -17,22 +17,22 @@ use app\Models\Provoucher;
         </section>
 
         <section class="px-4">
-            
+
             <div class="row no-print">
             <div class="col-12">
                 <button onclick="window.print()" class="fa fa-print btn btn-default float-end">Print</button>
             </div>
             </div>
-            
+
             <div class="row my-3">
                 <div class="col-md-12 mt-2 ">
                     <div class="text-start mb-4 px-2">
-                       
+
                         <p class="mb-1" id="charityname"> @if ($charity !=""){{ $charity->name}} @endif</p>
                         <p class="mb-1" id="charityaddress">@if ($charity !=""){{ $charity->address}} @endif</p>
-                       
+
                     </div>
-                    
+
                     <div class="d-flex justify-content-between no-print align-items-center flex-wrap">
 
                         <div class="text-start mb-1 flex-fill">
@@ -65,15 +65,15 @@ use app\Models\Provoucher;
 
                            </form>
                         </div>
-                        
+
 
                     </div>
-                    
-                    
-                    
+
+
+
                     <div class="overflow mt-2">
                         <h4 class="text-center my-3">STATEMENT</h4>
-                        
+
                         @if ($fromDate !="")
                             <h5 class="text-center my-3">From {{ $fromDate }} to {{ $toDate }}</h5>
                         @endif
@@ -86,29 +86,15 @@ use app\Models\Provoucher;
                                     <th>Amount </th>
                                     <th>Balance </th>
                                     <th>Notes </th>
+                                    <th>Status </th>
                                 </tr>
                             </thead>
-
-
-
-                            <?php
-                                $tbalance = 0;
-                            ?>
-
-
 
                             <tbody>
                                 @php
                                     $total = $total;
+                                    $tbalance = 0;
                                 @endphp
-                                <!--<tr>-->
-                                <!--    <td> </td>-->
-                                <!--    <td> </td>-->
-                                <!--    <td> </td>-->
-                                <!--    <td>Balance</td>-->
-                                <!--    <td>£{{ number_format($total, 2) }}</td>-->
-                                <!--    <td></td>-->
-                                <!--</tr>-->
                                 @foreach ($remittance as $data)
 
                                     <tr>
@@ -116,17 +102,30 @@ use app\Models\Provoucher;
                                         <td>Vouchers </td>
                                         <td>{{$data->cheque_no}}</td>
                                         <td> £{{ number_format($data->amount, 2) }}</td>
-                                        <td> £{{ number_format($total, 2) }} </td>
-                                        <?php $total = $total - $data->amount;?>
-                                        <td>  
+
+                                        @if($data->status == 1)
+                                        <td> £{{ number_format($total+$tbalance, 2) }} </td>
+                                        <?php $tbalance = $tbalance - $data->amount;?>
+                                        @elseif($data->status == 0)
+                                        <td> £{{ number_format($total+$tbalance, 2) }} </td>
+                                        @endif
+
+                                        <td>
                                         <!--Acc: No: {{$data->donor_acc}}; <br>-->
                                             <!--Voucher No:*****-->
-                                           {{$data->note}} 
+                                           {{$data->note}}
+                                        </td>
+                                        <td>
+                                            @if($data->status == 1)
+                                            Complete
+                                            @elseif($data->status == 0)
+                                            Pending
+                                            @endif
                                         </td>
                                     </tr>
 
                                 @endforeach
-                 
+
 
 
                             </tbody>

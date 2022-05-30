@@ -165,7 +165,7 @@ class DonorController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
-        
+
         $donationBy = $request->donationBy;
 
         $user = User::find($request->topupid);
@@ -269,7 +269,7 @@ class DonorController extends Controller
          }
 
          return view('donor.report',compact('report','fromDate','toDate','donor_id','user','tamount'));
-       
+
     }
 
 
@@ -636,8 +636,6 @@ class DonorController extends Controller
 
         }
 
-
-
         $order = Donation::find($request->did);
         $order->status = $request->status;
         if($order->save()){
@@ -645,11 +643,6 @@ class DonorController extends Controller
             return response()->json(['status'=> 300,'message'=>$message]);
         }
     }
-
-
-
-
-
 
 
 }

@@ -29,6 +29,7 @@ class TopupReport extends Mailable
     public function build()
     {
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
+        ->replyTo($this->array['cc'], 'Tevini')
         ->subject('Donation receipt')
         ->attach($this->array['file'],['as'=>$this->array['file_name'], 'mime'=>'application/pdf'])
         ->markdown('mail.topupreceipt');

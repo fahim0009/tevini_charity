@@ -111,7 +111,11 @@ class TransactionController extends Controller
             ['t_type','=', 'Out'],
             ['user_id','=', $id],
             ['status','=', '1']
-        ])->get();
+        ])->orwhere([
+            ['t_type','=', 'Out'],
+            ['user_id','=', $id],
+            ['pending','=', '0']
+            ])->orderBy('id','DESC')->get();
 
         return view('donor.transaction')
         ->with('intransactions',$intransactions)

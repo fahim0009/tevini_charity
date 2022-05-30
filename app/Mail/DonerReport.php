@@ -33,6 +33,7 @@ class DonerReport extends Mailable
         return $this->view($this->array['view'])
         ->from($this->array['from'],'Tevini')
         ->cc($this->array['cc'])
+        ->replyTo($this->array['cc'], 'Tevini')
         ->subject($this->array['subject'])
         ->attach($this->array['file'],['as'=>$this->array['file_name'], 'mime'=>'application/pdf'])
         ->markdown('mail.donorreport');

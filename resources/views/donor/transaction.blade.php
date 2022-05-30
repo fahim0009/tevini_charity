@@ -1,5 +1,8 @@
 @extends('layouts.admin')
 @section('content')
+@php
+use Illuminate\Support\Carbon;
+@endphp
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -25,7 +28,6 @@
                             <div class="col-md-9">
                                 <form class="form-inline">
                                     <div class="row">
-
                                         <div class="col-md-3">
                                             <div class="form-group my-2">
                                                 <label for=""><small>Date From </small> </label>
@@ -62,17 +64,15 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-
                                         @foreach ($intransactions as $transaction)
                                         <tr>
-                                                <td>{{ $transaction->created_at}} </td>
+                                                <td>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->source}}</td>
                                                 <td>£{{$transaction->commission}}</td>
                                                 <td>£{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach
-
                                     </tbody>
                                 </table>
                             </div>
@@ -88,7 +88,6 @@
                                 <div class="col-md-9">
                                     <form class="form-inline">
                                         <div class="row">
-
                                             <div class="col-md-3">
                                                 <div class="form-group my-2">
                                                     <label for=""><small>Date From </small> </label>
@@ -108,9 +107,8 @@
                                             </div>
                                         </div>
                                       </form>
+                                    </div>
                                 </div>
-                                </div>
-
                                </div>
                             </div>
                         </div>
@@ -123,16 +121,18 @@
                                             <th>Transaction Id</th>
                                             <th>Charity Name</th>
                                             <th>Voucher Number</th>
+                                            <th>Status</th>
                                             <th>Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach ($outtransactions as $transaction)
                                         <tr>
-                                            <td>{{ $transaction->created_at}} </td>
+                                            <td>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
                                             <td>{{ $transaction->cheque_no}}</td>
+                                            <td>@if($transaction->pending == "0") Pending @endif</td>
                                             <td>£{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach
@@ -142,7 +142,6 @@
                         </div>
                     </div>
                 </div>
-
               </div>
         </div>
     </div>

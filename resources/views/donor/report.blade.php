@@ -1,8 +1,6 @@
 @extends('layouts.admin')
-
 @section('content')
 @php
-
 use Illuminate\Support\Carbon;
 use app\Models\Provoucher;
 @endphp
@@ -114,7 +112,7 @@ use app\Models\Provoucher;
                             <?php
                                 $tbalance = 0;
                             ?>
-                            
+
                               @foreach ($tamount as $data)
                                     @if($data->commission != 0)
                                         @php
@@ -176,14 +174,14 @@ use app\Models\Provoucher;
                                         <td>{{$data->cheque_no}}</td>
                                         <td>@if($data->charity_id){{ $data->charity->name}}@endif</td>
                                         <td>@if($data->pending == "0") Pending @endif</td>
-                                       
+
                                             @if($data->t_type == "In")
                                                 @if($data->commission != 0)
                                                     <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
                                                     <td></td>
                                                     <td> £{{ number_format($tbalance, 2) }} </td>
                                                     @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
-                                                @else 
+                                                @else
                                                     <td>£{{number_format($data->amount, 2)}} </td>
                                                     <td></td>
                                                     <td> £{{ number_format($tbalance, 2) }} </td>
@@ -197,7 +195,7 @@ use app\Models\Provoucher;
                                                  @php  $tbalance = $tbalance + $data->amount;  @endphp
                                                  @endif
                                             @endif
-                                       
+
                                     </tr>
                                 @endforeach
                                  <tr>

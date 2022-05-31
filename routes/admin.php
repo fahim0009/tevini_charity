@@ -65,6 +65,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::resource('staff','App\Http\Controllers\StaffController');
     // transaction start
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
+    Route::post('/transaction', [TransactionController::class, 'index'])->name('transaction_search');
     Route::get('/report', [ReportController::class, 'index'])->name('report');
 
     // donor details
@@ -88,6 +89,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/addvoucher', [OrderController::class, 'storeVoucher'])->name('voucher.store');
 
     Route::get('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview');
+    Route::post('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview_search');
 
     // frontend
     Route::get('/about-help', [AboutController::class, 'aboutHelp'])->name('about.help');

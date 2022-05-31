@@ -49,9 +49,10 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
     // overdrawn
     Route::post('/update-overdrawn', [DonorController::class, 'updateUserOverdrawnAmount']);
-    
-    // donation 
+
+    // donation
     Route::get('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction');
+    Route::post('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction_search');
     Route::get('make-donation', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
     Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
     Route::get('standing-order', [DonorController::class, 'userStandingOrder'])->name('user.standingorder');
@@ -63,8 +64,8 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
     Route::get('order-voucher-book', [OrderController::class, 'userOrderVoucherBook'])->name('user.orderbook');
     Route::get('order-history', [OrderController::class, 'userOrderview'])->name('user.orderhistory');
-    
-    
+
+
     Route::get('my-report', [ReportController::class, 'userReport'])->name('user.report');
     Route::get('giving-report', [ReportController::class, 'userGivingReport'])->name('user.givingreport');
     Route::get('news', [HomepageController::class, 'userNews'])->name('user.news');

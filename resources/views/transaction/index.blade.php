@@ -28,19 +28,20 @@ use Illuminate\Support\Carbon;
                             <div class="container">
                            <div class="row">
                             <div class="col-md-9">
-                                <form class="form-inline">
+                                <form class="form-inline" action="{{route('transaction_search')}}" method ="POST">
+                                        @csrf
                                     <div class="row">
 
                                         <div class="col-md-3">
                                             <div class="form-group my-2">
-                                                <label for=""><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
+                                                <label for="fromDate"><small>Date From </small> </label>
+                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
                                               </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group my-2">
-                                                <label for=""><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
+                                                <label for="toDate"><small>Date To </small> </label>
+                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
                                               </div>
                                         </div>
                                         <div class="col-md-5 d-flex align-items-center">
@@ -93,28 +94,29 @@ use Illuminate\Support\Carbon;
                                 <div class="container">
                                <div class="row">
                                 <div class="col-md-9">
-                                    <form class="form-inline">
-                                        <div class="row">
+                                    <form class="form-inline" action="{{route('transaction_search')}}" method ="POST">
+                                        @csrf
+                                    <div class="row">
 
-                                            <div class="col-md-3">
-                                                <div class="form-group my-2">
-                                                    <label for=""><small>Date From </small> </label>
-                                                    <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                                  </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group my-2">
-                                                    <label for=""><small>Date To </small> </label>
-                                                    <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                                  </div>
-                                            </div>
-                                            <div class="col-md-5 d-flex align-items-center">
-                                                <div class="form-group d-flex mt-4">
-                                                  <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                                </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group my-2">
+                                                <label for="fromDate"><small>Date From </small> </label>
+                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
+                                              </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group my-2">
+                                                <label for="toDate"><small>Date To </small> </label>
+                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                              </div>
+                                        </div>
+                                        <div class="col-md-5 d-flex align-items-center">
+                                            <div class="form-group d-flex mt-4">
+                                              <button class="text-white btn-theme ml-1" type="submit">Search</button>
                                             </div>
                                         </div>
-                                      </form>
+                                    </div>
+                                  </form>
                                 </div>
                                 </div>
 
@@ -157,28 +159,29 @@ use Illuminate\Support\Carbon;
                             <div class="container">
                            <div class="row">
                             <div class="col-md-9">
-                                <form class="form-inline">
-                                    <div class="row">
+                                <form class="form-inline" action="{{route('transaction_search')}}" method ="POST">
+                                    @csrf
+                                <div class="row">
 
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for=""><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                              </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for=""><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                              </div>
-                                        </div>
-                                        <div class="col-md-5 d-flex align-items-center">
-                                            <div class="form-group d-flex mt-4">
-                                              <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                            </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group my-2">
+                                            <label for="fromDate"><small>Date From </small> </label>
+                                            <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
+                                          </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group my-2">
+                                            <label for="toDate"><small>Date To </small> </label>
+                                            <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                          </div>
+                                    </div>
+                                    <div class="col-md-5 d-flex align-items-center">
+                                        <div class="form-group d-flex mt-4">
+                                          <button class="text-white btn-theme ml-1" type="submit">Search</button>
                                         </div>
                                     </div>
-                                  </form>
+                                </div>
+                              </form>
                             </div>
                             </div>
 

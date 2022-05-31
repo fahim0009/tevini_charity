@@ -1,6 +1,8 @@
 @extends('layouts.admin')
-
 @section('content')
+@php
+use Illuminate\Support\Carbon;
+@endphp
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -24,28 +26,29 @@
                             <div class="container">
                            <div class="row">
                             <div class="col-md-9">
-                                <form class="form-inline">
+                                <form class="form-inline" action="{{route('charity.tranview_search', $id)}}" method ="POST">
+                                    @csrf
                                     <div class="row">
 
                                         <div class="col-md-3">
                                             <div class="form-group my-2">
-                                                <label for=""><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                              </div>
+                                                <label for="fromDate"><small>Date From </small> </label>
+                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
+                                            </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group my-2">
-                                                <label for=""><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                              </div>
+                                                <label for="toDate"><small>Date To </small> </label>
+                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                            </div>
                                         </div>
                                         <div class="col-md-5 d-flex align-items-center">
                                             <div class="form-group d-flex mt-4">
-                                              <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
                                             </div>
                                         </div>
                                     </div>
-                                  </form>
+                                </form>
                             </div>
                             </div>
 
@@ -66,7 +69,7 @@
 
                                         @foreach ($intransactions as $transaction)
                                         <tr>
-                                                <td>{{ $transaction->created_at}} </td>
+                                                <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->name}}</td>
                                                 <td>{{ $transaction->amount}}</td>
@@ -86,28 +89,30 @@
                                 <div class="container">
                                <div class="row">
                                 <div class="col-md-9">
-                                    <form class="form-inline">
-                                        <div class="row">
 
-                                            <div class="col-md-3">
-                                                <div class="form-group my-2">
-                                                    <label for=""><small>Date From </small> </label>
-                                                    <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                                  </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group my-2">
-                                                    <label for=""><small>Date To </small> </label>
-                                                    <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                                  </div>
-                                            </div>
-                                            <div class="col-md-5 d-flex align-items-center">
-                                                <div class="form-group d-flex mt-4">
-                                                  <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                                </div>
+                                <form class="form-inline" action="{{route('charity.tranview_search', $id)}}" method ="POST">
+                                    @csrf
+                                    <div class="row">
+
+                                        <div class="col-md-3">
+                                            <div class="form-group my-2">
+                                                <label for="fromDate"><small>Date From </small> </label>
+                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
                                             </div>
                                         </div>
-                                      </form>
+                                        <div class="col-md-3">
+                                            <div class="form-group my-2">
+                                                <label for="toDate"><small>Date To </small> </label>
+                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 d-flex align-items-center">
+                                            <div class="form-group d-flex mt-4">
+                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
                                 </div>
                                 </div>
 
@@ -129,7 +134,7 @@
                                     <tbody>
                                         @foreach ($outtransactions as $transaction)
                                         <tr>
-                                            <td>{{ $transaction->created_at}} </td>
+                                            <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
                                             <td>{{ $transaction->cheque_no}}</td>

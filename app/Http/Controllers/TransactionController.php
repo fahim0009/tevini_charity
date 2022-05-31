@@ -12,11 +12,37 @@ use App\Models\Donation;
 
 class TransactionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $outtransactions = Transaction::where('t_type','=', 'Out')->orderBy('id','DESC')->get();
-        $intransactions = Transaction::where('t_type','=', 'In')->orderBy('id','DESC')->get();
-        $alltransactions = Transaction::orderBy('id','DESC')->get();
+
+        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
+            $fromDate = $request->input('fromDate');
+            $toDate   = $request->input('toDate');
+
+
+
+            $outtransactions = Transaction::where('t_type','=', 'Out')->where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+            ])->orderBy('id','DESC')->get();
+
+            $intransactions = Transaction::where('t_type','=', 'In')->where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+            ])->orderBy('id','DESC')->get();
+            $alltransactions = Transaction::orderBy('id','DESC')->where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+            ])->get();
+
+        }else{
+
+            $outtransactions = Transaction::where('t_type','=', 'Out')->orderBy('id','DESC')->get();
+            $intransactions = Transaction::where('t_type','=', 'In')->orderBy('id','DESC')->get();
+            $alltransactions = Transaction::orderBy('id','DESC')->get();
+
+        }
+
 
         return view('transaction.index')
         ->with('alltransactions',$alltransactions)
@@ -69,9 +95,55 @@ class TransactionController extends Controller
         return view('remittance.index',compact('remittance','total','fromDate','toDate','charity'));
     }
 
-    public function userTransactionShow()
+    public function userTransactionShow(Request $request)
     {
-        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
+
+        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
+            $fromDate = $request->input('fromDate');
+            $toDate   = $request->input('toDate');
+
+        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+        ])->where('status','=', '1')->orderBy('id','DESC')->get();
+        $alltransactions = Usertransaction::where([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+            ])->orderBy('id','DESC')->get();
+
+        $intransactions = Usertransaction::where([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['t_type','=', 'In'],
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orderBy('id','DESC')->get();
+
+        $outtransactions = Usertransaction::where([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['t_type','=', 'Out'],
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['t_type','=', 'Out'],
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+            ])->orderBy('id','DESC')->get();
+
+
+        }else{
+
+            $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
         $alltransactions = Usertransaction::where([
             ['user_id','=', auth()->user()->id],
             ['status','=', '1']
@@ -95,6 +167,10 @@ class TransactionController extends Controller
             ['user_id','=', auth()->user()->id],
             ['pending','=', '0']
             ])->orderBy('id','DESC')->get();
+
+        }
+
+
 
         return view('frontend.user.transaction')
         ->with('alltransactions',$alltransactions)
@@ -127,22 +203,50 @@ class TransactionController extends Controller
         ->with('outtransactions',$outtransactions);
     }
 
-    public function charityTransaction($id)
+    public function charityTransaction(Request $request, $id)
     {
-        $outtransactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['charity_id','=', $id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
 
-        $intransactions = Transaction::where([
-            ['t_type','=', 'Out'],
-            ['charity_id','=', $id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
+        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
+            $fromDate = $request->input('fromDate');
+            $toDate   = $request->input('toDate');
+
+            $outtransactions = Usertransaction::where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['t_type','=', 'Out'],
+                ['charity_id','=', $id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+            $intransactions = Transaction::where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['t_type','=', 'Out'],
+                ['charity_id','=', $id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+        }else{
+
+            $outtransactions = Usertransaction::where([
+                ['t_type','=', 'Out'],
+                ['charity_id','=', $id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+            $intransactions = Transaction::where([
+                ['t_type','=', 'Out'],
+                ['charity_id','=', $id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+        }
+
+
 
         return view('charity.transaction')
         ->with('intransactions',$intransactions)
+        ->with('id',$id)
         ->with('outtransactions',$outtransactions);
     }
 

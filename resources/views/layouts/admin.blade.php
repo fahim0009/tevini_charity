@@ -164,24 +164,24 @@ $(document).ready(function() {
         buttons: [
             {extend: 'copy'},
             {extend: 'excel', title: title},
-            {extend: 'pdfHtml5',
-            title: 'Report',
-            orientation : 'portrait',
-                header:true,
-                customize: function ( doc ) {
-                    doc.content.splice(0, 1, {
-                            text: [
+            // {extend: 'pdfHtml5',
+            // title: 'Report',
+            // orientation : 'portrait',
+            //     header:true,
+            //     customize: function ( doc ) {
+            //         doc.content.splice(0, 1, {
+            //                 text: [
 
-                                       { text: data+'\n',bold:true,fontSize:12 },
-                                       { text: title+'\n',bold:true,fontSize:15 }
+            //                            { text: data+'\n',bold:true,fontSize:12 },
+            //                            { text: title+'\n',bold:true,fontSize:15 }
 
-                            ],
-                            margin: [0, 0, 0, 12],
-                            alignment: 'center'
-                        });
-                    doc.defaultStyle.alignment = 'center'
-                }
-            },
+            //                 ],
+            //                 margin: [0, 0, 0, 12],
+            //                 alignment: 'center'
+            //             });
+            //         doc.defaultStyle.alignment = 'center'
+            //     }
+            // },
             {extend: 'print',
             exportOptions: {
                stripHtml: false

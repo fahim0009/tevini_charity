@@ -109,7 +109,7 @@ class TransactionController extends Controller
             ['t_type','=', 'In'],
             ['user_id','=', $id],
             ['status','=', '1']
-        ])->get();
+        ])->orderBy('id','DESC')->get();
 
         $outtransactions = Usertransaction::where([
             ['t_type','=', 'Out'],

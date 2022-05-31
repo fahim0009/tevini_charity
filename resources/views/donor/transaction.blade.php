@@ -66,7 +66,7 @@ use Illuminate\Support\Carbon;
                                     <tbody>
                                         @foreach ($intransactions as $transaction)
                                         <tr>
-                                                <td>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
+                                                <td><span style="display:none;">{{ $transaction->id }}</span>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->source}}</td>
                                                 <td>£{{$transaction->commission}}</td>
@@ -128,7 +128,7 @@ use Illuminate\Support\Carbon;
                                     <tbody>
                                         @foreach ($outtransactions as $transaction)
                                         <tr>
-                                            <td>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
+                                            <td><span style="display:none;">{{ $transaction->id }}</span>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
                                             <td>{{ $transaction->cheque_no}}</td>

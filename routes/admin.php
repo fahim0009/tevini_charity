@@ -145,7 +145,6 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // commission
     Route::get('/commission', [OrderController::class, 'commission'])->name('commission');
 
-
     // donation
     Route::get('/donation/list', [DonorController::class, 'donationlist'])->name('donationlist');
     Route::get('/donation/standing', [DonorController::class, 'donationStanding'])->name('donationstanding');

@@ -146,7 +146,7 @@
 
 
    }
-   
+
 $(document).ready(function() {
 
     var title = 'Report: ';
@@ -171,7 +171,7 @@ $(document).ready(function() {
                 customize: function ( doc ) {
                     doc.content.splice(0, 1, {
                             text: [
-             
+
                                        { text: data+'\n',bold:true,fontSize:12 },
                                        { text: title+'\n',bold:true,fontSize:15 }
 
@@ -180,9 +180,12 @@ $(document).ready(function() {
                             alignment: 'center'
                         });
                     doc.defaultStyle.alignment = 'center'
-                } 
+                }
             },
             {extend: 'print',
+            exportOptions: {
+               stripHtml: false
+           },
             title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
             header:true,
                 customize: function (win){
@@ -197,7 +200,7 @@ $(document).ready(function() {
     });
 
 
-    // datatable in  
+    // datatable in
     $('#exampleIn').DataTable({
         pageLength: 25,
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -215,7 +218,7 @@ $(document).ready(function() {
                 customize: function ( doc ) {
                     doc.content.splice(0, 1, {
                             text: [
-             
+
                                        { text: data+'\n',bold:true,fontSize:12 },
                                        { text: title+'\n',bold:true,fontSize:15 }
 
@@ -224,7 +227,7 @@ $(document).ready(function() {
                             alignment: 'center'
                         });
                     doc.defaultStyle.alignment = 'center'
-                } 
+                }
             },
             {extend: 'print',
             title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
@@ -241,7 +244,7 @@ $(document).ready(function() {
     });
 
 
-    // datatable All transaction  
+    // datatable All transaction
     $('#exampleall').DataTable({
         pageLength: 25,
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -259,7 +262,7 @@ $(document).ready(function() {
                 customize: function ( doc ) {
                     doc.content.splice(0, 1, {
                             text: [
-             
+
                                        { text: data+'\n',bold:true,fontSize:12 },
                                        { text: title+'\n',bold:true,fontSize:15 }
 
@@ -268,7 +271,7 @@ $(document).ready(function() {
                             alignment: 'center'
                         });
                     doc.defaultStyle.alignment = 'center'
-                } 
+                }
             },
             {extend: 'print',
             title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
@@ -292,7 +295,7 @@ $(document).ready(function() {
 </script>
 <script type="text/javascript" src="{{asset('js/plugins/bootstrap-notify.min.js')}}"></script>
 <script type="text/javascript" src="{{asset('js/plugins/sweetalert.min.js')}}"></script>
- 
+
 </body>
 
 </html>

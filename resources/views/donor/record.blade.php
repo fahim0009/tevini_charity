@@ -1,24 +1,13 @@
 @extends('layouts.admin')
-
 @section('content')
-
-
-
 <div class="rightSection">
-
     <div class="dashboard-content">
-
         <section class="profile purchase-status">
             <div class="title-section">
                 <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                 <div class="mx-2">Donation Records </div>
             </div>
         </section>
-
-
-
-
-
         @if(session()->has('message'))
         <section class="px-4">
             <div class="row my-3">
@@ -61,7 +50,7 @@
                                 ?>
                                 @forelse ($donation as $data)
                                     <tr>
-                                        <td>{{$data->created_at->format('d/m/Y')}}</td>
+                                        <td><span style="display:none;">{{ $data->id }}</span>{{$data->created_at->format('d/m/Y')}}</td>
                                         <td>{{$data->user->name}}</td>
                                         <td>{{$data->charity->name}}</td>
                                         <td>{{$data->amount}}</td>

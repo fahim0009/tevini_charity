@@ -14,12 +14,12 @@ use Illuminate\Support\Carbon;
     <div class="row  my-3">
 
         <div class="col-md-12">
-       
+
                 {{-- Current order start  --}}
 
                           <section class="px-4"  id="contentContainer">
                             <div class="row my-3">
-                
+
                                 <div class="col-md-12 mt-2 text-center">
                                     <div class="overflow">
                                         <table class="table table-custom shadow-sm bg-white" id="example">
@@ -36,7 +36,7 @@ use Illuminate\Support\Carbon;
                                                 </tr>
                                             </thead>
                                             <tbody>
-                           
+
                                                 @forelse ($donation as $data)
                                                     <tr>
                                                         <td>{{ Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
@@ -57,29 +57,29 @@ use Illuminate\Support\Carbon;
                                                         <td>
                                                         @if($data->status == "0")
                                                             Pending
-                                                        @elseif($data->status == "1") 
+                                                        @elseif($data->status == "1")
                                                             Confirm
                                                         @elseif($data->status == "3")
                                                             Cancel
                                                         @endif
                                                         </td>
-                                                       
+
                                                     </tr>
                                                 @empty
-                                     
-                                     
-                                            @endforelse              
+
+
+                                            @endforelse
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                             </div>
-                        </section>  
+                        </section>
 
 
                 {{-- current order end  --}}
 
-              
+
         </div>
     </div>
   </section>

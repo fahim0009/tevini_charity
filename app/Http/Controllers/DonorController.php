@@ -585,7 +585,7 @@ class DonorController extends Controller
     {
         $donation = Donation::where([
             ['status','!=','0']
-        ])->get();
+        ])->orderBy('id','DESC')->get();
         return view('donor.record',compact('donation'));
     }
 

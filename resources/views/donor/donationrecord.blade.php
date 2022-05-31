@@ -1,5 +1,4 @@
 @extends('layouts.admin')
-
 @section('content')
 <div class="dashboard-content">
     <section class="profile purchase-status">
@@ -8,12 +7,10 @@
         </div>
     </section>
     @include('inc.user_menue')
-          
                     {{-- Current order start  --}}
-    
                               <section class="px-4"  id="contentContainer">
                                 <div class="row my-3">
-                    
+
                                     <div class="col-md-12 mt-2 text-center">
                                         <div class="overflow">
                                             <table class="table table-custom shadow-sm bg-white" id="example">
@@ -30,10 +27,10 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                               
+
                                                     @forelse ($donation as $data)
                                                         <tr>
-                                                            <td>{{$data->created_at->format('m/d/Y')}}</td>
+                                                            <td><span style="display:none;">{{ $data->id }}</span>{{$data->created_at->format('m/d/Y')}}</td>
                                                             <td>{{$data->charity->name}}</td>
                                                             <td>£{{$data->amount}}</td>
                                                             <td>@if ($data->ano_donation == "true")
@@ -51,24 +48,24 @@
                                                             <td>
                                                             @if($data->status == "0")
                                                                 Pending
-                                                            @elseif($data->status == "1") 
+                                                            @elseif($data->status == "1")
                                                                 Confirm
                                                             @elseif($data->status == "3")
                                                                 Cancel
                                                             @endif
                                                             </td>
-                                                           
+
                                                         </tr>
                                                     @empty
-                                         
-                                         
-                                                @endforelse              
+
+
+                                                @endforelse
                                                 </tbody>
                                             </table>
                                         </div>
                                     </div>
                                 </div>
-                            </section>  
-    
+                            </section>
+
 </div>
 @endsection

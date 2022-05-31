@@ -73,7 +73,6 @@ class OrderController extends Controller
             exit();
             }
 
-
             foreach($voucher_ids as $key => $id){
                 $order_amount+= Voucher::where('id',$id)->first()->amount*$qtys[$key];
 
@@ -85,10 +84,10 @@ class OrderController extends Controller
             }
 
             $u_bal = User::where('id',$request->did)->first()->balance;
-            $limitChk = $u_bal - $prepaid_amount;
             $overdrawn = (User::where('id',$request->did)->first()->overdrawn_amount);
+            $limitChk = $u_bal + $overdrawn;
 
-            if($limitChk < $overdrawn ){
+            if($limitChk < $prepaid_amount ){
                 $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Overdrawn limit exceed.</b></div>";
                 return response()->json(['status'=> 303,'message'=>$message]);
                 exit();

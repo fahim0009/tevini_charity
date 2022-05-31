@@ -68,7 +68,7 @@
                                         <tr>
                                                 <td>{{ $transaction->created_at}} </td>
                                                 <td>{{ $transaction->t_id }}</td>
-                                                <td>{{ $transaction->source}}</td>
+                                                <td>{{ $transaction->name}}</td>
                                                 <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach

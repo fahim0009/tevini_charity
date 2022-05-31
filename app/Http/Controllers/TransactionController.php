@@ -14,9 +14,9 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $outtransactions = Transaction::where('t_type','=', 'Out')->get();
-        $intransactions = Transaction::where('t_type','=', 'In')->get();
-        $alltransactions = Transaction::orderBy('id','ASC')->get();
+        $outtransactions = Transaction::where('t_type','=', 'Out')->orderBy('id','DESC')->get();
+        $intransactions = Transaction::where('t_type','=', 'In')->orderBy('id','DESC')->get();
+        $alltransactions = Transaction::orderBy('id','DESC')->get();
 
         return view('transaction.index')
         ->with('alltransactions',$alltransactions)
@@ -129,17 +129,17 @@ class TransactionController extends Controller
 
     public function charityTransaction($id)
     {
-        $intransactions = Usertransaction::where([
-            ['t_type','=', 'In'],
-            ['charity_id','=', $id],
-            ['status','=', '1']
-        ])->get();
-
         $outtransactions = Usertransaction::where([
             ['t_type','=', 'Out'],
             ['charity_id','=', $id],
             ['status','=', '1']
-        ])->get();
+        ])->orderBy('id','DESC')->get();
+
+        $intransactions = Transaction::where([
+            ['t_type','=', 'Out'],
+            ['charity_id','=', $id],
+            ['status','=', '1']
+        ])->orderBy('id','DESC')->get();
 
         return view('charity.transaction')
         ->with('intransactions',$intransactions)

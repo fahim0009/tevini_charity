@@ -150,7 +150,6 @@ use Illuminate\Support\Carbon;
                     </div>
                 </div>
             {{-- 2nd tab end  --}}
-
             <div class="tab-pane fade" id="nav-transcationAll" role="tabpanel" aria-labelledby="nav-all">
                 <div class="row my-2">
                     <div class="col-md-12 my-3">
@@ -218,9 +217,7 @@ use Illuminate\Support\Carbon;
                     </div>
                 </div>
             </div>
-
-
-              </div>
+            </div>
         </div>
     </div>
   </section>

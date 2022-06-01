@@ -254,6 +254,8 @@ class DonorController extends Controller
                  ['status','=', '1']
              ])->orwhere([
                  ['user_id','=', $id],
+                 ['created_at', '>=', $fromDate],
+                 ['created_at', '<=', $toDate.' 23:59:59'],
                  ['pending','=', '0']
                  ])->orderBy('id','DESC')->get();
          }else{

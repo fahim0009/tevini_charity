@@ -79,6 +79,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     Route::get('/donor-profile/{id}', [UserController::class, 'profileinAdmin'])->name('donor.profile');
     Route::get('/donor-transaction/{id}', [TransactionController::class, 'donorTransaction'])->name('donor.tranview');
+    Route::post('/donor-transaction/{id}', [TransactionController::class, 'donorTransaction'])->name('search.donortran');
     Route::get('/donation-record/{id}', [DonorController::class, 'userDonationrecodinAdmin'])->name('donor.donationrecord');
     Route::get('/standing-order/{id}', [DonorController::class, 'userStandingOrderinAdmin'])->name('donor.standingorder');
     Route::get('/donor-order-history/{id}', [OrderController::class, 'userOrderinAdmin'])->name('donor.orderhistory');

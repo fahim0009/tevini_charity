@@ -9,6 +9,7 @@ use App\Models\Charity;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\Donation;
+use App\Models\User;
 
 class TransactionController extends Controller
 {
@@ -179,28 +180,92 @@ class TransactionController extends Controller
         ->with('outtransactions',$outtransactions);
     }
 
-    public function donorTransaction($id)
+    public function donorTransaction(Request $request, $id)
     {
-        $intransactions = Usertransaction::where([
+
+        $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
+        $user = User::find($id);
+        $donor_id = $user->id;
+        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
+            $fromDate = $request->input('fromDate');
+            $toDate   = $request->input('toDate');
+             $report = Usertransaction::where([
+                 ['user_id','=', $id],
+                 ['created_at', '>=', $fromDate],
+                 ['created_at', '<=', $toDate.' 23:59:59'],
+                 ['status','=', '1']
+             ])->orwhere([
+                 ['user_id','=', $id],
+                 ['created_at', '>=', $fromDate],
+                 ['created_at', '<=', $toDate.' 23:59:59'],
+                 ['pending','=', '0']
+                 ])->orderBy('id','DESC')->get();
+
+            $intransactions = Usertransaction::where([
             ['t_type','=', 'In'],
             ['user_id','=', $id],
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
             ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
-
-        $outtransactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['user_id','=', $id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['t_type','=', 'Out'],
-            ['user_id','=', $id],
-            ['pending','=', '0']
             ])->orderBy('id','DESC')->get();
+
+            $outtransactions = Usertransaction::where([
+                ['t_type','=', 'Out'],
+                ['user_id','=', $id],
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['status','=', '1']
+            ])->orwhere([
+                ['t_type','=', 'Out'],
+                ['user_id','=', $id],
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['pending','=', '0']
+                ])->orderBy('id','DESC')->get();
+
+         }else{
+
+             $report = Usertransaction::where([
+                 ['user_id','=', $id],
+                 ['status','=', '1']
+                 ])->orwhere([
+                ['user_id','=', $id],
+                ['pending','=', '0']
+                ])->orderBy('id','DESC')->get();
+
+                $intransactions = Usertransaction::where([
+                    ['t_type','=', 'In'],
+                    ['user_id','=', $id],
+                    ['status','=', '1']
+                ])->orderBy('id','DESC')->get();
+
+                $outtransactions = Usertransaction::where([
+                    ['t_type','=', 'Out'],
+                    ['user_id','=', $id],
+                    ['status','=', '1']
+                ])->orwhere([
+                    ['t_type','=', 'Out'],
+                    ['user_id','=', $id],
+                    ['pending','=', '0']
+                    ])->orderBy('id','DESC')->get();
+
+
+             $fromDate = "";
+             $toDate   = "";
+         }
+
+
 
         return view('donor.transaction')
         ->with('intransactions',$intransactions)
+        ->with('outtransactions',$outtransactions)
+        ->with('report',$report)
+        ->with('fromDate',$fromDate)
+        ->with('toDate',$toDate)
+        ->with('user',$user)
         ->with('donor_id',$id)
-        ->with('outtransactions',$outtransactions);
+        ->with('tamount',$tamount);
+
     }
 
     public function charityTransaction(Request $request, $id)

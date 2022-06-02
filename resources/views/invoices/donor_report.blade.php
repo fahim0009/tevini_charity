@@ -19,7 +19,7 @@ use app\Models\Provoucher;
 	 max-width: 960px;
 	 margin: 0 auto;
 	 box-shadow: rgba(0, 0, 0, 0.04) -1px 2px 20px 15px;
-	 padding: 25px;
+	 padding: 15px;
 }
  .wrapper .heading .title {
 	 text-align: right;
@@ -67,7 +67,7 @@ use app\Models\Provoucher;
  .wrapper .tableData table tr th {
 	 background-color: #436784;
 	 color: azure;
-	 padding: 6px;
+	 padding: 2px;
 	 font-family: sans-serif;
 	 border-right: 1px solid #fff;
 }
@@ -75,14 +75,14 @@ use app\Models\Provoucher;
 	 border-bottom: 1px solid #ebebeb;
 }
  .wrapper .tableData table tr td {
-	 padding: 6px;
+	 padding: 2px;
 	 color: #625f5f;
 	 text-transform: capitalize;
 }
  /* .wrapper .tableData table tr:nth-child(even) {
 	 background: #436784 14;
 } */
- 
+
    </style>
 </head>
 <body>
@@ -104,7 +104,7 @@ use app\Models\Provoucher;
                     Date: <b>@php echo date('d-m-Y'); @endphp </b> <br>
                     Receipt <b>#@php echo(rand(100,999));  @endphp</b>
                 </div>
-            
+
             </div>
             <p class="donated">
                     <p>{{$user->name}}</p>
@@ -131,7 +131,7 @@ use app\Models\Provoucher;
             <?php
                 $tbalance = 0;
             ?>
-            
+
               @foreach ($tamount as $data)
                     @if($data->commission != 0)
                         @php
@@ -194,14 +194,14 @@ use app\Models\Provoucher;
                         <td>{{$data->cheque_no}}</td>
                         <td>@if($data->charity_id){{ $data->charity->name}}@endif</td>
                         <td>@if($data->pending == "0") Pending @endif</td>
-                        
+
                             @if($data->t_type == "In")
                                 @if($data->commission != 0)
                                     <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
                                     <td></td>
                                     <td> £{{ number_format($tbalance, 2) }} </td>
                                     @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
-                                @else 
+                                @else
                                     <td>£{{number_format($data->amount, 2)}} </td>
                                     <td></td>
                                     <td> £{{ number_format($tbalance, 2) }} </td>
@@ -215,7 +215,7 @@ use app\Models\Provoucher;
                                     @php  $tbalance = $tbalance + $data->amount;  @endphp
                                     @endif
                             @endif
-                        
+
                     </tr>
                 @endforeach
                     <tr>

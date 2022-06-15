@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\support\Facades\Auth;
+use App\Models\User;
+use App\Models\Usertransaction;
 
 class HomepageController extends Controller
 {
@@ -43,4 +46,62 @@ class HomepageController extends Controller
     {
         return view('setting.index');
     }
+
+    public function apidonation()
+    {
+        return view('frontend.thirdpartydonation');
+    }
+
+
+    public function apidonationCheck(Request $request)
+    {
+
+        if(empty($request->password)){
+            $message ='<span id="msg" style="color: rgb(255, 0, 0);">Enter password</span>';
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
+        {
+
+            $u_bal = User::where('accountno',$request->acc)->first()->balance;
+            $donor_id = User::where('accountno',$request->acc)->first()->id;
+
+            if($u_bal < $request->amt){
+                $message ='<span id="msg" style="color: rgb(255, 0, 0);">Insufficient balance</span>';
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = time() . "-" . $donor_id;
+            $utransaction->user_id = $donor_id;
+            $utransaction->t_type = "Out";
+            $utransaction->amount =  $request->amt;
+            $utransaction->title ="Third party donation";
+            $utransaction->status =  1;
+            $utransaction->save();
+
+            $user = User::find($donor_id);
+            $user->decrement('balance',$request->amt);
+
+            $url = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt;
+
+            $message ='<span id="msg" style="color: rgb(255, 0, 0);"> Donation complete successfully</span>';
+            return response()->json(['status'=> 300,'message'=>$message]);
+
+
+        }else{
+            $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+    }
+
+
+
+
+
+
+
 }

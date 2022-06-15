@@ -97,7 +97,9 @@ Route::get('/terms-&-condition', [App\Http\Controllers\AboutController::class, '
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
 
-
+// api
+Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
+Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
 
 
 

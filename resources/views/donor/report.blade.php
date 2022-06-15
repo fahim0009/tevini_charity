@@ -76,17 +76,9 @@ use app\Models\Provoucher;
                             <div class="form-group my-2 mx-1 flex-fill">
                         <button class="text-white btn-theme no-print ml-1 mt-4" id="sendMail"  class="btn" >Send Mail</button>
                             </div>
-
                        </div>
-
-
                         </div>
-
-
                     </div>
-
-
-
                     <div class="overflow mt-2">
                         <h4 class="text-center my-3">STATEMENT</h4>
 
@@ -138,18 +130,7 @@ use app\Models\Provoucher;
                                             }
                                             @endphp
                                 @endforeach
-
                             <tbody>
-                                {{-- <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td>Balance</td>
-                                    <td>£{{ number_format($tbalance, 2) }}</td>
-                                </tr> --}}
                                 @foreach ($report as $data)
                                     @if($data->commission != 0)
                                     <tr>
@@ -218,11 +199,7 @@ use app\Models\Provoucher;
         </section>
     </div>
 </div>
-
-
 @endsection
-
-
 @section('script')
 <script type="text/javascript">
 $(document).ready(function() {

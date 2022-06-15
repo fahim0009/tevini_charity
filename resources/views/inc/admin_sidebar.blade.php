@@ -37,6 +37,12 @@
                     Donor
                 </a>
             </li>
+            <li class="nav-item {{ (request()->is('admin/campaign*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('campaign') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Campaign
+                </a>
+            </li>
             <li class="nav-item {{ (request()->is('admin/charity*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('charitylist') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>

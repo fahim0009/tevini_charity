@@ -12,6 +12,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DonorController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -153,6 +154,13 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/donation/standing', [DonorController::class, 'donationStanding'])->name('donationstanding');
     Route::get('/donation/record', [DonorController::class, 'donationRecord'])->name('donationrecord');
     Route::post('/donation-status', [DonorController::class, 'donationStatus']);
+
+    // Campaign
+    Route::get('/campaign', [CampaignController::class, 'index'])->name('campaign');
+    Route::post('/add-campaign', [CampaignController::class, 'store'])->name('campaign.store');
+    Route::get('/edit-campaign/{id}/edit', [CampaignController::class, 'edit'])->name('campaign.edit');
+    Route::post('/edit-campaign/{id}', [CampaignController::class, 'update'])->name('campaign.update');
+    Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
 
 });
 // admin part end

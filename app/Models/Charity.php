@@ -33,4 +33,9 @@ class Charity extends Model
     {
       return $this->hasOne('App\Models\Usertransaction');
     }
+
+    public function campaign()
+    {
+      return $this->hasOne('App\Models\Campaign');
+    }
 }

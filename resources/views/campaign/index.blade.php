@@ -4,6 +4,8 @@
 
 
 
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
+
 <div class="rightSection">
 
     <div class="dashboard-content">
@@ -88,14 +90,16 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                
+                                @php
+                                $sl =0;
+                                @endphp
                                 @forelse ($data as $key => $item)
                                     <tr>
-                                        <td>{{ $key + 1}}</td>
+                                        <td>{{ $sl++}}</td>
                                         <td>{{$item->charity->name }}</td>
                                         <td>{{$item->campaign_title}}</td>
                                         <td>
-                                        
+                                    
                                         <a href="{{ route('campaign.edit', encrypt($item->id))}}"><i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i></a>
                                         <a id="deleteBtn" rid="{{$item->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
                                        
@@ -187,19 +191,16 @@ window.onload = (event) => {
         });
         // Delete
 
-
-        
-
-       
-
-      
-
-
     });
 
-
-
-
-
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
+<script>
+    $('#charity_id').select2({
+      width: '100%',
+      placeholder: "Select an Option",
+      allowClear: true
+    });
+  </script>
 @endsection

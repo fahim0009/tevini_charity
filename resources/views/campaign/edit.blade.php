@@ -2,7 +2,7 @@
 
 @section('content')
 
-
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
 
 <div class="rightSection">
 
@@ -61,12 +61,15 @@
 
 @section('script')
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
 <script>
-    $(document).ready(function () {
-
-
-
+    $('#charity_id').select2({
+      width: '100%',
+      placeholder: "Select an Option",
+      allowClear: true
     });
 
-</script>
+  </script>
+
 @endsection

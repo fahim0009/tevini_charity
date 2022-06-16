@@ -18,6 +18,8 @@ class CreateCampaignsTable extends Migration
             $table->bigInteger('charity_id')->unsigned()->nullable();
             $table->foreign('charity_id')->references('id')->on('charities')->onDelete('cascade');
             $table->string('campaign_title')->nullable();
+            $table->string('hash_code')->nullable();
+            $table->string('returen_url')->nullable();
             $table->double('amount',10,2)->nullable();
             $table->double('target_amount',10,2)->nullable();
             $table->double('gain_amount',10,2)->nullable();

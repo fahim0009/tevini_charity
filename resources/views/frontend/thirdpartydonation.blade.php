@@ -84,6 +84,23 @@
     <div class="container d-flex justify-content-center align-items-center">
         <div class="col-md-10 mx-auto">
             <div class="row">
+
+                @if(empty(\App\Models\Campaign::where('id',$aac_campaignid)->first()->campaign_title))
+
+                <div class="col-lg-12 col-md-12 d-flex justify-content-center">
+                    <div class="card bg-white rounded text-center d-flex align-items-center justify-content-center  p-5 w-100 shadow-lg "
+                        style="min-height: 300px ;">
+                        <div>
+                            <h1 class="display-4" style="color: red">ERROR</h1>
+                            <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Suscipit consectetur quia
+                                harum.</p>
+                        </div>
+                    </div>
+                </div>
+
+                @else
+
+                {{-- if link is ok  --}}
                 <div class="col-lg-6 col-md-12 position-relative">
                     <div class="px-3 pb-5">
                         <h2 class=" intro mb-0 text-white">
@@ -136,6 +153,8 @@
                         </div>
                     </form>
                 </div>
+                {{-- if link is ok end  --}}
+                @endif
 
             </div>
         </div>

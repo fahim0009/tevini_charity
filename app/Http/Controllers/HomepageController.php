@@ -94,7 +94,7 @@ class HomepageController extends Controller
 
         }else{
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
-            return response()->json(['status'=> 303,'message'=>$message]);
+            return response()->json(['status'=> 301,'message'=>$message]);
         }
     }
 

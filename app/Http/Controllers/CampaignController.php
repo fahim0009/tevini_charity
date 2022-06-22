@@ -17,14 +17,25 @@ class CampaignController extends Controller
 
     public function store(Request $request)
     {
-        // $this->validate($request,[
-        //     'title' => 'required',
-        //     'fname' => 'required',
-        // ]);
 
+
+        if(empty($request->charity_id)){
+            $message ="Please select charity";
+            return back()->with('message', $message);
+            exit();
+        }
+
+        if(empty($request->title)){
+            $message ="Please fill campaign title";
+            return back()->with('message', $message);
+            exit();
+        }
+        $secret = time();
         $data = new Campaign;
         $data->campaign_title = $request->title;
         $data->charity_id = $request->charity_id;
+        $data->status = "1";
+        $data->hash_code = hash_hmac("sha256", $secret, $request->title);
 
         if($data->save()){
 
@@ -69,6 +80,24 @@ class CampaignController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+    }
+
+
+    public function updateUrl(Request $request)
+    {
+
+        if(empty($request->campaignurl)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill url field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        $cmpn = Campaign::find($request->campaignid);
+        $cmpn->return_url = $request->campaignurl;
+        if($cmpn->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Overdrawn amount update successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
     }
 
 

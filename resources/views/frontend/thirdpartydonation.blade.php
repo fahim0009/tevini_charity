@@ -1,9 +1,6 @@
 @extends('frontend.layouts.master')
-
 @section('content')
-
 <style>
-
     .homeBanner {
         padding: 50px 0;
         background: linear-gradient(to bottom, #15569c 0%, #00a6e5 100%);
@@ -79,12 +76,9 @@
 
             $mhash = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt."&comment=".$comment;
             $dhash = hash_hmac("sha256", $mhash,"5c72d1");
-            echo $dhash."<br>";
-            echo "$hash";
+            // echo $dhash."<br>";
+            // echo "$hash";
             }
-
-
-
         @endphp
 <section class="homeBanner">
     <div class="container d-flex justify-content-center align-items-center">
@@ -93,13 +87,12 @@
                 <div class="col-lg-6 col-md-12 position-relative">
                     <div class="px-3 pb-5">
                         <h2 class=" intro mb-0 text-white">
-                            You are now completing your <br>
-                            donation to Help Taliban <br>
-                            Targets using funds in your <br>
-                            AAC account.
+                            You are now completing your
+                            donation to  {{\App\Models\Campaign::where('id',$aac_campaignid)->first()->campaign_title}} using funds in your
+                            Tevini account.
                         </h2>
-                        <h5 class="mt-3 tagline text-white">Charity: Manchester <br> Jewish Philanthropic</h4>
-                            <img src="./images/arrow.png" class="arrow" alt="">
+                        <h5 class="mt-3 tagline text-white">Charity: {{\App\Models\Charity::where('id',\App\Models\Campaign::where('id',$aac_campaignid)->first()->charity_id)->first()->name}}</h4>
+                        <img src="{{ asset('assets/image/arrow.png') }}" class="arrow" alt="">
                     </div>
                 </div>
 
@@ -152,16 +145,14 @@
 @endsection
 @section('script')
 <script>
-     $(document).ready(function () {
-
-
+ $(document).ready(function () {
  //header for csrf-token is must in laravel
  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
             //  make mail start
             var url = "{{URL::to('/api')}}";
+            var attemp_pass = 0;
             $("#apidonation").click(function(){
-
                     var acc= $("#acc").val();
                     var amt= $("#amt").val();
                     var aac_campaignid= $("#aac_campaignid").val();
@@ -176,6 +167,12 @@
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
+                            }else if(d.status == 301){
+                                $(".ermsg").html(d.message);
+                                attemp_pass+=1;
+                                if(attemp_pass == "3"){
+                                window.setTimeout(function(){location.reload()},2000)
+                                }
                             }else if(d.status == 300){
                                 $(".ermsg").html(d.message);
                                 window.setTimeout(function(){location.reload()},2000)

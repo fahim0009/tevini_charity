@@ -107,7 +107,7 @@
         <section class="px-4"  id="contentContainer">
             <div class="row my-3">
             <div class="ermsg"></div>
-            <div class="row  my-3 mx-0 "> 
+            <div class="row  my-3 mx-0 ">
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
                         <table class="table table-donor shadow-sm bg-white" id="example">
@@ -154,7 +154,7 @@
                                         <a class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" href="{{ route('topup',[$user->id,0]) }}" target="blank">
                                          <small>Top Up</small> </a>
                                        <div class="py-1 text-center">
-                                            <a href="{{ route('donor.profile', $user->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
+                                        <a href="{{ route('donor.profile', $user->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
                                         <a href="{{ route('donor.edit', encrypt($user->id))}}"><i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i></a>
                                         <a id="deleteBtn" rid="{{$user->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
                                        </div>
@@ -248,8 +248,8 @@ window.onload = (event) => {
 
 
     $(document).ready(function () {
-     
-       
+
+
 
         $("#addThisFormContainer").hide();
         $("#newBtn").click(function(){
@@ -333,7 +333,7 @@ window.onload = (event) => {
             });
 
         //add account to donor END
-        
+
         //add overdrawn
         $(".overdrawn").click(function(){
 		var overdrawnid = $(this).attr("overdrawn-id");
@@ -365,7 +365,7 @@ window.onload = (event) => {
 
         // overdrawn END
 
-      
+
 
 
     });

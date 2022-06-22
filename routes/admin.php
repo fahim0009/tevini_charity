@@ -161,6 +161,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/edit-campaign/{id}/edit', [CampaignController::class, 'edit'])->name('campaign.edit');
     Route::post('/edit-campaign/{id}', [CampaignController::class, 'update'])->name('campaign.update');
     Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
+    Route::post('/update-url', [CampaignController::class, 'updateUrl'])->name('updateurl');
 
 });
 // admin part end

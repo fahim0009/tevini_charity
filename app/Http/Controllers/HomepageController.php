@@ -79,14 +79,14 @@ class HomepageController extends Controller
             $utransaction->user_id = $donor_id;
             $utransaction->t_type = "Out";
             $utransaction->amount =  $request->amt;
-            $utransaction->title ="Third party donation";
+            $utransaction->title ="Online Campaign";
             $utransaction->status =  1;
             $utransaction->save();
 
             $user = User::find($donor_id);
             $user->decrement('balance',$request->amt);
 
-            $url = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt;
+            // $url = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt;
 
             $message ='<span id="msg" style="color: rgb(255, 0, 0);"> Donation complete successfully</span>';
             return response()->json(['status'=> 300,'message'=>$message]);

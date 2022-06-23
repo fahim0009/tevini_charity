@@ -66,16 +66,16 @@
     }
 </style>
         @php
-            if(isset($_GET["aac_campaignid"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
-               $aac_campaignid = $_GET["aac_campaignid"];
+            if(isset($_GET["tevini_campaignid"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
+               $tevini_campaignid = $_GET["tevini_campaignid"];
                 $acc = $_GET["acc"];
                 $amt = $_GET["amt"];
                 $comment = $_GET["comment"];
                 $charidy_hash = $_GET["hash"];
 
-                $campaign_dtls =\App\Models\Campaign::where('id',$aac_campaignid)->first();
+                $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
                 if(!empty($campaign_dtls)){
-                $mhash = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt."&comment=".$comment;
+                $mhash = "?tevini_campaignid=".$tevini_campaignid."&acc=".$acc."&amt=".$amt."&comment=".$comment;
                 $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
                 }
             // echo $dhash."<br>";
@@ -106,10 +106,10 @@
                     <div class="px-3 pb-5">
                         <h2 class=" intro mb-0 text-white">
                             You are now completing your
-                            donation to  {{\App\Models\Campaign::where('id',$aac_campaignid)->first()->campaign_title}} using funds in your
+                            donation to  {{\App\Models\Campaign::where('id',$tevini_campaignid)->first()->campaign_title}} using funds in your
                             Tevini account.
                         </h2>
-                        <h5 class="mt-3 tagline text-white">Charity: {{\App\Models\Charity::where('id',\App\Models\Campaign::where('id',$aac_campaignid)->first()->charity_id)->first()->name}}</h4>
+                        <h5 class="mt-3 tagline text-white">Charity: {{\App\Models\Charity::where('id',\App\Models\Campaign::where('id',$tevini_campaignid)->first()->charity_id)->first()->name}}</h4>
                         <img src="{{ asset('assets/image/arrow.png') }}" class="arrow" alt="">
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                                 Please allow up to one week for your donation to be processed.
                             </small>
 
-                            <input type="text" hidden id="aac_campaignid" value="{{$aac_campaignid}}">
+                            <input type="text" hidden id="tevini_campaignid" value="{{$tevini_campaignid}}">
                             <input type="text" hidden id="comment" value="{{$comment}}">
                             <input type="text" hidden id="hash" value="{{$charidy_hash}}">
 
@@ -175,7 +175,7 @@
             $("#apidonation").click(function(){
                     var acc= $("#acc").val();
                     var amt= $("#amt").val();
-                    var aac_campaignid= $("#aac_campaignid").val();
+                    var tevini_campaignid= $("#tevini_campaignid").val();
                     var comment= $("#comment").val();
                     var password= $("#password").val();
                     var hash= $("#hash").val();
@@ -183,7 +183,7 @@
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {acc,amt,aac_campaignid,comment,hash,password},
+                        data: {acc,amt,tevini_campaignid,comment,hash,password},
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);

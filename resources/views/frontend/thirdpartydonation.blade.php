@@ -67,15 +67,17 @@
 </style>
         @php
             if(isset($_GET["aac_campaignid"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
-
-                $aac_campaignid = $_GET["aac_campaignid"];
+               $aac_campaignid = $_GET["aac_campaignid"];
                 $acc = $_GET["acc"];
                 $amt = $_GET["amt"];
                 $comment = $_GET["comment"];
-                $hash = $_GET["hash"];
+                $charidy_hash = $_GET["hash"];
 
-            $mhash = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt."&comment=".$comment;
-            $dhash = hash_hmac("sha256", $mhash,"5c72d1");
+                $campaign_dtls =\App\Models\Campaign::where('id',$aac_campaignid)->first();
+                if(!empty($campaign_dtls)){
+                $mhash = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt."&comment=".$comment;
+                $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
+                }
             // echo $dhash."<br>";
             // echo "$hash";
             }
@@ -85,15 +87,14 @@
         <div class="col-md-10 mx-auto">
             <div class="row">
 
-                @if(empty(\App\Models\Campaign::where('id',$aac_campaignid)->first()->campaign_title))
+                @if(empty($campaign_dtls))
 
                 <div class="col-lg-12 col-md-12 d-flex justify-content-center">
                     <div class="card bg-white rounded text-center d-flex align-items-center justify-content-center  p-5 w-100 shadow-lg "
                         style="min-height: 300px ;">
                         <div>
                             <h1 class="display-4" style="color: red">ERROR</h1>
-                            <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Suscipit consectetur quia
-                                harum.</p>
+                            <p>Sorry, Invalid campaign id.</p>
                         </div>
                     </div>
                 </div>
@@ -145,7 +146,7 @@
 
                             <input type="text" hidden id="aac_campaignid" value="{{$aac_campaignid}}">
                             <input type="text" hidden id="comment" value="{{$comment}}">
-                            <input type="text" hidden id="hash" value="{{$hash}}">
+                            <input type="text" hidden id="hash" value="{{$charidy_hash}}">
 
                             <button type="button" id="apidonation" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">
                                 CONFIRM DONATION

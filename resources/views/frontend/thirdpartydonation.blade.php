@@ -68,6 +68,7 @@
         @php
             if(isset($_GET["tevini_campaignid"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
                $tevini_campaignid = $_GET["tevini_campaignid"];
+                $transid = $_GET["transid"];
                 $acc = $_GET["acc"];
                 $amt = $_GET["amt"];
                 $comment = $_GET["comment"];
@@ -75,10 +76,10 @@
 
                 $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
                 if(!empty($campaign_dtls)){
-                $mhash = "?tevini_campaignid=".$tevini_campaignid."&acc=".$acc."&amt=".$amt."&comment=".$comment;
+                $mhash = "?tevini_campaignid=".$tevini_campaignid."&transid=".$transid."&acc=".$acc."&amt=".$amt;
                 $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
                 }
-            // echo $dhash."<br>";
+            // echo $mhash."<br>";
             // echo "$hash";
             }
         @endphp
@@ -99,7 +100,7 @@
                     </div>
                 </div>
 
-                @else
+                @elseif (hash_equals($tevini_hash, $charidy_hash))
 
                 {{-- if link is ok  --}}
                 <div class="col-lg-6 col-md-12 position-relative">
@@ -145,6 +146,7 @@
                             </small>
 
                             <input type="text" hidden id="tevini_campaignid" value="{{$tevini_campaignid}}">
+                            <input type="text" hidden id="transid" value="{{$transid}}">
                             <input type="text" hidden id="comment" value="{{$comment}}">
                             <input type="text" hidden id="hash" value="{{$charidy_hash}}">
 
@@ -155,6 +157,16 @@
                     </form>
                 </div>
                 {{-- if link is ok end  --}}
+                @else
+                <div class="col-lg-12 col-md-12 d-flex justify-content-center">
+                    <div class="card bg-white rounded text-center d-flex align-items-center justify-content-center  p-5 w-100 shadow-lg "
+                        style="min-height: 300px ;">
+                        <div>
+                            <h1 class="display-4" style="color: red">ERROR</h1>
+                            <p>Sorry, Smonething went wrong.</p>
+                        </div>
+                    </div>
+                </div>
                 @endif
 
             </div>
@@ -173,6 +185,7 @@
             var url = "{{URL::to('/api')}}";
             var attemp_pass = 0;
             $("#apidonation").click(function(){
+                    var transid= $("#transid").val();
                     var acc= $("#acc").val();
                     var amt= $("#amt").val();
                     var tevini_campaignid= $("#tevini_campaignid").val();
@@ -183,7 +196,7 @@
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {acc,amt,tevini_campaignid,comment,hash,password},
+                        data: {transid,acc,amt,tevini_campaignid,comment,hash,password},
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use App\Models\User;
 use App\Models\Usertransaction;
+use App\Models\Campaign;
 
 class HomepageController extends Controller
 {
@@ -62,6 +63,8 @@ class HomepageController extends Controller
             exit();
         }
 
+        $campaign_dtls =Campaign::where('id',$request->tevini_campaignid)->first();
+       
         if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
         {
 
@@ -86,15 +89,26 @@ class HomepageController extends Controller
             $user = User::find($donor_id);
             $user->decrement('balance',$request->amt);
 
-            // $url = "?aac_campaignid=".$aac_campaignid."&acc=".$acc."&amt=".$amt;
+            $s_hash = "?tevini_campaignid=".$request->$tevini_campaignid."&transid=".$request->$transid."&acc=".$request->$acc."&amt=".$request->$amt."&intid=".$utransaction->id."&rtncode=1";
+
+            $tevini_hash1 = hash_hmac("sha256", $s_hash, $campaign_dtls->hash_code);
+
+            $success_url = $s_hash."&hash=".$tevini_hash1;
 
             $message ='<span id="msg" style="color: rgb(255, 0, 0);"> Donation complete successfully</span>';
-            return response()->json(['status'=> 300,'message'=>$message]);
+            return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
 
 
         }else{
+            
+            $us_hash = "?tevini_campaignid=".$request->$tevini_campaignid."&transid=".$request->$transid."&acc=".$request->$acc."&amt=".$request->$amt."&intid=".$utransaction->id."&rtncode=0";
+
+            $tevini_hash2 = hash_hmac("sha256", $us_hash, $campaign_dtls->hash_code);
+
+            $unsuccess_url = $us_hash."&hash=".$tevini_hash2;
+
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
-            return response()->json(['status'=> 301,'message'=>$message]);
+            return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);
         }
     }
 

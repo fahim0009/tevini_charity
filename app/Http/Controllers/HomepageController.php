@@ -93,7 +93,7 @@ class HomepageController extends Controller
             $ch = Charity::find($campaign_dtls->charity_id);
             $ch->increment('balance',$request->amt);
 
-            $s_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$utransaction->id."&rtncode=1";
+            $s_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
 
             $tevini_hash1 = hash_hmac("sha256", $s_hash, $campaign_dtls->hash_code);
 
@@ -107,7 +107,7 @@ class HomepageController extends Controller
 
             $user_tran = time();
 
-            $us_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$user_tran."&rtncode=0";
+            $us_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$user_tran."&rtncode=1";
 
             $tevini_hash2 = hash_hmac("sha256", $us_hash, $campaign_dtls->hash_code);
 

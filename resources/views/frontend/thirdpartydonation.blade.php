@@ -1,6 +1,25 @@
 @extends('frontend.layouts.master')
 @section('content')
 <style>
+    /*loader css*/
+        #loading {
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0.7;
+        background-color: #fff;
+        z-index: 99;
+        }
+
+        #loading-image {
+        z-index: 100;
+        }
+
     .homeBanner {
         padding: 50px 0;
         background: linear-gradient(to bottom, #15569c 0%, #00a6e5 100%);
@@ -26,10 +45,6 @@
         }
 
     }
-
-    .cursor_wait {
-        cursor: wait;
-        }
 
     .homeBanner .arrow {
         position: absolute;
@@ -90,8 +105,12 @@
 <section class="homeBanner">
     <div class="container d-flex justify-content-center align-items-center">
         <div class="col-md-10 mx-auto">
+    <!-- Image loader -->
+        <div id='loading' style='display:none ;'>
+            <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+       </div>
+     <!-- Image loader -->
             <div class="row">
-
                 @if(empty($campaign_dtls))
 
                 <div class="col-lg-12 col-md-12 d-flex justify-content-center">
@@ -191,8 +210,8 @@
             var attemp_pass = 0;
             $("#apidonation").click(function(){
 
-                    $('#apidonation').addClass('cursor_wait');
                     $("#apidonation").prop('disabled', true);
+                    $("#loading").show();
 
                     var transid= $("#transid").val();
                     var acc= $("#acc").val();
@@ -210,15 +229,19 @@
 
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
+                                $("#loading").hide();
                                 $("#apidonation").prop('disabled', false);
                             }else if(d.status == 301){
+                                $("#loading").hide();
                                 $(".ermsg").html(d.message);
                                 attemp_pass+=1;
                                 if(attemp_pass == "3"){
-                                window.setTimeout(function(){window.location.replace(d.url)},2000)
+                                $("#loading").show();
+                                window.setTimeout(function(){window.location.replace(d.url)},1000)
                                 }
                                 $("#apidonation").prop('disabled', false);
                             }else if(d.status == 300){
+                                $("#loading").hide();
                                 $(".ermsg").html(d.message);
                                 window.setTimeout(function(){window.location.replace(d.url)},2000)
                             }

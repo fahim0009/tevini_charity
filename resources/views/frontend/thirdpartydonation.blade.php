@@ -27,6 +27,10 @@
 
     }
 
+    .cursor_wait {
+        cursor: wait;
+        }
+
     .homeBanner .arrow {
         position: absolute;
         bottom: 36%;
@@ -150,9 +154,8 @@
                             <input type="text" hidden id="comment" value="{{$comment}}">
                             <input type="text" hidden id="hash" value="{{$charidy_hash}}">
 
-                            <button type="button" id="apidonation" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">
-                                CONFIRM DONATION
-                            </button>
+                            <input type="button" id="apidonation" value="CONFIRM DONATION" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">
+                                                           
                         </div>
                     </form>
                 </div>
@@ -178,6 +181,8 @@
 @section('script')
 <script>
  $(document).ready(function () {
+
+    
  //header for csrf-token is must in laravel
  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
@@ -185,6 +190,10 @@
             var url = "{{URL::to('/api')}}";
             var attemp_pass = 0;
             $("#apidonation").click(function(){
+
+                    $('#apidonation').addClass('cursor_wait');
+                    $("#apidonation").prop('disabled', true);
+
                     var transid= $("#transid").val();
                     var acc= $("#acc").val();
                     var amt= $("#amt").val();
@@ -198,15 +207,17 @@
                         method: "POST",
                         data: {transid,acc,amt,tevini_campaignid,comment,hash,password},
                         success: function (d) {
-                            console.log(d.url);
+
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
+                                $("#apidonation").prop('disabled', false);
                             }else if(d.status == 301){
                                 $(".ermsg").html(d.message);
                                 attemp_pass+=1;
                                 if(attemp_pass == "3"){
                                 window.setTimeout(function(){window.location.replace(d.url)},2000)
                                 }
+                                $("#apidonation").prop('disabled', false);
                             }else if(d.status == 300){
                                 $(".ermsg").html(d.message);
                                 window.setTimeout(function(){window.location.replace(d.url)},2000)

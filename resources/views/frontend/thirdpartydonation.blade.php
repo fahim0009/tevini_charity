@@ -204,11 +204,11 @@
                                 $(".ermsg").html(d.message);
                                 attemp_pass+=1;
                                 if(attemp_pass == "3"){
-                                window.setTimeout(function(){location.reload()},2000)
+                                window.setTimeout(function(){location.reload(d.url)},2000)
                                 }
                             }else if(d.status == 300){
                                 $(".ermsg").html(d.message);
-                                window.setTimeout(function(){location.reload()},2000)
+                                window.setTimeout(function(){location.reload(d.url)},2000)
                             }
                         },
                         error: function (d) {

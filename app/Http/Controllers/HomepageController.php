@@ -64,7 +64,7 @@ class HomepageController extends Controller
         }
 
         $campaign_dtls =Campaign::where('id',$request->tevini_campaignid)->first();
-       
+
         if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
         {
 
@@ -89,23 +89,23 @@ class HomepageController extends Controller
             $user = User::find($donor_id);
             $user->decrement('balance',$request->amt);
 
-            $s_hash = "?tevini_campaignid=".$request->$tevini_campaignid."&transid=".$request->$transid."&acc=".$request->$acc."&amt=".$request->$amt."&intid=".$utransaction->id."&rtncode=1";
+            $s_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->$transid."&acc=".$request->$acc."&amt=".$request->$amt."&intid=".$utransaction->id."&rtncode=1";
 
             $tevini_hash1 = hash_hmac("sha256", $s_hash, $campaign_dtls->hash_code);
 
-            $success_url = $s_hash."&hash=".$tevini_hash1;
+            $success_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$s_hash."&hash=".$tevini_hash1;
 
             $message ='<span id="msg" style="color: rgb(255, 0, 0);"> Donation complete successfully</span>';
             return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
 
 
         }else{
-            
-            $us_hash = "?tevini_campaignid=".$request->$tevini_campaignid."&transid=".$request->$transid."&acc=".$request->$acc."&amt=".$request->$amt."&intid=".$utransaction->id."&rtncode=0";
+
+            $us_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->$transid."&acc=".$request->$acc."&amt=".$request->$amt."&intid=".$utransaction->id."&rtncode=0";
 
             $tevini_hash2 = hash_hmac("sha256", $us_hash, $campaign_dtls->hash_code);
 
-            $unsuccess_url = $us_hash."&hash=".$tevini_hash2;
+            $unsuccess_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$us_hash."&hash=".$tevini_hash2;
 
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
             return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);

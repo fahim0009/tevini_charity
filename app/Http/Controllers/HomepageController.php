@@ -83,7 +83,8 @@ class HomepageController extends Controller
             $utransaction->user_id = $donor_id;
             $utransaction->t_type = "Out";
             $utransaction->amount =  $request->amt;
-            $utransaction->title ="Online Campaign";
+            $utransaction->note =  $request->comment;
+            $utransaction->title ="Online Campaign (".$campaign_dtls->campaign_title.")";
             $utransaction->status =  1;
             $utransaction->save();
 
@@ -99,7 +100,7 @@ class HomepageController extends Controller
 
             $success_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$s_hash."&hash=".$tevini_hash1;
 
-            $message ='<span id="msg" style="color: rgb(0,128,0);"> Donation complete successfully</span>';
+            $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
             return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
 
 
@@ -117,11 +118,5 @@ class HomepageController extends Controller
             return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);
         }
     }
-
-
-
-
-
-
 
 }

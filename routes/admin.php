@@ -138,6 +138,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/pending-voucher', [OrderController::class, 'pendingVoucher'])->name('pendingvoucher');
     Route::post('/voucher-status', [OrderController::class, 'voucherStatus']);
     Route::get('/single-order/{id}', [OrderController::class, 'singleOrder'])->name('singleorder');
+    Route::get('/barcode/{id}', [OrderController::class, 'barcode'])->name('barcode');
     Route::post('/find-name', [OrderController::class, 'findName']);
 
     //order
@@ -145,6 +146,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/order/new', [OrderController::class, 'newOrder'])->name('neworder');
     Route::get('/order/complete', [OrderController::class, 'completeOrder'])->name('completeorder');
     Route::get('/order/cencle', [OrderController::class, 'cancelOrder'])->name('cancelorder');
+    Route::post('/add-start-barcode', [OrderController::class, 'addStartBarcode']);
+    Route::post('/add-end-barcode', [OrderController::class, 'addEndBarcode']);
 
     // commission
     Route::get('/commission', [OrderController::class, 'commission'])->name('commission');

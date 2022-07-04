@@ -63,6 +63,7 @@
                                             <th>Donor Name</th>
                                             <th>Amount</th>
                                             <th>Status</th>
+                                            <th>Barcode</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -83,6 +84,7 @@
                                                 Cancel
                                                 @endif
                                             </td>
+                                            <td><a href="{{ route('barcode',$order->id) }}"> <i class="fa fa-eye"></i></a></td>
                                             <td><a href="{{ route('singleorder',$order->id) }}"> <i class="fa fa-eye"></i></a></td>
                                         </tr>
                                         @empty

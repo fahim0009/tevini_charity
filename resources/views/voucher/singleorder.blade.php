@@ -9,6 +9,11 @@
             <div class="mx-2">Voucher </div>
         </div>
     </section>
+    <section class="profile purchase-status">
+        <div class="title-section">
+            <a href="{{route('neworder')}}"  class="btn btn-info">back</a>
+        </div>
+    </section>
     <section class="px-4">
         <div class="ermsg"></div>
         <div class="row my-3">

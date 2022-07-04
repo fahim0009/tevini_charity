@@ -346,6 +346,38 @@ class OrderController extends Controller
 
     }
 
+    public function addStartBarcode(Request $request)
+    {
+        if(empty($request->startbarcode)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please start barcode fill field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        $user = OrderHistory::find($request->orderhisid);
+        $user->startbarcode = $request->startbarcode;
+        if($user->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
+    public function addEndBarcode(Request $request)
+    {
+        if(empty($request->endbarcode)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please end barcode fill field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        $user = OrderHistory::find($request->orderhisid);
+        $user->endbarcode = $request->endbarcode;
+        if($user->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>End Barcode added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
 
 
     public function processVoucher()
@@ -393,6 +425,24 @@ class OrderController extends Controller
         $orderDtls = OrderHistory::where('order_id',  $id)->get();
 
         return view('voucher.singleorder')
+        ->with('user',$user)
+        ->with('order',$order)
+        ->with('orderDtls',$orderDtls);
+
+    }
+
+    public function barcode($id)
+    {
+
+        $order = Order::where('id',$id)->first();
+
+        $user_id = $order->user_id;
+
+        $user = User::where('id','=', $user_id)->first();
+
+        $orderDtls = OrderHistory::where('order_id',  $id)->get();
+
+        return view('voucher.barcode')
         ->with('user',$user)
         ->with('order',$order)
         ->with('orderDtls',$orderDtls);

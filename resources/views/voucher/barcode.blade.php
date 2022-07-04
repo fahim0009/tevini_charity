@@ -27,19 +27,14 @@
                     </div>
                     <div class="text-start text-muted mb-4">
                         <p class="mb-1">Order date: {{$order->created_at}}</p>
-                        <p class="mb-1 d-flex align-items-center">Status:
-                            {{-- <select name="" id="" class="ms-2 form-control" @if($order->status == "3") disabled @endif>
-                                <option value="0" @if($order->status == "0") selected @endif>Pending</option>
-                                <option value="1" @if($order->status == "1") selected @endif>Complete</option>
-                                <option value="3" @if($order->status == "3") selected @endif>Cancel</option>
-                            </select> --}}
-                            <input type="text" class="ms-2 form-control" value="@if($order->status == "0")
+                        <p>Status:
+                              @if($order->status == "0")
                             Pending
                             @elseif ($order->status == "1")
                             Complete
                             @else
                             Cancel
-                            @endif" readonly>
+                            @endif
                         </p>
 
                     </div>
@@ -90,7 +85,7 @@
                             </tr>
                             @endforeach
 
-                        
+
 
                         </tbody>
                     </table>
@@ -199,7 +194,7 @@ $('select').on('change', function() {
 
   });
 
-            //add start barcode 
+        //add start barcode
         var starturl = "{{URL::to('/admin/add-start-barcode')}}";
         $("#addStartBtn").click(function(){
         var orderhisid= $("#orderhisid").val();
@@ -224,10 +219,10 @@ $('select').on('change', function() {
 
     });
 
-        //add start barcode END
+        //add startbarcode END
 
-            //add end barcode 
-            var endurl = "{{URL::to('/admin/add-end-barcode')}}";
+        //add endbarcode
+        var endurl = "{{URL::to('/admin/add-end-barcode')}}";
         $("#addEndBtn").click(function(){
         var orderhisid= $("#orderhisid2").val();
         var endbarcode = $("#endbarcode").val();

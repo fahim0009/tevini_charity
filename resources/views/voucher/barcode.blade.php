@@ -62,7 +62,7 @@
                                     <td>{{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)({{ $orderDtl->voucher->note }}) @endif</td>
                                     <td>
                                         @if($orderDtl->startbarcode)
-                                            {{$orderDtl->startbarcode}}
+                                        {!! DNS1D::getBarcodeHTML($orderDtl->startbarcode, 'PHARMA') !!}
                                         @else
                                         <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             add
@@ -71,7 +71,7 @@
                                     </td>
                                     <td>
                                         @if($orderDtl->endbarcode)
-                                        {{$orderDtl->endbarcode}}
+                                        {!! DNS1D::getBarcodeHTML($orderDtl->endbarcode, 'PHARMA') !!}
                                         @else
                                         <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary acc2" data-bs-toggle="modal" data-bs-target="#exampleModal2">
                                             add
@@ -247,9 +247,6 @@ $('select').on('change', function() {
     });
 
         //add start barcode END
-
-
-
 });
 </script>
 @endsection

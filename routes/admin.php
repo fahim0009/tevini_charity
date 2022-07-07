@@ -140,6 +140,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/single-order/{id}', [OrderController::class, 'singleOrder'])->name('singleorder');
     Route::get('/barcode/{id}', [OrderController::class, 'barcode'])->name('barcode');
     Route::post('/find-name', [OrderController::class, 'findName']);
+    Route::post('/barcode', [OrderController::class, 'getbarCode']);
 
     //order
     Route::post('/order-status', [OrderController::class, 'orderStatus']);

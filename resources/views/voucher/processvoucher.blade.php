@@ -1,8 +1,6 @@
 @extends('layouts.admin')
-
 @section('content')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
-
     <div class="dashboard-content">
         <section class="profile purchase-status">
             <div class="title-section">
@@ -39,7 +37,7 @@
                                             </select>
                                         </td>
                                         <td width="150px">
-                                                <input class="form-control donor" name="donor_acc[]"  placeholder="Type Acc no...">
+                                            <input class="form-control donor" name="donor_acc[]"  placeholder="Type Acc no...">
                                         </td>
                                         <td width="200px">
                                             <input style="min-width: 50px;"  type="text" readonly class="form-control donorAcc" value>
@@ -48,7 +46,6 @@
                                         <td width="100px">
                                             <input style="min-width: 100px;" name="check[]" type="text" class="form-control" value>
                                         </td>
-                                        
                                         {{-- <td width="150px">
                                             <select name="v_type[]" class="form-control">
                                                 <option value="Prepaid">Prepaid</option>
@@ -63,7 +60,6 @@
                                             <input style="min-width: 200px;" name="note[]" type="text" class="form-control" value>
                                         </td>
                                     </tr>
-
                                 </tbody>
                                 <tr>
                                     <td colspan="3">
@@ -87,6 +83,15 @@
                                 </tr>
                             </table>
 
+                            {{-- <div>
+                                <div class="row">
+                                    <div class="col-md-3">Barcode</div>
+                                    <div class="col-md-4">
+                                        <input style="min-width: 200px;" id="barcode"  type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div> --}}
+
                         </div>
                     </div>
                 </div>
@@ -104,7 +109,7 @@
       allowClear: true
     });
   </script>
-  
+
     <script type="text/javascript">
         $(function() {
             $('[data-toggle="tooltip"]').tooltip()
@@ -203,6 +208,36 @@
                 });
 
                 });
+
+
+            // get barcode data
+        var urlbr = "{{URL::to('/admin/barcode')}}";
+        $("body").delegate("#barcode","keyup",function(event){
+		            event.preventDefault();
+                    var barcode = $(this).val();
+                    // var row = $(this).parents('.item-row');
+
+                    $.ajax({
+                    url: urlbr,
+                    method: "POST",
+                    data: {barcode:barcode},
+
+                    success: function (d) {
+                        console.log(d);
+                        if (d.status == 303) {
+
+                        }else if(d.status == 300){
+
+
+                        }
+                    },
+                    error: function (d) {
+                        console.log(d);
+                    }
+                });
+
+                });
+
 
 
                 $("body").delegate(".amount","keyup",function(event){

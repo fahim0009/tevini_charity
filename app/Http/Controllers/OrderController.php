@@ -466,10 +466,34 @@ class OrderController extends Controller
             $donorid = $u->id;
         }
 
-
         return response()->json(['status'=> 300,'donorname'=>$donorname, 'donorid'=>$donorid]);
 
     }
+
+    //barcode
+    public function getbarCode(Request $request)
+    {
+
+        $orderDtl = OrderHistory::where([
+            ['startbarcode', '<=', $request->barcode],
+            ['endbarcode', '>=', $request->barcode]
+        ])->first();
+
+        // $orderDtl = OrderHistory::where('startbarcode', '<=', $request->barcode)->where('endbarcode', '>=', $request->barcode)->first();
+
+
+        if(empty($orderDtl)){
+
+            return response()->json(['status'=> 303,'message'=>"No data found"]);
+
+        }else{
+
+            return response()->json(['status'=> 300,'donorname'=>$orderDtl->order->user->name, 'donoracc'=>$orderDtl->order->user->accountno, 'amount'=>$orderDtl->amount ]);
+
+        }
+
+    }
+
 
     public function voucherStatus(Request $request)
     {

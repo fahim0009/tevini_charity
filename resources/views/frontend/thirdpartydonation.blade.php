@@ -1,4 +1,4 @@
-@extends('frontend.layouts.master')
+@extends('frontend.layouts.apimaster')
 @section('content')
 <style>
     /*loader css*/
@@ -174,7 +174,7 @@
                             <input type="text" hidden id="hash" value="{{$charidy_hash}}">
 
                             <input type="button" id="apidonation" value="CONFIRM DONATION" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">
-                                                           
+
                         </div>
                     </form>
                 </div>
@@ -201,9 +201,9 @@
 <script>
  $(document).ready(function () {
 
-    
+
  //header for csrf-token is must in laravel
- $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+//  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
             //  make mail start
             var url = "{{URL::to('/api')}}";

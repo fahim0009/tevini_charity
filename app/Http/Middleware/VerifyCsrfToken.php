@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        'https://www.tevini.co.uk//api'
+        'https://www.tevini.co.uk/api'
     ];
 }

@@ -80,6 +80,11 @@ class User extends Authenticatable
       return $this->hasOne('App\Models\Order');
     }
 
+    public function barcode()
+    {
+      return $this->hasOne('App\Models\Barcode');
+    }
+
     public function donation()
     {
       return $this->hasOne('App\Models\Donation');

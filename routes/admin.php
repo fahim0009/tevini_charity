@@ -148,7 +148,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/order/complete', [OrderController::class, 'completeOrder'])->name('completeorder');
     Route::get('/order/cencle', [OrderController::class, 'cancelOrder'])->name('cancelorder');
     Route::post('/add-start-barcode', [OrderController::class, 'addStartBarcode']);
-    Route::post('/add-end-barcode', [OrderController::class, 'addEndBarcode']);
+    Route::post('/add-pages', [OrderController::class, 'addNumberofpage']);
 
     // commission
     Route::get('/commission', [OrderController::class, 'commission'])->name('commission');

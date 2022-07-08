@@ -362,16 +362,16 @@ class OrderController extends Controller
 
     }
 
-    public function addEndBarcode(Request $request)
+    public function addNumberofpage(Request $request)
     {
-        if(empty($request->endbarcode)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please end barcode fill field.</b></div>";
+        if(empty($request->pages)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill pages field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
-        $user = OrderHistory::find($request->orderhisid);
-        $user->endbarcode = $request->endbarcode;
-        if($user->save()){
+        $padd = OrderHistory::find($request->orderhisid);
+        $padd->total_page = $request->pages;
+        if($padd->save()){
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>End Barcode added successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }

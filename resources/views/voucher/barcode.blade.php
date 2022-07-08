@@ -1,5 +1,4 @@
 @extends('layouts.admin')
-
 @section('content')
 <div class="dashboard-content">
     <div class="container">
@@ -47,7 +46,7 @@
                                 <th>Sl</th>
                                 <th>Voucher Type</th>
                                 <th>Start Barcode</th>
-                                <th>End Barcode</th>
+                                <th>Number of pages</th>
                                 <th>Qty</th>
                                 <th>Price </th>
                                 <th>Total </th>
@@ -64,16 +63,16 @@
                                         @if($orderDtl->startbarcode)
                                         {!! DNS1D::getBarcodeHTML($orderDtl->startbarcode, 'PHARMA') !!}
                                         @else
-                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             add
                                         </button>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($orderDtl->endbarcode)
-                                        {!! DNS1D::getBarcodeHTML($orderDtl->endbarcode, 'PHARMA') !!}
+                                        @if($orderDtl->total_page)
+                                        {{ $orderDtl->total_page }}
                                         @else
-                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary acc2" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc2" data-bs-toggle="modal" data-bs-target="#exampleModal2">
                                             add
                                         </button>
                                         @endif
@@ -84,8 +83,6 @@
 
                             </tr>
                             @endforeach
-
-
 
                         </tbody>
                     </table>
@@ -127,15 +124,16 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Add End Barcode </h5>
+              <h5 class="modal-title" id="exampleModalLabel">Number of pages </h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="ermsg"></div>
                 <div class="mb-3">
-                    <label for="endbarcode" class="form-label">Start Barcode</label>
-                    <input type="text" class="form-control" id="endbarcode">
+                    <label for="endbarcode" class="form-label">Pages</label>
+                    <input type="text" class="form-control" id="pages">
                     <input type="hidden" class="form-control" value="" id="orderhisid2">
+                    <input type="hidden" class="form-control" value="{{ $user->id }}" id="user_id">
                 </div>
             </div>
             <div class="modal-footer">
@@ -169,41 +167,17 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         $('#orderhisid2').val(orderid);
     });
 
-var url = "{{URL::to('/admin/order-status')}}";
-
-$('select').on('change', function() {
-    var status =  this.value;
-    var orderId = {!! json_encode($order->id) !!};
-
-    $.ajax({
-            url: url,
-            method: "POST",
-            data: {status,orderId},
-
-            success: function (d) {
-                if (d.status == 303) {
-                }else if(d.status == 300){
-                    $(".ermsg").html(d.message);
-                    window.setTimeout(function(){location.reload()},500)
-                }
-            },
-            error: function (d) {
-                console.log(d);
-            }
-        });
-
-  });
-
         //add start barcode
         var starturl = "{{URL::to('/admin/add-start-barcode')}}";
         $("#addStartBtn").click(function(){
         var orderhisid= $("#orderhisid").val();
         var startbarcode = $("#startbarcode").val();
+        var user_id = $("#user_id").val();
 
         $.ajax({
             url: starturl,
             method: "POST",
-            data: {orderhisid:orderhisid,startbarcode:startbarcode},
+            data: {orderhisid,startbarcode},
             success: function (d) {
                 if (d.status == 303) {
                     $(".ermsg").html(d.message);
@@ -219,18 +193,19 @@ $('select').on('change', function() {
 
     });
 
-        //add startbarcode END
+      //add startbarcode END
 
-        //add endbarcode
-        var endurl = "{{URL::to('/admin/add-end-barcode')}}";
+        //add number of pages
+        var endurl = "{{URL::to('/admin/add-pages')}}";
         $("#addEndBtn").click(function(){
         var orderhisid= $("#orderhisid2").val();
-        var endbarcode = $("#endbarcode").val();
+        var pages = $("#pages").val();
+        var user_id = $("#user_id").val();
 
         $.ajax({
             url: endurl,
             method: "POST",
-            data: {orderhisid:orderhisid,endbarcode:endbarcode},
+            data: {orderhisid,pages,user_id},
             success: function (d) {
                 if (d.status == 303) {
                     $(".ermsg").html(d.message);

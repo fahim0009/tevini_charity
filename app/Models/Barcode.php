@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Order extends Model
+class Barcode extends Model
 {
     use HasFactory;
 
@@ -14,8 +14,8 @@ class Order extends Model
         return $this->belongsTo('App\Models\User');
     }
 
-      public function orderhistory()
+    public function orderhistory()
     {
-      return $this->hasOne('App\Models\OrderHistory');
+        return $this->belongsTo('App\Models\OrderHistory');
     }
 }

@@ -1,4 +1,4 @@
-@extends('frontend.layouts.apimaster')
+@extends('frontend.layouts.master')
 @section('content')
 <style>
     /*loader css*/
@@ -200,6 +200,11 @@
 @section('script')
 <script>
  $(document).ready(function () {
+
+
+ //header for csrf-token is must in laravel
+ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+
             //  make mail start
             var url = "{{URL::to('/api')}}";
             var attemp_pass = 0;
@@ -219,10 +224,7 @@
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {
-                            "_token": "{{ csrf_token() }}",
-                            transid,acc,amt,tevini_campaignid,comment,hash,password
-                        },
+                        data: {transid,acc,amt,tevini_campaignid,comment,hash,password},
                         success: function (d) {
 
                             if (d.status == 303) {

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\Barcode;
 use App\Models\OrderHistory;
 use App\Models\Voucher;
 use App\Models\Charity;
@@ -346,37 +347,6 @@ class OrderController extends Controller
 
     }
 
-    public function addStartBarcode(Request $request)
-    {
-        if(empty($request->startbarcode)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please start barcode fill field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        $user = OrderHistory::find($request->orderhisid);
-        $user->startbarcode = $request->startbarcode;
-        if($user->save()){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
-
-    }
-
-    public function addNumberofpage(Request $request)
-    {
-        if(empty($request->pages)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill pages field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        $padd = OrderHistory::find($request->orderhisid);
-        $padd->total_page = $request->pages;
-        if($padd->save()){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>End Barcode added successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
-
-    }
 
 
 
@@ -431,6 +401,72 @@ class OrderController extends Controller
 
     }
 
+    public function addStartBarcode(Request $request)
+    {
+        if(empty($request->startbarcode)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please start barcode fill field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        $user = OrderHistory::find($request->orderhisid);
+        $user->startbarcode = $request->startbarcode;
+        if($user->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
+    public function addNumberofpage(Request $request)
+    {
+
+        $number_pages = $request->pages;
+
+        if(empty($number_pages)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill pages field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $order_history = OrderHistory::where('id','=', $request->orderhisid)->first();
+
+        $startbarcode = $order_history->startbarcode;
+        $single_vamount = $order_history->voucher->single_amount;
+
+        if(empty($startbarcode)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please add start Start Barcode first.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+
+        $endbarcode = $startbarcode + $number_pages;
+
+        $padd = OrderHistory::find($request->orderhisid);
+        $padd->total_page = $number_pages;
+        if($padd->save()){
+
+            for($x = $startbarcode; $x < $endbarcode; $x++)
+            {
+
+
+                $addbarcode = new Barcode();
+                $addbarcode->orderhistory_id = $request->orderhisid;
+                $addbarcode->user_id = $request->user_id;
+                $addbarcode->barcode = $x;
+                $addbarcode->amount = $single_vamount;
+                $addbarcode->save();
+
+
+           }
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Number of pages added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
+
     public function barcode($id)
     {
 
@@ -470,30 +506,23 @@ class OrderController extends Controller
 
     }
 
-    //barcode
-    public function getbarCode(Request $request)
-    {
+        //get data using barcode
+        public function getbarCode(Request $request)
+        {
 
-        $orderDtl = OrderHistory::where([
-            ['startbarcode', '<=', $request->barcode],
-            ['endbarcode', '>=', $request->barcode]
-        ])->first();
+            $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
 
-        // $orderDtl = OrderHistory::where('startbarcode', '<=', $request->barcode)->where('endbarcode', '>=', $request->barcode)->first();
+            if(empty($orderDtl)){
 
+                return response()->json(['status'=> 303,'message'=>"No data found"]);
 
-        if(empty($orderDtl)){
+            }else{
 
-            return response()->json(['status'=> 303,'message'=>"No data found"]);
+                return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount ]);
 
-        }else{
-
-            return response()->json(['status'=> 300,'donorname'=>$orderDtl->order->user->name, 'donoracc'=>$orderDtl->order->user->accountno, 'amount'=>$orderDtl->amount ]);
+            }
 
         }
-
-    }
-
 
     public function voucherStatus(Request $request)
     {

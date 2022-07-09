@@ -62,6 +62,8 @@
                                     <td>
                                         @if($orderDtl->startbarcode)
                                         {!! DNS1D::getBarcodeHTML($orderDtl->startbarcode, 'PHARMA') !!}
+                                        <br>
+                                        <span style="margin: -20px 0px 0px 30px">{{$orderDtl->startbarcode}}</span>
                                         @else
                                         <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             add
@@ -173,7 +175,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         var orderhisid= $("#orderhisid").val();
         var startbarcode = $("#startbarcode").val();
         var user_id = $("#user_id").val();
-
+        console.log(user_id);
         $.ajax({
             url: starturl,
             method: "POST",
@@ -201,7 +203,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         var orderhisid= $("#orderhisid2").val();
         var pages = $("#pages").val();
         var user_id = $("#user_id").val();
-
+            // console.log(user_id);
         $.ajax({
             url: endurl,
             method: "POST",

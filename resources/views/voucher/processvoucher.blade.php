@@ -205,14 +205,13 @@
 
         $("body").on("blur","input", function()
         {
-            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note")) {
+            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note") && !clicked.is(".select2-search__field")) {
                 $("#barcode").focus();
             }
         })
 
         //focus onload
         $("#barcode").focus();
-
         // get barcode data
         var urlbr = "{{URL::to('/admin/barcode')}}";
             $("#barcode").change(function(){
@@ -224,6 +223,7 @@
                     data: {barcode:barcode},
 
                     success: function (d) {
+                        console.log(d);
                         if (d.status == 303) {
 
                         }else if(d.status == 300){
@@ -233,6 +233,7 @@
                         $("table #inner ").append(markup);
 
                         $("#barcode").val("");
+                        net_total();
                         }
                     },
                     error: function (d) {

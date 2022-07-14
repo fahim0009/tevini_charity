@@ -77,7 +77,7 @@
                             </table>
 
                             <div>
-                                <div class="row" style="opacity: ">
+                                <div class="row" style="opacity:0">
                                     <div class="col-md-1">
                                         <input style="min-width: 200px;" id="barcode"  type="text" class="form-control">
                                     </div>
@@ -190,7 +190,7 @@
                 });
 
                 });
-// foucs when click anywhere
+        // foucs when click anywhere
         $(document).on("mousedown", function(e) {
             clicked = $(e.target);
         })
@@ -201,6 +201,10 @@
                 $("#barcode").focus();
             }
         })
+
+        $('#charity_list').on("select2:selecting", function(e) { 
+            $("#barcode").focus();
+        });
 
         //focus onload
         $("#barcode").focus();

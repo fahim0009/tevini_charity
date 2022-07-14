@@ -77,7 +77,7 @@
                             </table>
 
                             <div>
-                                <div class="row" style="opacity: 0">
+                                <div class="row" style="opacity: ">
                                     <div class="col-md-1">
                                         <input style="min-width: 200px;" id="barcode"  type="text" class="form-control">
                                     </div>
@@ -102,33 +102,28 @@
     });
   </script>
 
-    <script type="text/javascript">
-        $(function() {
-            $('[data-toggle="tooltip"]').tooltip()
-        })
+<script type="text/javascript">
+    $(function() {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
 
-        function removeRow(event) {
-             event.target.parentElement.parentElement.remove();
-        }
-    </script>
+    function removeRow(event) {
+            event.target.parentElement.parentElement.remove();
+    }
+</script>
     <script type="text/javascript">
-
         $(document).ready(function() {
-
             $(".add-row").click(function() {
                 var markup =
                     '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="150px"><input class="form-control donor" name="donor_acc[]" placeholder="Type Acc no..."></td><td width="200px"><input style="min-width:50px" type="text" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" class="donorid" value></td><td width="100px"><input style="min-width:100px" name="check[]" type="text" class="check form-control" value></td> <td width="40px"><input style="min-width:30px" name="amount[]" type="text" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td></tr>';
                 $("table #inner ").append(markup);
             });
 
-
-
         //header for csrf-token is must in laravel
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
         //
 
         var url = "{{URL::to('/admin/pvoucher-store')}}";
-
 
         $("#addvoucher").click(function(){
 
@@ -142,9 +137,6 @@
 
             var chqNos = $("input[name='check[]']")
               .map(function(){return $(this).val();}).get();
-
-            // var vTyps = $("select[name='v_type[]']")
-            //   .map(function(){return $(this).val();}).get();
 
             var amts = $("input[name='amount[]']")
               .map(function(){return $(this).val();}).get();
@@ -200,12 +192,12 @@
                 });
 // foucs when click anywhere
         $(document).on("mousedown", function(e) {
-            clicked = $(e.target)
+            clicked = $(e.target);
         })
 
         $("body").on("blur","input", function()
         {
-            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note") && !clicked.is(".select2-search__field")) {
+            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note") && !clicked.is("span#select2-charity_list-container.select2-selection__rendered")) {
                 $("#barcode").focus();
             }
         })

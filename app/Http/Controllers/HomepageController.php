@@ -72,11 +72,20 @@ class HomepageController extends Controller
             $u_bal = User::where('accountno',$request->acc)->first()->balance;
             $donor_id = User::where('accountno',$request->acc)->first()->id;
 
-            if($u_bal < $request->amt){
-                $message ='<span id="msg" style="color: rgb(255, 0, 0);">Insufficient balance</span>';
+            $overdrawn = (User::where('id',$donor_id)->first()->overdrawn_amount);
+            $limitChk = $u_bal + $overdrawn;
+
+            if($limitChk < $request->amt ){
+                $message ='<span id="msg" style="color: rgb(255, 0, 0);">Overdrawn limit exceed.</span>';
                 return response()->json(['status'=> 303,'message'=>$message]);
                 exit();
             }
+
+            // if($u_bal < $request->amt){
+            //     $message ='<span id="msg" style="color: rgb(255, 0, 0);">Insufficient balance</span>';
+            //     return response()->json(['status'=> 303,'message'=>$message]);
+            //     exit();
+            // }
 
             $utransaction = new Usertransaction();
             $utransaction->t_id = time() . "-" . $donor_id;

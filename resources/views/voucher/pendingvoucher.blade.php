@@ -88,7 +88,7 @@ var url = "{{URL::to('/admin/voucher-status')}}";
 $('select').on('change', function() {
     $("#loading").show();
     var status =  this.value;
-    var vid   = $('#vsts option:selected').attr('vid');
+    var vid = $('option:selected', this).attr('vid');
     
     $.ajax({
             url: url,

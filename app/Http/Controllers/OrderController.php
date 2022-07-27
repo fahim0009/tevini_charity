@@ -660,7 +660,7 @@ class OrderController extends Controller
 
     public function commission()
     {
-        $commissions = Commission::all();
+        $commissions = Commission::orderBy('id','DESC')->get();
         return view('others.commission', compact('commissions'));
     }
 

@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 
 @section('content')
-
+@php
+use Illuminate\Support\Carbon;
+@endphp
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -63,7 +65,7 @@
                                         @foreach ($commissions as $c)
 
                                         <tr>
-                                                <td>{{ $c->created_at}} </td>
+                                                <td><span style="display:none;">{{ $c->id }}</span>{{ Carbon::parse($c->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $c->user->name }}</td>
                                                 <td>£{{ $c->commission}}</td>
 

@@ -82,8 +82,8 @@ use app\Models\Provoucher;
  /* .wrapper .tableData table tr:nth-child(even) {
 	 background: #436784 14;
 } */
- 
- 
+
+
    </style>
 </head>
 
@@ -103,20 +103,37 @@ use app\Models\Provoucher;
                     N156PP
                 </div>
 
-         
+
 
                 <div class="right">
                     Date: <b>@php echo date('d-m-Y'); @endphp </b> <br>
                     Receipt <b>#@php echo(rand(100,999));  @endphp</b>
                 </div>
 
-            
+                @php
+                $total_bal = 0;
+                $total_pending = 0;
+            @endphp
+
+            @foreach ($remittance as $balcal)
+            <?php $total_bal += $balcal->amount;?>
+                @if($balcal->status == 0)
+                <?php $total_pending += $balcal->amount;?>
+                @endif
+            @endforeach
+
+                <div class="left">
+                    Total amount: £{{$total_bal}}  <br>
+                    Total pending: £{{$total_pending}} <br>
+                </div>
+
+
             </div>
             <p class="donated">
 
                     <p>{{$charity->name}}</p>
                     <p>{{$charity->address}}</p>
-            
+
             </p>
         </div>
 
@@ -137,7 +154,7 @@ use app\Models\Provoucher;
             <?php
                 $total = $total;
             ?>
-         
+
 
             <tbody>
             @php

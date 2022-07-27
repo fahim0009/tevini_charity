@@ -192,6 +192,14 @@ class OrderController extends Controller
             exit();
         }
 
+        foreach( array_count_values($chqs) as $key => $val ) {
+            if ( $val > 1 ){
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Duplicate Check No found. </b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+        }
+
         foreach($chqs as $chq){
             foreach($check_chqs as $check_chq){
                 if($chq == $check_chq->cheque_no){

@@ -23,8 +23,8 @@ use app\Models\Provoucher;
  <!-- Image loader -->
  <div class="ermsg"></div>
         <section class="px-4">
-            
-                    
+
+
             <div class="row no-print">
                 <div class="col-8 d-flex justify-content-between no-print align-items-center flex-wrap">
 
@@ -41,29 +41,29 @@ use app\Models\Provoucher;
                 </div>
             </div>
         </div>
-                    
+
 
                 </div>
             <div class="col-4">
                 <button onclick="window.print()" class="fa fa-print btn btn-default float-end">Print</button>
             </div>
             </div>
-            
+
             <div class="row my-3">
                 <div class="col-md-12 mt-2 ">
 
                     <div class="text-start mb-4 px-2">
-                       
+
                         <p class="mb-1" id="charityname"> {{ $charity->name}} </p>
                         <p class="mb-1" id="charityaddress">{{ $charity->address}}</p>
-                       
-                    </div>   
-                    
 
-                    
+                    </div>
+
+
+
                     <div class="overflow mt-2">
                         <h4 class="text-center my-3">STATEMENT</h4>
-                        
+
                             <h5 class="text-center my-3">Todays</h5>
 
                             <table class="table table-custom statement shadow-sm bg-white">
@@ -103,8 +103,10 @@ use app\Models\Provoucher;
                                         <td>
                                             @if($data->status == 1)
                                             Complete
-                                            @else
+                                            @elseif($data->status == 0)
                                             Pending
+                                            @elseif($data->status == 3)
+                                            Cancel
                                             @endif
                                         </td>
                                         </tr>

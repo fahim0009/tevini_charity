@@ -11,7 +11,7 @@
     <div id='loading' style='display:none ;'>
         <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
    </div>
- <!-- Image loader -->    
+ <!-- Image loader -->
     <div class="ermsg"></div>
   <section class="">
     <div class="row  my-3 mx-0 ">
@@ -19,7 +19,7 @@
 
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
-                
+
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
                                 <table class="table table-custom shadow-sm bg-white" id="example">
@@ -40,7 +40,7 @@
                                         @foreach ($cvouchers as $voucher)
 
                                         <tr>
-                                                <td>{{ $voucher->created_at->format('d/m/Y')}} </td>
+                                                <td><span style="display:none;">{{ $voucher->id }}</span>{{ $voucher->created_at->format('d/m/Y')}} </td>
                                                 <td>{{ $voucher->charity->name}} </td>
                                                 <td>{{ $voucher->user->name }}</td>
                                                 <td>{{ $voucher->cheque_no}}</td>
@@ -53,7 +53,6 @@
                                                 <option value="1" vid="{{$voucher->id}}"  @if($voucher->status == "1") selected @endif>Complete</option>
                                                 <option value="3" vid="{{$voucher->id}}"  @if($voucher->status == "3") selected @endif>Cancel</option>
                                                 </select>
-                            
                                                  </td>
 
                                         </tr>
@@ -89,7 +88,7 @@ $('select').on('change', function() {
     $("#loading").show();
     var status =  this.value;
     var vid = $('option:selected', this).attr('vid');
-    
+
     $.ajax({
             url: url,
             method: "POST",
@@ -104,7 +103,7 @@ $('select').on('change', function() {
             },
             complete:function(d){
                         $("#loading").hide();
-                    },            
+                    },
             error: function (d) {
                 console.log(d);
             }

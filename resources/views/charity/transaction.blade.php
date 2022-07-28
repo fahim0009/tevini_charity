@@ -61,7 +61,7 @@ use Illuminate\Support\Carbon;
                                         <tr>
                                             <th>Date</th>
                                             <th>Transaction Id</th>
-                                            <th>Source</th>
+                                            <th>Transaction Type</th>
                                             <th>Amount </th>
                                         </tr>
                                     </thead>
@@ -71,7 +71,7 @@ use Illuminate\Support\Carbon;
                                         <tr>
                                                 <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $transaction->t_id }}</td>
-                                                <td>{{ $transaction->name}}</td>
+                                                <td>{{ $transaction->title}}</td>
                                                 <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach
@@ -127,7 +127,7 @@ use Illuminate\Support\Carbon;
                                             <th>Date</th>
                                             <th>Transaction Id</th>
                                             <th>Charity Name</th>
-                                            <th>Voucher Number</th>
+                                            <th>Source</th>
                                             <th>Amount </th>
                                         </tr>
                                     </thead>
@@ -137,7 +137,7 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
-                                            <td>{{ $transaction->cheque_no}}</td>
+                                            <td>{{ $transaction->name}}</td>
                                             <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach

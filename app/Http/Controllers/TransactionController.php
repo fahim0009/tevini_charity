@@ -275,7 +275,7 @@ class TransactionController extends Controller
             $fromDate = $request->input('fromDate');
             $toDate   = $request->input('toDate');
 
-            $outtransactions = Usertransaction::where([
+            $intransactions = Usertransaction::where([
                 ['created_at', '>=', $fromDate],
                 ['created_at', '<=', $toDate.' 23:59:59'],
                 ['t_type','=', 'Out'],
@@ -283,7 +283,7 @@ class TransactionController extends Controller
                 ['status','=', '1']
             ])->orderBy('id','DESC')->get();
 
-            $intransactions = Transaction::where([
+            $outtransactions = Transaction::where([
                 ['created_at', '>=', $fromDate],
                 ['created_at', '<=', $toDate.' 23:59:59'],
                 ['t_type','=', 'Out'],
@@ -293,13 +293,13 @@ class TransactionController extends Controller
 
         }else{
 
-            $outtransactions = Usertransaction::where([
+            $intransactions = Usertransaction::where([
                 ['t_type','=', 'Out'],
                 ['charity_id','=', $id],
                 ['status','=', '1']
             ])->orderBy('id','DESC')->get();
 
-            $intransactions = Transaction::where([
+            $outtransactions= Transaction::where([
                 ['t_type','=', 'Out'],
                 ['charity_id','=', $id],
                 ['status','=', '1']

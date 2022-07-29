@@ -107,7 +107,15 @@
                                               I want receipt.
                                             </label>
                                         </div>
-                                    </div>  
+                                    </div>
+                                    <div class="form-group my-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value id="gift">
+                                            <label class="form-check-label" for="gift">
+                                              GIFT
+                                            </label>
+                                        </div>
+                                    </div>    
                                 <div class="form-group my-2">
                                     <button type="button" id="topBal" class="my-2 btn btn-sm btn-info text-white">Save</button>
                                 </div>
@@ -215,13 +223,14 @@ $("#topBal").click(function(){
     var note = $("#note").val();
     var donationBy = $("#donationBy").val();
     var receipt = $("#receipt").prop('checked');
+    var gift = $("#gift").prop('checked');
 
-    console.log(source);
+    console.log(gift);
 
         $.ajax({
             url: url,
             method: "POST",
-            data: {topupid,balance,commission,source,gbalance,note,receipt,donationBy},
+            data: {topupid,balance,commission,source,gbalance,note,receipt,donationBy,gift},
 
             success: function (d) {
                 if (d.status == 303) {

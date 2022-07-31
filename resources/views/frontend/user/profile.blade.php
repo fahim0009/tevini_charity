@@ -40,6 +40,9 @@
                                   src="@if(Auth::user()->photo){{asset('images/'.Auth::user()->photo)}}@else https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg @endif"><span
                                   class="font-weight-bold">{{ Auth::user()->name }}</span><span
                                   class="text-black-50">{{ Auth::user()->email }}</span><span> </span>
+
+                                  <span>  Gift in {{$currentMonthName}} : {{ $currentmonthgift }}</span>
+                                  <span> Gift in {{$lastMonthName}} : {{$premonthgift }}</span>
                                   <input type="file" id="image" name="image" class="profile-upload">
                           </div>
                       </div>
@@ -61,7 +64,7 @@
                                   <div class="col-md-12 mb-3"><label><small>House No</small></label>
                                     <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ Auth::user()->houseno }}" readonly="readonly">
                                     </div>
-                                    
+
                                         <div class="col-md-12 mb-3"><label><small>Street</small></label>
                                     <input type="text" class="form-control" placeholder="Street number" name="street" id="street" value="{{ Auth::user()->street }}" readonly="readonly">
                                     </div>

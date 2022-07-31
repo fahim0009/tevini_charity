@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Usertransaction;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -14,13 +16,47 @@ class UserController extends Controller
     public function profile()
     {
         $profile_data= Auth::user();
-        return view('frontend.user.profile')->with('profile_data', $profile_data);
+        $currentmonthgift = Usertransaction::where('user_id','=', Auth::user()->id)
+                            ->where('gift','=', 1)
+                            ->whereMonth('created_at', date('m'))
+                            ->whereYear('created_at', date('Y'))
+                            ->sum('amount');
+
+        $lastMonth = Carbon::now()->startOfMonth()->subMonth(1)->format('m');
+        $premonthgift = Usertransaction::where('user_id','=', Auth::user()->id)
+                            ->where('gift','=', 1)
+                            ->whereMonth('created_at', $lastMonth )
+                            ->whereYear('created_at', date('Y'))
+                            ->sum('amount');
+
+        $date = \Carbon\Carbon::now();
+        $currentMonthName = $date->format('F'); // July
+        $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
+
+        return view('frontend.user.profile', compact('profile_data','currentmonthgift','premonthgift','lastMonthName','currentMonthName'));
     }
 
     public function profileinAdmin($id)
     {   $donor_id = $id;
         $profile_data= User::where('id','=',$id)->first();
-        return view('donor.profile',compact('profile_data','donor_id'));
+        $currentmonthgift = Usertransaction::where('user_id','=', $id)
+                            ->where('gift','=', 1)
+                            ->whereMonth('created_at', date('m'))
+                            ->whereYear('created_at', date('Y'))
+                            ->sum('amount');
+
+        $lastMonth = Carbon::now()->startOfMonth()->subMonth(1)->format('m');
+        $premonthgift = Usertransaction::where('user_id','=', $id)
+                            ->where('gift','=', 1)
+                            ->whereMonth('created_at', $lastMonth )
+                            ->whereYear('created_at', date('Y'))
+                            ->sum('amount');
+
+        $date = \Carbon\Carbon::now();
+        $currentMonthName = $date->format('F'); // July
+        $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
+
+        return view('donor.profile',compact('profile_data','donor_id','currentmonthgift','premonthgift','lastMonthName','currentMonthName'));
     }
 
     public function updateprofile(Request $request)

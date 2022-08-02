@@ -107,6 +107,24 @@ class OrderController extends Controller
             {
                 if($qtys[$key] != "0"){
 
+                if($qtys[$key] > "1"){
+
+                    for($x = 0; $x < $qtys[$key]; $x++)
+                    {
+                    $unique = time().rand(1,100);
+                    //order history
+                    $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                    $input['order_id'] = $order->id;
+                    $input['voucher_id'] = $voucher_id;
+                    $input['number_voucher'] = 1;
+                    $input['amount'] = $amount;
+                    $input['o_unq'] = $unique;
+                    $input['status'] = "0";
+                    OrderHistory::create($input);
+                    }
+
+                }else{
+
                 $unique = time().rand(1,100);
 
                 //order history
@@ -118,7 +136,7 @@ class OrderController extends Controller
                 $input['o_unq'] = $unique;
                 $input['status'] = "0";
                 OrderHistory::create($input);
-
+                }
                 //voucher stock decrement
                 $v = Voucher::find($voucher_id);
                 $v->decrement('stock',$qtys[$key]);

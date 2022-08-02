@@ -146,8 +146,6 @@
             $("#updateBtn").show();
         });
 
-
-
 })
 
 </script>

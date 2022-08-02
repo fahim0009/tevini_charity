@@ -142,11 +142,7 @@
             $("#updateBtn").show();
         });
 
-
-
 })
 
 </script>
-
-
 @endsection

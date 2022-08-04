@@ -550,15 +550,18 @@ class OrderController extends Controller
 
         }
 
-    public function voucherStatus(Request $request)
+    public function pvComplete(Request $request)
     {
-     if(empty($request->vid)){
+     if(empty($request->voucherIds)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
 
-        $voucher = Provoucher::where('id',$request->vid)->first();
+        foreach($voucherIds as $key => $voucher_id)
+        {
+
+        $voucher = Provoucher::where('id',$voucher_id)->first();
 
 
         if($request->status == "3"){
@@ -615,10 +618,11 @@ class OrderController extends Controller
         ->cc($contactmail)
         ->send(new PendingvReport($array));
 
-
+        }
+    }
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
-        }
+
 
     }
 

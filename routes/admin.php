@@ -136,7 +136,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');
     Route::get('/complete-voucher', [OrderController::class, 'completeVoucher'])->name('completevoucher');
     Route::get('/pending-voucher', [OrderController::class, 'pendingVoucher'])->name('pendingvoucher');
-    Route::post('/voucher-status', [OrderController::class, 'voucherStatus']);
+    Route::post('/pvcomplete', [OrderController::class, 'pvComplete']);
+    Route::post('/pvcancel', [OrderController::class, 'pvCancel']);
     Route::get('/single-order/{id}', [OrderController::class, 'singleOrder'])->name('singleorder');
     Route::get('/barcode/{id}', [OrderController::class, 'barcode'])->name('barcode');
     Route::post('/find-name', [OrderController::class, 'findName']);

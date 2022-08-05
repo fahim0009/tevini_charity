@@ -7,7 +7,7 @@ use app\Models\Provoucher;
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donor Report</title>
+    <title>Report</title>
    <style>
        @page { margin: 10px; }
     body { margin: 10px; }
@@ -134,6 +134,7 @@ use app\Models\Provoucher;
                     </tr>
                 </thead>
             <tbody>
+                @foreach($remittances as $remittance)
                     <tr>
                     <td>{{ $remittance->created_at->format('d/m/Y')}} </td>
                     <td>Vouchers </td>
@@ -155,6 +156,7 @@ use app\Models\Provoucher;
                         @endif
                     </td>
                     </tr>
+                    @endforeach
             </tbody>
         </table>
         </div>

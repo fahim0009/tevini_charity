@@ -125,7 +125,10 @@
 
         var url = "{{URL::to('/admin/pvoucher-store')}}";
 
-        $("#addvoucher").click(function(){
+        // $("#addvoucher").click(function(){
+            
+            $("body").delegate("#addvoucher","click",function(event){
+                event.preventDefault();
 
             var charityId = $("select[name='charity']").val();
 

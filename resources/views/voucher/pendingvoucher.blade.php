@@ -54,7 +54,7 @@
                                         @foreach ($cvouchers as $voucher)
 
                                         <tr>
-                                                <td><input class="form-check-input getvid" type="checkbox" name="voucherId[]" value="{{ $voucher->id }}"></td>
+                                                <td><input class="form-check-input getvid" type="checkbox" name="voucherId[]" charity_id="{{ $voucher->charity_id }}" value="{{ $voucher->id }}"></td>
                                                 <td><span style="display:none;">{{ $voucher->id }}</span>{{ $voucher->created_at->format('d/m/Y')}} </td>
                                                 <td>{{ $voucher->charity->name}} </td>
                                                 <td>{{ $voucher->user->name }}</td>
@@ -62,12 +62,10 @@
                                                 <td>{{ $voucher->note}}</td>
                                                 <td>£{{ $voucher->amount}}</td>
                                                 <td>
-                                                <select name="" id="vsts" class="ms-2 form-control" @if($voucher->status == "3") disabled @endif>
-                                                <option value="0" vid="{{$voucher->id}}"  @if($voucher->status == "0") selected @endif>Pending</option>
-                                                <option value="1" vid="{{$voucher->id}}"  @if($voucher->status == "1") selected @endif>Complete</option>
-                                                <option value="3" vid="{{$voucher->id}}"  @if($voucher->status == "3") selected @endif>Cancel</option>
-                                                </select>
-                                                 </td>
+                                                @if($voucher->status == "0") Pending @endif
+                                                @if($voucher->status == "1") Complete @endif
+                                                @if($voucher->status == "3") Cancel @endif
+                                                </td>
 
                                         </tr>
                                         @endforeach
@@ -104,19 +102,26 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
 var url = "{{URL::to('/admin/pvcomplete')}}";
 
 $("#vsrComplete").click(function(){
-
+    $("#loading").show();
     var voucherIds = [];
     $('.getvid:checkbox:checked').each(function(i){
         voucherIds[i] = $(this).val();
         });
 
+    var charityIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        charityIds[i] = $(this).attr('charity_id');
+    });        
+
 
         $.ajax({
             url: url,
             method: "POST",
-            data: {voucherIds},
+            data: {voucherIds,charityIds},
 
             success: function (d) {
+                console.log(d.message);
+
                 if (d.status == 303) {
                     $(".ermsg").html(d.message);
                     pagetop();
@@ -125,6 +130,9 @@ $("#vsrComplete").click(function(){
                     pagetop();
                 }
             },
+            complete:function(d){
+                        $("#loading").hide();
+                    },
             error: function (d) {
                 console.log(d);
             }
@@ -137,18 +145,24 @@ $("#vsrComplete").click(function(){
 var urlc = "{{URL::to('/admin/pvcancel')}}";
 
 $("#vsrCancel").click(function(){
-
+    $("#loading").show();
     var voucherIds = [];
     $('.getvid:checkbox:checked').each(function(i){
         voucherIds[i] = $(this).val();
         });
 
+    var charityIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        charityIds[i] = $(this).attr('charity_id');
+    });    
+
+      console.log(charityIds);
       console.log(voucherIds);
 
         $.ajax({
             url: urlc,
             method: "POST",
-            data: {voucherIds},
+            data: {voucherIds,charityIds},
 
             success: function (d) {
                 if (d.status == 303) {
@@ -157,34 +171,6 @@ $("#vsrCancel").click(function(){
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
                     pagetop();
-                }
-            },
-            error: function (d) {
-                console.log(d);
-            }
-        });
-
-});
-
-
-// pending status change in dropdown
-var url = "{{URL::to('/admin/voucher-status')}}";
-
-$('select').on('change', function() {
-    $("#loading").show();
-    var status =  this.value;
-    var vid = $('option:selected', this).attr('vid');
-
-    $.ajax({
-            url: url,
-            method: "POST",
-            data: {status,vid},
-
-            success: function (d) {
-                if (d.status == 303) {
-                }else if(d.status == 300){
-                    $(".ermsg").html(d.message);
-                    window.setTimeout(function(){location.reload()},500)
                 }
             },
             complete:function(d){
@@ -194,7 +180,8 @@ $('select').on('change', function() {
                 console.log(d);
             }
         });
-  });
+
+});
 
 
 });

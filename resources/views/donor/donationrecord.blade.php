@@ -30,7 +30,7 @@
 
                                                     @forelse ($donation as $data)
                                                         <tr>
-                                                            <td><span style="display:none;">{{ $data->id }}</span>{{$data->created_at->format('m/d/Y')}}</td>
+                                                            <td><span style="display:none;">{{ $data->id }}</span>{{$data->created_at->format('d/m/Y')}}</td>
                                                             <td>{{$data->charity->name}}</td>
                                                             <td>£{{$data->amount}}</td>
                                                             <td>@if ($data->ano_donation == "true")

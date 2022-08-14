@@ -497,13 +497,9 @@ class OrderController extends Controller
     {
 
         $order = Order::where('id',$id)->first();
-
         $user_id = $order->user_id;
-
         $user = User::where('id','=', $user_id)->first();
-
         $orderDtls = OrderHistory::where('order_id',  $id)->get();
-
         return view('voucher.barcode')
         ->with('user',$user)
         ->with('order',$order)
@@ -596,7 +592,7 @@ class OrderController extends Controller
 
         foreach($result as $chrt_id => $vchr_ids)
         {
-        
+
         $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
         $charity = Charity::where('id','=',$chrt_id)->first();
 
@@ -620,7 +616,7 @@ class OrderController extends Controller
         ->cc($contactmail)
         ->send(new PendingvReport($array));
     }
-    
+
     $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);
     }
@@ -632,7 +628,7 @@ class OrderController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
-        
+
         $array1 = $request->charityIds;
         $array2 = $request->voucherIds;
 
@@ -659,7 +655,7 @@ class OrderController extends Controller
         }
         foreach($result as $chrt_id => $vchr_ids)
         {
-        
+
         $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
         $charity = Charity::where('id','=',$chrt_id)->first();
 

@@ -45,8 +45,8 @@
                                         class="font-weight-bold">{{ $profile_data->name }}</span>
                                         <span class="text-black-50">{{$profile_data->email }}</span>
                                         <span> Balance : {{$profile_data->balance }}</span>
-                                        <span> Gift in {{$currentMonthName}}: {{ $currentmonthgift }}</span>
-                                        <span>  Gift in {{$lastMonthName}}: {{$premonthgift }}</span>
+                                        <span> Gift in Previous Year: {{ $totalamount }}</span>
+                                        <span>  Gift in Current Year: {{$currentyramount }}</span>
                                         {{-- <input type="file" id="image" name="image" class="profile-upload"> --}}
                                 </div>
                             </div>

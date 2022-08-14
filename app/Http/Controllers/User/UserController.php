@@ -9,6 +9,7 @@ use App\Models\Role;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -16,6 +17,49 @@ class UserController extends Controller
     public function profile()
     {
         $profile_data= Auth::user();
+
+
+        // previous year data start
+        $period = CarbonPeriod::create(
+            now()->month(4)->subMonths(12)->startOfMonth()->format('Y-m-d'),
+            '1 month',
+            now()->month(3)->endOfMonth()->format('Y-m-d')
+        );
+        $finYear = [];
+        $totalamount = 0;
+        foreach ($period as $p) {
+            $finYear[] = $p->format('m-Y');
+            $currentmonthgift2 = Usertransaction::where('user_id','=', Auth::user()->id)
+                            ->where('gift','=', 1)
+                            ->whereMonth('created_at', $p->format('m'))
+                            ->whereYear('created_at', $p->format('Y'))
+                            ->get();
+            foreach ($currentmonthgift2 as $data){
+                // dd($data);
+                $data->amount;
+                $totalamount = $data->amount + $totalamount;
+            }
+        }
+        // previous year data end
+
+        // current year data start
+        $currentyr = Usertransaction::where('user_id','=', Auth::user()->id)
+                        ->whereBetween('created_at',
+                            [Carbon::now()->subMonth(4), Carbon::now()]
+                        )
+                        ->get();
+
+                        // dd($items );
+
+        $currentyramount = 0;
+        foreach ($currentyr as $data2){
+            $data2->amount;
+            $currentyramount = $data2->amount + $currentyramount;
+        }
+        // current year data end
+
+
+
         $currentmonthgift = Usertransaction::where('user_id','=', Auth::user()->id)
                             ->where('gift','=', 1)
                             ->whereMonth('created_at', date('m'))
@@ -29,34 +73,69 @@ class UserController extends Controller
                             ->whereYear('created_at', date('Y'))
                             ->sum('amount');
 
+
+
+
+
         $date = \Carbon\Carbon::now();
         $currentMonthName = $date->format('F'); // July
         $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
 
-        return view('frontend.user.profile', compact('profile_data','currentmonthgift','premonthgift','lastMonthName','currentMonthName'));
+        return view('frontend.user.profile', compact('profile_data','currentyramount','totalamount','lastMonthName','currentMonthName'));
     }
 
     public function profileinAdmin($id)
     {   $donor_id = $id;
         $profile_data= User::where('id','=',$id)->first();
-        $currentmonthgift = Usertransaction::where('user_id','=', $id)
-                            ->where('gift','=', 1)
-                            ->whereMonth('created_at', date('m'))
-                            ->whereYear('created_at', date('Y'))
-                            ->sum('amount');
 
-        $lastMonth = Carbon::now()->startOfMonth()->subMonth(1)->format('m');
-        $premonthgift = Usertransaction::where('user_id','=', $id)
+
+
+        // previous year data start
+        $period = CarbonPeriod::create(
+            now()->month(4)->subMonths(12)->startOfMonth()->format('Y-m-d'),
+            '1 month',
+            now()->month(3)->endOfMonth()->format('Y-m-d')
+        );
+        $finYear = [];
+        $totalamount = 0;
+        foreach ($period as $p) {
+            $finYear[] = $p->format('m-Y');
+            $currentmonthgift2 = Usertransaction::where('user_id','=', $id)
                             ->where('gift','=', 1)
-                            ->whereMonth('created_at', $lastMonth )
-                            ->whereYear('created_at', date('Y'))
-                            ->sum('amount');
+                            ->whereMonth('created_at', $p->format('m'))
+                            ->whereYear('created_at', $p->format('Y'))
+                            ->get();
+            foreach ($currentmonthgift2 as $data){
+                // dd($data);
+                $data->amount;
+                $totalamount = $data->amount + $totalamount;
+            }
+        }
+        // previous year data end
+
+
+        $currentyr = Usertransaction::where('user_id','=', $id)
+                        ->whereBetween('created_at',
+                            [Carbon::now()->subMonth(4), Carbon::now()]
+                        )
+                        ->get();
+
+                        // dd($items );
+
+        $currentyramount = 0;
+        foreach ($currentyr as $data2){
+            $data2->amount;
+            $currentyramount = $data2->amount + $currentyramount;
+        }
+
+        // dd($currentyramount);
+        // current year data end
 
         $date = \Carbon\Carbon::now();
         $currentMonthName = $date->format('F'); // July
         $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
 
-        return view('donor.profile',compact('profile_data','donor_id','currentmonthgift','premonthgift','lastMonthName','currentMonthName'));
+        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName'));
     }
 
     public function updateprofile(Request $request)

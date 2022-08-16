@@ -103,9 +103,32 @@
             </div>
         </section>
 
-
         <section class="px-4"  id="contentContainer">
             <div class="row my-3">
+
+                <div class="col-md-12 my-2">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="checkAll">
+                        <label class="form-check-label" for="checkAll">
+                            All Select
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <label class="form-check-label" for="checkAll">
+                            Date From
+                        </label>
+                        <input type="date" id="fromdate" name="fromdate" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <label class="form-check-label" for="checkAll">
+                            Date To
+                        </label>
+                        <input type="date" id="fromdate" name="fromdate" placeholder="Search" aria-label="Search">
+                    </div>
+                    <button class="btn btn-primary rounded-pill" id="vsrComplete" type="button">Send Mail</button>
+                </div>
+
+
             <div class="ermsg"></div>
             <div class="row  my-3 mx-0 ">
                 <div class="col-md-12 mt-2 text-center">
@@ -113,6 +136,7 @@
                         <table class="table table-donor shadow-sm bg-white" id="example">
                             <thead>
                                 <tr>
+                                    <th></th>
                                     <th>Sl</th>
                                     <th>Name</th>
                                     <th style="min-width:160px">Email</th>
@@ -130,6 +154,7 @@
                                 ?>
                                 @forelse ($users as $user)
                                     <tr>
+                                        <td><input class="form-check-input getvid" type="checkbox" name="donorId[]" charity_id="" value="{{ $user->id }}"></td>
                                         <td>{{$n++}}</td>
                                         <td>{{$user->name}} {{$user->surname}}</td>
                                         <td>{{$user->email}}</td>

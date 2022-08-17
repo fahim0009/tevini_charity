@@ -346,7 +346,6 @@ window.onload = (event) => {
         $("#addBtn").click(function(){
         var donnerId= $("#donnerid").val();
         var accno= $("#updaccno").val();
-        console.log(donnerId);
         $.ajax({
             url: url,
             method: "POST",
@@ -411,7 +410,6 @@ $("#sentRpt").click(function(){
 
    var fromdate = $("#fromdate").val();
    var todate = $("#todate").val();
-   console.log(donorIds);
 
         $.ajax({
             url: url,

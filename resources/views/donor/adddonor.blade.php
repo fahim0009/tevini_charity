@@ -123,11 +123,16 @@
                         <label class="form-check-label" for="checkAll">
                             Date To
                         </label>
-                        <input type="date" id="fromdate" name="fromdate" placeholder="Search" aria-label="Search">
+                        <input type="date" id="todate" name="todate" placeholder="Search" aria-label="Search">
                     </div>
-                    <button class="btn btn-primary rounded-pill" id="vsrComplete" type="button">Send Mail</button>
+                    <button class="btn btn-primary rounded-pill" id="sentRpt" type="button">Send Mail</button>
                 </div>
 
+        <!-- Image loader -->
+        <div id='loading' style='display:none ;'>
+            <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+        </div>
+        <!-- Image loader -->
 
             <div class="ermsg"></div>
             <div class="row  my-3 mx-0 ">
@@ -154,7 +159,7 @@
                                 ?>
                                 @forelse ($users as $user)
                                     <tr>
-                                        <td><input class="form-check-input getvid" type="checkbox" name="donorId[]" charity_id="" value="{{ $user->id }}"></td>
+                                        <td><input class="form-check-input getDid" type="checkbox" name="donorIds[]" value="{{ $user->id }}"></td>
                                         <td>{{$n++}}</td>
                                         <td>{{$user->name}} {{$user->surname}}</td>
                                         <td>{{$user->email}}</td>
@@ -274,6 +279,10 @@ window.onload = (event) => {
 
     $(document).ready(function () {
 
+    $("#checkAll").click(function(){
+    $('input:checkbox').not(this).prop('checked', this.checked);
+    });
+
 
 
         $("#addThisFormContainer").hide();
@@ -389,6 +398,48 @@ window.onload = (event) => {
             });
 
         // overdrawn END
+
+
+// report sent to all donor
+var url = "{{URL::to('/admin/reportall')}}";
+$("#sentRpt").click(function(){
+    $("#loading").show();
+    var donorIds = [];
+    $('.getDid:checkbox:checked').each(function(i){
+        donorIds[i] = $(this).val();
+        });
+
+   var fromdate = $("#fromdate").val();
+   var todate = $("#todate").val();
+   console.log(donorIds);
+
+        $.ajax({
+            url: url,
+            method: "POST",
+            data: {donorIds,fromdate,todate},
+
+            success: function (d) {
+                console.log(d.message);
+
+                if (d.status == 303) {
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                }else if(d.status == 300){
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                }
+            },
+            complete:function(d){
+                        $("#loading").hide();
+                    },
+            error: function (d) {
+                console.log(d);
+            }
+        });
+
+});
+
+
 
 
 

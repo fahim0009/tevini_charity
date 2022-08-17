@@ -328,6 +328,83 @@ class DonorController extends Controller
 
     }
 
+    // report to multiple donor
+
+    public function multiUserreport(Request $request)
+    {
+        $donorIds = $request->donorIds;
+        $fromDate = $request->fromdate;
+        $toDate   = $request->todate;
+
+        if(empty($request->donorIds)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select donor.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->fromdate)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select From Date.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->todate)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select To Date.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        foreach($donorIds as $id)
+        {
+
+            $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
+            if(!empty($fromDate) && !empty($toDate)){
+
+                $report = Usertransaction::where([
+                    ['user_id','=', $id],
+                    ['created_at', '>=', $fromDate],
+                    ['created_at', '<=', $toDate.' 23:59:59'],
+                    ['status','=', '1']
+                ])->orwhere([
+                    ['user_id','=', $id],
+                    ['pending','=', '0']
+                    ])->orderBy('id','DESC')->get();
+            }else{
+                $report = Usertransaction::where([
+                    ['user_id','=', $id],
+                    ['status','=', '1']
+                ])->orwhere([
+                   ['user_id','=', $id],
+                   ['pending','=', '0']
+                   ])->orderBy('id','DESC')->get();
+                $fromDate = "";
+                $toDate   = "";
+            }
+            $user = User::find($id);
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $array['cc'] = $contactmail;
+            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
+            $array['name'] = $user->name;
+            $array['view'] = 'mail.donorreport';
+            $array['subject'] = 'Donor Report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['content'] = 'Hi, Your donation report has been placed';
+            $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
+            $array['file_name'] = 'Report#'.$id.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$id;
+
+            Mail::to($user->email)->queue(new DonerReport($array));
+
+        }
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+
+
+    }
+
 
 
     public function adminDonorGiving()

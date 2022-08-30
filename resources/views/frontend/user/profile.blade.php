@@ -41,8 +41,6 @@
                                   class="font-weight-bold">{{ Auth::user()->name }}</span><span
                                   class="text-black-50">{{ Auth::user()->email }}</span><span> </span>
 
-                                  <span>  Gift in previous year : {{ $totalamount }}</span>
-                                  <span> Gift in current year : {{ $currentyramount }}</span>
                                   <input type="file" id="image" name="image" class="profile-upload">
                           </div>
                       </div>

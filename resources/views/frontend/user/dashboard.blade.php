@@ -9,10 +9,9 @@
         <div class="col-md-12 text-center ">
             <h4 class="text-capitalize bg-info text-white p-3 border-left d-inline-block mx-auto rounded">
                 welcome to mr ‘{{auth()->user()->name}}’
-            </h4>
-            
-            <h5><span>  Gift Aid in previous year : {{ $totalamount }}</span></h5>
+            </h4>           
             <h5> <span> Gift Aid in current year : {{ $currentyramount }}</span></h5> 
+            <h5><span>  Gift Aid in previous year : {{ $totalamount }}</span></h5>
         </div>
     </div>
 

@@ -119,6 +119,12 @@ use app\Models\Provoucher;
             
             </p>
         </div>
+        <?php
+        $tbalance = 0;
+        ?>
+        @foreach ($remittances as $balcal)
+        <?php $tbalance += $balcal->amount;?>
+        @endforeach
 
         <div class="tableData">
             <table>
@@ -141,7 +147,10 @@ use app\Models\Provoucher;
                     <td>{{$remittance->cheque_no}}</td>
                     <td> £{{ number_format($remittance->amount, 2) }}</td>
                     @if($remittance->status == 1)
-                    <td> £{{ number_format($remittance->amount, 2) }} </td>
+                    <td> £{{ number_format($tbalance, 2) }} </td>
+                    @php
+                    $tbalance = $tbalance - $remittance->amount;
+                    @endphp
                     @else
                     <td> £{{ number_format('0', 2) }} </td>
                     @endif

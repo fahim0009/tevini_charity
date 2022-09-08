@@ -64,7 +64,7 @@ class HomepageController extends Controller
             exit();
         }
 
-        $campaign_dtls =Campaign::where('id',$request->campaign)->first();
+        $campaign_dtls =Campaign::where('id',$request->tevini_campaignid)->first();
 
         if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
         {
@@ -80,12 +80,6 @@ class HomepageController extends Controller
                 return response()->json(['status'=> 303,'message'=>$message]);
                 exit();
             }
-
-            // if($u_bal < $request->amt){
-            //     $message ='<span id="msg" style="color: rgb(255, 0, 0);">Insufficient balance</span>';
-            //     return response()->json(['status'=> 303,'message'=>$message]);
-            //     exit();
-            // }
 
             $utransaction = new Usertransaction();
             $utransaction->t_id = time() . "-" . $donor_id;
@@ -103,12 +97,15 @@ class HomepageController extends Controller
             $ch = Charity::find($campaign_dtls->charity_id);
             $ch->increment('balance',$request->amt);
 
-            $s_hash = "?campaign=".$request->campaign."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
+            $s_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
 
             $tevini_hash1 = hash_hmac("sha256", $s_hash, $campaign_dtls->hash_code);
 
+            if($request->identify == "1"){
             $success_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$s_hash."&hash=".$tevini_hash1;
-
+            }elseif($request->identify == "2"){
+            $success_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$s_hash."&hash=".$tevini_hash1;
+            }
             $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
             return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
 
@@ -117,12 +114,14 @@ class HomepageController extends Controller
 
             $user_tran = time();
 
-            $us_hash = "?campaign=".$request->campaign."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$user_tran."&rtncode=1";
+            $us_hash = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$user_tran."&rtncode=1";
 
             $tevini_hash2 = hash_hmac("sha256", $us_hash, $campaign_dtls->hash_code);
-
+            if($request->identify == "1"){
             $unsuccess_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$us_hash."&hash=".$tevini_hash2;
-
+            }elseif($request->identify == "2"){
+            $unsuccess_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$us_hash."&hash=".$tevini_hash2;
+            }
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
             return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);
         }

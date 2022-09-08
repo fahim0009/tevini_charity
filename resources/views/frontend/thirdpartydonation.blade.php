@@ -85,22 +85,36 @@
     }
 </style>
         @php
-            if(isset($_GET["campaign"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
-               $campaign = $_GET["campaign"];
+            if(isset($_GET["tevini_campaignid"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
+               $tevini_campaignid = $_GET["tevini_campaignid"];
                 $transid = $_GET["transid"];
                 $acc = $_GET["acc"];
                 $amt = $_GET["amt"];
                 $comment = $_GET["comment"];
-                $charidy_hash = $_GET["hash"];
+                $thrdprty_hash = $_GET["hash"];
+                $identify = 1;
 
-                $campaign_dtls =\App\Models\Campaign::where('id',$campaign)->first();
+                $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
                 if(!empty($campaign_dtls)){
-                $mhash = "?campaign=".$campaign."&transid=".$transid."&acc=".$acc."&amt=".$amt;
+                $mhash = "?campaign=".$tevini_campaignid."&transid=".$transid."&acc=".$acc."&amt=".$amt;
                 $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
                 }
-            // echo $mhash."<br>";
-            // echo "$hash";
+            }elseif (isset($_GET["campaign"]) && isset($_GET["transid"]) && isset($_GET["cid"]) && isset($_GET["donation"]) && isset($_GET["hashed"])) {
+
+                $tevini_campaignid = $_GET["campaign"];
+                $transid = $_GET["transid"];
+                $acc = $_GET["cid"];
+                $amt = $_GET["donation"];
+                $comment = " ";
+                $thrdprty_hash = $_GET["hashed"];
+                $identify = 2;
+
+                $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
+                if(!empty($campaign_dtls)){
+                $mhash = "?campaign=".$tevini_campaignid."&transid=".$transid."&cid=".$acc."&donation=".$amt;
+                $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
             }
+        }
         @endphp
 <section class="homeBanner">
     <div class="container d-flex justify-content-center align-items-center">
@@ -123,17 +137,17 @@
                     </div>
                 </div>
 
-                @elseif (hash_equals($tevini_hash, $charidy_hash))
+                @elseif (hash_equals($tevini_hash, $thrdprty_hash))
 
                 {{-- if link is ok  --}}
                 <div class="col-lg-6 col-md-12 position-relative">
                     <div class="px-3 pb-5">
                         <h2 class=" intro mb-0 text-white">
                             You are now completing your
-                            donation to  {{\App\Models\Campaign::where('id',$campaign)->first()->campaign_title}} using funds in your
+                            donation to  {{\App\Models\Campaign::where('id',$tevini_campaignid)->first()->campaign_title}} using funds in your
                             Tevini account.
                         </h2>
-                        <h5 class="mt-3 tagline text-white">Charity: {{\App\Models\Charity::where('id',\App\Models\Campaign::where('id',$campaign)->first()->charity_id)->first()->name}}</h4>
+                        <h5 class="mt-3 tagline text-white">Charity: {{\App\Models\Charity::where('id',\App\Models\Campaign::where('id',$tevini_campaignid)->first()->charity_id)->first()->name}}</h4>
                         <img src="{{ asset('assets/image/arrow.png') }}" class="arrow" alt="">
                     </div>
                 </div>
@@ -168,10 +182,11 @@
                                 Please allow up to one week for your donation to be processed.
                             </small>
 
-                            <input type="text" hidden id="campaign" value="{{$campaign}}">
+                            <input type="text" hidden id="tevini_campaignid" value="{{$tevini_campaignid}}">
                             <input type="text" hidden id="transid" value="{{$transid}}">
                             <input type="text" hidden id="comment" value="{{$comment}}">
-                            <input type="text" hidden id="hash" value="{{$charidy_hash}}">
+                            <input type="text" hidden id="hash" value="{{$thrdprty_hash}}">
+                            <input type="text" hidden id="identify" value="{{$identify}}">
 
                             <input type="button" id="apidonation" value="CONFIRM DONATION" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">
 
@@ -216,15 +231,16 @@
                     var transid= $("#transid").val();
                     var acc= $("#acc").val();
                     var amt= $("#amt").val();
-                    var campaign= $("#campaign").val();
+                    var tevini_campaignid= $("#tevini_campaignid").val();
                     var comment= $("#comment").val();
                     var password= $("#password").val();
                     var hash= $("#hash").val();
+                    var identify= $("#identify").val();
                     // alert(hash);
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {transid,acc,amt,campaign,comment,hash,password},
+                        data: {transid,acc,amt,tevini_campaignid,comment,hash,password,identify},
                         success: function (d) {
 
                             if (d.status == 303) {

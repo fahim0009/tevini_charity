@@ -107,7 +107,7 @@ class HomepageController extends Controller
             if($request->identify == "1"){
             $success_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$s_hash_1."&hash=".$tevini_hash1;
             }elseif($request->identify == "2"){
-            $success_url = "https://shasathonuk.org/cart/chairty_multi.html".$s_hash_2."&hash=".$tevini_hash2;
+            $success_url = "https://dev.shasathonuk.org/cart/chairty_multi.html".$s_hash_2."&hash=".$tevini_hash2;
             }
             $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
             return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
@@ -128,7 +128,7 @@ class HomepageController extends Controller
             if($request->identify == "1"){
             $unsuccess_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$us_hash_1."&hash=".$tevini_hash1;
             }elseif($request->identify == "2"){
-            $unsuccess_url = "https://shasathonuk.org/cart/chairty_multi.html".$us_hash_2."&hash=".$tevini_hash2;
+            $unsuccess_url = "https://dev.shasathonuk.org/cart/chairty_multi.html".$us_hash_2."&hash=".$tevini_hash2;
             }
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
             return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);

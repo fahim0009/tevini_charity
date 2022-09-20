@@ -64,8 +64,26 @@
                 </div>
             </div>
         </div>
+    </div>
 
 
+
+
+    <div class="rows bg-white shadow-sm my-3">
+        <div class="cols" id="contentContainer">
+            <div class="card">
+                <h1 class="text-center">Notification</h1>
+                @foreach (\App\Models\Usertransaction::where('notification','=', 1)->get() as $item)
+                    
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+                        <input type="hidden" id="codeid" name="codeid" value="{{$item->id}}">
+                        <a id="deleteBtn" rid="{{$item->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                        
+                      </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 
 
@@ -73,4 +91,53 @@
 
 @endsection
 
+@section('script')
+<script>
+    $(document).ready(function () {
 
+
+            //header for csrf-token is must in laravel
+            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+                        //
+
+        var url = "{{URL::to('/admin/notification')}}";
+
+
+        //Delete
+        $("#contentContainer").on('click','#deleteBtn', function(){
+            if(!confirm('Sure?')) return;
+                var form_data = new FormData();
+                form_data.append('_method', 'put');
+
+                    // console.log(image);
+                    $.ajax({
+                        url:url+'/'+$("#codeid").val(),
+                        type: "POST",
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        data:form_data,
+                        success: function(d){
+                            console.log(d);
+                            if (d.status == 303) {
+                                $(".ermsg").html(d.message);
+                                pagetop();
+                            }else if(d.status == 300){
+                                pagetop();
+                                $(".ermsg").html(d.message);
+                                // success("Data Deleted Successfully!!");
+                                window.setTimeout(function(){location.reload()},2000)
+                            }
+                        },
+                        
+                        error:function(d){
+                            console.log(d);
+                        }
+                    });
+
+            });
+            //Delete
+    });
+</script>
+
+@endsection

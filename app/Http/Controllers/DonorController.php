@@ -240,6 +240,21 @@ class DonorController extends Controller
     }
 
 
+    public function notification(Request $request, $id)
+    {
+
+        $data = Usertransaction::findOrFail($id);
+        $data->notification = 0;
+        if($data->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Notification Delete Successfully.</b></div>";
+            
+        return response()->json(['status'=> 300,'message'=>$message]);
+        }
+        return response()->json(['status'=> 300,'message'=>'Server Error!!']);
+
+    }
+
+
 
     // donor report in admin
     public function userReportinAdmin(Request $request, $id)

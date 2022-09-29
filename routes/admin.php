@@ -128,7 +128,6 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/charity-pay/{id}', [CharityController::class, 'pay'])->name('charity.pay');
     Route::post('/charity-topupstore', [CharityController::class, 'topupStore'])->name('charity.topup.store');
     Route::post('/charity-paystore', [CharityController::class, 'payStore'])->name('charity.pay.store');
-    Route::put('/notification/{id}', [DonorController::class, 'notification'])->name('notification');
 
     // voucher book
     Route::get('/voucher-book', [OrderController::class, 'voucherBookStock'])->name('voucherbooks');
@@ -172,5 +171,9 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
     Route::post('/update-url', [CampaignController::class, 'updateUrl'])->name('updateurl');
 
+    // Notification
+    Route::post('/donornoti', [DashboardController::class, 'donorNoti'])->name('donornoti');
+    Route::post('/ordernoti', [DashboardController::class, 'orderNoti'])->name('ordernoti');
+    Route::post('/donationnoti', [DashboardController::class, 'donationNoti'])->name('donationnoti');
+
 });
-// admin part end

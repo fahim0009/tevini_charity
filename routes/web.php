@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -75,9 +76,12 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('settings', [HomepageController::class, 'userSettings'])->name('user.settings');
 
 
+    // strip
+    Route::get('stripe', [StripePaymentController::class, 'stripe']);
+    Route::post('stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
 
 
-
+    Route::get('/topup', [DonorController::class, 'stripeDonation'])->name('stripeDonation');
 
 });
 // user part end

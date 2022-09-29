@@ -80,24 +80,25 @@ class RegisterController extends Controller
             'street' => $data['streetname'],
             'town' => $data['town'],
             'postcode' => $data['postcode'],
+            'notification' => 1,
             'status' => 0,
 
-        ]);     
-        
-        
+        ]);
+
+
     //   $mail_to_send_to = $data['email'];
 
         // $from_email = "info@tevini.co.uk";
         // $subject= "Registration message from Tevini";
 
-        // $message= "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."; 
-        
+        // $message= "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.";
+
         // $message = $message. "\r\n" ;//add message from the contact form to existing message(name of the client)
         // $headers = "From: $from_email" . "\r\n" . "Reply-To: $from_email"  ;
         // $a = mail( $mail_to_send_to, $subject, $message, $headers );
-        
+
         $contactmail = ContactMail::where('id', 1)->first()->name;
-        
+
             $array['name'] = $data['name'];
             $array['subject'] = 'Welcome to Tevini';
             $array['from'] = 'info@tevini.co.uk';
@@ -108,8 +109,8 @@ class RegisterController extends Controller
              $message->from($array['from'], 'Tevini.co.uk');
              $message->to($email)->cc($array['cc'])->subject($array['subject']);
             });
-        
+
         return $user;
     }
-    
+
 }

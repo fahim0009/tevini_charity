@@ -98,6 +98,7 @@ class OrderController extends Controller
         $order->user_id = $request->did;
         $order->order_id = time() . "-" . $request->did;
         $order->amount = $prepaid_amount;
+        $order->notification = 1;
         $order->status = 0;
         if($order->save()){
 

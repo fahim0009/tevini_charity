@@ -66,22 +66,31 @@
         </div>
     </div>
 
-
-
-
     <div class="rows bg-white shadow-sm my-3">
         <div class="cols" id="contentContainer">
             <div class="card">
-                <h1 class="text-center">Notification</h1>
-                @foreach (\App\Models\Usertransaction::where('notification','=', 1)->get() as $item)
-                    
+                <h3 class="text-center">Notification</h3>
+                @foreach (\App\Models\User::where('notification','=', 1)->get() as $user)
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <strong>Holy guacamole!</strong> You should check in on some of those fields below.
-                        <input type="hidden" id="codeid" name="codeid" value="{{$item->id}}">
-                        <a id="deleteBtn" rid="{{$item->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
-                        
-                      </div>
+                        <strong>New donor!</strong> To view this Donor.<a href="{{ route('donor.profile',$user->id) }}"> Click here</a>
+                        <a id="donorBtn" donor_id="{{$user->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                    </div>
                 @endforeach
+
+                @foreach (\App\Models\Order::where('notification','=', 1)->get() as $order)
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>New order!</strong> To process this order.<a href="{{ route('singleorder',$order->id) }}"> Click here</a>
+                    <a id="orderBtn" order_id="{{$order->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                  </div>
+                @endforeach
+
+                @foreach (\App\Models\Donation::where('notification','=', 1)->get() as $donation)
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>New donation!</strong> To process this donation.<a href="{{ route('donationlist') }}"> Click here</a>
+                    <a id="donationBtn" donation_id="{{$donation->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                  </div>
+                @endforeach
+
             </div>
         </div>
     </div>
@@ -95,48 +104,90 @@
 <script>
     $(document).ready(function () {
 
-
-            //header for csrf-token is must in laravel
-            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-                        //
-
-        var url = "{{URL::to('/admin/notification')}}";
+    //header for csrf-token is must in laravel
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+    //
 
 
-        //Delete
-        $("#contentContainer").on('click','#deleteBtn', function(){
-            if(!confirm('Sure?')) return;
-                var form_data = new FormData();
-                form_data.append('_method', 'put');
+                //  donor notification
+                var url = "{{URL::to('/admin/donornoti')}}";
+                $("#contentContainer").on('click','#donorBtn', function(){
 
-                    // console.log(image);
+                    var donorid= $(this).attr('donor_id');
+
                     $.ajax({
-                        url:url+'/'+$("#codeid").val(),
-                        type: "POST",
-                        dataType: 'json',
-                        contentType: false,
-                        processData: false,
-                        data:form_data,
-                        success: function(d){
-                            console.log(d);
+                        url: url,
+                        method: "POST",
+                        data: {donorid},
+                        success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
-                                pagetop();
                             }else if(d.status == 300){
-                                pagetop();
                                 $(".ermsg").html(d.message);
-                                // success("Data Deleted Successfully!!");
                                 window.setTimeout(function(){location.reload()},2000)
                             }
                         },
-                        
-                        error:function(d){
+                        error: function (d) {
                             console.log(d);
                         }
                     });
 
             });
-            //Delete
+
+
+                // order notification
+                var url2 = "{{URL::to('/admin/ordernoti')}}";
+                $("#contentContainer").on('click','#orderBtn', function(){
+
+                    var orderid= $(this).attr('order_id');
+
+                    $.ajax({
+                        url: url2,
+                        method: "POST",
+                        data: {orderid},
+                        success: function (d) {
+                            if (d.status == 303) {
+                                $(".ermsg").html(d.message);
+                            }else if(d.status == 300){
+                                $(".ermsg").html(d.message);
+                                window.setTimeout(function(){location.reload()},2000)
+                            }
+                        },
+                        error: function (d) {
+                            console.log(d);
+                        }
+                    });
+
+            });
+
+
+                // donation notification
+                var url3 = "{{URL::to('/admin/donationnoti')}}";
+                $("#contentContainer").on('click','#donationBtn', function(){
+
+                    var donationid= $(this).attr('donation_id');
+
+                    $.ajax({
+                        url: url3,
+                        method: "POST",
+                        data: {donationid},
+                        success: function (d) {
+                            if (d.status == 303) {
+                                $(".ermsg").html(d.message);
+                            }else if(d.status == 300){
+                                $(".ermsg").html(d.message);
+                                window.setTimeout(function(){location.reload()},2000)
+                            }
+                        },
+                        error: function (d) {
+                            console.log(d);
+                        }
+                    });
+
+            });
+
+
+
     });
 </script>
 

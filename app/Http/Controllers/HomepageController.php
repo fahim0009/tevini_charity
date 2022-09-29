@@ -81,8 +81,11 @@ class HomepageController extends Controller
                 exit();
             }
 
+
+
             $utransaction = new Usertransaction();
             $utransaction->t_id = time() . "-" . $donor_id;
+            $utransaction->charity_id = $campaign_dtls->charity_id;
             $utransaction->user_id = $donor_id;
             $utransaction->t_type = "Out";
             $utransaction->amount =  $request->amt;

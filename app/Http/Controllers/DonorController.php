@@ -240,22 +240,6 @@ class DonorController extends Controller
     }
 
 
-    public function notification(Request $request, $id)
-    {
-
-        $data = Usertransaction::findOrFail($id);
-        $data->notification = 0;
-        if($data->save()){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Notification Delete Successfully.</b></div>";
-            
-        return response()->json(['status'=> 300,'message'=>$message]);
-        }
-        return response()->json(['status'=> 300,'message'=>'Server Error!!']);
-
-    }
-
-
-
     // donor report in admin
     public function userReportinAdmin(Request $request, $id)
     {
@@ -481,6 +465,7 @@ class DonorController extends Controller
         $data->confirm_donation = $request->c_donation;
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;
+        $data->notification = 1;
         $data->status = 0;
 
         if($data->save()){
@@ -689,7 +674,7 @@ class DonorController extends Controller
 
     public function donationStatus(Request $request)
     {
-   $user_id = Donation::where('id',$request->did)->first()->user_id;
+        $user_id = Donation::where('id',$request->did)->first()->user_id;
         $charity_id = Donation::where('id',$request->did)->first()->charity_id;
         $donation = Donation::where('id',$request->did)->first();
         $balance = Donation::where('id',$request->did)->first()->amount;
@@ -739,6 +724,12 @@ class DonorController extends Controller
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
+    }
+
+    // stripe
+    public function stripeDonation()
+    {
+        return view('frontend.user.strip_topup');
     }
 
 

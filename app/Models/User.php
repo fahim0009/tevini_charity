@@ -42,6 +42,7 @@ class User extends Authenticatable
         'twitter',
         'google',
         'linkedin',
+        'notification',
         'updated_by',
         'created_by',
     ];
@@ -104,7 +105,7 @@ class User extends Authenticatable
     {
       return $this->hasOne('App\Models\Provoucher');
     }
-    
+
     public function usertransaction()
     {
       return $this->hasOne('App\Models\Usertransaction');

@@ -34,7 +34,7 @@
                                         <span>USD</span>
                                     </div>
                                     <input type="number" autocomplete="off" id="amount" inputmode="numeric" maxlength="5"
-                                        name="donationAmount" value="" oninput="myFunction()">
+                                        name="donationAmount" value="">
                                 </div>
 
                                 <div class="form-group">
@@ -51,12 +51,6 @@
                                     <div class="form-item">
                                         <label for=""> Last name </label>
                                         <input type="text" name="lname" class="form-control" placeholder=" @if(Auth::user()) {{ Auth::user()->lname}} @else  @endif">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="form-item">
-                                        <input type="checkbox" id="bill" class="form-control">
-                                        <label for="bill">Use  billing name </label>
                                     </div>
                                 </div>
                                 <div class="form-group col-gap-adjust" >
@@ -109,8 +103,9 @@
 
                                 <div class='form-row row'>
                                     <div class='col-md-12 error form-group hide'>
-                                        <div class='alert-danger alert'>Please correct the errors and try
-                                            again.</div>
+                                        <div class='alert-danger alert'>
+                                            
+                                        </div>
                                     </div>
                                 </div>
 

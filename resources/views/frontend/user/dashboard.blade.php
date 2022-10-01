@@ -9,8 +9,8 @@
         <div class="col-md-12 text-center ">
             <h4 class="text-capitalize bg-info text-white p-3 border-left d-inline-block mx-auto rounded">
                 welcome to mr ‘{{auth()->user()->name}}’
-            </h4>           
-            <h5> <span> Gift Aid in current year : £{{ $currentyramount }}</span></h5> 
+            </h4>
+            <h5> <span> Gift Aid in current year : £{{ $currentyramount }}</span></h5>
             <h5><span>  Gift Aid in previous year : £{{ $totalamount }}</span></h5>
         </div>
     </div>
@@ -37,7 +37,7 @@
         ['user_id','=', Auth::user()->id],
         ['status', '=', '0']
         ])->sum('amount');
-    @endphp 
+    @endphp
     @if($ptotal)
     <div class="alert alert-danger" role="alert">
         <p>Your pending voucher balance is : £{{$ptotal}}</p>
@@ -63,11 +63,22 @@
                         5A Holmdale Terrace, London, N156PP
                     </div>
                 </div>
+
+                <div class="transferFunds shadow-sm mt-2">
+                    <div class="pointer">
+                        3
+                    </div>
+                    <div class="para pl-2">
+                     Top Up using yur card <br>
+                     <a href="{{ route('stripeDonation') }}"> Click here</a>
+                    </div>
+                </div>
             </div>
             <div class="col-md-1 d-flex justify-content-center align-items-center">
                 <h4 class="my-3"> OR</h4>
             </div>
             <div class="col-md-5">
+
                 <div class="transferFunds shadow-sm">
                     <div class="pointer">
                         2
@@ -76,8 +87,8 @@
                         Transfer funds to our bank account:
                     </div>
                 </div>
-                <div class="transferFunds shadow-sm mt-2">
 
+                <div class="transferFunds shadow-sm mt-2">
                     <div class="para pl-2">
                         <b>CAF BANK</b> <br>
                         Tevini Ltd, <br>
@@ -119,24 +130,20 @@
   <!-- Modal End -->
 @endsection
 
+
 @section('script')
 
 <script>
-
-
 $(document).ready(function () {
-
         //header for csrf-token is must in laravel
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             //
-
         //add overdrawn
         $(".overdrawn").click(function(){
             var overdrawnid = $(this).attr("overdrawn-id");
             console.log(overdrawnid );
             $('#overdrawnid').val(overdrawnid);
 	    });
-
         var overdrawnurl = "{{URL::to('/user/update-overdrawn')}}";
         $("#overdrawnBtn").click(function(){
         var overdrawnid= $("#overdrawnid").val();
@@ -158,16 +165,9 @@ $(document).ready(function () {
                 console.log(d);
             }
         });
-
             });
-
         // overdrawn END
-
     });
-
 </script>
 
 @endsection
-
-
-

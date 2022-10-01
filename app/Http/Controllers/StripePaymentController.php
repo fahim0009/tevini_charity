@@ -18,7 +18,7 @@ class StripePaymentController extends Controller
      */
     public function stripe()
     {
-        return view('stripe');
+        return view('frontend.user.strip_topup');
     }
 
     /**
@@ -28,13 +28,15 @@ class StripePaymentController extends Controller
      */
     public function stripePost(Request $request)
     {
-        if($request->typeof=='strip-donation'){
-            Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+        if($request->typeof=='stripeTopup'){
+            $amt = $request->amount;
+            // Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+            Stripe\Stripe::setApiKey("sk_test_51HI5BcCKybLLVMsSAFPeM6AX1HSb250L8EiFSAFluSOb1dMkWOF4WRnAhweXdayytuigBDLHbUtjNHUMZvWITo8X00mRHKYvxs");
             Stripe\Charge::create ([
-                    "amount" => $request->tdonation * 100,
+                    "amount" => $amt * 100,
                     "currency" => "usd",
                     "source" => $request->stripeToken,
-                    "description" => "Fundraiser make donation"
+                    "description" => "Tevini donor topup"
             ]);
             // $donation = new Donation();
             // $donation->user_id = $request->userid;

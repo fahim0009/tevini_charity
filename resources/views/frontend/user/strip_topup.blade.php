@@ -33,7 +33,7 @@
                                 class="require-validation"
                                 data-cc-on-file="false"
                                 {{-- data-stripe-publishable-key="{{ env('STRIPE_KEY') }}" --}}
-                                data-stripe-publishable-key="pk_live_51KsS4xAynpveFrWHr7GiZOV2fLG1cYEkAlnm1SVeI93ENsDH6HQi8CoXNklvhbWP9Z9TNIzzfTR8gIi6205E2ejZ00uwYYwNpz"
+                                data-stripe-publishable-key=""
                                 id="payment-form">
                             @csrf
 

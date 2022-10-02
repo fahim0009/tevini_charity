@@ -32,7 +32,7 @@ class StripePaymentController extends Controller
         if($request->typeof=='stripeTopup'){
             $amt = $request->amount;
             // Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
-            Stripe\Stripe::setApiKey("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");
+            Stripe\Stripe::setApiKey("");
             Stripe\Charge::create ([
                     "amount" => $amt * 100,
                     "currency" => "usd",

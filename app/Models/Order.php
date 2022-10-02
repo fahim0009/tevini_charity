@@ -14,7 +14,7 @@ class Order extends Model
         return $this->belongsTo('App\Models\User');
     }
 
-      public function orderhistory()
+    public function orderhistory()
     {
       return $this->hasOne('App\Models\OrderHistory');
     }

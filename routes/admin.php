@@ -13,6 +13,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DonorController;
 use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -175,5 +176,10 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/donornoti', [DashboardController::class, 'donorNoti'])->name('donornoti');
     Route::post('/ordernoti', [DashboardController::class, 'orderNoti'])->name('ordernoti');
     Route::post('/donationnoti', [DashboardController::class, 'donationNoti'])->name('donationnoti');
+    Route::post('/topupnoti', [DashboardController::class, 'topupNoti'])->name('topupnoti');
+
+    // stripe topup
+    Route::get('/stripe-topup', [StripePaymentController::class, 'stripetopup'])->name('stripetopup');
+    Route::post('/stripe-topup-status', [StripePaymentController::class, 'stripetopupstatus']);
 
 });

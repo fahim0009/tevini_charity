@@ -215,14 +215,11 @@
 @section('script')
 <script>
  $(document).ready(function () {
-<<<<<<< Updated upstream
 
 
  //header for csrf-token is must in laravel
  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-=======
->>>>>>> Stashed changes
             //  make mail start
             var url = "{{URL::to('/api')}}";
             var attemp_pass = 0;
@@ -243,14 +240,7 @@
                     $.ajax({
                         url: url,
                         method: "POST",
-<<<<<<< Updated upstream
                         data: {transid,acc,amt,tevini_campaignid,comment,hash,password,identify},
-=======
-                        data: {
-                            "_token": "{{ csrf_token() }}",
-                            transid,acc,amt,tevini_campaignid,comment,hash,password
-                        },
->>>>>>> Stashed changes
                         success: function (d) {
 
                             if (d.status == 303) {

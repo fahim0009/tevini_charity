@@ -33,7 +33,7 @@
                                 class="require-validation"
                                 data-cc-on-file="false"
                                 {{-- data-stripe-publishable-key="{{ env('STRIPE_KEY') }}" --}}
-                                data-stripe-publishable-key="pk_test_51HI5BcCKybLLVMsSJ1zKQK22Av94EF1nvgUaj3eHTNBvhx9rgri9NFf5b7rjclMgwipLLhL9AJaxQodevyAywkqC00I6kl866i"
+                                data-stripe-publishable-key="pk_live_51KsS4xAynpveFrWHr7GiZOV2fLG1cYEkAlnm1SVeI93ENsDH6HQi8CoXNklvhbWP9Z9TNIzzfTR8gIi6205E2ejZ00uwYYwNpz"
                                 id="payment-form">
                             @csrf
 
@@ -82,6 +82,7 @@
                                 </div>
                             </div>
                             <input type="hidden" name="typeof" value="stripeTopup">
+                            <input type="hidden" name="donor_id" value="{{auth()->user()->id}}">
                             <div class="row">
                                 <div class="col-xs-12">
                                     <button class="btn btn-primary btn-lg btn-block" type="submit">Pay Now</button>

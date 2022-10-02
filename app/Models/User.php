@@ -111,5 +111,10 @@ class User extends Authenticatable
       return $this->hasOne('App\Models\Usertransaction');
     }
 
+    public function stripetopup()
+    {
+      return $this->hasOne('App\Models\StripeTopup');
+    }
+
 
 }

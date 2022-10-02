@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Session;
 use Stripe;
 use App\Models\Donation;
+use App\Models\StripeTopup;
 use App\Models\Fundraiser;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,61 +32,43 @@ class StripePaymentController extends Controller
         if($request->typeof=='stripeTopup'){
             $amt = $request->amount;
             // Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
-            Stripe\Stripe::setApiKey("sk_test_51HI5BcCKybLLVMsSAFPeM6AX1HSb250L8EiFSAFluSOb1dMkWOF4WRnAhweXdayytuigBDLHbUtjNHUMZvWITo8X00mRHKYvxs");
+            Stripe\Stripe::setApiKey("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");
             Stripe\Charge::create ([
                     "amount" => $amt * 100,
                     "currency" => "usd",
                     "source" => $request->stripeToken,
                     "description" => "Tevini donor topup"
             ]);
-            // $donation = new Donation();
-            // $donation->user_id = $request->userid;
-            // $donation->project_id = $request->projectid;
-            // if(!empty(Auth::user()->id)){
-            //     $donation->donar_id = Auth::user()->id;
-            // }else{
-            //     $donation->donar_id = 'guest';
-            // }
-            // $fundamount = $request->tdonation - $request->fundcommission;
-            // $donation->email = $request->email;
-            // $donation->fname = $request->fname;
-            // $donation->lname =  $request->lname;
-            // $donation->country = $request->country;
-            // $donation->postcode = $request->postcode;
 
-            // $donation->amount = $fundamount;
-            // $donation->charge = $request->fundcommission;
-            // $donation->total_amount = $request->tdonation;
-
-            // $donation->cname = $request->cname;
-            // $donation->cnumber = $request->cnumber;
-            // $donation->cvv = $request->cvv;
-            // $donation->mm = $request->mm;
-            // $donation->yy = $request->yy;
-            // $donation->status = 0;
-            // if($donation->save()){
-
-            //     $where = [
-            //         'id'=> $request->projectid
-            //     ];
-            //     $user = Fundraiser::where($where)->get()->first();
-            //     $user->balance = $user->balance+$fundamount;
-            //     $user->save();
-
-            //     Session::flash('success', 'Payment successful!');
-            //     return redirect()->route('single-fundraiser', encrypt($request->projectid));
-
-            // }
-            // else{
-            //     return back();
-            // }
+            $stripetopup = new StripeTopup();
+            $stripetopup->donor_id = $request->donor_id;
+            $stripetopup->amount = $amt;
+            $stripetopup->token = time();
+            $stripetopup->description = "Tevini donor topup";
+            $stripetopup->notification = "1";
+            $stripetopup->status = "0";
+            $stripetopup->save();
 
             Session::flash('success', 'Payment successful!');
             return redirect()->route('stripeDonation');
         }
+    }
 
 
+    public function stripetopup()
+    {
+        $stripe = StripeTopup::all();
+        return view('stripe.stripetopup', compact('stripe'));
+    }
 
+    public function stripetopupstatus(Request $request)
+    {
+        $data = StripeTopup::find($request->id);
+        $data->status = 1;
+        if($data->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
 
     }
 }

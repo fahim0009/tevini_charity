@@ -91,6 +91,13 @@
                   </div>
                 @endforeach
 
+                @foreach (\App\Models\StripeTopup::where('notification','=', 1)->get() as $topup)
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>New Stripe Topup!</strong> To view this.<a href="{{ route('stripetopup') }}"> Click here</a>
+                    <a id="topupBtn" topup_id="{{$topup->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                  </div>
+                @endforeach
+
             </div>
         </div>
     </div>
@@ -185,6 +192,33 @@
                     });
 
             });
+
+
+            // topup notification
+            var url4 = "{{URL::to('/admin/topupnoti')}}";
+                $("#contentContainer").on('click','#topupBtn', function(){
+
+                    var topupid= $(this).attr('topup_id');
+
+                    $.ajax({
+                        url: url4,
+                        method: "POST",
+                        data: {topupid},
+                        success: function (d) {
+                            if (d.status == 303) {
+                                $(".ermsg").html(d.message);
+                            }else if(d.status == 300){
+                                $(".ermsg").html(d.message);
+                                window.setTimeout(function(){location.reload()},2000)
+                            }
+                        },
+                        error: function (d) {
+                            console.log(d);
+                        }
+                    });
+
+            });
+
 
 
 

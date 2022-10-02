@@ -66,7 +66,7 @@
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                     Pending Vouchers
                 </a>
-            </li>        
+            </li>
 
             <li class="nav-item {{ (request()->is('admin/order*')) ? 'active' : '' }}">
                 <a href="#">
@@ -146,6 +146,14 @@
             </li>
 
 
+            <li class="nav-item {{ (request()->is('admin/stripe-topup*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('stripetopup') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Stripe Topup
+                </a>
+            </li>
+
+
             <li class="nav-item {{ (request()->is('admin/commission*')) ? 'active' : '' }}" id="admintransaction">
                 <a href="{{ route('commission') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>
@@ -186,8 +194,8 @@
             <!--        Settings-->
             <!--    </a>-->
             <!--</li>-->
-            
-            
+
+
             <li class="nav-item {{ (request()->is('admin/admin-contact-mail*')) ? 'active' : '' }}" id="admintransaction">
                 <a href="{{ route('admin.contactmail') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>

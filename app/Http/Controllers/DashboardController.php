@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Donation;
 use App\Models\Provoucher;
+use App\Models\StripeTopup;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -56,6 +57,20 @@ class DashboardController extends Controller
     {
 
         $data = Donation::find($request->donationid);
+        $data->notification = 0;
+        if($data->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Notification Delete Successfully.</b></div>";
+
+        return response()->json(['status'=> 300,'message'=>$message]);
+        }
+        return response()->json(['status'=> 300,'message'=>'Server Error!!']);
+
+    }
+
+    public function topupNoti(Request $request)
+    {
+
+        $data = StripeTopup::find($request->topupid);
         $data->notification = 0;
         if($data->save()){
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Notification Delete Successfully.</b></div>";

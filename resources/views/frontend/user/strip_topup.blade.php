@@ -1,11 +1,6 @@
 @extends('frontend.layouts.user')
-
 @section('content')
-
-
 <div class="dashboard-content py-2 px-4">
-
-
     <div class="container">
         <div class="row">
             <div class="col-md-2"></div>

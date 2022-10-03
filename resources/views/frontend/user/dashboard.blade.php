@@ -69,7 +69,7 @@
                         3
                     </div>
                     <div class="para pl-2">
-                     Top Up using yur card <br>
+                     Top-Up using your card <br>
                      <a href="{{ route('stripeDonation') }}"> Click here</a>
                     </div>
                 </div>

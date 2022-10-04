@@ -257,7 +257,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" id="addBtn" class="btn btn-primary">Save</button>
+          <button type="button" id="addaccBtn" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
@@ -342,12 +342,12 @@ window.onload = (event) => {
         $('#donnerid').val(userid);
 	    });
 
-        var url = "{{URL::to('/admin/add-account')}}";
-        $("#addBtn").click(function(){
+        var addaccurl = "{{URL::to('/admin/add-account')}}";
+        $("#addaccBtn").click(function(){
         var donnerId= $("#donnerid").val();
         var accno= $("#updaccno").val();
         $.ajax({
-            url: url,
+            url: addaccurl,
             method: "POST",
             data: {donnerId:donnerId,accno:accno},
             success: function (d) {

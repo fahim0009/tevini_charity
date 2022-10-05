@@ -27,8 +27,7 @@
                                 method="post"
                                 class="require-validation"
                                 data-cc-on-file="false"
-                                {{-- data-stripe-publishable-key="{{ env('STRIPE_KEY') }}" --}}
-                                data-stripe-publishable-key=""
+                                data-stripe-publishable-key="pk_test_51HI5BcCKybLLVMsSJ1zKQK22Av94EF1nvgUaj3eHTNBvhx9rgri9NFf5b7rjclMgwipLLhL9AJaxQodevyAywkqC00I6kl866i"
                                 id="payment-form">
                             @csrf
 

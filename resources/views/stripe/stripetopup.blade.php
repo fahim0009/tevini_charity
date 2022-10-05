@@ -31,8 +31,9 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Donor</th>
+                                    <th>Donor Account</th>
                                     <th>amount</th>
+                                    <th>Top-Up</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -43,8 +44,9 @@
                                 @forelse ($stripe as $data)
                                     <tr>
                                         <td>{{$data->created_at->format('d/m/Y')}}</td>
-                                        <td>{{$data->donor_id}}</td>
+                                        <td>{{\App\Models\User::where('id','=', $data->donor_id)->first()->accountno}}</td>
                                         <td>£{{$data->amount}}</td>
+                                        <td><a href="{{ route('topup',[$data->donor_id,'0']) }}">TopUp</a></td>
                                         <td>
                                             <select name="" id="stripeSts" class="form-control" @if($data->status == "1")disabled @endif>
                                                 <option value="{{$data->id}}" @if($data->status == "0")Selected @endif>Pending</option>

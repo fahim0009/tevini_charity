@@ -72,7 +72,7 @@
                 <h3 class="text-center">Notification</h3>
                 @foreach (\App\Models\User::where('notification','=', 1)->get() as $user)
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <strong>New donor!</strong> To view this Donor.<a href="{{ route('donor.profile',$user->id) }}"> Click here</a>
+                        <strong>New donor!</strong> To view this Donor.<a href="{{ route('donor') }}"> Click here</a>
                         <a id="donorBtn" donor_id="{{$user->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
                     </div>
                 @endforeach

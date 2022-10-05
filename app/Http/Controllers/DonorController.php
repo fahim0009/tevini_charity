@@ -30,7 +30,7 @@ class DonorController extends Controller
 
     public function addDonor()
     {
-        $users = User::where('is_type','=' ,'user')->orderBy('id','ASC')->get();
+        $users = User::where('is_type','=' ,'user')->orderBy('id','DESC')->get();
         return view('donor.adddonor', compact('users'));
     }
 

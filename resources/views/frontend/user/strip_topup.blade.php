@@ -27,14 +27,14 @@
                                 method="post"
                                 class="require-validation"
                                 data-cc-on-file="false"
-                                data-stripe-publishable-key="pk_test_51HI5BcCKybLLVMsSJ1zKQK22Av94EF1nvgUaj3eHTNBvhx9rgri9NFf5b7rjclMgwipLLhL9AJaxQodevyAywkqC00I6kl866i"
+                                data-stripe-publishable-key="pk_live_51KsS4xAynpveFrWHr7GiZOV2fLG1cYEkAlnm1SVeI93ENsDH6HQi8CoXNklvhbWP9Z9TNIzzfTR8gIi6205E2ejZ00uwYYwNpz"
                                 id="payment-form">
                             @csrf
 
                             <div class='form-row row'>
                                 <div class='col-xs-12 form-group required'>
                                     <label class='control-label'>Topup Amount</label>
-                                    <input class='form-control' name="amount" size='4' type='number'>
+                                    <input class='form-control' name="amount" placeholder='£' size='4' type='number'>
                                 </div>
                             </div>
 

@@ -72,6 +72,7 @@ use app\Models\Provoucher;
                                     <th>Date</th>
                                     <th>Description</th>
                                     <th>Voucher number</th>
+                                    <th>Donor Name</th>
                                     <th>Amount </th>
                                     <th>Balance </th>
                                     <th>Notes </th>
@@ -88,6 +89,7 @@ use app\Models\Provoucher;
                                         <td><span style="display:none;">{{ $data->id }}</span>{{ $data->created_at->format('d/m/Y')}} </td>
                                         <td>Vouchers </td>
                                         <td>{{$data->cheque_no}}</td>
+                                        <td>{{$data->user->name}}</td>
                                         <td> £{{ number_format($data->amount, 2) }}</td>
                                         @if($data->status == 1)
                                         <td> £{{ number_format($total+$tbalance, 2) }} </td>

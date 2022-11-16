@@ -416,6 +416,12 @@ class DonorController extends Controller
         return view('frontend.user.donation');
     }
 
+    public function userDonationAdmin($id)
+    {
+        $donor_id = $id;
+        return view('donor.onlinedonation',compact('donor_id'));
+    }
+
     public function userDonationStore(Request $request)
     {
 
@@ -439,7 +445,7 @@ class DonorController extends Controller
             exit();
         }
         if($request->c_donation == "false"){
-            $message ="<div class='alert alert-danger'>Please accept contidion.</div>";
+            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
@@ -510,6 +516,104 @@ class DonorController extends Controller
 
 
     }
+
+    public function userDonationAdminStore(Request $request)
+    {
+
+
+        if(empty($request->charity_id)){
+            // $message ="<div class='alert alert-danger'>Please select beneficiary field.</div>";
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->amount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        if($request->c_donation == "false"){
+            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $donner_id = $request->donner_id;
+
+        $data = new Donation;
+        $data->user_id = $donner_id;
+        $data->charity_id = $request->charity_id;
+        $data->amount = $request->amount;
+        $data->currency = "GBP";
+        $data->ano_donation = $request->ano_donation;
+        $data->standing_order = $request->standard;
+        if($data->standing_order == "true"){
+        $data->payments = $request->payments_type;
+        $data->number_payments = $request->number_payments;
+        $data->starting = $request->starting;
+        $data->interval = $request->interval;
+        }else{
+        $data->payments = null;
+        $data->number_payments = null;
+        $data->starting = null;
+        $data->interval = null;
+        }
+        $data->confirm_donation = $request->c_donation;
+        $data->charitynote = $request->charitynote;
+        $data->mynote = $request->mynote;
+        $data->notification = 1;
+        $data->status = 0;
+
+        if($data->save()){
+
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = time() . "-" . $donner_id;
+            $utransaction->user_id = $donner_id;
+            $utransaction->charity_id = $request->charity_id;
+            $utransaction->donation_id = $data->id;
+            $utransaction->t_type = "Out";
+            $utransaction->amount =  $request->amount;
+            $utransaction->title =  "Online Donation";
+            $utransaction->status =  1;
+            $utransaction->save();
+
+            $user = User::find($donner_id);
+            $user->decrement('balance',$request->amount);
+            $user->save();
+
+            $charity = Charity::find($request->charity_id);
+            $charity->increment('balance',$request->amount);
+            $charity->save();
+
+            $user = User::where('id',$donner_id)->first();
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['name'] = $user->name;
+            $array['cc'] = $contactmail;
+            $array['client_no'] = $user->accountno;
+            $email = $user->email;
+            $array['amount'] = $request->amount;
+            $array['charity_note'] = $request->charitynote;
+            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new DonationReport($array));
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation submited Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+
+    }
+
 
 
     public function addAccount(Request $request)

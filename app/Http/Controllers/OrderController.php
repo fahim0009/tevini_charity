@@ -213,7 +213,7 @@ class OrderController extends Controller
 
         foreach( array_count_values($chqs) as $key => $val ) {
             if ( $val > 1 ){
-                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Duplicate Check No found. </b></div>";
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher ".$key." is more than one entry. </b></div>";
                 return response()->json(['status'=> 303,'message'=>$message]);
                 exit();
             }
@@ -328,7 +328,12 @@ class OrderController extends Controller
 
         $user = User::where('id',$request->did)->first();
 
-        $pdf = PDF::loadView('invoices.inst_report', compact('total','remittance','charity'));
+        $previous_pending = Provoucher::where([
+            ['charity_id','=', $charityid],
+            ['status', '=', '0']
+            ])->sum('amount');
+
+        $pdf = PDF::loadView('invoices.inst_report', compact('total','remittance','charity','previous_pending'));
         $output = $pdf->output();
         file_put_contents(public_path().'/invoices/'.'voucherReport#'.$charityid.'.pdf', $output);
 

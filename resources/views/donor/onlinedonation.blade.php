@@ -1,7 +1,5 @@
-@extends('frontend.layouts.user')
-
+@extends('layouts.admin')
 @section('content')
-
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
 <style>
     .chkCircle{
@@ -11,9 +9,15 @@
     }
 
 </style>
-
 <div class="dashboard-content">
-
+    <section class="profile purchase-status">
+        <div class="title-section">
+            <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">Donor Details</div>
+        </div>
+    </section>
+    @include('inc.user_menue')
+  <section class="">
+   <div class="dashboard-content">
     {{-- <section class=" px-4">
         <div class="alert mt-3 alert-warning alert-dismissible fade show" role="alert">
             <div class="d-inline">
@@ -152,6 +156,7 @@
                                 <textarea class="form-control @error('mynote') is-invalid @enderror" name="mynote" placeholder="MY NOTES" id="mynote"
                                     cols="30" rows="3"></textarea>
                             </div>
+                            <input type="hidden" value="{{$donor_id}}" id="donner_id">
                             <div class="col-md-12 my-2">
                                 <input type="button" id="addBtn" value="Make Donation" class="btn btn-primary">
                             </div>
@@ -162,11 +167,9 @@
         </div>
     </section>
 </div>
-
-
-
+</section>
+</div>
 @endsection
-
 @section('script')
 <script>
      $(document).ready(function () {
@@ -184,9 +187,10 @@
  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
             //  make doantion start
-            var url = "{{URL::to('/user/make-donation')}}";
+            var url = "{{URL::to('/admin/make-donation')}}";
             $("#addBtn").click(function(){
                  $("#loading").show();
+                    var donner_id= $("#donner_id").val();
                     var charity_id= $("#charity_id").val();
                     var amount= $("#amount").val();
                     var ano_donation= $('#ano_donation').prop('checked');
@@ -202,7 +206,7 @@
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {charity_id:charity_id,amount:amount,ano_donation:ano_donation,standard:standard,payments_type:payments_type,number_payments:number_payments,starting:starting,interval:interval,c_donation:c_donation,charitynote:charitynote,mynote:mynote},
+                        data: {donner_id:donner_id,charity_id:charity_id,amount:amount,ano_donation:ano_donation,standard:standard,payments_type:payments_type,number_payments:number_payments,starting:starting,interval:interval,c_donation:c_donation,charitynote:charitynote,mynote:mynote},
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);

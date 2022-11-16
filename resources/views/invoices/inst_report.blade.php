@@ -113,7 +113,7 @@ use app\Models\Provoucher;
                 @php
                 $total_bal = 0;
                 $total_pending = 0;
-            @endphp
+                @endphp
 
             @foreach ($remittance as $balcal)
             <?php $total_bal += $balcal->amount;?>
@@ -123,8 +123,16 @@ use app\Models\Provoucher;
             @endforeach
 
                 <div class="left">
-                    Total amount: £{{$total_bal}}  <br>
-                    Total pending: £{{$total_pending}} <br>
+                    Amount: £{{$total_bal}}  <br>
+                    Pending: £{{$total_pending}} <br>
+                </div>
+                <br>
+                @php
+                $previous_pending_net = $previous_pending - $total_pending;
+                @endphp
+                <div class="left">
+                    Total wallet amount: £{{$charity->balance}}  <br>
+                    Total Previous pending: £{{$previous_pending_net}} <br>
                 </div>
 
 

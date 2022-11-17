@@ -139,6 +139,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/process-voucher/{id}', [OrderController::class, 'instReport'])->name('instreport');
     Route::post('/pvr-mail', [OrderController::class, 'instReportmail'])->name('instreportmail');
     Route::post('/pvoucher-store', [OrderController::class, 'pvoucherStore'])->name('pvoucher.store');
+    Route::post('/pvoucher-draft', [OrderController::class, 'pvoucherDraft'])->name('pvoucher.draft');
+
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');
     Route::get('/complete-voucher', [OrderController::class, 'completeVoucher'])->name('completevoucher');
     Route::get('/pending-voucher', [OrderController::class, 'pendingVoucher'])->name('pendingvoucher');

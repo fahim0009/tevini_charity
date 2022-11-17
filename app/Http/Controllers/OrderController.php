@@ -12,6 +12,7 @@ use App\Models\OrderHistory;
 use App\Models\Voucher;
 use App\Models\Charity;
 use App\Models\Provoucher;
+use App\Models\Draft;
 use App\Models\Batchprov;
 use App\Models\Commission;
 use App\Models\Usertransaction;
@@ -192,6 +193,75 @@ class OrderController extends Controller
 
     }
 
+    // voucher draft
+    public function pvoucherDraft(Request $request)
+    {
+        $charity_id= $request->charityId;
+        $donor_ids = $request->donorIds;
+        $donor_names = $request->donorNms;
+        $donor_accs = $request->donorAccs;
+        $chqs = $request->chqNos;
+        $amounts = $request->amts;
+        $notes = $request->notes;
+
+        $check_chqs = Provoucher::all();
+
+        if(empty($charity_id)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select a charity first.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        foreach( array_count_values($chqs) as $key => $val ) {
+            if ( $val > 1 ){
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher ".$key." is more than one entry. </b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+        }
+
+        foreach($chqs as $chq){
+            foreach($check_chqs as $check_chq){
+                if($chq == $check_chq->cheque_no){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher number ".$chq." is already proccesed. </b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+
+
+                }
+            }
+        }
+
+        foreach($donor_ids as $key => $donor_id){
+            if($donor_id == "" || $donor_accs[$key] == "" || $chqs[$key] == "" || $amounts[$key] == ""){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill all field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+            }
+        }
+
+            foreach($donor_ids as $key => $donor_id)
+            {
+                if(!isset(Draft::where('voucher_number','=', $chqs[$key])->first()->charity_id)){
+                $pvsr =  new Draft();
+                $pvsr->charity_id = $charity_id;
+                $pvsr->donor_id = $donor_id;
+                $pvsr->donor_acc = $donor_accs[$key];
+                $pvsr->donor_name = $donor_names[$key];
+                $pvsr->voucher_number = $chqs[$key];
+                $pvsr->amount = $amounts[$key];
+                $pvsr->note = $notes[$key];
+                $pvsr->status = 1;
+                $pvsr->save();
+                }
+
+            }
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher save as a draft successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message, 'charity_id'=>$charity_id,]);
+
+    }
+
 
     public function pvoucherStore(Request $request)
     {
@@ -294,6 +364,7 @@ class OrderController extends Controller
                 $user->decrement('balance',$amounts[$key]);
                 }
 
+                Draft::truncate();
 
             }
 

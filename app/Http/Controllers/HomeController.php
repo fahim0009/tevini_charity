@@ -48,7 +48,7 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    
+
     public function agentHome()
     {
         return view('agent.dashboard');
@@ -72,9 +72,7 @@ class HomeController extends Controller
                             ->whereYear('created_at', $p->format('Y'))
                             ->get();
             foreach ($currentmonthgift2 as $data){
-                // dd($data);
-                $data->amount;
-                $totalamount = $data->amount + $totalamount;
+                $totalamount = $data->amount + $totalamount + $data->commission;
             }
         }
         // previous year data end
@@ -90,8 +88,7 @@ class HomeController extends Controller
 
         $currentyramount = 0;
         foreach ($currentyr as $data2){
-            $data2->amount;
-            $currentyramount = $data2->amount + $currentyramount;
+            $currentyramount = $data2->amount + $currentyramount + $data2->commission;
         }
         // current year data end
 

@@ -35,9 +35,7 @@ class UserController extends Controller
                             ->whereYear('created_at', $p->format('Y'))
                             ->get();
             foreach ($currentmonthgift2 as $data){
-                // dd($data);
-                $data->amount;
-                $totalamount = $data->amount + $totalamount;
+                $totalamount = $data->amount + $totalamount + $data->commission;
             }
         }
         // previous year data end
@@ -53,8 +51,7 @@ class UserController extends Controller
 
         $currentyramount = 0;
         foreach ($currentyr as $data2){
-            $data2->amount;
-            $currentyramount = $data2->amount + $currentyramount;
+            $currentyramount = $data2->amount + $currentyramount + $data2->commission;
         }
         // current year data end
 
@@ -106,9 +103,7 @@ class UserController extends Controller
                             ->whereYear('created_at', $p->format('Y'))
                             ->get();
             foreach ($currentmonthgift2 as $data){
-                // dd($data);
-                $data->amount;
-                $totalamount = $data->amount + $totalamount;
+                $totalamount = $data->amount + $totalamount + $data->commission;
             }
         }
         // previous year data end
@@ -124,11 +119,10 @@ class UserController extends Controller
 
         $currentyramount = 0;
         foreach ($currentyr as $data2){
-            $data2->amount;
-            $currentyramount = $data2->amount + $currentyramount;
+            $currentyramount = $data2->amount + $currentyramount + $data2->commission;
         }
 
-        // dd($currentyramount);
+
         // current year data end
 
         $date = \Carbon\Carbon::now();

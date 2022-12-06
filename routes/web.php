@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DonationController;
 use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RegisterController;
@@ -82,6 +83,9 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
 
     Route::get('/topup', [DonorController::class, 'stripeDonation'])->name('stripeDonation');
+    // donation calculator
+    Route::post('donation-calculator', [DonationController::class, 'store'])->name('donation.calculation.store');
+    Route::post('donation-calculator-update', [DonationController::class, 'update'])->name('donation.calculation.update');
 
 });
 // user part end
@@ -104,6 +108,7 @@ Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, '
 // api
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
 Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
+
 
 
 

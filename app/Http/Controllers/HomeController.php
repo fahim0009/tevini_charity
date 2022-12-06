@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Usertransaction;
+use App\Models\DonationCalculator;
+use App\Models\DonationDetail;
 use Carbon\Carbon;
+use DateTime;
 use Carbon\CarbonPeriod;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -84,13 +87,50 @@ class HomeController extends Controller
                         )
                         ->get();
 
-                        // dd($items );
 
         $currentyramount = 0;
         foreach ($currentyr as $data2){
             $currentyramount = $data2->amount + $currentyramount + $data2->commission;
         }
         // current year data end
+
+        
+        $now = time(); // or your date as well
+        $your_date = strtotime("2022-04-01");
+        $datediff = ($now - $your_date);
+        $totaldays =  round($datediff / (60 * 60 * 24));
+        $totalweek = number_format($totaldays/7);
+
+        $dcal = DonationCalculator::where('donor_id', Auth::user()->id)->first();
+        $donationdetails = DonationDetail::where('donor_id', Auth::user()->id)->first();
+        $donationdetailscount = DonationDetail::where('donor_id', Auth::user()->id)->count();
+        $diffweek = $totalweek - $donationdetailscount;
+        // dd($dcal);
+
+        if ($donationdetails == "null") {
+            
+
+
+        } else {
+
+            for($x=0; $x < $totaldays; $x+=$dcal->income_slot){
+                $totaltran = Usertransaction::where('user_id', Auth::user()->id)->where('t_type','=','Out')->sum('amount');
+
+                $doncaldetl = new DonationDetail;
+                $doncaldetl->donor_id = Auth::user()->id;
+                $doncaldetl->date = Carbon::today()->addDays($x);
+                $doncaldetl->donation_amount = $dcal->income_amount * ($dcal->donation_percentage/100);
+                $doncaldetl->available_for_donation = $totaltran;
+                $doncaldetl->save();
+
+                // $x = $dcal->income_slot;
+               
+
+            }
+            // dd($x );
+            
+        }
+        
 
 
         return view('frontend.user.dashboard',compact('currentyramount','totalamount'));

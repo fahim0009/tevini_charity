@@ -140,22 +140,13 @@ class HomeController extends Controller
                 $doncaldetl->available_for_donation = $totaltran;
                 $doncaldetl->save();
 
-                // $x = $dcal->income_slot;
-
-
             }
-            // dd($x );
 
         }
-<<<<<<< HEAD
         
-        // $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
 
-         // git test 
         $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
-=======
 
->>>>>>> 72349925614d4fdf7c31cbe6df89ebb7e31c80da
 
 
 

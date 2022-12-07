@@ -189,6 +189,34 @@
         
     </fieldset>
 
+
+    {{-- new code  --}}
+    <fieldset >      
+        <div class="row">
+            <div class="col-md-6">
+                <legend>TOTAL DONATION IN CURRENT YEAR:</legend>
+                <div class="transferFunds shadow-sm">
+                    <div class="para pl-2">
+                        <input type="text" class="form-control" value="{{$totaltran}}" readonly>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="col-md-6">
+                <legend>AVAILABLE FOR DONATION :</legend>
+                <div class="transferFunds shadow-sm">
+                    <div class="para pl-2">
+                        <input type="text" class="form-control" value="{{$availabledonation}}" readonly>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+    </fieldset>
+
+    {{-- end  --}}
+
     <fieldset >
         <legend>DONATION DETAILS:</legend>
         <div class="row">
@@ -200,60 +228,36 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Transaction Id</th>
-                                <th>Charity Name</th>
-                                <th>Voucher Number</th>
-                                <th>Transaction Type</th>
-                                <th>Status </th>
-                                <th>Amount </th>
+                                <th>Donation Slot</th>
+                                <th>Income Amount</th>
+                                <th>Donation Amount</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
+
+                            @foreach ($dondetails as $data)
+                            @php
+                                $slot = \App\Models\DonationCalculator::where('donor_id','=',Auth::user()->id)->first()->income_slot;
+                            @endphp
+                                
+                                <tr>
+                                    <td>{{ date('d-M, Y', strtotime($data->date)) }}</td>
+                                    <td>
+                                        @if ($slot == 7)
+                                            Weekly
+                                        @elseif ($slot == 30)
+                                            Monthly
+                                        @else
+                                            On/Off
+                                        @endif
+                                    </td>
+                                    <td>{{ \App\Models\DonationCalculator::where('donor_id','=',Auth::user()->id)->first()->income_amount}}</td>
+                                    <td>{{$data->donation_amount}}</td>
+                                </tr>
+                            @endforeach
+
+
+
                         </tbody>
                     </table>
                 </div>

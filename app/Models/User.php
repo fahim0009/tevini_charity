@@ -116,5 +116,15 @@ class User extends Authenticatable
       return $this->hasOne('App\Models\StripeTopup');
     }
 
+    public function donationdetail()
+    {
+      return $this->hasOne('App\Models\DonationDetail');
+    }
+
+    public function donationcalculator()
+    {
+      return $this->hasOne('App\Models\DonationCalculator');
+    }
+
 
 }

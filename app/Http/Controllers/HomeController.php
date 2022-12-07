@@ -107,6 +107,22 @@ class HomeController extends Controller
         $diffweek = $totalweek - $donationdetailscount;
         // dd($dcal);
 
+        $totaltran = Usertransaction::where('user_id', Auth::user()->id)
+                                    ->where('t_type','=','Out')
+                                    ->whereBetween('created_at',
+                                        [Carbon::now()->subMonth(4), Carbon::now()]
+                                    )
+                                    ->sum('amount');
+        
+
+        $donationamnt = DonationDetail::where('donor_id', Auth::user()->id)
+                    ->whereBetween('date',
+                        [Carbon::now()->subMonth(4), Carbon::now()]
+                    )
+                    ->sum('donation_amount');
+        // dd($donationamnt);
+        $availabledonation = $totaltran - $donationamnt;
+
         if ($donationdetails == "null") {
             
 
@@ -114,10 +130,11 @@ class HomeController extends Controller
         } else {
 
             for($x=0; $x < $totaldays; $x+=$dcal->income_slot){
-                $totaltran = Usertransaction::where('user_id', Auth::user()->id)->where('t_type','=','Out')->sum('amount');
+                
 
                 $doncaldetl = new DonationDetail;
                 $doncaldetl->donor_id = Auth::user()->id;
+                $doncaldetl->donation_cal_id = $dcal->id;
                 $doncaldetl->date = Carbon::today()->addDays($x);
                 $doncaldetl->donation_amount = $dcal->income_amount * ($dcal->donation_percentage/100);
                 $doncaldetl->available_for_donation = $totaltran;
@@ -131,9 +148,9 @@ class HomeController extends Controller
             
         }
         
+        $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
 
-
-        return view('frontend.user.dashboard',compact('currentyramount','totalamount'));
+        return view('frontend.user.dashboard',compact('currentyramount','totalamount','totaltran','availabledonation','dondetails'));
     }
     public function sellerHome()
     {

@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class DonationDetail extends Model
 {
     use HasFactory;
+
+    public function user(){
+        return $this->belongsTo('App\Models\User');
+      }
+
+      public function donationcalculator(){
+        return $this->belongsTo('App\Models\DonationCalculator');
+      }
 }

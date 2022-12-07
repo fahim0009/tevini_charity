@@ -148,7 +148,13 @@ class HomeController extends Controller
             
         }
         
+        // $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
+
+         // git test 
         $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
+
+
+
 
         return view('frontend.user.dashboard',compact('currentyramount','totalamount','totaltran','availabledonation','dondetails'));
     }

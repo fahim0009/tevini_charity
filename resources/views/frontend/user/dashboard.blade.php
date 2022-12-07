@@ -235,6 +235,7 @@
                         </thead>
                         <tbody>
 
+
                             @foreach ($dondetails as $data)
                             @php
                                 $slot = \App\Models\DonationCalculator::where('donor_id','=',Auth::user()->id)->first()->income_slot;
@@ -257,6 +258,8 @@
                             @endforeach
 
 
+
+                            
 
                         </tbody>
                     </table>

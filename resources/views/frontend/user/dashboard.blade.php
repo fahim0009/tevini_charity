@@ -186,7 +186,7 @@
             </div>
         </div>
         @endif
-        
+
     </fieldset>
 
 
@@ -221,7 +221,7 @@
         <legend>DONATION DETAILS:</legend>
         <div class="row">
             <div class="col-md-12 mt-2 text-center">
-                
+
 
                 <div class="overflow">
                     <table class="table table-custom shadow-sm bg-white" id="exampleIn">
@@ -339,16 +339,16 @@ $(document).ready(function () {
         // overdrawn END
 
 
-
+            // donations calculators start
         var url = "{{URL::to('/user/donation-calculator')}}";
             // console.log(url);
             $("#dCalBtn").click(function(){
-                    
+
                     var form_data = new FormData();
                     form_data.append("income_amount", $("#income_amount").val());
                     form_data.append("income_slot", $("#income_slot").val());
                     form_data.append("donation_percentage", $("#donation_percentage").val());
-                    
+
                     $.ajax({
                       url: url,
                       method: "POST",
@@ -368,7 +368,7 @@ $(document).ready(function () {
                       }
                   });
                 //create  end
-                
+
             });
 
 
@@ -378,13 +378,13 @@ $(document).ready(function () {
             var upurl = "{{URL::to('/user/donation-calculator-update')}}";
             // console.log(url);
             $("#dCalUpBtn").click(function(){
-                    
+
                     var form_data = new FormData();
                     form_data.append("dcalid", $("#dcalid").val());
                     form_data.append("income_amount", $("#income_amount").val());
                     form_data.append("income_slot", $("#income_slot").val());
                     form_data.append("donation_percentage", $("#donation_percentage").val());
-                    
+
                     $.ajax({
                       url: upurl,
                       method: "POST",
@@ -404,11 +404,11 @@ $(document).ready(function () {
                       }
                   });
                 //create  end
-                
+
             });
 
 
-
+            // donation calclutors end
 
 
 

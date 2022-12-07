@@ -94,7 +94,7 @@ class HomeController extends Controller
         }
         // current year data end
 
-        
+
         $now = time(); // or your date as well
         $your_date = strtotime("2022-04-01");
         $datediff = ($now - $your_date);
@@ -113,7 +113,7 @@ class HomeController extends Controller
                                         [Carbon::now()->subMonth(4), Carbon::now()]
                                     )
                                     ->sum('amount');
-        
+
 
         $donationamnt = DonationDetail::where('donor_id', Auth::user()->id)
                     ->whereBetween('date',
@@ -124,13 +124,13 @@ class HomeController extends Controller
         $availabledonation = $totaltran - $donationamnt;
 
         if ($donationdetails == "null") {
-            
+
 
 
         } else {
 
             for($x=0; $x < $totaldays; $x+=$dcal->income_slot){
-                
+
 
                 $doncaldetl = new DonationDetail;
                 $doncaldetl->donor_id = Auth::user()->id;
@@ -141,17 +141,17 @@ class HomeController extends Controller
                 $doncaldetl->save();
 
                 // $x = $dcal->income_slot;
-               
+
 
             }
             // dd($x );
-            
+
         }
-        
-        $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
+
 
         return view('frontend.user.dashboard',compact('currentyramount','totalamount','totaltran','availabledonation','dondetails'));
     }
+
     public function sellerHome()
     {
         return view('seller.dashboard');

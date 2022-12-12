@@ -1,5 +1,7 @@
-@extends('frontend.layouts.master')
+@extends('frontend.layouts.home')
 @section('content')
+
+
 <style>
     #riskfloater {
       background-color: green;
@@ -84,24 +86,263 @@
   }
   </style>
 
-<section class="introBanner">
-    <div class="row" style="margin-right:0px;">
 
-        <div class="col-md-5 px-3 mx-auto text-center f-flex align-items-center justify-content-center flex-column">
 
-           <img src="{{ asset('assets/front/images/home-icon.png') }}" alt="Home Icon" class="img-fluid">
-
-        </div>
-        <div class="col-md-5 align-middle bannerRight">
-            <h1 style="font-size:5rem">The gift</h1>
-            <h1 style="font-size:5rem">of giving</h1>
-            <br>
-            <p>Give smart</p>
-            <br>
-           <a href="{{ route('login') }}" class="btn loginBtn">Log In</a>
-           <a href="{{ route('register') }}" class="btn regBtn">Register</a>
+<section class="banner py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="row">
+                    <div class="col-lg-6 d-flex align-items-center">
+                        <img src="{{ asset('assets/front/images/hero image jewish.svg') }}" class="img-fluid mx-auto" alt="">
+                    </div>
+                    <div class="col-lg-6 d-flex align-items-center justify-content-center">
+                        <div class="inner w-75">
+                            <div class="intro-title">
+                                Easier Giving
+                            </div>
+                            <p class="txt-theme mb-4">The Charity voucher account that <br> allows you to give more
+                                charity <br> with less paperwork,<br> less tax and less stress.</p>
+                            <div>
+                                <a href="#" class="btn-theme bg-secondary">Open an account</a>
+                            <a href="#" class="btn-theme bg-primary">How it works</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</section>
+
+
+<section class="bleesed default">
+    <div class="container">
+        <div class="row d-flex align-items-center justify-content-center">
+
+            <div class="title">Give and feel blessed.</div>
+            <div class="para text-center my-5">
+                <p> Taxes, claiming and paperwork can suck the joy out of being on the giving end.</p>
+                <p>
+                    At Tevini, we bring you a charity account using a system that is efficient, accountable and
+                    <br> completely stress free.
+                </p>
+                <p>
+                    If you're looking to put the joy back into opening your pocket, writing a voucher and piling up
+                    <br>
+                    your merits with nothing else to worry about, Tevini is for you.
+                </p>
+            </div>
+            <img src="{{ asset('assets/front/images/down-arrow-01.svg') }}" class="arrow">
+
+        </div>
+    </div>
+</section>
+
+<section class="help default">
+    <div class="container">
+        <div class="row">
+            <div class="title">
+                Tevini helps you <br> to help others.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-6 upperGap">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <img src="{{ asset('assets/front/images/tevini helps you to help others-02 1.svg') }}" class="arrow">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="paratitle">Simple</div>
+                        <p class="theme-para">
+                            Tevini is the simplest way to manage your charity. With a bank-like set-up you can
+                            easily make payments straight from your account. You can get paid directly into your
+                            account too.
+                        </p>
+                        <a href="#" class="btn-theme bg-primary btn-line">Get started</a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 col-md-6 upperGap">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <img src="{{ asset('assets/front/images/tevini helps you to help others-05 1.svg') }}" class="arrow">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="paratitle">Safe</div>
+                        <p class="theme-para">
+                            Tevini makes it easy to manage your charity and keep track of your giving. Our system is
+                            designed to meet the highest standards of transparency and accountability.
+
+
+                        </p>
+                        <a href="#" class="btn-theme bg-primary btn-line">Learn more</a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 col-md-6 upperGap">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <img src="{{ asset('assets/front/images/tevini helps you to help others-04 1.svg') }}" class="arrow">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="paratitle">Supportive</div>
+                        <p class="theme-para">
+                            We understand that charity accounts and legislation can be confusing and overwhelming.
+                            We make it our priority to always be available for you and provide guidance every step
+                            of the way.
+
+
+                        </p>
+                        <a href="#" class="btn-theme bg-primary btn-line">Learn more</a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 col-md-6 upperGap">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <img src="{{ asset('assets/front/images/tevini helps you to help others-03 1.svg') }}" class="arrow">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="paratitle">Give more</div>
+                        <p class="theme-para">
+                            Tevini account gives you the opportunity to minimise your tax bill and maximise the
+                            amount of money you give. We claim gift aid for your donations, so they increase by 25%.
+
+                        </p>
+                        <a href="#" class="btn-theme bg-primary btn-line">Get started</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<section class="ranks default">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="title text-start txt-secondary">
+                            Join the <br> ranks of <br> easy giving
+                        </div>
+                        <img src="{{ asset('assets/front/images/right-arrow-01.svg') }}" alt="" class="w-50 my-5">
+                    </div>
+                    <div class="col-lg-6 ranksAddjust">
+                        <div class="row my-3">
+                            <div class="col-lg-4">
+                                <img src="{{ asset('assets/front/images/1.svg') }}" alt="">
+                            </div>
+                            <div class="col-lg-8 pt-5">
+                                <div class="paratitle">Sign up</div>
+                                <p class="theme-para">
+                                    Sign up for our<br> account by filling a<br> short form.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-lg-4">
+                                <img src="{{ asset('assets/front/images/2.svg') }}" alt="">
+                            </div>
+                            <div class="col-lg-8 pt-5">
+                                <div class="paratitle">Transfer</div>
+                                <p class="theme-para">
+                                    Transfer £100 to <br> jumpstart your Tevini <br> account.
+
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-lg-4">
+                                <img src="{{ asset('assets/front/images/3.svg') }}" alt="">
+                            </div>
+                            <div class="col-lg-8 pt-5">
+                                <div class="paratitle">Start giving</div>
+                                <p class="theme-para">
+                                    Start giving the Tevini <br> way; more money, less <br> stress.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="together default">
+    <div class="container">
+        <div class="row">
+            <div class="title">
+                Together, we make the <br> world a better place.
+
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="row mt-5">
+            <div class="col-lg-3 col-md-6 upperGap">
+                <div class="paratitle">0</div>
+                <p class="theme-para">
+                    Paperwork and administrative hassle
+                </p>
+            </div>
+            <div class="col-lg-3 col-md-6 upperGap">
+                <div class="paratitle">25%</div>
+                <p class="theme-para">
+                    Donation increase with Gift Aid
+                </p>
+            </div>
+            <div class="col-lg-3 col-md-6 upperGap">
+                <div class="paratitle">2600+</div>
+                <p class="theme-para">
+                    Potential reputable charity recipients
+
+                </p>
+            </div>
+            <div class="col-lg-3 col-md-6 upperGap">
+                <div class="paratitle">100%</div>
+                <p class="theme-para">
+                    Donor and charity satisfaction
+
+                </p>
+            </div>
+
+
+        </div>
+    </div>
+</section>
+
+<section class="client default ">
+    <div class="container">
+        <div class="row">
+            <div class="title txt-secondary">
+                Join over 1,000 satisfied <br> clients.
+            </div>
+            <a href="#" class="mx-auto btn-theme bg-primary d-inline my-5"> Join Tevini </a>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 {{-- for cokkies  --}}
 

@@ -2,6 +2,128 @@
 
 @section('content')
 
+
+
+<section class="contact py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="title mb-5">
+                            Contact us today:
+                        </div>
+                        <div class="theme-para ">
+                            Fill out the form below and we’ll get back to you as   soon as we can.
+                        </div>
+                        <form action="" class="form-custom"> 
+                            <div class="form-group">
+                                <input class="form-control" type="text" placeholder="Name"> 
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" type="text" placeholder="Email"> 
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" type="text" placeholder="Subject"> 
+                            </div>
+                            <div class="form-group">
+                                <textarea class="form-control" rows="3" placeholder="Message"></textarea> 
+                            </div>
+                            <div class="form-group">
+                                <a href="#" class="btn-theme bg-primary">Send</a>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-8 d-flex align-items-center justify-content-center">
+                        <img src="{{ asset('assets/front/images/contact page top 1.svg') }}" alt="" class="w-100">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="default contactInfo">
+    <div class="container">
+        <div class="row ">
+            <div class="col-lg-3 d-flex flex-column align-items-center">
+                <div class="paratitle text-center">Phone</div>
+                <p class="theme-para text-center">  07490 956 227  </p>
+                <a href="#" class="btn-theme bg-primary btn-line">Call</a>
+            </div>
+            <div class="col-lg-3 d-flex flex-column align-items-center">
+                <div class="paratitle text-center">Whatsapp</div>
+                <p class="theme-para text-center">  07490 956 227  </p>
+                <a href="#" class="btn-theme bg-primary btn-line">Message</a>
+            </div>
+            <div class="col-lg-3 d-flex flex-column align-items-center">
+                <div class="paratitle text-center">Email</div>
+                <p class="theme-para text-center"> info@tevini.co.uk  </p>
+                <a href="#" class="btn-theme bg-primary btn-line">Email</a>
+            </div>
+            <div class="col-lg-3 d-flex flex-column align-items-center">
+                <div class="paratitle text-center">Address</div>
+                <p class="theme-para text-center"> 5a Holmdale Terrace <br>
+                    London N15 6PP</p>
+                <a href="#" class="btn-theme bg-primary btn-line">Visit</a>
+            </div>
+            
+        </div>
+    </div>
+</section>
+<section class="platform default">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="title">
+                A platform that givers deserve.
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="row my-5">
+            <div class="col-lg-1 col-md-6 position-relative">  </div> 
+                
+           
+            <div class="col-lg-2 col-md-6 position-relative"> 
+                <img src="{{ asset('assets/front/images/1-1.svg') }}" alt="" class="numbering">
+                <p class="paratitle">
+                    Full <br> support
+                </p>
+            </div> 
+            <div class="col-lg-2 col-md-6 position-relative"> 
+                <img src="{{ asset('assets/front/images/2.svg') }}" alt="" class="numbering">
+                <p class="paratitle">
+                    Easy to  <br>use  
+                </p>
+            </div> 
+            <div class="col-lg-2 col-md-6 position-relative"> 
+                <img src="{{ asset('assets/front/images/3.svg') }}" alt="" class="numbering">
+                <p class="paratitle">
+                    Less tax  <br>deduction  
+                </p>
+            </div> 
+            <div class="col-lg-2 col-md-6 position-relative"> 
+                <img src="{{ asset('assets/front/images/4.svg') }}" alt="" class="numbering">
+                <p class="paratitle">
+                    Maximised  <br>donations  
+                </p>
+            </div> 
+            <div class="col-lg-2 col-md-6 position-relative"> 
+                <img src="{{ asset('assets/front/images/5.svg') }}" alt="" class="numbering">
+                <p class="paratitle">
+                    Financial  <br>control  
+                </p>
+            </div> 
+            <div class="col-lg-1 col-md-6 position-relative">  </div> 
+        </div>
+        <div class="row">
+            <a href="#" class="btn-theme   mx-auto bg-secondary">Open your account</a>
+        </div>
+    </div>
+</section>
+
+
+{{-- 
 <section class="introBanner py-5">
     <div class="col-md-12 ">
         <div class="col-md-6 px-3 mx-auto text-center f-flex align-items-center justify-content-center flex-column">
@@ -61,7 +183,7 @@
             </div>
        </div>
     </div>
-</section>
+</section> --}}
 @endsection
 
 @section('script')

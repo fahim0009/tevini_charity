@@ -12,10 +12,10 @@
                     </div>
                 </div>
                 <div class="footer-link mt-4 pb-3">
-                    <a href="">home</a>
-                    <a href="">about</a>
-                    <a href="">how it works</a>
-                    <a href="">contact</a>
+                    <a href="{{ route('homepage') }}">home</a>
+                    <a href="{{ route('aboutus') }}">about</a>
+                    <a href="{{ route('howitWorks') }}">how it works</a>
+                    <a href="{{ route('contact') }}">contact</a>
                     <a href="{{route('register')}}">open an account</a>
                     <a href="{{route('login')}}">log in</a>
                 </div>

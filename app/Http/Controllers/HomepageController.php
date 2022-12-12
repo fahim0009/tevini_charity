@@ -49,6 +49,11 @@ class HomepageController extends Controller
         return view('setting.index');
     }
 
+    public function howitWorks()
+    {
+        return view('frontend.how-it-works');
+    }
+
     public function apidonation()
     {
         return view('frontend.thirdpartydonation');

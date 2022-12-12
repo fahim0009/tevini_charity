@@ -13,12 +13,12 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNavDropdown">
                     <ul class="navbar-nav mx-auto navCustom">
-                        
+
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('aboutus') }}">About </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">how it works</a>
+                            <a class="nav-link" href="{{ route('howitWorks') }}">how it works</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('contact') }}">Contact </a>

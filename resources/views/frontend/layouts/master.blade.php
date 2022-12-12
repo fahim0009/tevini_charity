@@ -1,6 +1,5 @@
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-
 <head>
     <meta charset="UTF-8">
     <!-- CSRF Token -->
@@ -13,10 +12,9 @@
     <link rel="stylesheet" href="{{ asset('assets/front/css/animate.min.css') }}" />
     @yield('css')
 </head>
-
 <body>
 
-    
+
     @include('frontend.inc.header')
 
     @yield('content')

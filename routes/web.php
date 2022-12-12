@@ -60,7 +60,6 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('standing-order', [DonorController::class, 'userStandingOrder'])->name('user.standingorder');
     Route::get('donation-record', [DonorController::class, 'userDonationrecod'])->name('user.donationrecord');
 
-
     //voucher
     Route::post('/addvoucher', [OrderController::class, 'storeVoucher'])->name('voucher.store');
 
@@ -83,9 +82,12 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
 
     Route::get('/topup', [DonorController::class, 'stripeDonation'])->name('stripeDonation');
+
     // donation calculator
     Route::post('donation-calculator', [DonationController::class, 'store'])->name('donation.calculation.store');
     Route::post('donation-calculator-update', [DonationController::class, 'update'])->name('donation.calculation.update');
+    Route::get('donation-calculation', [DonationController::class, 'donationCal'])->name('user.donationcal');
+
 
 });
 // user part end

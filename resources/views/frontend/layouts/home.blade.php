@@ -9,7 +9,7 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <!-- FOR SEO -->
     <!-- <meta property='og:title' content='MarinOne soft'/>
-    <meta property='og:image' content='./assets/images/link.jpg'/> 
+    <meta property='og:image' content='./assets/images/link.jpg'/>
     <meta property='og:description' content='DESCRIPTION OF YOUR SITE'/>
     <meta property='og:url' content='URL OF YOUR WEBSITE'/>
     <meta property='og:image:width' content='1200' />
@@ -29,7 +29,7 @@
     <!-- oncontextmenu="return false;" -->
 
 
-    
+
             {{-- sidebar start here  --}}
 
             @include('frontend.inc.header')
@@ -42,7 +42,7 @@
             @yield('content')
             {{-- dashbord content close here  --}}
 
-    
+
             {{-- footer start here  --}}
 
             @include('frontend.inc.footer')
@@ -52,24 +52,11 @@
 
 
 
-
+    <script src="{{ asset('assets/user/js/jquery-3.5.1.min.js') }}"></script>
     <script src="{{ asset('assets/front/js/bootstrap-5.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/front/js/iconify.min.js') }}"></script>
     <script src="{{ asset('assets/front/js/app.js') }}"></script>
-    <!-- <script src="https://code.jquery.com/jquery-2.2.0.min.js" type="text/javascript"></script> -->
-    <!-- <script src="./js/slick.min.js" type="text/javascript"></script> -->
-  
-
-    <!--  <script>
-        document.onkeydown = function(e) {
-          if (e.ctrlKey && e.keyCode === 85) { 
-             alert("you cant get my code ever :)");
-             return false;
-          }
-        };
-       </script> -->
-
-       @yield('script')
+    @yield('script')
 </body>
 
 </html>

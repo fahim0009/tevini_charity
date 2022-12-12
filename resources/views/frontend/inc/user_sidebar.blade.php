@@ -34,12 +34,12 @@
                     Make a Donation
                 </a>
             </li>
-            <li class="nav-item {{ (request()->is('user/donation-calculation*')) ? 'active' : '' }}">
+            {{-- <li class="nav-item {{ (request()->is('user/donation-calculation*')) ? 'active' : '' }}">
                 <a href="{{ route('user.donationcal') }}">
                     <span class="iconify" data-icon="clarity:heart-solid"></span>
                     Donation Calculator
                 </a>
-            </li>
+            </li> --}}
             <li class="nav-item {{ (request()->is('user/donation-record*')) ? 'active' : '' }}">
                 <a href="{{ route('user.donationrecord') }}">
                     <span class="iconify" data-icon="icomoon-free:profile"></span>

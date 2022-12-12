@@ -109,6 +109,8 @@
 
     {{-- donation calculation start  --}}
     <fieldset >
+
+        @if($msg)<p class="text-center fw-bold">{{$msg}}</p>@endif
         <legend>DONATION CALCULATOR:</legend>
         <div class="ermsg"></div>
 
@@ -191,7 +193,7 @@
 
 
     {{-- new code  --}}
-    <fieldset >      
+    <fieldset >
         <div class="row">
             <div class="col-md-6">
                 <legend>TOTAL DONATION IN CURRENT YEAR:</legend>
@@ -200,7 +202,7 @@
                         <input type="text" class="form-control" value="{{$totaltran}}" readonly>
                     </div>
                 </div>
-                
+
             </div>
             <div class="col-md-6">
                 <legend>AVAILABLE FOR DONATION :</legend>
@@ -212,7 +214,7 @@
 
             </div>
         </div>
-        
+
     </fieldset>
 
     {{-- end  --}}
@@ -240,7 +242,7 @@
                             @php
                                 $slot = \App\Models\DonationCalculator::where('donor_id','=',Auth::user()->id)->first()->income_slot;
                             @endphp
-                                
+
                                 <tr>
                                     <td>{{ date('d-M, Y', strtotime($data->date)) }}</td>
                                     <td>
@@ -252,14 +254,12 @@
                                             On/Off
                                         @endif
                                     </td>
-                                    <td>{{ \App\Models\DonationCalculator::where('donor_id','=',Auth::user()->id)->first()->income_amount}}</td>
+                                    <td>{{$data->income_amount}}</td>
                                     <td>{{$data->donation_amount}}</td>
                                 </tr>
                             @endforeach
 
 
-
-                            
 
                         </tbody>
                     </table>
@@ -302,7 +302,6 @@
 
 
 @section('script')
-
 <script>
 $(document).ready(function () {
         //header for csrf-token is must in laravel
@@ -311,14 +310,14 @@ $(document).ready(function () {
         //add overdrawn
         $(".overdrawn").click(function(){
             var overdrawnid = $(this).attr("overdrawn-id");
-            console.log(overdrawnid );
             $('#overdrawnid').val(overdrawnid);
 	    });
+
         var overdrawnurl = "{{URL::to('/user/update-overdrawn')}}";
         $("#overdrawnBtn").click(function(){
         var overdrawnid= $("#overdrawnid").val();
         var overdrawnno= $("#overdrawnno").val();
-        // console.log(stockId);
+
         $.ajax({
             url: overdrawnurl,
             method: "POST",
@@ -341,7 +340,6 @@ $(document).ready(function () {
 
             // donations calculators start
         var url = "{{URL::to('/user/donation-calculator')}}";
-            // console.log(url);
             $("#dCalBtn").click(function(){
 
                     var form_data = new FormData();
@@ -376,7 +374,6 @@ $(document).ready(function () {
 
 
             var upurl = "{{URL::to('/user/donation-calculator-update')}}";
-            // console.log(url);
             $("#dCalUpBtn").click(function(){
 
                     var form_data = new FormData();
@@ -409,11 +406,6 @@ $(document).ready(function () {
 
 
             // donation calclutors end
-
-
-
-
-
 
 
 

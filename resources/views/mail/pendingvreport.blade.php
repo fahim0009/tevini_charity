@@ -2,10 +2,10 @@
 
 
 <h6>Dear {{ $array['charity']->name}},</h6>
-<p>We have processed your vouchers, Please find your remittance report attached.
+
+<p>The pending vouchers listed in the attached file have now been cleared and your charity will receive the funds in due course.
+
 Tevini</p>
-
-
 
 
 {{-- mail content end  --}}

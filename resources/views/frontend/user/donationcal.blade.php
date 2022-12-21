@@ -89,6 +89,42 @@
     </fieldset>
 
 
+        {{-- donation calculation start  --}}
+        <fieldset >
+
+            @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
+            <legend>OTHERS DONATION:</legend>
+            <div class="ermsg"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="transferFunds shadow-sm">
+                        <div class="para pl-2">
+                            <input type="number" name="d_amount" id="d_amount" class="form-control" value="" placeholder="Donation Amount">
+                        </div>
+                    </div>
+                    <div class="transferFunds shadow-sm mt-2">
+                        <div class="para pl-2">
+                            <input type="text" name="d_title" id="d_title" class="form-control" value="" placeholder="Donation receiver, Charity, Campaign">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="transferFunds shadow-sm">
+                        <div class="para pl-2">
+                            <input type="date" name="income_amount" id="income_amount" class="form-control" value="" placeholder="Date">
+                        </div>
+                    </div>
+                    <div class="transferFunds shadow-sm mt-2">
+                        <div class="para pl-2">
+                            <input type="button" id="othrBtn" value="Submit" class="btn btn-primary">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </fieldset>
+
+
     {{-- new code  --}}
     <fieldset >
         <div class="row">

@@ -36,8 +36,8 @@
                     <div class="para pl-2">
                         <select name="donation_percentage" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
                             <option value="">Select Donation Percentage</option>
-                            <option value="5" @if ($donor_cal->donation_percentage == "5") selected @endif>5%</option>
                             <option value="10" @if ($donor_cal->donation_percentage == "10") selected @endif>10%</option>
+                            <option value="20" @if ($donor_cal->donation_percentage == "20") selected @endif>20%</option>
                         </select>
                     </div>
                 </div>
@@ -72,8 +72,8 @@
                     <div class="para pl-2">
                         <select name="donation_percentage" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
                             <option value="">Select Donation Percentage</option>
-                            <option value="5">5%</option>
                             <option value="10">10%</option>
+                            <option value="20">20%</option>
                         </select>
                     </div>
                 </div>
@@ -136,16 +136,12 @@
 
 
                             @foreach ($dondetails as $data)
-                            @php
-                                $slot = \App\Models\DonationCalculator::where('donor_id','=',Auth::user()->id)->first()->income_slot;
-                            @endphp
-
                                 <tr>
                                     <td>{{ date('d-M, Y', strtotime($data->date)) }}</td>
                                     <td>
-                                        @if ($slot == 7)
+                                        @if ($data->income_slot == 7)
                                             Weekly
-                                        @elseif ($slot == 30)
+                                        @elseif ($data->income_slot == 30)
                                             Monthly
                                         @else
                                             On/Off

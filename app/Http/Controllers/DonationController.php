@@ -124,8 +124,10 @@ class DonationController extends Controller
                 $last_date = Carbon::parse($donationdetails->date);
                 $diff_with_lastdate = $last_date->diffInDays($dt);
 
+                // dd($last_date);
+
                         if($diff_with_lastdate >= $donor_cal->income_slot){
-                        for($x=0; $x < $diff_with_lastdate; $x+=$donor_cal->income_slot){
+                        for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
                             $doncaldetl = new DonationDetail;
                             $doncaldetl->donor_id = Auth::user()->id;
                             $doncaldetl->donation_cal_id = $donor_cal->id;
@@ -145,7 +147,7 @@ class DonationController extends Controller
                     $doncaldetl = new DonationDetail;
                     $doncaldetl->donor_id = Auth::user()->id;
                     $doncaldetl->donation_cal_id = $donor_cal->id;
-                    $doncaldetl->date = Carbon::now()->subMonth(8)->addDays($x);
+                    $doncaldetl->date = Carbon::now()->subMonth($sub)->addDays($x);
                     $doncaldetl->income_amount = $donor_cal->income_amount;
                     $doncaldetl->income_slot = $donor_cal->income_slot;
                     $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);

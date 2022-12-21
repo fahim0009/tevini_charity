@@ -96,7 +96,7 @@
 
                 $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
                 if(!empty($campaign_dtls)){
-                $mhash = "?campaign=".$tevini_campaignid."&transid=".$transid."&acc=".$acc."&amt=".$amt;
+                $mhash = "?tevini_campaignid=".$tevini_campaignid."&transid=".$transid."&acc=".$acc."&amt=".$amt;
                 $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
                 }
             }elseif (isset($_GET["campaign"]) && isset($_GET["transid"]) && isset($_GET["cid"]) && isset($_GET["donation"]) && isset($_GET["hashed"])) {
@@ -113,7 +113,7 @@
                 if(!empty($campaign_dtls)){
                 $mhash = "?campaign=".$tevini_campaignid."&transid=".$transid."&cid=".$acc."&donation=".$amt;
                 $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
-            }
+                }
         }
         @endphp
 <section class="homeBanner">

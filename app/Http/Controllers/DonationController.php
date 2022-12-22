@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DonationCalculator;
 use App\Models\DonationDetail;
+use App\Models\OtherDonation;
 use App\Models\Usertransaction;
 use Carbon\Carbon;
 use Auth;
@@ -98,9 +99,15 @@ class DonationController extends Controller
                         [Carbon::now()->subMonth($sub), Carbon::now()]
                     )
                     ->sum('donation_amount');
+        
+        $totalotherdonation = OtherDonation::where('donor_id', Auth::user()->id)
+                                ->whereBetween('donation_date',
+                                    [Carbon::now()->subMonth($sub), Carbon::now()]
+                                )
+                                ->sum('d_amount');
 
         if($donationamnt){
-            $availabledonation = $totaltran - $donationamnt;
+            $availabledonation = $totaltran - $donationamnt - $totalotherdonation;
 
         }else{
             $availabledonation = 0;
@@ -113,7 +120,7 @@ class DonationController extends Controller
 
             $msg = "Fill this form for donation calculation";
             $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
-            return view('frontend.user.donationcal',compact('totaltran','availabledonation','dondetails','msg'));
+            return view('frontend.user.donationcal',compact('totaltran','totalotherdonation','availabledonation','dondetails','msg'));
 
 
         }else{
@@ -159,8 +166,42 @@ class DonationController extends Controller
     }
 
         $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
-        return view('frontend.user.donationcal',compact('donor_cal','totaltran','availabledonation','dondetails'));
+        return view('frontend.user.donationcal',compact('donor_cal','totaltran','totalotherdonation','availabledonation','dondetails'));
 
+
+    }
+
+
+    public function otherDonationStore(Request $request)
+    {
+
+        if(empty($request->d_amount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Amount field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->donation_date)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Date field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->d_title)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Title field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $data = new OtherDonation;
+        $data->d_title = $request->d_title;
+        $data->donation_date = $request->donation_date;
+        $data->d_amount = $request->d_amount;
+        $data->donor_id = Auth::user()->id;
+        if($data->save()){
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data created successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
 
     }
 

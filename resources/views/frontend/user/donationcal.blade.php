@@ -94,7 +94,7 @@
 
             @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
             <legend>OTHERS DONATION:</legend>
-            <div class="ermsg"></div>
+            <div class="otherermsg"></div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="transferFunds shadow-sm">
@@ -111,7 +111,7 @@
                 <div class="col-md-6">
                     <div class="transferFunds shadow-sm">
                         <div class="para pl-2">
-                            <input type="date" name="income_amount" id="income_amount" class="form-control" value="" placeholder="Date">
+                            <input type="date" name="donation_date" id="donation_date" class="form-control" value="" placeholder="Date">
                         </div>
                     </div>
                     <div class="transferFunds shadow-sm mt-2">
@@ -142,6 +142,15 @@
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <input type="text" class="form-control" value="{{$availabledonation}}" readonly>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-6">
+                <legend>TOTAL OTHER  DONATION IN CURRENT YEAR:</legend>
+                <div class="transferFunds shadow-sm">
+                    <div class="para pl-2">
+                        <input type="text" class="form-control" value="{{$totalotherdonation}}" readonly>
                     </div>
                 </div>
 
@@ -274,9 +283,38 @@ $(document).ready(function () {
                 //create  end
 
             });
-
-
             // donation calclutors end
+
+            // others donation store start
+            var otherdurl = "{{URL::to('/user/other-donation-store')}}";
+            $("#othrBtn").click(function(){
+                    var form_data = new FormData();
+                    form_data.append("d_title", $("#d_title").val());
+                    form_data.append("donation_date", $("#donation_date").val());
+                    form_data.append("d_amount", $("#d_amount").val());
+
+                    $.ajax({
+                      url: otherdurl,
+                      method: "POST",
+                      contentType: false,
+                      processData: false,
+                      data:form_data,
+                      success: function (d) {
+                          if (d.status == 303) {
+                              $(".otherermsg").html(d.message);
+                          }else if(d.status == 300){
+                            $(".otherermsg").html(d.message);
+                            window.setTimeout(function(){location.reload()},2000)
+                          }
+                      },
+                      error: function (d) {
+                          console.log(d);
+                      }
+                  });
+                //create  end
+
+            });
+            // others donation store end
 
 
 

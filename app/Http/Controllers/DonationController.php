@@ -99,7 +99,7 @@ class DonationController extends Controller
                         [Carbon::now()->subMonth($sub), Carbon::now()]
                     )
                     ->sum('donation_amount');
-        
+
         $totalotherdonation = OtherDonation::where('donor_id', Auth::user()->id)
                                 ->whereBetween('donation_date',
                                     [Carbon::now()->subMonth($sub), Carbon::now()]
@@ -132,6 +132,7 @@ class DonationController extends Controller
                 $diff_with_lastdate = $last_date->diffInDays($dt);
 
                 // dd($last_date);
+                if($donor_cal->income_slot != "0"){
 
                         if($diff_with_lastdate >= $donor_cal->income_slot){
                         for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
@@ -146,9 +147,12 @@ class DonationController extends Controller
                             $doncaldetl->save();
                         }
                     }
+                }
 
 
             } else {
+
+                if($donor_cal->income_slot != "0"){
 
                 for($x=0; $x < $diff; $x+=$donor_cal->income_slot){
                     $doncaldetl = new DonationDetail;
@@ -163,6 +167,7 @@ class DonationController extends Controller
                 }
 
             }
+        }
     }
 
         $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();

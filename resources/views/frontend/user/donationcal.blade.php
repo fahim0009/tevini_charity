@@ -26,7 +26,7 @@
                             <option value="">Select Donation Slot</option>
                             <option value="7" @if ($donor_cal->income_slot == "7") selected @endif>Weekly</option>
                             <option value="30" @if ($donor_cal->income_slot == "30") selected @endif>Monthly</option>
-                            <option value="0" @if ($donor_cal->income_slot == "0") selected @endif>On/Off</option>
+                            <option value="0" @if ($donor_cal->income_slot == "0") selected @endif>One-Off</option>
                         </select>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                             <option value="">Select Donation Slot</option>
                             <option value="7">Weekly</option>
                             <option value="30">Monthly</option>
-                            <option value="0">On/Off</option>
+                            <option value="0">One-Off</option>
                         </select>
                     </div>
                 </div>
@@ -129,14 +129,14 @@
     <fieldset >
         <div class="row">
             <div class="col-md-6">
-                <legend>TOTAL DONATION IN CURRENT YEAR:</legend>
+                <legend>Tevini  platform:</legend>
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <input type="text" class="form-control" value="{{$totaltran}}" readonly>
                     </div>
                 </div>
-
             </div>
+
             <div class="col-md-6">
                 <legend>AVAILABLE FOR DONATION :</legend>
                 <div class="transferFunds shadow-sm">
@@ -144,10 +144,11 @@
                         <input type="text" class="form-control" value="{{$availabledonation}}" readonly>
                     </div>
                 </div>
-
             </div>
+
             <div class="col-md-6">
-                <legend>TOTAL OTHER  DONATION IN CURRENT YEAR:</legend>
+                <br>
+                <legend>Others Donation:</legend>
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <input type="text" class="form-control" value="{{$totalotherdonation}}" readonly>
@@ -172,7 +173,7 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Donation Slot</th>
+                                <th>Income by</th>
                                 <th>Income Amount</th>
                                 <th>Donation Amount</th>
                             </tr>

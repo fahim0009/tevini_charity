@@ -54,7 +54,7 @@ class DonationController extends Controller
             exit();
         }
 
-        if(empty($request->income_slot)){
+        if(!isset($request->income_slot)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Slot field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();

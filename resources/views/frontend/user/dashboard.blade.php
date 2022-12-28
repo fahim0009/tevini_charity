@@ -1,10 +1,6 @@
 @extends('frontend.layouts.user')
-
 @section('content')
-
-
 <div class="dashboard-content py-2 px-4">
-
     <div class="row my-4">
         <div class="col-md-12 text-center ">
             <h4 class="text-capitalize bg-info text-white p-3 border-left d-inline-block mx-auto rounded">
@@ -35,8 +31,6 @@
 
 
      @php
-     $dcal = \App\Models\DonationCalculator::where('donor_id','=', Auth::user()->id)->first();
-     $dcaldetails = \App\Models\DonationDetail::where('donor_id','=', Auth::user()->id)->get();
         $ptotal = \App\Models\Provoucher::where([
         ['user_id','=', Auth::user()->id],
         ['status', '=', '0']

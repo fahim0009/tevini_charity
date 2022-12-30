@@ -152,6 +152,7 @@ class OrderController extends Controller
                 $utransaction->t_type = "Out";
                 $utransaction->amount =  $qtys[$key]*$amount;
                 $utransaction->t_unq = $unique;
+                $utransaction->order_id = $order->id;
                 $utransaction->title ="Prepaid Voucher Book";
                 $utransaction->status =  1;
                 $utransaction->save();
@@ -780,9 +781,12 @@ class OrderController extends Controller
                     $donor->increment('balance',$amount*$order->number_voucher);
                     $donor->save();
 
-                    $utransaction = Usertransaction::find(Usertransaction::where('t_unq',$order->o_unq)->first()->id);
-                    $utransaction->status = '0';
-                    $utransaction->save();
+                    // $utransaction = Usertransaction::find(Usertransaction::where('t_unq',$order->o_unq)->first()->id);
+                    // $utransaction->status = '0';
+                    // $utransaction->save();
+
+                    Usertransaction::where(['order_id'=>$request->orderId])->update(['status'=>'0']);
+
 
                 }
 

@@ -109,7 +109,7 @@ $('select').on('change', function() {
                 if (d.status == 303) {
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
-                    window.setTimeout(function(){location.reload()},500)
+                    // window.setTimeout(function(){location.reload()},500)
                 }
             },
             error: function (d) {

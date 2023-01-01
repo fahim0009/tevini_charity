@@ -13,7 +13,7 @@
 
         @if (isset($donor_cal))
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <input type="number" name="income_amount" id="income_amount" class="form-control" value="{{$donor_cal->income_amount}}" placeholder="Income Amount">
@@ -31,7 +31,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <select name="donation_percentage" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
@@ -49,9 +49,62 @@
             </div>
         </div>
         @else
+        <section class="">
+            <div class="row  my-3 mx-0 ">
+                <div class=" col-md-12 bg-white px-4">
+                    <div class="form-container">
+                        <div class="overflow mx-auto">
+                            <table class="table shadow-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Charity</th>
+                                        <th>Donor</th>
+                                        <th>Donor Name</th>
+                                        <th>Check No</th>
+                                        <th>Amount</th>
+                                        <th>Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inner">
+                                    <tr class="item-row" style="position:realative;">
+                                        <td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td>
+                                        <td width="150px">
+                                            <input class="form-control donor" name="donor_acc[]" value=""  placeholder="Type Acc no...">
+                                        </td>
+                                        <td width="200px">
+                                            <input style="min-width: 50px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="">
+                                            <input type="hidden" name="donor[]"  class="donorid" value="">
+                                        </td>
+                                        <td width="100px">
+                                            <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value="">
+                                        </td>
+
+                                        <td width="40px">
+                                            <input style="min-width: 30px;" name="amount[]" type="text" class="amount form-control" value="">
+                                        </td>
+                                        <td width="250px">
+                                            <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value="">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div>
+                                <div class="row" style="opacity:0">
+                                    <div class="col-md-1">
+                                        <input style="min-width: 200px;" id="barcode"  type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
         <div class="row">
-            <div class="col-md-6">
-                <div class="transferFunds shadow-sm">
+            <div class="col-md-12">
+                <div class="shadow-sm">
                     <div class="para pl-2">
                         <input type="number" name="income_amount" id="income_amount" class="form-control" value="" placeholder="Income Amount">
                     </div>
@@ -66,8 +119,6 @@
                         </select>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <select name="donation_percentage" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
@@ -83,6 +134,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
         @endif
 

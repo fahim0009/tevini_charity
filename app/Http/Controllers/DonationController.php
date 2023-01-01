@@ -65,6 +65,7 @@ class DonationController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+        
         $data =  DonationCalculator::findOrFail($request->dcalid);
         $data->income_amount = $request->income_amount;
         $data->income_slot = $request->income_slot;

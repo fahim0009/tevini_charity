@@ -15,6 +15,6 @@ class DonationCalculator extends Model
 
       public function donationdetail()
     {
-      return $this->hasOne('App\Models\DonationDetail');
+      return $this->hasMany('App\Models\DonationDetail','donation_cal_id','id');
     }
 }

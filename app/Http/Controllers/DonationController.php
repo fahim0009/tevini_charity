@@ -120,7 +120,7 @@ class DonationController extends Controller
         if(empty($donor_cal)){
 
             $msg = "Fill this form for donation calculation";
-            $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
+            $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
             return view('frontend.user.donationcal',compact('totaltran','totalotherdonation','availabledonation','dondetails','msg'));
 
 
@@ -135,19 +135,19 @@ class DonationController extends Controller
                 // dd($last_date);
                 if($donor_cal->income_slot != "0"){
 
-                        if($diff_with_lastdate >= $donor_cal->income_slot){
-                        for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
-                            $doncaldetl = new DonationDetail;
-                            $doncaldetl->donor_id = Auth::user()->id;
-                            $doncaldetl->donation_cal_id = $donor_cal->id;
-                            $doncaldetl->date = $last_date->addDays($x);
-                            $doncaldetl->income_amount = $donor_cal->income_amount;
-                            $doncaldetl->income_slot = $donor_cal->income_slot;
-                            $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
-                            $doncaldetl->available_for_donation = $totaltran;
-                            $doncaldetl->save();
-                        }
-                    }
+                    //     if($diff_with_lastdate >= $donor_cal->income_slot){
+                    //     for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
+                    //         $doncaldetl = new DonationDetail;
+                    //         $doncaldetl->donor_id = Auth::user()->id;
+                    //         $doncaldetl->donation_cal_id = $donor_cal->id;
+                    //         $doncaldetl->date = $last_date->addDays($x);
+                    //         $doncaldetl->income_amount = $donor_cal->income_amount;
+                    //         $doncaldetl->income_slot = $donor_cal->income_slot;
+                    //         $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
+                    //         $doncaldetl->available_for_donation = $totaltran;
+                    //         $doncaldetl->save();
+                    //     }
+                    // }
                 }
 
 
@@ -155,23 +155,23 @@ class DonationController extends Controller
 
                 if($donor_cal->income_slot != "0"){
 
-                for($x=0; $x < $diff; $x+=$donor_cal->income_slot){
-                    $doncaldetl = new DonationDetail;
-                    $doncaldetl->donor_id = Auth::user()->id;
-                    $doncaldetl->donation_cal_id = $donor_cal->id;
-                    $doncaldetl->date = Carbon::now()->subMonth($sub)->addDays($x);
-                    $doncaldetl->income_amount = $donor_cal->income_amount;
-                    $doncaldetl->income_slot = $donor_cal->income_slot;
-                    $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
-                    $doncaldetl->available_for_donation = $totaltran;
-                    $doncaldetl->save();
-                }
+                // for($x=0; $x < $diff; $x+=$donor_cal->income_slot){
+                //     $doncaldetl = new DonationDetail;
+                //     $doncaldetl->donor_id = Auth::user()->id;
+                //     $doncaldetl->donation_cal_id = $donor_cal->id;
+                //     $doncaldetl->date = Carbon::now()->subMonth($sub)->addDays($x);
+                //     $doncaldetl->income_amount = $donor_cal->income_amount;
+                //     $doncaldetl->income_slot = $donor_cal->income_slot;
+                //     $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
+                //     $doncaldetl->available_for_donation = $totaltran;
+                //     $doncaldetl->save();
+                // }
 
             }
         }
     }
 
-        $dondetails = DonationDetail::where('donor_id','=', Auth::user()->id)->get();
+        $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
         return view('frontend.user.donationcal',compact('donor_cal','totaltran','totalotherdonation','availabledonation','dondetails'));
 
 
@@ -209,6 +209,12 @@ class DonationController extends Controller
             return response()->json(['status'=> 300,'message'=>$message]);
         }
 
+    }
+
+    public function donationDetails($id)
+    {
+        $donation = DonationDetail::where('donation_cal_id','=', $id)->orderBy('id','DESC')->get();
+        return view('frontend.user.donationdetails',compact('donation'));
     }
 
 

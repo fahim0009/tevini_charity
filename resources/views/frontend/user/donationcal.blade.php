@@ -227,7 +227,7 @@
                                 <th>Date</th>
                                 <th>Income by</th>
                                 <th>Income Amount</th>
-                                <th>Donation Amount</th>
+                                <th>View</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -246,7 +246,9 @@
                                         @endif
                                     </td>
                                     <td>{{$data->income_amount}}</td>
-                                    <td>{{$data->donation_amount}}</td>
+                                    <td>
+                                        <a href="{{ route('user.donationdetails', $data->id)}}" class="btn btn-primary">View</a>
+                                    </td>
                                 </tr>
                             @endforeach
 

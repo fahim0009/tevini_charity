@@ -14,33 +14,36 @@ class DonationController extends Controller
 {
     public function store(Request $request)
     {
+        $start_dates = $request->start_dates;
+        $income_amounts = $request->income_amounts;
+        $income_titles = $request->income_titles;
+        $income_slots = $request->income_slots;
+        $donation_percentages = $request->donation_percentages;
 
-        if(empty($request->income_amount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Income Amount field.</b></div>";
+        foreach($income_amounts as $key => $income_amount){
+            if($start_dates[$key] == "" || $income_amount == "" || $income_titles[$key] == "" || $income_slots[$key] == "" || $donation_percentages[$key] == ""){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill all field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
+            }
         }
 
-        if(empty($request->income_slot)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Slot field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
+
+        foreach($income_amounts as $key => $income_amount)
+        {
+            $data = new DonationCalculator;
+            $data->start_date = $start_dates[$key];
+            $data->income_amount = $income_amount;
+            $data->income_title = $income_titles[$key];
+            $data->income_slot = $income_slots[$key];
+            $data->donation_percentage = $donation_percentages[$key];
+            $data->donor_id = Auth::user()->id;
+            $data->save();
+
         }
 
-        if(empty($request->donation_percentage)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Percent field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        $data = new DonationCalculator;
-        $data->income_amount = $request->income_amount;
-        $data->income_slot = $request->income_slot;
-        $data->donation_percentage = $request->donation_percentage;
-        $data->donor_id = Auth::user()->id;
-        if($data->save()){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data created successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data created successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
 
     }
 
@@ -65,7 +68,7 @@ class DonationController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
-        
+
         $data =  DonationCalculator::findOrFail($request->dcalid);
         $data->income_amount = $request->income_amount;
         $data->income_slot = $request->income_slot;
@@ -115,9 +118,9 @@ class DonationController extends Controller
         }
 
 
-        $donor_cal = DonationCalculator::where('donor_id', Auth::user()->id)->first();
+        $donor_cals = DonationCalculator::where('donor_id', Auth::user()->id)->get();
 
-        if(empty($donor_cal)){
+        if(empty($donor_cals)){
 
             $msg = "Fill this form for donation calculation";
             $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
@@ -133,7 +136,7 @@ class DonationController extends Controller
                 $diff_with_lastdate = $last_date->diffInDays($dt);
 
                 // dd($last_date);
-                if($donor_cal->income_slot != "0"){
+                // if($donor_cal->income_slot != "0"){
 
                     //     if($diff_with_lastdate >= $donor_cal->income_slot){
                     //     for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
@@ -148,12 +151,12 @@ class DonationController extends Controller
                     //         $doncaldetl->save();
                     //     }
                     // }
-                }
+                // }
 
 
             } else {
 
-                if($donor_cal->income_slot != "0"){
+                // if($donor_cal->income_slot != "0"){
 
                 // for($x=0; $x < $diff; $x+=$donor_cal->income_slot){
                 //     $doncaldetl = new DonationDetail;
@@ -167,12 +170,12 @@ class DonationController extends Controller
                 //     $doncaldetl->save();
                 // }
 
-            }
+            // }
         }
     }
 
         $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
-        return view('frontend.user.donationcal',compact('donor_cal','totaltran','totalotherdonation','availabledonation','dondetails'));
+        return view('frontend.user.donationcal',compact('donor_cals','totaltran','totalotherdonation','availabledonation','dondetails'));
 
 
     }

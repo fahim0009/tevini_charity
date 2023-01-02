@@ -49,36 +49,57 @@ class DonationController extends Controller
     }
 
 
-    public function update(Request $request)
+    public function DcalUpdate(Request $request)
     {
 
-        if(empty($request->income_amount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Income Amount field.</b></div>";
+        $start_dates = $request->start_dates;
+        $donorcal_ids = $request->donorcal_ids;
+        $income_amounts = $request->income_amounts;
+        $income_titles = $request->income_titles;
+        $income_slots = $request->income_slots;
+        $donation_percentages = $request->donation_percentages;
+
+        foreach($income_amounts as $key => $income_amount){
+            if($start_dates[$key] == "" || $income_amount == "" || $income_titles[$key] == "" || $income_slots[$key] == "" || $donation_percentages[$key] == ""){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill all field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
+            }
         }
 
-        if(!isset($request->income_slot)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Slot field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
+
+        foreach($income_amounts as $key => $income_amount)
+        {
+            if(isset($donorcal_ids[$key])){
+
+            $data =  DonationCalculator::findOrFail($donorcal_ids[$key]);
+            $data->start_date = $start_dates[$key];
+            $data->income_amount = $income_amount;
+            $data->income_title = $income_titles[$key];
+            $data->income_slot = $income_slots[$key];
+            $data->donation_percentage = $donation_percentages[$key];
+            $data->donor_id = Auth::user()->id;
+            $data->save();
+
+            }else{
+
+            $data = new DonationCalculator;
+            $data->start_date = $start_dates[$key];
+            $data->income_amount = $income_amount;
+            $data->income_title = $income_titles[$key];
+            $data->income_slot = $income_slots[$key];
+            $data->donation_percentage = $donation_percentages[$key];
+            $data->status = 1;
+            $data->donor_id = Auth::user()->id;
+            $data->save();
+
+            }
+
         }
 
-        if(empty($request->donation_percentage)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Percent field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data created successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
 
-        $data =  DonationCalculator::findOrFail($request->dcalid);
-        $data->income_amount = $request->income_amount;
-        $data->income_slot = $request->income_slot;
-        $data->donation_percentage = $request->donation_percentage;
-        $data->donor_id = Auth::user()->id;
-        if($data->save()){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data created successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
 
     }
 
@@ -119,7 +140,7 @@ class DonationController extends Controller
         }
 
 
-        $donor_cals = DonationCalculator::where('donor_id', Auth::user()->id)->get();
+        $donor_cals = DonationCalculator::where('donor_id', Auth::user()->id)->where('status','=','1')->get();
 
         if(empty($donor_cals)){
 

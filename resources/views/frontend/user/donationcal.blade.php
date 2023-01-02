@@ -32,6 +32,7 @@
                                         </td>
                                         <td width="150px">
                                             <input class="form-control" name="start_date[]" type="date" value="{{$donor_cal->start_date}}">
+                                            <input class="form-control" name="donorcal_id[]" type="hidden" value="{{$donor_cal->id}}">
                                         </td>
                                         <td width="150px">
                                             <input class="form-control donor" name="income_amount[]" value="{{$donor_cal->income_amount}}"  placeholder="Income Amount">
@@ -198,8 +199,10 @@
                     <table class="table table-custom shadow-sm bg-white" id="exampleIn">
                         <thead>
                             <tr>
-                                <th>Date</th>
+                                <th>Start Date</th>
+                                <th>Income Title</th>
                                 <th>Income by</th>
+                                <th>Donation Percentage</th>
                                 <th>Income Amount</th>
                                 <th>Status</th>
                                 <th>View</th>
@@ -210,7 +213,8 @@
 
                             @foreach ($dondetails as $data)
                                 <tr>
-                                    <td>{{ date('d-M, Y', strtotime($data->date)) }}</td>
+                                    <td>{{$data->start_date }}</td>
+                                    <td>{{$data->income_title }}</td>
                                     <td>
                                         @if ($data->income_slot == 7)
                                             Weekly
@@ -220,9 +224,10 @@
                                             On/Off
                                         @endif
                                     </td>
+                                    <td>{{$data->donation_percentage}}</td>
                                     <td>{{$data->income_amount}}</td>
                                     <td>
-                                        
+
                                         <div class="form-check form-switch">
                                             <input type="checkbox" class="form-check-input" id="flexSwitchCheckChecked"  data-id="{{$data->id}}" {{ $data->status ? 'checked' : '' }}>
                                             <span class="flip-indecator" data-toggle-on="Active" data-toggle-off="Inactive"></span>
@@ -281,7 +286,7 @@
                         $(".stsermsg").html(d.message);
                     }else if(d.status == 300){
                         $(".stsermsg").html(d.message);
-                        // window.setTimeout(function(){location.reload()},2000)
+                        window.setTimeout(function(){location.reload()},2000)
                     }
                 },
                 error: function (d) {
@@ -306,9 +311,9 @@ $(document).ready(function () {
 
 
 
-        //header for csrf-token is must in laravel
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-            //
+    //header for csrf-token is must in laravel
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+    //
 
     // donations calculators start
         var url = "{{URL::to('/user/donation-calculator')}}";
@@ -351,20 +356,32 @@ $(document).ready(function () {
 
 
             var upurl = "{{URL::to('/user/donation-calculator-update')}}";
-            $("#dCalUpBtn").click(function(){
+            $("#income_update").click(function(){
 
-                    var form_data = new FormData();
-                    form_data.append("dcalid", $("#dcalid").val());
-                    form_data.append("income_amount", $("#income_amount").val());
-                    form_data.append("income_slot", $("#income_slot").val());
-                    form_data.append("donation_percentage", $("#donation_percentage").val());
+                alert("work");
+
+                var start_dates = $("input[name='start_date[]']")
+                .map(function(){return $(this).val();}).get();
+
+                var donorcal_ids = $("input[name='donorcal_id[]']")
+                .map(function(){return $(this).val();}).get();
+
+                var income_amounts = $("input[name='income_amount[]']")
+                .map(function(){return $(this).val();}).get();
+
+                var income_titles = $("input[name='income_title[]']")
+                .map(function(){return $(this).val();}).get();
+
+                var income_slots = $("select[name='income_slot[]']")
+                .map(function(){return $(this).val();}).get();
+
+                var donation_percentages = $("select[name='donation_percentage[]']")
+                .map(function(){return $(this).val();}).get();
 
                     $.ajax({
                       url: upurl,
                       method: "POST",
-                      contentType: false,
-                      processData: false,
-                      data:form_data,
+                      data: {start_dates,donorcal_ids,income_amounts,income_titles,income_slots,donation_percentages},
                       success: function (d) {
                           if (d.status == 303) {
                               $(".ermsg").html(d.message);

@@ -191,8 +191,8 @@
     <fieldset >
         <legend>DONATION DETAILS:</legend>
         <div class="row">
+            <div class="stsermsg"></div>
             <div class="col-md-12 mt-2 text-center">
-
 
                 <div class="overflow">
                     <table class="table table-custom shadow-sm bg-white" id="exampleIn">
@@ -201,6 +201,7 @@
                                 <th>Date</th>
                                 <th>Income by</th>
                                 <th>Income Amount</th>
+                                <th>Status</th>
                                 <th>View</th>
                             </tr>
                         </thead>
@@ -220,6 +221,14 @@
                                         @endif
                                     </td>
                                     <td>{{$data->income_amount}}</td>
+                                    <td>
+                                        
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" class="form-check-input" id="flexSwitchCheckChecked"  data-id="{{$data->id}}" {{ $data->status ? 'checked' : '' }}>
+                                            <span class="flip-indecator" data-toggle-on="Active" data-toggle-off="Inactive"></span>
+                                        </div>
+
+                                    </td>
                                     <td>
                                         <a href="{{ route('user.donationdetails', $data->id)}}" class="btn btn-primary">View</a>
                                     </td>
@@ -253,6 +262,35 @@
             event.target.parentElement.parentElement.remove();
     }
 </script>
+
+<script>
+    $(function() {
+      $('.form-check-input').change(function() {
+        var url = "{{URL::to('/user/active-donation-details')}}";
+          var status = $(this).prop('checked') == true ? 1 : 0;
+          var id = $(this).data('id');
+           console.log(status);
+          $.ajax({
+              type: "GET",
+              dataType: "json",
+              url: url,
+              data: {'status': status, 'id': id},
+              success: function(d){
+                // console.log(data.success)
+                    if (d.status == 303) {
+                        $(".stsermsg").html(d.message);
+                    }else if(d.status == 300){
+                        $(".stsermsg").html(d.message);
+                        // window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+          });
+      })
+    })
+  </script>
 
 <script>
 $(document).ready(function () {

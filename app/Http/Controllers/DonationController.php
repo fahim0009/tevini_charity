@@ -221,6 +221,28 @@ class DonationController extends Controller
         return view('frontend.user.donationdetails',compact('donation'));
     }
 
+    public function donationActive(Request $request)
+    {
+        $data = DonationCalculator::find($request->id);
+        $data->status = $request->status;
+        $data->save();
+
+        if($request->status==1){
+            $data = DonationCalculator::find($request->id);
+            $data->status = $request->status;
+            $data->save();
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }else{
+            $data = DonationCalculator::find($request->id);
+            $data->status = $request->status;
+            $data->save();
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
 
 
 

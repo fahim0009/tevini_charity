@@ -88,6 +88,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('donation-calculator-update', [DonationController::class, 'update'])->name('donation.calculation.update');
     Route::get('donation-calculation', [DonationController::class, 'donationCal'])->name('user.donationcal');
     Route::get('donation-details/{id}', [DonationController::class, 'donationDetails'])->name('user.donationdetails');
+    Route::get('active-donation-details', [DonationController::class, 'donationActive'])->name('user.donationactive');
 
     // other donation store
     Route::post('other-donation-store', [DonationController::class, 'otherDonationStore'])->name('donation.otherdonation');

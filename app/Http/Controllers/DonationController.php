@@ -37,6 +37,7 @@ class DonationController extends Controller
             $data->income_title = $income_titles[$key];
             $data->income_slot = $income_slots[$key];
             $data->donation_percentage = $donation_percentages[$key];
+            $data->status = 1;
             $data->donor_id = Auth::user()->id;
             $data->save();
 

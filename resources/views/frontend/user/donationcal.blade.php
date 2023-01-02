@@ -358,8 +358,6 @@ $(document).ready(function () {
             var upurl = "{{URL::to('/user/donation-calculator-update')}}";
             $("#income_update").click(function(){
 
-                alert("work");
-
                 var start_dates = $("input[name='start_date[]']")
                 .map(function(){return $(this).val();}).get();
 

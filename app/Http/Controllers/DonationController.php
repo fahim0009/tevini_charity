@@ -108,8 +108,8 @@ class DonationController extends Controller
         // donation calculaton start
         $dt = Carbon::now();
         $sub = $dt->month - 4; // sub month will change in every month
-        $start_date = Carbon::now()->subMonth($sub); //start date - cut off date.
-        $diff = $start_date->diffInDays($dt); // different days between current date & start date.
+        // $start_date = Carbon::now()->subMonth($sub); //start date - cut off date.
+        // $diff = $start_date->diffInDays($dt); // different days between current date & start date.
 
 
         $totaltran = Usertransaction::where('user_id', Auth::user()->id)
@@ -142,7 +142,7 @@ class DonationController extends Controller
 
         $donor_cals = DonationCalculator::where('donor_id', Auth::user()->id)->where('status','=','1')->get();
 
-        if(empty($donor_cals)){
+        if($donor_cals->isEmpty()){
 
             $msg = "Fill this form for donation calculation";
             $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
@@ -151,49 +151,65 @@ class DonationController extends Controller
 
         }else{
 
-        $donationdetails = DonationDetail::where('donor_id', Auth::user()->id)->orderBy('id', 'DESC')->first();
+        foreach($donor_cals as $donor_cal)
+        {
+
+        $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
 
             if ($donationdetails) {
                 $last_date = Carbon::parse($donationdetails->date);
                 $diff_with_lastdate = $last_date->diffInDays($dt);
 
-                // dd($last_date);
-                // if($donor_cal->income_slot != "0"){
+                // dd($donationdetails->date);
 
-                    //     if($diff_with_lastdate >= $donor_cal->income_slot){
-                    //     for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
-                    //         $doncaldetl = new DonationDetail;
-                    //         $doncaldetl->donor_id = Auth::user()->id;
-                    //         $doncaldetl->donation_cal_id = $donor_cal->id;
-                    //         $doncaldetl->date = $last_date->addDays($x);
-                    //         $doncaldetl->income_amount = $donor_cal->income_amount;
-                    //         $doncaldetl->income_slot = $donor_cal->income_slot;
-                    //         $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
-                    //         $doncaldetl->available_for_donation = $totaltran;
-                    //         $doncaldetl->save();
-                    //     }
-                    // }
-                // }
+                if($donor_cal->income_slot != "0"){
+
+                        if($diff_with_lastdate >= $donor_cal->income_slot){
+                        for($x=$donor_cal->income_slot; $x <= $diff_with_lastdate; $x+=$donor_cal->income_slot){
+                            $doncaldetl = new DonationDetail;
+                            $doncaldetl->donor_id = Auth::user()->id;
+                            $doncaldetl->donation_cal_id = $donor_cal->id;
+                            $doncaldetl->date =$dt;
+                            $doncaldetl->income_amount = $donor_cal->income_amount;
+                            $doncaldetl->income_slot = $donor_cal->income_slot;
+                            $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
+                            $doncaldetl->available_for_donation = $totaltran;
+                            $doncaldetl->save();
+                        }
+                    }
+                }
 
 
             } else {
 
-                // if($donor_cal->income_slot != "0"){
+                $start_date = Carbon::parse($donor_cal->start_date);
+                $diff_with_startdate = $start_date->diffInDays($dt);
 
-                // for($x=0; $x < $diff; $x+=$donor_cal->income_slot){
-                //     $doncaldetl = new DonationDetail;
-                //     $doncaldetl->donor_id = Auth::user()->id;
-                //     $doncaldetl->donation_cal_id = $donor_cal->id;
-                //     $doncaldetl->date = Carbon::now()->subMonth($sub)->addDays($x);
-                //     $doncaldetl->income_amount = $donor_cal->income_amount;
-                //     $doncaldetl->income_slot = $donor_cal->income_slot;
-                //     $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
-                //     $doncaldetl->available_for_donation = $totaltran;
-                //     $doncaldetl->save();
-                // }
 
-            // }
+                if($donor_cal->income_slot != "0"){
+
+                if($diff_with_startdate >= $donor_cal->income_slot){
+
+                for($x=0; $x < $diff_with_startdate; $x+=$donor_cal->income_slot){
+                    $doncaldetl = new DonationDetail;
+                    $doncaldetl->donor_id = Auth::user()->id;
+                    $doncaldetl->donation_cal_id = $donor_cal->id;
+                    $doncaldetl->date = $start_date->addDays($x);
+                    $doncaldetl->income_amount = $donor_cal->income_amount;
+                    $doncaldetl->income_slot = $donor_cal->income_slot;
+                    $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
+                    $doncaldetl->available_for_donation = $totaltran;
+                    $doncaldetl->save();
+                }
+
+            }
+
+            }
         }
+
+    }
+
+
     }
 
         $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();

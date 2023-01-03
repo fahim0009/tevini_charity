@@ -3,8 +3,12 @@
 <div class="dashboard-content py-2 px-4">
     {{-- donation calculation start  --}}
     <fieldset >
+        <div style="text-align: center; font-size:25px">
+            <p class="text-center" style="text-align: center">Ma'aser Calculator</p>
+        </div>
+<hr>
         @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
-        <legend>DONATION CALCULATOR:</legend>
+        <legend>Add Income:</legend>
         <div class="ermsg"></div>
         <section class="">
             <div class="row  my-3 mx-0 ">
@@ -15,11 +19,11 @@
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th>Date</th>
+                                        <th>Choose Start Date  </th>
                                         <th>Income</th>
-                                        <th>Income Title</th>
-                                        <th>Income Slot</th>
-                                        <th>Donation Percentage</th>
+                                        <th>Description</th>
+                                        <th>Choose Option</th>
+                                        <th>Choose Your Percentage</th>
                                     </tr>
                                 </thead>
                                 <tbody id="inner">
@@ -118,9 +122,13 @@
 
 
         {{-- donation calculation start  --}}
+        {{-- <div style="text-align: center; font-size:25px">
+            <p class="text-center" style="text-align: center">Charity Goal</p>
+        </div>
+        <hr> --}}
         <fieldset >
             @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
-            <legend>OTHERS DONATION:</legend>
+            <legend>Other Given Charity:</legend>
             <div class="otherermsg"></div>
             <div class="row">
                 <div class="col-md-6">
@@ -156,7 +164,7 @@
     <fieldset >
         <div class="row">
             <div class="col-md-6">
-                <legend>Tevini  platform:</legend>
+                <legend>Tevini Ltd.</legend>
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <input type="text" class="form-control" value="{{$totaltran}}" readonly>
@@ -175,7 +183,7 @@
 
             <div class="col-md-6">
                 <br>
-                <legend>Others Donation:</legend>
+                <legend>Other Given Charity:</legend>
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
                         <input type="text" class="form-control" value="{{$totalotherdonation}}" readonly>

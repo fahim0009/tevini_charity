@@ -152,7 +152,7 @@ body {
   }
 }
 .banner .intro-title {
-  font-size: 8rem;
+  font-size: 7rem;
   font-family: "DarkerGrotesque-bold";
   color: #18988B;
   line-height: 0.8;
@@ -689,4 +689,41 @@ body::-webkit-scrollbar-thumb {
   font-family: "DarkerGrotesque-regular";
   color: #18988B;
   text-align: center;
+}
+
+.list-theme {
+  width: 95%;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 50px 0;
+}
+@media (max-width: 768px) {
+  .list-theme {
+    flex-direction: column;
+  }
+}
+.list-theme li {
+  flex: 49%;
+  font-size: 40px;
+  line-height: 1;
+  color: #003057;
+  margin-bottom: 15px;
+  font-family: "DarkerGrotesque-bold";
+  margin: 15px 0;
+  background-position: 0px 0px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-left: 64px;
+  list-style: none;
+  background-image: url("../images/mark.svg");
+}
+@media (max-width: 768px) {
+  .list-theme li {
+    flex: 100%;
+    font-size: 30px;
+  }
+}
+.list-theme li::marker {
+  height: 25px;
+  width: 25px;
 }/*# sourceMappingURL=app.css.map */

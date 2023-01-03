@@ -104,8 +104,8 @@
                             <p class="txt-theme mb-4">The Charity voucher account that <br> allows you to give more
                                 charity <br> with less paperwork,<br> less tax and less stress.</p>
                             <div>
-                                <a href="#" class="btn-theme bg-secondary">Open an account</a>
-                            <a href="#" class="btn-theme bg-primary">How it works</a>
+                            <a href="{{ route('register') }}" class="btn-theme bg-secondary">Open an account</a>
+                            <a href="{{ route('howitWorks') }}" class="btn-theme bg-primary">How it works</a>
                             </div>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
     </div>
 </section>
 
-
+{{-- massas calcluter  --}}
 <section class="bleesed default">
     <div class="container">
         <div class="row d-flex align-items-center justify-content-center">
@@ -218,6 +218,41 @@
                 </div>
 
             </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="bleesed default">
+    <div class="container">
+        <div class="row d-flex align-items-center justify-content-center">
+            <img src="{{ asset('assets/front/images/tevini helps you to help others-03 1.svg') }}" class="w-25">
+            <div class="title"><span class="txt-primary">New!</span> The Tevini Ma’aser <br> Calculator:</div>
+            <div class="para text-center my-5 w-75">
+                <p> The Tevini Ma’aser Calculator provides an innovative way for all Tevini account holders to
+                    calculate their charity payments. All you have to do is input your income and the Tevini
+                    calculator will do the maths for you. You can deduct manually for donations that weren’t made
+                    through Tevini.
+                </p>
+                <p>
+                    Sign up for an account and get instant access to the calculator!
+                </p>
+                <p>
+                    Note: Admin will have no access to these numbers keeping your charitable donations completely
+                    confidential.
+                </p>
+
+            </div>
+            <div class="title"><span class="txt-primary">Your Options:</span> </div>
+            <ul class="list-theme">
+                <li> Weekly recurring payments</li>
+                <li> Monthly recurring payments</li>
+                <li> One off payments</li>
+                <li> 10% (ma’aser) </li>
+                <li> 20% (chomesh)</li>
+                <li> Other amount</li>
+
+            </ul>
 
         </div>
     </div>
@@ -326,23 +361,10 @@
             <div class="title txt-secondary">
                 Join over 1,000 satisfied <br> clients.
             </div>
-            <a href="#" class="mx-auto btn-theme bg-primary d-inline my-5"> Join Tevini </a>
+            <a href="{{ route('register') }}" class="mx-auto btn-theme bg-primary d-inline my-5"> Join Tevini </a>
         </div>
     </div>
 </section>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 {{-- for cokkies  --}}
 

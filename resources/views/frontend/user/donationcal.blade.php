@@ -32,7 +32,7 @@
 
                                     <tr class="item-row" style="position:realative;">
                                         <td width = "50px">
-                                            <div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 8px;" onclick="removeRow(event)" >X</div>
+                                            {{-- <div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 8px;" onclick="removeRow(event)" >X</div> --}}
                                         </td>
                                         <td width="150px">
                                             <input class="form-control" name="start_date[]" type="date" value="{{$donor_cal->start_date}}">
@@ -71,10 +71,10 @@
                                             <input class="form-control" name="start_date[]" type="date" value="">
                                         </td>
                                         <td width="150px">
-                                            <input class="form-control" name="income_amount[]" value=""  placeholder="Income Amount">
+                                            <input class="form-control" name="income_amount[]" value=""  placeholder="Income">
                                         </td>
                                         <td width="150px">
-                                            <input style="min-width: 50px;"  type="text" name="income_title[]" class="form-control" value="" placeholder="Income Title">
+                                            <input style="min-width: 50px;"  type="text" name="income_title[]" class="form-control" value="" placeholder="Description">
                                         </td>
                                         <td width="200px">
                                             <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot">
@@ -167,7 +167,7 @@
                 <legend>Tevini Ltd.</legend>
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
-                        <input type="text" class="form-control" value="{{$totaltran}}" readonly>
+                        <input type="text" class="form-control" value="{{$tevini_donation}}" readonly>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@
                 <legend>Other Given Charity:</legend>
                 <div class="transferFunds shadow-sm">
                     <div class="para pl-2">
-                        <input type="text" class="form-control" value="{{$totalotherdonation}}" readonly>
+                        <input type="text" class="form-control" value="{{$otherdonation}}" readonly>
                     </div>
                 </div>
 
@@ -219,7 +219,7 @@
                         <tbody>
 
 
-                            @foreach ($dondetails as $data)
+                            @foreach ($donor_cals as $data)
                                 <tr>
                                     <td>{{$data->start_date }}</td>
                                     <td>{{$data->income_title }}</td>
@@ -309,7 +309,7 @@
 $(document).ready(function () {
     $(".add-row").click(function() {
                 var markup =
-                    ' <tr class="item-row" style="position:realative;"> <td width="50px"> <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" onclick="removeRow(event)" >X</div></td><td width="150px"> <input class="form-control" name="start_date[]" type="date" value=""> </td><td width="150px"> <input class="form-control" name="income_amount[]" value="" placeholder="Income Amount"> </td><td width="150px"> <input style="min-width: 50px;" type="text" name="income_title[]" class="form-control" value="" placeholder="Income Title"> </td><td width="200px"> <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot"> <option value="">Select Income Slot</option> <option value="7">Weekly</option> <option value="30">Monthly</option> <option value="0">One-Off</option> </select> </td><td width="150px"> <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage"> <option value="">Donation Percentage</option> <option value="10">10%</option> <option value="20">20%</option> </select> </td></tr>';
+                    ' <tr class="item-row" style="position:realative;"> <td width="50px"> <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" onclick="removeRow(event)" >X</div></td><td width="150px"> <input class="form-control" name="start_date[]" type="date" value=""> </td><td width="150px"> <input class="form-control" name="income_amount[]" value="" placeholder="Income"> </td><td width="150px"> <input style="min-width: 50px;" type="text" name="income_title[]" class="form-control" value="" placeholder="Description"> </td><td width="200px"> <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot"> <option value="">Select Income Slot</option> <option value="7">Weekly</option> <option value="30">Monthly</option> <option value="0">One-Off</option> </select> </td><td width="150px"> <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage"> <option value="">Donation Percentage</option> <option value="10">10%</option> <option value="20">20%</option> </select> </td></tr>';
                 $("table #inner ").append(markup);
             });
 

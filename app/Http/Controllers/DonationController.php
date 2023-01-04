@@ -108,32 +108,39 @@ class DonationController extends Controller
         // donation calculaton start
         $dt = Carbon::now();
         $sub = $dt->month - 4; // sub month will change in every month
-        // $start_date = Carbon::now()->subMonth($sub); //start date - cut off date.
-        // $diff = $start_date->diffInDays($dt); // different days between current date & start date.
+
+        // $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
+        //                             ->where('t_type','=','Out')
+        //                             ->whereBetween('created_at',
+        //                                 [Carbon::now()->subMonth($sub), Carbon::now()]
+        //                             )
+        //                             ->sum('amount');
+
+        $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
+                            ->where('t_type','=','Out')->sum('amount');
 
 
-        $totaltran = Usertransaction::where('user_id', Auth::user()->id)
-                                    ->where('t_type','=','Out')
-                                    ->whereBetween('created_at',
-                                        [Carbon::now()->subMonth($sub), Carbon::now()]
-                                    )
-                                    ->sum('amount');
+
+        // $donationamnt = DonationDetail::where('donor_id', Auth::user()->id)
+        //             ->whereBetween('date',
+        //                 [Carbon::now()->subMonth($sub), Carbon::now()]
+        //             )
+        //             ->sum('donation_amount');
+
+        $donationamnt = DonationDetail::where('donor_id', Auth::user()->id)->sum('donation_amount');
 
 
-        $donationamnt = DonationDetail::where('donor_id', Auth::user()->id)
-                    ->whereBetween('date',
-                        [Carbon::now()->subMonth($sub), Carbon::now()]
-                    )
-                    ->sum('donation_amount');
+        // $otherdonation = OtherDonation::where('donor_id', Auth::user()->id)
+        //                         ->whereBetween('donation_date',
+        //                             [Carbon::now()->subMonth($sub), Carbon::now()]
+        //                         )
+        //                         ->sum('d_amount');
 
-        $totalotherdonation = OtherDonation::where('donor_id', Auth::user()->id)
-                                ->whereBetween('donation_date',
-                                    [Carbon::now()->subMonth($sub), Carbon::now()]
-                                )
-                                ->sum('d_amount');
+        $otherdonation = OtherDonation::where('donor_id', Auth::user()->id)->sum('d_amount');
+
 
         if($donationamnt){
-            $availabledonation = $totaltran - $donationamnt - $totalotherdonation;
+            $availabledonation =$donationamnt - ($tevini_donation + $otherdonation);
 
         }else{
             $availabledonation = 0;
@@ -145,8 +152,7 @@ class DonationController extends Controller
         if($donor_cals->isEmpty()){
 
             $msg = "Fill this form for donation calculation";
-            $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
-            return view('frontend.user.donationcal',compact('totaltran','totalotherdonation','availabledonation','dondetails','msg'));
+            return view('frontend.user.donationcal',compact('tevini_donation','otherdonation','availabledonation','donor_cals','msg'));
 
 
         }else{
@@ -156,11 +162,9 @@ class DonationController extends Controller
 
         $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
 
-            if ($donationdetails) {
+            if (isset($donationdetails) && ($dt->toDateString() > $donationdetails->date)) {
                 $last_date = Carbon::parse($donationdetails->date);
                 $diff_with_lastdate = $last_date->diffInDays($dt);
-
-                // dd($donationdetails->date);
 
                 if($donor_cal->income_slot != "0"){
 
@@ -169,37 +173,40 @@ class DonationController extends Controller
                             $doncaldetl = new DonationDetail;
                             $doncaldetl->donor_id = Auth::user()->id;
                             $doncaldetl->donation_cal_id = $donor_cal->id;
-                            $doncaldetl->date =$dt;
+                            $doncaldetl->date = $last_date->addDays($donor_cal->income_slot);
                             $doncaldetl->income_amount = $donor_cal->income_amount;
                             $doncaldetl->income_slot = $donor_cal->income_slot;
                             $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
                             $doncaldetl->available_for_donation = $totaltran;
                             $doncaldetl->save();
+                            $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
+                            $last_date = Carbon::parse($donationdetails->date);
                         }
                     }
                 }
 
 
-            } else {
+            }elseif((!isset($donationdetails) && $dt->toDateString() > $donor_cal->start_date)) {
 
                 $start_date = Carbon::parse($donor_cal->start_date);
                 $diff_with_startdate = $start_date->diffInDays($dt);
-
 
                 if($donor_cal->income_slot != "0"){
 
                 if($diff_with_startdate >= $donor_cal->income_slot){
 
-                for($x=0; $x < $diff_with_startdate; $x+=$donor_cal->income_slot){
+                for($x=$donor_cal->income_slot; $x < $diff_with_startdate; $x+=$donor_cal->income_slot){
                     $doncaldetl = new DonationDetail;
                     $doncaldetl->donor_id = Auth::user()->id;
                     $doncaldetl->donation_cal_id = $donor_cal->id;
-                    $doncaldetl->date = $start_date->addDays($x);
+                    $doncaldetl->date = $start_date->addDays($donor_cal->income_slot);
                     $doncaldetl->income_amount = $donor_cal->income_amount;
                     $doncaldetl->income_slot = $donor_cal->income_slot;
                     $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
                     $doncaldetl->available_for_donation = $totaltran;
                     $doncaldetl->save();
+                    $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
+                    $start_date = Carbon::parse($donationdetails->date);
                 }
 
             }
@@ -212,8 +219,8 @@ class DonationController extends Controller
 
     }
 
-        $dondetails = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
-        return view('frontend.user.donationcal',compact('donor_cals','totaltran','totalotherdonation','availabledonation','dondetails'));
+        $donor_cals = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
+        return view('frontend.user.donationcal',compact('donor_cals','tevini_donation','otherdonation','availabledonation'));
 
 
     }

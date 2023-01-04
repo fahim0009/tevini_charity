@@ -177,7 +177,7 @@ class DonationController extends Controller
                             $doncaldetl->income_amount = $donor_cal->income_amount;
                             $doncaldetl->income_slot = $donor_cal->income_slot;
                             $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
-                            $doncaldetl->available_for_donation = $totaltran;
+                            // $doncaldetl->available_for_donation = $totaltran;
                             $doncaldetl->save();
                             $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
                             $last_date = Carbon::parse($donationdetails->date);
@@ -203,7 +203,7 @@ class DonationController extends Controller
                     $doncaldetl->income_amount = $donor_cal->income_amount;
                     $doncaldetl->income_slot = $donor_cal->income_slot;
                     $doncaldetl->donation_amount = $donor_cal->income_amount * ($donor_cal->donation_percentage/100);
-                    $doncaldetl->available_for_donation = $totaltran;
+                    // $doncaldetl->available_for_donation = $totaltran;
                     $doncaldetl->save();
                     $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
                     $start_date = Carbon::parse($donationdetails->date);

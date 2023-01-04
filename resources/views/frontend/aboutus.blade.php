@@ -74,7 +74,7 @@
             </div>
             <div class="d-flex justify-content-center">
                 <a href="#" class="btn-theme bg-secondary my-5">Learn more </a>
-                <a href="#" class="btn-theme bg-primary my-5">Get started </a>
+                <a href="{{ route('register') }}" class="btn-theme bg-primary my-5">Get started </a>
             </div>
         </div>
     </div>
@@ -241,7 +241,7 @@
                             </div>
                         </div>
                     </div>
-                </div> 
+                </div>
             </div>
             <div class="w-100 d-flex align-items-center justify-content-center">
                 <a href="#" class="mx-auto mt-5 btn-theme bg-primary btn-line">Ask another question</a>
@@ -346,7 +346,7 @@
 
 
 
-{{-- 
+{{--
 <section class="introBanner">
     <div class="col-md-12 ">
         <div class="col-md-6 px-3 mx-auto text-center f-flex align-items-center justify-content-center flex-column">

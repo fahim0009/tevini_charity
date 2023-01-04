@@ -153,7 +153,7 @@
                                     <p class="theme-para">
                                         You will have only one recipient, Tevini, on <br> your tax return, no matter how many <br> charities you support.
                                     </p>
-                                    <a href="./register.html" class="btn-theme bg-primary btn-line border-primary txt-primary">Open your account</a>
+                                    <a href="{{ route('register') }}" class="btn-theme bg-primary btn-line border-primary txt-primary">Open your account</a>
                                 </div>
                             </div>
 
@@ -190,7 +190,7 @@
 
 
                                     </p>
-                                    <a href="#" class="btn-theme bg-primary btn-line border-primary txt-primary">Join Tevini</a>
+                                    <a href="{{ route('register') }}" class="btn-theme bg-primary btn-line border-primary txt-primary">Join Tevini</a>
                                 </div>
                             </div>
 
@@ -208,7 +208,7 @@
                                         You can choose to make donations <br> straight from your online account or by  <br> distributing your charitable vouchers.
 
                                     </p>
-                                    <a href="#" class="btn-theme bg-primary btn-line border-primary txt-primary">Open your account</a>
+                                    <a href="{{ route('register') }}" class="btn-theme bg-primary btn-line border-primary txt-primary">Open your account</a>
                                 </div>
                             </div>
 
@@ -234,7 +234,7 @@
             <div class="title txt-secondary">
                 Join over 1,000 satisfied <br> clients.
             </div>
-            <a href="#" class="mx-auto btn-theme bg-primary d-inline my-5"> Join Tevini </a>
+            <a href="{{ route('register') }}" class="mx-auto btn-theme bg-primary d-inline my-5"> Join Tevini </a>
         </div>
     </div>
 </section>

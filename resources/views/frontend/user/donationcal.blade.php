@@ -2,13 +2,70 @@
 @section('content')
 <div class="dashboard-content py-2 px-4">
     {{-- donation calculation start  --}}
-    <fieldset >
+
         <div style="text-align: center; font-size:25px">
             <p class="text-center" style="text-align: center">Ma'aser Calculator</p>
         </div>
 <hr>
         @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
-        <legend>Add Income:</legend>
+        <fieldset>
+            <legend>Add One-Off Income</legend>
+            <div class="oneoffermsg"></div>
+            <section class="">
+                <div class="row  my-3 mx-0 ">
+                    <div class=" col-md-12 bg-white px-4">
+                        <div class="form-container">
+                            <div class="overflow mx-auto">
+                                <table class="table shadow-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Choose Start Date  </th>
+                                            <th>Income</th>
+                                            <th>Description</th>
+                                            <th>Choose Your Percentage</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="item-row" style="position:realative;">
+                                            <td width="150px">
+                                                <input class="form-control" id="ostart_date" name="ostart_date" type="date" value="">
+                                            </td>
+                                            <td width="150px">
+                                                <input class="form-control" id="oincome_amount" name="oincome_amount" value=""  placeholder="Income">
+                                            </td>
+                                            <td width="150px">
+                                                <input style="min-width: 50px;"  type="text" id="oincome_title" name="oincome_title" class="form-control" value="" placeholder="Description">
+                                            </td>
+                                            <td width="250px">
+                                                <select name="odonation_percentage" id="odonation_percentage" class="form-control" aria-placeholder="Donation Percentage">
+                                                    <option value>Donation Percentage</option>
+                                                    <option value="10">10%</option>
+                                                    <option value="20">20%</option>
+                                              </select>
+                                            </td>
+                                            <td width="50px">
+                                                <div class="col-md-6 my-2">
+                                                    <button class="text-white btn-theme ml-1 mb-4" style="margin-top: -7px;" id="oincome_submit" type="button">Submit</button>
+
+                                                </div>
+                                            </td>
+                                            <td width="50px">
+                                                <div class="col-md-6 my-2">
+                                                    <a href="{{ route('user.onOffdonationDetails')}}" style="margin-top: -7px;" class="btn btn-primary">View</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </fieldset>
+        <fieldset >
+        <legend>Add Regular Income:</legend>
         <div class="ermsg"></div>
         <section class="">
             <div class="row  my-3 mx-0 ">
@@ -49,7 +106,6 @@
                                                 <option value="">Select Donation Slot</option>
                                                 <option value="7" @if ($donor_cal->income_slot == "7") selected @endif>Weekly</option>
                                                 <option value="30" @if ($donor_cal->income_slot == "30") selected @endif>Monthly</option>
-                                                <option value="0" @if ($donor_cal->income_slot == "0") selected @endif>One-Off</option>
                                             </select>
                                         </td>
                                         <td width="150px">
@@ -81,7 +137,6 @@
                                                 <option value>Select Income Slot</option>
                                                 <option value="7">Weekly</option>
                                                 <option value="30">Monthly</option>
-                                                <option value="0">One-Off</option>
                                             </select>
                                         </td>
                                         <td width="150px">
@@ -198,7 +253,7 @@
     {{-- end  --}}
 
     <fieldset >
-        <legend>DONATION DETAILS:</legend>
+        <legend>REGULAR INCOME DONATION DETAILS:</legend>
         <div class="row">
             <div class="stsermsg"></div>
             <div class="col-md-12 mt-2 text-center">
@@ -289,7 +344,6 @@
               url: url,
               data: {'status': status, 'id': id},
               success: function(d){
-                // console.log(data.success)
                     if (d.status == 303) {
                         $(".stsermsg").html(d.message);
                     }else if(d.status == 300){
@@ -309,13 +363,9 @@
 $(document).ready(function () {
     $(".add-row").click(function() {
                 var markup =
-                    ' <tr class="item-row" style="position:realative;"> <td width="50px"> <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" onclick="removeRow(event)" >X</div></td><td width="150px"> <input class="form-control" name="start_date[]" type="date" value=""> </td><td width="150px"> <input class="form-control" name="income_amount[]" value="" placeholder="Income"> </td><td width="150px"> <input style="min-width: 50px;" type="text" name="income_title[]" class="form-control" value="" placeholder="Description"> </td><td width="200px"> <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot"> <option value="">Select Income Slot</option> <option value="7">Weekly</option> <option value="30">Monthly</option> <option value="0">One-Off</option> </select> </td><td width="150px"> <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage"> <option value="">Donation Percentage</option> <option value="10">10%</option> <option value="20">20%</option> </select> </td></tr>';
-                $("table #inner ").append(markup);
+                    ' <tr class="item-row" style="position:realative;"> <td width="50px"> <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" onclick="removeRow(event)" >X</div></td><td width="150px"> <input class="form-control" name="start_date[]" type="date" value=""> </td><td width="150px"> <input class="form-control" name="income_amount[]" value="" placeholder="Income"> </td><td width="150px"> <input style="min-width: 50px;" type="text" name="income_title[]" class="form-control" value="" placeholder="Description"> </td><td width="200px"> <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot"> <option value="">Select Income Slot</option> <option value="7">Weekly</option> <option value="30">Monthly</option></select> </td><td width="150px"> <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage"> <option value="">Donation Percentage</option> <option value="10">10%</option> <option value="20">20%</option> </select> </td></tr>';
+                $("table #inner").append(markup);
             });
-
-
-
-
 
 
 
@@ -362,7 +412,7 @@ $(document).ready(function () {
 
             });
 
-
+//  regular income update
             var upurl = "{{URL::to('/user/donation-calculator-update')}}";
             $("#income_update").click(function(){
 
@@ -400,30 +450,29 @@ $(document).ready(function () {
                           console.log(d);
                       }
                   });
-                //create  end
-
             });
-            // donation calclutors end
 
-            // others donation store start
-            var otherdurl = "{{URL::to('/user/other-donation-store')}}";
-            $("#othrBtn").click(function(){
+
+//  on-off income add
+            var onoffurl = "{{URL::to('/user/one-off-donation')}}";
+            $("#oincome_submit").click(function(){
                     var form_data = new FormData();
-                    form_data.append("d_title", $("#d_title").val());
-                    form_data.append("donation_date", $("#donation_date").val());
-                    form_data.append("d_amount", $("#d_amount").val());
+                    form_data.append("oincome_title", $("#oincome_title").val());
+                    form_data.append("oincome_amount", $("#oincome_amount").val());
+                    form_data.append("ostart_date", $("#ostart_date").val());
+                    form_data.append("odonation_percentage", $("#odonation_percentage").val());
 
                     $.ajax({
-                      url: otherdurl,
+                      url: onoffurl,
                       method: "POST",
                       contentType: false,
                       processData: false,
                       data:form_data,
                       success: function (d) {
                           if (d.status == 303) {
-                              $(".otherermsg").html(d.message);
+                              $(".oneoffermsg").html(d.message);
                           }else if(d.status == 300){
-                            $(".otherermsg").html(d.message);
+                            $(".oneoffermsg").html(d.message);
                             window.setTimeout(function(){location.reload()},2000)
                           }
                       },
@@ -431,10 +480,39 @@ $(document).ready(function () {
                           console.log(d);
                       }
                   });
-                //create  end
 
             });
-            // others donation store end
+
+
+    // others donation store start
+    var otherdurl = "{{URL::to('/user/other-donation-store')}}";
+    $("#othrBtn").click(function(){
+            var form_data = new FormData();
+            form_data.append("d_title", $("#d_title").val());
+            form_data.append("donation_date", $("#donation_date").val());
+            form_data.append("d_amount", $("#d_amount").val());
+
+            $.ajax({
+                url: otherdurl,
+                method: "POST",
+                contentType: false,
+                processData: false,
+                data:form_data,
+                success: function (d) {
+                    if (d.status == 303) {
+                        $(".otherermsg").html(d.message);
+                    }else if(d.status == 300){
+                    $(".otherermsg").html(d.message);
+                    window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+            });
+
+    });
+    // others donation store end
 
 
 

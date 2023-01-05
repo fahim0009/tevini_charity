@@ -49,6 +49,60 @@ class DonationController extends Controller
     }
 
 
+
+
+    public function oneoffDonation(Request $request)
+    {
+        $ostart_date = $request->ostart_date;
+        $oincome_amount = $request->oincome_amount;
+        $oincome_title = $request->oincome_title;
+        $odonation_percentage = $request->odonation_percentage;
+
+        if(empty($ostart_date)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Date field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($oincome_amount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Amount field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($oincome_title)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Title field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+
+        if(empty($odonation_percentage)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please Choose Your Percentage.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+
+            $data = new DonationDetail;
+            $data->date = $ostart_date;
+            $data->income_amount = $oincome_amount;
+            $data->income_title = $oincome_title;
+            $data->income_slot = 0;
+            $data->donation_percentage = $odonation_percentage;
+            $data->donation_amount = $oincome_amount * ($odonation_percentage/100);;
+            $data->status = 1;
+            $data->donor_id = Auth::user()->id;
+            $data->save();
+
+
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>One-off income added successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
+
+    }
+
+
+
     public function DcalUpdate(Request $request)
     {
 
@@ -109,6 +163,13 @@ class DonationController extends Controller
         $dt = Carbon::now();
         $sub = $dt->month - 4; // sub month will change in every month
 
+
+        $first_date = DonationDetail::where('donor_id', Auth::user()->id)->orderBy('date','ASC')->first();
+
+        if(empty($first_date)){$first_date=now();}
+
+        // dd($first_date);
+
         // $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
         //                             ->where('t_type','=','Out')
         //                             ->whereBetween('created_at',
@@ -117,7 +178,7 @@ class DonationController extends Controller
         //                             ->sum('amount');
 
         $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
-                            ->where('t_type','=','Out')->sum('amount');
+                            ->where('t_type','=','Out')->whereDate('created_at','>=',$first_date)->sum('amount');
 
 
 
@@ -136,7 +197,7 @@ class DonationController extends Controller
         //                         )
         //                         ->sum('d_amount');
 
-        $otherdonation = OtherDonation::where('donor_id', Auth::user()->id)->sum('d_amount');
+        $otherdonation = OtherDonation::where('donor_id', Auth::user()->id)->whereDate('donation_date','>=',$first_date)->sum('d_amount');
 
 
         if($donationamnt){
@@ -207,19 +268,22 @@ class DonationController extends Controller
                     $doncaldetl->save();
                     $donationdetails = DonationDetail::where('donation_cal_id', $donor_cal->id)->orderBy('id', 'desc')->first();
                     $start_date = Carbon::parse($donationdetails->date);
+                    }
+
                 }
 
+                }
             }
 
-            }
         }
 
-    }
 
+        }
 
-    }
-
-        $donor_cals = DonationCalculator::with('donationdetail')->where('donor_id','=', Auth::user()->id)->get();
+        $donor_cals = DonationCalculator::where([
+            ['donor_id','=', Auth::user()->id],
+            ['income_slot','!=', '0']
+        ])->get();
         return view('frontend.user.donationcal',compact('donor_cals','tevini_donation','otherdonation','availabledonation'));
 
 
@@ -263,6 +327,15 @@ class DonationController extends Controller
     {
         $donation = DonationDetail::where('donation_cal_id','=', $id)->orderBy('id','DESC')->get();
         return view('frontend.user.donationdetails',compact('donation'));
+    }
+
+    public function onOffdonationDetails()
+    {
+        $donation = DonationDetail::where([
+            ['donor_id','=', Auth::user()->id],
+            ['income_slot','=', '0']
+        ])->orderBy('id','DESC')->get();
+        return view('frontend.user.onnoffdonationdetails',compact('donation'));
     }
 
     public function donationActive(Request $request)

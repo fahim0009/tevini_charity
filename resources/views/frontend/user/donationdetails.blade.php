@@ -4,7 +4,7 @@
 
 
 <div class="dashboard-content py-2 px-4">
- 
+
 
 
 
@@ -39,7 +39,7 @@
                                         @elseif ($data->income_slot == 30)
                                             Monthly
                                         @else
-                                            On/Off
+                                            One-Off
                                         @endif
                                     </td>
                                     <td>{{$data->income_amount}}</td>

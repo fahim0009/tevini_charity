@@ -165,9 +165,9 @@ class DonationController extends Controller
 
         $first_date = DonationDetail::where('donor_id', Auth::user()->id)->orderBy('date','ASC')->first();
 
-        if(empty($first_date->date)){$start_date=now();}else{$start_date=$first_date->date;}
+        if(empty($first_date->date)){$start_date=$dt->toDateString();}else{$start_date=$first_date->date;}
 
-        // dd($first_date);
+        // dd($start_date);
         // $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
         //                             ->where('t_type','=','Out')
         //                             ->whereBetween('created_at',
@@ -180,6 +180,8 @@ class DonationController extends Controller
             ['t_type','=', 'Out'],
             ['status','=', '1']
         ])->whereDate('created_at','>=',$start_date)->sum('amount');
+
+        // dd($tevini_donation);
 
 
 
@@ -198,7 +200,7 @@ class DonationController extends Controller
         //                         )
         //                         ->sum('d_amount');
 
-        $otherdonation = OtherDonation::where('donor_id', Auth::user()->id)->whereDate('donation_date','>=',$first_date)->sum('d_amount');
+        $otherdonation = OtherDonation::where('donor_id', Auth::user()->id)->whereDate('donation_date','>=',$start_date)->sum('d_amount');
 
 
         if($donationamnt){

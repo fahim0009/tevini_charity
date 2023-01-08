@@ -163,14 +163,11 @@ class DonationController extends Controller
         $dt = Carbon::now();
         $sub = $dt->month - 4; // sub month will change in every month
 
+        $first_date = DonationDetail::where('donor_id', Auth::user()->id)->orderBy('date','ASC')->first();
 
-        $first_date = DonationDetail::where('donor_id', Auth::user()->id)->orderBy('date','ASC')->first()->date;
-
-        if(empty($first_date)){$first_date=now();}
-
+        if(empty($first_date->date)){$first_date=now();}
 
         // dd($first_date);
-
         // $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
         //                             ->where('t_type','=','Out')
         //                             ->whereBetween('created_at',

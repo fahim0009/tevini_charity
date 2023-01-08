@@ -175,8 +175,11 @@ class DonationController extends Controller
         //                             )
         //                             ->sum('amount');
 
-        $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
-                            ->where('t_type','=','Out')->whereDate('created_at','>=',$start_date)->sum('amount');
+        $tevini_donation = Usertransaction::where([
+            ['user_id','=', Auth::user()->id],
+            ['t_type','=', 'Out'],
+            ['status','=', '1']
+        ])->whereDate('created_at','>=',$start_date)->sum('amount');
 
 
 

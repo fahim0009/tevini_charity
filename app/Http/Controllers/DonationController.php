@@ -165,7 +165,7 @@ class DonationController extends Controller
 
         $first_date = DonationDetail::where('donor_id', Auth::user()->id)->orderBy('date','ASC')->first();
 
-        if(empty($first_date->date)){$first_date=now();}
+        if(empty($first_date->date)){$start_date=now();}else{$start_date=$first_date->date;}
 
         // dd($first_date);
         // $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
@@ -176,7 +176,7 @@ class DonationController extends Controller
         //                             ->sum('amount');
 
         $tevini_donation = Usertransaction::where('user_id', Auth::user()->id)
-                            ->where('t_type','=','Out')->whereDate('created_at','>=',$first_date)->sum('amount');
+                            ->where('t_type','=','Out')->whereDate('created_at','>=',$start_date)->sum('amount');
 
 
 

@@ -13,6 +13,12 @@
                     Dashboard
                 </a>
             </li>
+            <li class="nav-item {{ (request()->is('user/donation-calculation*')) ? 'active' : '' }}" id="donationcal">
+                <a href="{{ route('user.donationcal') }}">
+                    <span class="iconify" data-icon="icon-park-outline:calendar"></span>
+                    Ma'aser Calculator
+                </a>
+            </li>
             <li class="nav-item {{ (request()->is('user/profile*')) ? 'active' : '' }}">
                 <a href="{{ route('user.profile') }}">
                     <span class="iconify" data-icon="fontisto:wallet"></span>

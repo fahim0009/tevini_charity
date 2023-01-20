@@ -85,7 +85,7 @@
     }
 </style>
     @php
-       if (isset($_GET["campaign"]) && isset($_GET["transid"]) && isset($_GET["cid"]) && isset($_GET["donation"]) && isset($_GET["hashed"])) {
+       if (isset($_GET["campaign"]) && isset($_GET["transid"]) && isset($_GET["cid"]) && isset($_GET["donation"]) && isset($_GET["hashed"]) && isset($_GET["identifier"])) {
                 $tevini_campaignid = $_GET["campaign"];
                 $transid = $_GET["transid"];
                 $acc = $_GET["cid"];
@@ -117,7 +117,7 @@
                         style="min-height: 300px ;">
                         <div>
                             <h1 class="display-4" style="color: red">ERROR</h1>
-                            <p>Sorry, Invalid campaign id.</p>
+                            <p>Sorry, Invalid campaign id or identifier.</p>
                         </div>
                     </div>
                 </div>

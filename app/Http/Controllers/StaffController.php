@@ -94,7 +94,7 @@ class StaffController extends Controller
                 ->where('staff.id', '=', $id)
                 ->get()->first();
 
-        return response()->json($info);;
+        return response()->json($info);
     }
 
     /**
@@ -106,7 +106,7 @@ class StaffController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
 
         $staff = Staff::findOrFail($id);
         $user = $staff->user;

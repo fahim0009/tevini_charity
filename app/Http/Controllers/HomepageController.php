@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Usertransaction;
 use App\Models\Campaign;
 use App\Models\Charity;
+use App\Models\Gateway;
 
 class HomepageController extends Controller
 {
@@ -70,6 +71,7 @@ class HomepageController extends Controller
         }
 
         $campaign_dtls =Campaign::where('id',$request->tevini_campaignid)->first();
+        $return_url = Gateway::where('id', $request->identifier)->first()->return_url;
 
         if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
         {
@@ -105,18 +107,12 @@ class HomepageController extends Controller
             $ch = Charity::find($campaign_dtls->charity_id);
             $ch->increment('balance',$request->amt);
 
-            $s_hash_1 = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
+            $success_hash = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
 
-            $s_hash_2 = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
+            $tevini_hash = hash_hmac("sha256", $success_hash, $campaign_dtls->hash_code);
 
-            $tevini_hash1 = hash_hmac("sha256", $s_hash_1, $campaign_dtls->hash_code);
-            $tevini_hash2 = hash_hmac("sha256", $s_hash_2, $campaign_dtls->hash_code);
+            $success_url = $return_url.$success_hash."&hash=".$tevini_has;
 
-            if($request->identify == "1"){
-            $success_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$s_hash_1."&hash=".$tevini_hash1;
-            }elseif($request->identify == "2"){
-            $success_url = "https://shasathonuk.org/cart/charity_multi.html".$s_hash_2."&hash=".$tevini_hash2;
-            }
             $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
             return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
 
@@ -125,19 +121,12 @@ class HomepageController extends Controller
 
             $user_tran = time();
 
-            $us_hash_1 = "?tevini_campaignid=".$request->tevini_campaignid."&transid=".$request->transid."&acc=".$request->acc."&amt=".$request->amt."&intid=".$user_tran."&rtncode=1";
+            $unsuccess_hash = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$user_tran."&rtncode=1";
 
-            $us_hash_2 = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$user_tran."&rtncode=1";
+            $tevini_hash = hash_hmac("sha256", $unsuccess_hash, $campaign_dtls->hash_code);
 
-            $tevini_hash1 = hash_hmac("sha256", $us_hash_1, $campaign_dtls->hash_code);
-            $tevini_hash2 = hash_hmac("sha256", $us_hash_2, $campaign_dtls->hash_code);
+            $unsuccess_url = "https://shasathonuk.org/cart/charity_multi.html".$unsuccess_hash."&hash=".$tevini_hash;
 
-
-            if($request->identify == "1"){
-            $unsuccess_url = "https://api.charidy.com/api/v1/campaign/donation/statusupdate/tevini".$us_hash_1."&hash=".$tevini_hash1;
-            }elseif($request->identify == "2"){
-            $unsuccess_url = "https://shasathonuk.org/cart/charity_multi.html".$us_hash_2."&hash=".$tevini_hash2;
-            }
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
             return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);
         }

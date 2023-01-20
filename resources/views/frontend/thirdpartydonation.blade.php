@@ -84,30 +84,15 @@
         }
     }
 </style>
-        @php
-            if(isset($_GET["tevini_campaignid"]) && isset($_GET["acc"]) && isset($_GET["amt"]) && isset($_GET["hash"])) {
-               $tevini_campaignid = $_GET["tevini_campaignid"];
-                $transid = $_GET["transid"];
-                $acc = $_GET["acc"];
-                $amt = $_GET["amt"];
-                $comment = $_GET["comment"];
-                $thrdprty_hash = $_GET["hash"];
-                $identify = 1;
-
-                $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
-                if(!empty($campaign_dtls)){
-                $mhash = "?tevini_campaignid=".$tevini_campaignid."&transid=".$transid."&acc=".$acc."&amt=".$amt;
-                $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
-                }
-            }elseif (isset($_GET["campaign"]) && isset($_GET["transid"]) && isset($_GET["cid"]) && isset($_GET["donation"]) && isset($_GET["hashed"])) {
-
+    @php
+       if (isset($_GET["campaign"]) && isset($_GET["transid"]) && isset($_GET["cid"]) && isset($_GET["donation"]) && isset($_GET["hashed"])) {
                 $tevini_campaignid = $_GET["campaign"];
                 $transid = $_GET["transid"];
                 $acc = $_GET["cid"];
                 $amt = $_GET["donation"];
                 $comment = " ";
                 $thrdprty_hash = $_GET["hashed"];
-                $identify = 2;
+                $identifier = $_GET["identifier"];
 
                 $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
                 if(!empty($campaign_dtls)){
@@ -186,7 +171,7 @@
                             <input type="text" hidden id="transid" value="{{$transid}}">
                             <input type="text" hidden id="comment" value="{{$comment}}">
                             <input type="text" hidden id="hash" value="{{$thrdprty_hash}}">
-                            <input type="text" hidden id="identify" value="{{$identify}}">
+                            <input type="text" hidden id="identifier" value="{{$identifier}}">
 
                             <input type="button" id="apidonation" value="CONFIRM DONATION" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">
 

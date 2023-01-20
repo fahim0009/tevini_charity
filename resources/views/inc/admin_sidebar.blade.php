@@ -43,6 +43,12 @@
                     Campaign
                 </a>
             </li>
+            <li class="nav-item {{ (request()->is('admin/gateway*')) ? 'active' : '' }}" id="">
+                <a href="{{ url('admin/gateway') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Gateway
+                </a>
+            </li>
             <li class="nav-item {{ (request()->is('admin/charity*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('charitylist') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>

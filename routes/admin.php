@@ -176,6 +176,9 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
     Route::post('/update-url', [CampaignController::class, 'updateUrl'])->name('updateurl');
 
+    // gateway
+    Route::resource('gateway','App\Http\Controllers\GatewayController');
+
     // Notification
     Route::post('/donornoti', [DashboardController::class, 'donorNoti'])->name('donornoti');
     Route::post('/ordernoti', [DashboardController::class, 'orderNoti'])->name('ordernoti');

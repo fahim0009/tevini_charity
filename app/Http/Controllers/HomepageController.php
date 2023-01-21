@@ -98,6 +98,7 @@ class HomepageController extends Controller
             $utransaction->amount =  $request->amt;
             $utransaction->note =  $request->comment;
             $utransaction->title ="Online Campaign (".$campaign_dtls->campaign_title.")";
+            $utransaction->gateway_id =  $request->identifier;
             $utransaction->status =  1;
             $utransaction->save();
 

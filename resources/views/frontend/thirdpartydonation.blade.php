@@ -91,7 +91,7 @@
                 $acc = $_GET["cid"];
                 $amt = $_GET["donation"];
                 $comment = " ";
-                $thrdprty_hash = $_GET["hashed"];
+                $gateway_hash = $_GET["hashed"];
                 $identifier = $_GET["identifier"];
 
                 $campaign_dtls =\App\Models\Campaign::where('id',$tevini_campaignid)->first();
@@ -122,7 +122,7 @@
                     </div>
                 </div>
 
-                @elseif (hash_equals($tevini_hash, $thrdprty_hash))
+                @elseif (hash_equals($tevini_hash, $gateway_hash))
 
                 {{-- if link is ok  --}}
                 <div class="col-lg-6 col-md-12 position-relative">
@@ -170,7 +170,7 @@
                             <input type="text" hidden id="tevini_campaignid" value="{{$tevini_campaignid}}">
                             <input type="text" hidden id="transid" value="{{$transid}}">
                             <input type="text" hidden id="comment" value="{{$comment}}">
-                            <input type="text" hidden id="hash" value="{{$thrdprty_hash}}">
+                            <input type="text" hidden id="hash" value="{{$gateway_hash}}">
                             <input type="text" hidden id="identifier" value="{{$identifier}}">
 
                             <input type="button" id="apidonation" value="CONFIRM DONATION" class="btn btn-info mt-4 d-block w-100 fw-bold py-3 text-white">

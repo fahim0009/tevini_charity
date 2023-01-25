@@ -34,10 +34,11 @@
                                 <input type="hidden" value="{{$voucher->id}}" name="v_ids[]">
                                 @if ($voucher->type == 'Prepaid')
                                     <div class="badge rounded-pill bg-secondary">{{ $voucher->type }}</div>
-                                    <span class="h6">(@if($voucher->note){{$voucher->note}}@endif)</span>
                                 @else
                                     <div class="badge rounded-pill bg-info">{{ $voucher->type }}</div>
                                 @endif
+                                <span class="h6">({{$voucher->note}})</span>
+
                             </div>
                             <div class="items">
                                 <div class="cart mx-auto">
@@ -46,11 +47,11 @@
                                     <button id="inc{{$voucher->id}}" onclick="inc({{$voucher->id}},{{ $voucher->amount }})">+</button>
                                 </div>
                             </div>
-                            {{-- <div class="items">                         
+                            {{-- <div class="items">
                                 <div class="badge rounded-pill bg-info">{{ $voucher->stock }} Stock</div>
                             </div> --}}
                             <div class="items">
-                                @if($voucher->type == "Prepaid") 
+                                @if($voucher->type == "Prepaid")
                             <div id="amt{{$voucher->id}}"><div class="items">£0</div></div>
                                @endif
                             </div>
@@ -89,15 +90,15 @@
 
 
         $("#addvoucher").click(function(){
-            
+
             $("#loading").show();
 
             var voucherIds = $("input[name='v_ids[]']")
               .map(function(){return $(this).val();}).get();
 
             var qtys = $("input[name='qty[]']")
-              .map(function(){return $(this).val();}).get(); 
-            
+              .map(function(){return $(this).val();}).get();
+
             var did = $("#donner_id").val();
             // console.log(qtys);
 
@@ -118,16 +119,16 @@
                     },
                     complete:function(d){
                         $("#loading").hide();
-                    },                    
+                    },
                     error: function (d) {
                         console.log(d);
                     }
                 });
 
         });
-        
 
-        
+
+
 
 
 

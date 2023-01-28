@@ -54,12 +54,11 @@
                             @foreach ($orderDtls as $orderDtl)
                                 @php $n++; @endphp
                             <tr>
-                                    <td>{{$n}}</td>
-                                    <td>{{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)({{ $orderDtl->voucher->note }}) @endif</td>
-                                    <td>{{ $orderDtl->number_voucher}}</td>
-                                    <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->voucher->amount }}@endif</td>
-                                    <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->amount}} @endif</td>
-
+                                <td>{{$n}}</td>
+                                <td>£{{ $orderDtl->voucher->amount }} {{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)({{ $orderDtl->voucher->note }}) @endif</td>
+                                <td>{{ $orderDtl->number_voucher}}</td>
+                                <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->voucher->amount }}@endif</td>
+                                <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->amount}} @endif</td>
                             </tr>
                             @endforeach
 

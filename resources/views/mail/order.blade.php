@@ -1,13 +1,13 @@
    <div class="container">
-      
-   <h3>Dear Mr {{$array['name']}},</h3> 
-    
+
+   <h3>Dear Mr {{$array['name']}},</h3>
+
    <p>This message is to confirm that you have made the request below via the Tevini  website. It will be dealt with in due course.</p>
-    
+
    <p>Client number : {{$array['client_no']}}</p>
-    
+
    <p>Request Date : {{date('m-d-Y')}}</p>
-    
+
     Voucher books :
         <table style="border: 1px solid black; width:400px;">
                 <thead>
@@ -20,9 +20,9 @@
                 </thead>
                 <tbody>
              @foreach (\App\Models\OrderHistory::where('order_id', $array['order_id'])->get() as $order)
-             
+
                         <tr style="border: 1px solid black; text-align:center">
-                            <td>{{$order->voucher->type}} @if($order->voucher->note)({{$order->voucher->note}})@endif</td>
+                            <td>£{{ $orderDtl->voucher->amount }} {{$order->voucher->type}} @if($order->voucher->note)({{$order->voucher->note}})@endif</td>
                             <td>{{$order->number_voucher}}</td>
                             @if($order->voucher->type !="Prepaid")
                             <td></td>
@@ -32,10 +32,10 @@
                             <td>£{{$order->amount}}</td>
                             @endif
                         </tr>
-             
+
              @endforeach
-             
+
                     </tbody>
                         </table>
-    
+
     </div>

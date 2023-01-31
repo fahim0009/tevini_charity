@@ -220,12 +220,12 @@
                     var comment= $("#comment").val();
                     var password= $("#password").val();
                     var hash= $("#hash").val();
-                    var identify= $("#identify").val();
+                    var identifier= $("#identifier").val();
                     // alert(hash);
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {transid,acc,amt,tevini_campaignid,comment,hash,password,identify},
+                        data: {transid,acc,amt,tevini_campaignid,comment,hash,password,identifier},
                         success: function (d) {
 
                             if (d.status == 303) {

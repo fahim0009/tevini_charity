@@ -112,7 +112,7 @@ class HomepageController extends Controller
 
             $tevini_hash = hash_hmac("sha256", $success_hash, $campaign_dtls->hash_code);
 
-            $success_url = $return_url.$success_hash."&hash=".$tevini_has;
+            $success_url = $return_url.$success_hash."&hash=".$tevini_hash;
 
             $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
             return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
@@ -126,7 +126,7 @@ class HomepageController extends Controller
 
             $tevini_hash = hash_hmac("sha256", $unsuccess_hash, $campaign_dtls->hash_code);
 
-            $unsuccess_url = "https://shasathonuk.org/cart/charity_multi.html".$unsuccess_hash."&hash=".$tevini_hash;
+            $unsuccess_url = $return_url.$unsuccess_hash."&hash=".$tevini_hash;
 
             $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
             return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);

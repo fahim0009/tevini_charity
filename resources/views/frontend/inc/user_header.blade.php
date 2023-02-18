@@ -1,43 +1,23 @@
-<div class="topbar">
-    <div class="fold" onclick='foldSidebar();'>
-        <span class="iconify" data-icon="eva:menu-fill"></span>
+<div class="topBar position-relative">
+    <div class="items d-flex justify-content-between align-items-center flex-wrap">
+        <label for="" class="position-relative">
+            <iconify-icon class="icon" icon="ic:baseline-search"></iconify-icon>
+            <input type="text" class="inputSearch" placeholder="Search">
+        </label>
+        <div class="txt-theme fs-16">Account Number: <span class="fw-bold">{{auth()->user()->accountno}}</span> </div>
     </div>
-    <!-- <img src="images/logo.png" class="mobile-menu-logo"> -->
-    <div class="right-element">
-        <div class="dropdown show">
-            <a class="btn  dropdown-toggle  profile-manage" href="#" role="button" id="dropdownMenuLink"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <img src="{{ asset('assets/user/images/profile.png') }}">
-            </a>
-
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                <a class="dropdown-item" href="{{ route('user.profile') }}"><span class="iconify"
-                        data-icon="carbon:user-avatar"></span> Profile</a>
-                <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><span class="iconify"
-                        data-icon="ion:log-out-outline"></span> Log Out
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
-                    </a>
-
-
+    <div class="items position-relative d-flex justify-content-end align-items-center">
+        <div class="dropdown account">
+            <div class="d-flex align-items-center  dropdown-toggle" type="button" id="dropdownMenuButton1"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="txt-theme fw-bold fs-16 me-2">{{auth()->user()->name}}</span>
+                <iconify-icon class="fs-2" icon="mdi:user-circle-outline"></iconify-icon>
             </div>
+            <ul class="dropdown-menu  " aria-labelledby="dropdownMenuButton1">
+                <li><a class="dropdown-item" href="{{ route('user.profile') }}">My Profile</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+            </ul>
         </div>
-    </div>
-
-</div>
-
-<div class="userStatus">
-    <div class="items">
-        <span>Account</span>
-        <span>{{auth()->user()->accountno}}</span>
-    </div>
-    <div class="items">
-        <span>Balance</span>
-        <span> £{{auth()->user()->balance}}</span>
-    </div>
-    <div class="items">
-        <span>As of</span>
-        <span>{{date('d/m/Y')}}</span>
     </div>
 </div>

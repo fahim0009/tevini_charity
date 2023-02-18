@@ -1,27 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8">
-        <!-- CSRF Token -->
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tenvini</title>
-    <!-- FOR SEO -->
-    <!-- <meta property='og:title' content='MarinOne soft'/>
-    <meta property='og:image' content='./assets/images/link.jpg'/>
-    <meta property='og:description' content='DESCRIPTION OF YOUR SITE'/>
-    <meta property='og:url' content='URL OF YOUR WEBSITE'/>
-    <meta property='og:image:width' content='1200' />
-    <meta property='og:image:height' content='627' />
-    <meta property="og:type" content='website'/> -->
-
-    <title>Tevini - Dashboard</title>
-    <link rel="icon" href="{{ asset('assets/user/images/favicon.png') }}">
+    <meta charset="UTF-8">
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenvini</title>
+    <link href="{{ asset('assets/user/css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/user/css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/user/css/bootstrap-5.1.3min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/user/css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/user/css/swiper-bundle.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/user/css/slick.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/user/css/animate.min.css') }}" />
@@ -31,45 +18,52 @@
 </head>
 
 <body>
+    <!-- dashboard  section -->
+    <div class="dashbaord-main">
 
-    <div class="dashboard-wraper">
+
             {{-- sidebar start here  --}}
 
             @include('frontend.inc.user_sidebar')
         {{-- sidebar close here  --}}
 
-        <div class="rightbar">
-            <!--user header --   topbar -->
+
+        <div class="rightSection">
+
             {{-- topbar start here  --}}
+
             @include('frontend.inc.user_header')
             {{-- topbar close here  --}}
 
-            <!-- content area -->
-            <div class="content">
+
             {{-- dashbord content start here  --}}
             @yield('content')
             {{-- dashbord content close here  --}}
 
-            </div>
-        </div>
 
+
+        </div>
     </div>
+
+    @include('frontend.inc.user_footer')
 
     <script src="{{ asset('assets/user/js/jquery-3.5.1.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/user/js/bootstrap-5.bundle.min.js') }}"></script> --}}
     <script src="{{ asset('assets/user/js/iconify.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/wow.min.js') }}"></script>
-    <script src="{{ asset('assets/user/js/app.js') }}"></script>
+    <script src='{{ asset('assets/user/js/app.js') }}'> </script>
     <script src="{{URL::to('js/plugins/datatables.min.js')}}"></script>
     <script src="{{URL::to('js/plugins/dataTables.bootstrap.min.js')}}"></script>
+    <script>
+        new WOW().init();
+    </script>
     @yield('script')
     <script>
         function pagetop() {
         window.scrollTo({
-        top: 10,
+        top: 130,
         behavior: 'smooth',
         });
         }
@@ -167,6 +161,8 @@ $('#exampleIn').DataTable({
         }
     ]
 });
+
+
 
 
 

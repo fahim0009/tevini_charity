@@ -12,27 +12,13 @@
 
 </style>
 
-<div class="dashboard-content">
-
-    {{-- <section class=" px-4">
-        <div class="alert mt-3 alert-warning alert-dismissible fade show" role="alert">
-            <div class="d-inline">
-                <span class="iconify" data-icon="akar-icons:info-fill"></span>
+<div class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="pagetitle pb-2">
+                Make a donation/Standing order
             </div>
-            <small>Please note our office will be closed from Monday 27th December until Tuesday 4th
-                January.
-                Payments and vouchers will still be processed. i Emails, web contact forms and phone
-                messages
-                will still be monitored and replied to but may take slightly longer than usual.</small>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </section> --}}
-    <section class="profile purchase-status px-4">
-        <div class="title-section">
-            <span class="iconify" data-icon="clarity:heart-solid"></span>
-            <div class="mx-2">Make a Donation/Standing Order</div>
-        </div>
-
         <section class="px-4">
             <div class="row my-3">
                 <div class="ermsg"></div>
@@ -44,123 +30,140 @@
     <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
   </div>
   <!-- Image loader -->
+    </div>
+    <form action="{{ route('donation.store') }}" method="POST" enctype="multipart/form-data">
+        <div class="row ">
+            <div class="col-lg-6  px-3">
+                <h4 class="txt-dash mt-5">Account Balance</h4>
+                <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
 
-
-        <div class="row mt-3">
-            <div class="col-md-12">
-                <div class="col-md-12 text-muted bg-white ">
-                    <form action="{{ route('donation.store') }}" method="POST" enctype="multipart/form-data" class="gdp-form px-5">
-                            @csrf
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="exampleDataList" class="form-label">Beneficiary</label>
-                                <select class="form-control @error('charity_id') is-invalid @enderror" id="charity_id" name="charity_id" required>
-                                    <option value="">Please Select</option>
-                                    @foreach (App\Models\Charity::all() as $charity)
-                                    <option value="{{ $charity->id }}">{{ $charity->name }} - ({{ $charity->acc_no }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4 ">
-                                <input type="text" placeholder="Amount" name="amount" id="amount" class="form-control @error('amount') is-invalid @enderror">
-                            </div>
-                            <div class="col-md-4">
-                                <select class="form-control @error('currency') is-invalid @enderror" name="currency" id="currency">
-                                    <option value="GDP">GBP</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 d-flex align-items-center">
-                                <div class="form-group">
-                                    <input type="checkbox" class="chkCircle" name="ano_donation" id="ano_donation">
-                                    <label for="ano_donation"> ANONYMOUS DONATION</label>
-                                </div>
-                            </div>
-                            <div class="col-md-12 my-3 text-dark">
-                                <i>Please note that it is not possible to make a anonymous standing order.
-                                </i>
-                            </div>
-
-
-                            <div class="col-md-12 d-flex align-items-center">
-                                <div class="form-group w-100" class="standardOrder">
-                                    <input type="checkbox" class="chkCircle" name="standard" id="standard">
-
-                                    <label for="standard">
-                                        SETUP A STANDING ORDER
-                                    </label>
-
-                                    <div class="standardOptions my-4">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group mb-3">
-                                                    <label for="">PAYMENTS</label>
-                                                    <select class="form-control" name="payments_type" id="payments_type">
-                                                        <option value="1">Fixed number of payments</option>
-                                                        <option value="2">Continuous payments</option>
-                                                    </select>
-
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group mb-3">
-                                                    <label for="">NUMBER OF PAYMENTS</label>
-                                                    <input type="text" class="form-control" name="number_payments" id="number_payments">
-
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="">STARTING</label>
-                                                    <select class="form-control" name="starting" id="starting">
-                                                        <option value="1 Jan 2022">1 Jan 2022</option>
-                                                    </select>
-
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="">INTERVAL</label>
-                                                    <select class="form-control" id="interval" name="interval">
-                                                        <option value="Monthly">Monthly</option>
-                                                        <option value="Every 3 month">Every 3 month</option>
-                                                    </select>
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            <div class="col-md-12 my-3">
-                                <div class="form-group d-flex align-items-center">
-                                    <input type="checkbox" class="chkCircle" name="confirm_donation" id="confirm_donation" required>
-                                    <label for="confirm_donation" class="mx-2">
-                                        <small>
-                                            I confirm that this donation is for charitable purposes only, I
-                                            will not benefit directly or indirectly by way of goods or
-                                            services from the donation.
-                                        </small>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-12 my-2">
-                                <textarea class="form-control @error('charitynote') is-invalid @enderror" name="charitynote" placeholder="NOTES TO CHARITY" id="charitynote" cols="30" rows="3"></textarea>
-                            </div>
-                            <div class="col-md-12 my-2">
-                                <textarea class="form-control @error('mynote') is-invalid @enderror" name="mynote" placeholder="MY NOTES" id="mynote"
-                                    cols="30" rows="3"></textarea>
-                            </div>
-                            <div class="col-md-12 my-2">
-                                <input type="button" id="addBtn" value="Make Donation" class="btn btn-primary">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label for="">Beneficiary</label>
+                            <!-- <input type="text" class="form-control" placeholder="Select a charity"> -->
+                            <select id="charity_id" name="charity_id" required class="form-control">
+                                <option value="">Select a charity</option>
+                                <option value="">Please Select</option>
+                                @foreach (App\Models\Charity::all() as $charity)
+                                <option value="{{ $charity->id }}">{{ $charity->name }} - ({{ $charity->acc_no }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="">Amount</label>
+                            <div class="d-flex align-items-center">
+                                <input type="text" class="form-control me-3" name="amount" id="amount" placeholder="0.00"> <span
+                                    class="txt-secondary fs-16">GBP</span>
                             </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group ">
+                            <label for=""> &nbsp; </label>
+                            <div class="d-flex align-items-center">
+                                <input type="checkbox" name="ano_donation" id="ano_donation" class="form-check"> <span
+                                    class="txt-secondary fs-16">Make this an anonymous donation</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group ">
+                            <span class="txt-secondary fs-16">Please note that it is not possible to make a
+                                anonymous standing order.
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mt-2">
+                        <div class="form-group ">
+
+                            <div class="d-flex align-items-center">
+                                <input type="checkbox" name="standard" id="standard" class="form-check"> <span
+                                    class="txt-secondary fs-16">Set up a standing order</span>
+                            </div>
+
+                            <div class="standardOptions my-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="">PAYMENTS</label>
+                                            <select class="form-control" name="payments_type" id="payments_type">
+                                                <option value="1">Fixed number of payments</option>
+                                                <option value="2">Continuous payments</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="">NUMBER OF PAYMENTS</label>
+                                            <input type="text" class="form-control" name="number_payments" id="number_payments">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="">STARTING</label>
+                                            <select class="form-control" name="starting" id="starting">
+                                                <option value="1 Jan 2022">1 Jan 2022</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="">INTERVAL</label>
+                                            <select class="form-control" id="interval" name="interval">
+                                                <option value="Monthly">Monthly</option>
+                                                <option value="Every 3 month">Every 3 month</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group ">
+                            <div class="d-flex  ">
+                                <input type="checkbox" name="confirm_donation" id="confirm_donation" required class="form-check" style="width: 56px;">
+                                 <div
+                                    class="txt-secondary fs-16">I confirm that this donation is for
+                                    charitable purposes only, I will not benefit directly or indirectly by
+                                    way of goods or services from the donation.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mt-4">
+                        <div class="form-group ">
+                            <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary">
+                            {{-- <button class="btn-theme bg-primary" id="addBtn">Make a donation</button> --}}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 border-left-lg px-3">
+                <div class="col-lg-12 mt-5">
+                    <div class="form-group ">
+                        <label for="">Notes to charity</label>
+                        <textarea id="charitynote" name="charitynote" class="border-0 mt-2 w-100" rows="8"></textarea>
+                    </div>
+                </div>
+                <div class="col-lg-12 mt-4">
+                    <div class="form-group ">
+                        <label for="">My Notes</label>
+                        <textarea name="mynote" id="mynote" class="border-0 mt-2 w-100" rows="8"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
+    </form>
 </div>
 
 
@@ -170,6 +173,15 @@
 @section('script')
 <script>
      $(document).ready(function () {
+
+        $(".standardOptions").hide();
+        $("#standard").click(function() {
+            if($(this).is(":checked")) {
+                $(".standardOptions").show(300);
+            } else {
+                $(".standardOptions").hide(200);
+            }
+        });
 
         $("#payments_type").change(function () {
                 var number_payments = $(this).val();

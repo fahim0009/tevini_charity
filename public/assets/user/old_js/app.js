@@ -36,26 +36,26 @@ function foldSidebar() {
   document.getElementById('leftSidebar').classList.toggle('close')
 }
 
-// window.onload = function () {
+window.onload = function () {
 
-//   if (window.innerWidth <= 768) {
-//     let sidebar = document.getElementById("leftSidebar");
-//     sidebar.classList.add('close');
-//   }
+  if (window.innerWidth <= 768) {
+    let sidebar = document.getElementById("leftSidebar");
+    sidebar.classList.add('close');
+  }
 
 
   // sidebar nav js
-//   var mycls = document.getElementsByClassName('nav-item');
-//   for (let i = 0; i <= mycls.length; i++) {
-//     mycls[i].addEventListener("click", function () {
-//       for (var j = 0; j < mycls.length; j++) {
-//         mycls[j].classList.remove('active');
-//       }
-//       this.classList.add('active');
-//     });
-//   }
-  // end
-// }
+  var mycls = document.getElementsByClassName('nav-item');
+  for (let i = 0; i <= mycls.length; i++) {
+    mycls[i].addEventListener("click", function () {
+      for (var j = 0; j < mycls.length; j++) {
+        mycls[j].classList.remove('active');
+      }
+      this.classList.add('active');
+    });
+  }
+  // end 
+}
 
 
 function decrementQty() {

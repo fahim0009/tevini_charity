@@ -1,91 +1,26 @@
-<div class="leftSection wow fadeIn" data-wow-delay=".25s" id='leftSidebar'>
-    <div class="user-profile">
-        <div class="close-dashboard-sidebar">
-            <span class="iconify" onclick="foldSidebar();" data-icon="mdi:window-close"></span>
-        </div>
-        <img src="{{ asset('assets/image/logo/logo.png') }}" width="160px" alt="">
+<div class="sidebar " id="sidebar">
+    <div class="brand">
+        <img src="{{ asset('assets/user/images/logo.svg') }}" width="114px" class="mx-auto" alt="logo">
     </div>
-    <nav class="sidenav">
-        <ul>
-            <li class="nav-item {{ (request()->is('user/dashboard*')) ? 'active' : '' }}" id="userdashboard">
-                <a href="{{ route('user.dashboard') }}">
-                    <span class="iconify" data-icon="clarity:dashboard-solid-badged"></span>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item {{ (request()->is('user/donation-calculation*')) ? 'active' : '' }}" id="donationcal">
-                <a href="{{ route('user.donationcal') }}">
-                    <span class="iconify" data-icon="icon-park-outline:calendar"></span>
-                    Ma'aser Calculator
-                </a>
-            </li>
-            <li class="nav-item {{ (request()->is('user/profile*')) ? 'active' : '' }}">
-                <a href="{{ route('user.profile') }}">
-                    <span class="iconify" data-icon="fontisto:wallet"></span>
-                    Profiles
-                </a>
-            </li>
-
-            <!-- only active user can see this -->
-            @if(auth()->user()->status == "1")
-            <li class="nav-item {{ (request()->is('user/transaction-view*')) ? 'active' : '' }}" id="transaction">
-                <a href="{{ route('user.transaction') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    View transaction
-                </a>
-            </li>
-            <li class="nav-item {{ (request()->is('user/make-donation*')) ? 'active' : '' }}">
-                <a href="{{ route('user.makedonation') }}">
-                    <span class="iconify" data-icon="clarity:heart-solid"></span>
-                    Make a Donation
-                </a>
-            </li>
-            {{-- <li class="nav-item {{ (request()->is('user/donation-calculation*')) ? 'active' : '' }}">
-                <a href="{{ route('user.donationcal') }}">
-                    <span class="iconify" data-icon="clarity:heart-solid"></span>
-                    Donation Calculator
-                </a>
-            </li> --}}
-            <li class="nav-item {{ (request()->is('user/donation-record*')) ? 'active' : '' }}">
-                <a href="{{ route('user.donationrecord') }}">
-                    <span class="iconify" data-icon="icomoon-free:profile"></span>
-                    Donation records
-                </a>
-            </li>
-            <li class="nav-item {{ (request()->is('user/standing-order*')) ? 'active' : '' }}">
-                <a href="{{ route('user.standingorder') }}">
-                    <span class="iconify" data-icon="icomoon-free:profile"></span>
-                    Standing Orders records
-                </a>
-            </li>
-            <li class="nav-item {{ (request()->is('user/order-voucher-book*')) ? 'active' : '' }}">
-                <a href="{{ route('user.orderbook') }}">
-                    <span class="iconify" data-icon="fontisto:wallet"></span>
-                    Order voucher book
-                </a>
-            </li>
-            <li class="nav-item {{ (request()->is('user/order-history*')) ? 'active' : '' }}">
-                <a href="{{ route('user.orderhistory') }}">
-                    <span class="iconify" data-icon="fontisto:wallet"></span>
-                    Order Record
-                </a>
-            </li>
-            @endif
-
-            <!--<li class="nav-item " id="userfaq">-->
-            <!--    <a href="{{ route('user.faq') }}">-->
-            <!--        <span class="iconify" data-icon="fluent:note-add-16-filled"></span>-->
-            <!--        FAQ-->
-            <!--    </a>-->
-            <!--</li>-->
-            <li class="nav-item " id="usercontact">
-                <a href="{{ route('user.contact') }}">
-                    <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                    Contact
-                </a>
-            </li>
-
-
-        </ul>
-    </nav>
+    <ul class="navigation">
+        <li><a href="{{ route('user.dashboard') }}" class="{{ (request()->is('user/dashboard*')) ? 'nav-link current' : '' }}">Dashboard</a></li>
+        <li><a href="{{ route('user.makedonation') }}" class="{{ (request()->is('user/make-donation*')) ? 'nav-link current' : '' }}">Make a donation</a></li>
+        <li><a href="{{ route('user.orderbook') }}" class="{{ (request()->is('user/order-voucher-book*')) ? 'nav-link current' : '' }}">Order voucher books</a></li>
+        <li><a href="tevini-card.html" class="{{ (request()->is('user/tevini-card*')) ? 'nav-link current' : '' }}">Tevini card</a></li>
+        <li><a href="{{ route('user.transaction') }}" class="{{ (request()->is('user/transaction-view*')) ? 'nav-link current' : '' }}">View transactions</a></li>
+        <li><a href="{{ route('user.standingorder') }}" class="{{ (request()->is('user/standing-order*')) ? 'nav-link current' : '' }}">Standing orders</a></li>
+        <li><a href="{{ route('user.donationcal') }}" class="{{ (request()->is('user/donation-calculation*')) ? 'nav-link current' : '' }}">Maaser calculator</a></li>
+        <li><a href="{{ route('user.contact') }}" class="{{ (request()->is('user/contact*')) ? 'nav-link current' : '' }}">Contact</a></li>
+    </ul>
+    <div class="bottom-part">
+        <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
+        <a href="#" class="btn-theme bg-primary">Make a donation</a>
+        <a href="#" class="mt-2 d-flex justify-content-center txt-theme fw-bold align-items-center">
+            <iconify-icon icon="humbleicons:logout"></iconify-icon>
+            &nbsp;Log out
+        </a>
+    </div>
+    <div class="collapsable" onclick="collaps();">
+        <iconify-icon class="icon" icon="octicon:sidebar-collapse-24"></iconify-icon>
+    </div>
 </div>

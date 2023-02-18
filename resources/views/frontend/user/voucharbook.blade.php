@@ -1,73 +1,126 @@
 @extends('frontend.layouts.user')
-
 @section('content')
 
+<div class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="pagetitle pb-2">
+                Order voucher books
+            </div>
+            <div class="ermsg">
 
-<div class="dashboard-content">
-    <section class="profile purchase-status">
-        <div class="title-section">
-            <span class="iconify" data-icon="et:wallet"></span> <div class="mx-2">
-               Order Voucher Book
             </div>
         </div>
-        <div class="ermsg">
-
-        </div>
-    </section>
+    </div>
 <!-- Image loader -->
-    <div id='loading' style='display:none ;'>
-        <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
-   </div>
- <!-- Image loader -->
+<div id='loading' style='display:none ;'>
+    <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+</div>
+<!-- Image loader -->
 
+<div class="row ">
+            <div class="col-lg-12 px-3">
+                <div class="row my-4">
 
-  <section class="px-4">
-    <div class="row my-3">
-        {{-- <div class="col-12 text-center"> --}}
-            <div class="col-2"></div>
-            <div class="col-8">
-                <div class="orderVoucher">
                     @foreach (App\Models\Voucher::where('status','=','1')->get() as $voucher )
-                        <div class="voucher">
-                            <div class="items">
-                                <span>£{{ $voucher->amount }} </span>
+                    <div class="col-lg-3">
+                        <div class="inner my-3">
+                            <div class="left text-center">
                                 <input type="hidden" value="{{$voucher->id}}" name="v_ids[]">
-                                @if ($voucher->type == 'Prepaid')
-                                    <div class="badge rounded-pill bg-secondary">{{ $voucher->type }}</div>
-                                @else
-                                    <div class="badge rounded-pill bg-info">{{ $voucher->type }}</div>
-                                @endif
-                                <span class="h6">({{$voucher->note}})</span>
+                                <input type="text" class="box-input" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
+                                <label>Qty</label>
+                            </div>
+                            <div class="right">
+                                <div class="title">
+                                    £{{ $voucher->single_amount }}
+                                    @if ($voucher->type == 'Prepaid')
+                                    <div class="badge prepaid">
+                                        Prepaid
+                                    </div>
+                                    @else
+                                    <div class="badge postpaid">
+                                        Postpaid
+                                    </div>
+                                    @endif
 
-                            </div>
-                            <div class="items">
-                                <div class="cart mx-auto">
-                                    <button id="dec{{$voucher->id}}" onclick="dec({{$voucher->id}},{{ $voucher->amount }})">-</button>
-                                    <input type="text" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
-                                    <button id="inc{{$voucher->id}}" onclick="inc({{$voucher->id}},{{ $voucher->amount }})">+</button>
                                 </div>
-                            </div>
-                            {{-- <div class="items">
-                                <div class="badge rounded-pill bg-info">{{ $voucher->stock }} Stock</div>
-                            </div> --}}
-                            <div class="items">
-                                @if($voucher->type == "Prepaid")
-                            <div id="amt{{$voucher->id}}"><div class="items">£0</div></div>
-                               @endif
+                                <span class="bottom-data">{{$voucher->note}} = £{{ $voucher->amount }}</span>
                             </div>
                         </div>
-                    @endforeach
-                        <input type="hidden" value="{{auth()->user()->id}}" id="donner_id">
-                    <div class="col-md-12 my-2">
-                        <button class="text-white btn-theme ml-1 mb-4" id="addvoucher" type="button">Order Voucher</button>
                     </div>
+                    @endforeach
+
 
                 </div>
             </div>
-            <div class="col-2"></div>
-        {{-- </div> --}}
-    </div>
-  </section>
+        </div>
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="pagetitle pb-2">
+                    Delivery
+                </div>
+            </div>
+        </div>
+        <div class="row ">
+            <div class="col-lg-12 px-3">
+                <div class="row my-4">
+                    <div class="col-lg-4">
+                        <div class="inner">
+                            <div class="left text-center">
+                                <input type="checkbox" class="form-check">
+                            </div>
+                            <div class="right">
+                                <div class="title">
+                                    Express delivery
+                                </div>
+                                <span class="bottom-data"> 1-2 working days</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="inner">
+                            <div class="left text-center">
+                                <input type="checkbox" class="form-check">
+                            </div>
+                            <div class="right">
+                                <div class="title">
+                                    Collection
+                                </div>
+                                <span class="bottom-data">14 Grosvenor Way, London E5 9ND <br> Mon - Thu:
+                                    10:00 - 17:00 Fri: 10:00 - 13:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row my-4">
+                    <div class="col-lg-6">
+                        <span class="fs-12  fw-bold" style="color:
+                        #003057">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M8.16666 13.167H9.83332V8.16699H8.16666V13.167ZM8.99999 6.50033C9.2361 6.50033 9.43416 6.42033 9.59416 6.26033C9.7536 6.10088 9.83332 5.9031 9.83332 5.66699C9.83332 5.43088 9.7536 5.23283 9.59416 5.07283C9.43416 4.91338 9.2361 4.83366 8.99999 4.83366C8.76388 4.83366 8.5661 4.91338 8.40666 5.07283C8.24666 5.23283 8.16666 5.43088 8.16666 5.66699C8.16666 5.9031 8.24666 6.10088 8.40666 6.26033C8.5661 6.42033 8.76388 6.50033 8.99999 6.50033ZM8.99999 17.3337C7.84721 17.3337 6.76388 17.1148 5.74999 16.677C4.7361 16.2398 3.85416 15.6462 3.10416 14.8962C2.35416 14.1462 1.76055 13.2642 1.32332 12.2503C0.885545 11.2364 0.666656 10.1531 0.666656 9.00033C0.666656 7.84755 0.885545 6.76421 1.32332 5.75033C1.76055 4.73644 2.35416 3.85449 3.10416 3.10449C3.85416 2.35449 4.7361 1.7606 5.74999 1.32283C6.76388 0.885603 7.84721 0.666992 8.99999 0.666992C10.1528 0.666992 11.2361 0.885603 12.25 1.32283C13.2639 1.7606 14.1458 2.35449 14.8958 3.10449C15.6458 3.85449 16.2394 4.73644 16.6767 5.75033C17.1144 6.76421 17.3333 7.84755 17.3333 9.00033C17.3333 10.1531 17.1144 11.2364 16.6767 12.2503C16.2394 13.2642 15.6458 14.1462 14.8958 14.8962C14.1458 15.6462 13.2639 16.2398 12.25 16.677C11.2361 17.1148 10.1528 17.3337 8.99999 17.3337ZM8.99999 15.667C10.8611 15.667 12.4375 15.0212 13.7292 13.7295C15.0208 12.4378 15.6667 10.8614 15.6667 9.00033C15.6667 7.13921 15.0208 5.56283 13.7292 4.27116C12.4375 2.97949 10.8611 2.33366 8.99999 2.33366C7.13888 2.33366 5.56249 2.97949 4.27082 4.27116C2.97916 5.56283 2.33332 7.13921 2.33332 9.00033C2.33332 10.8614 2.97916 12.4378 4.27082 13.7295C5.56249 15.0212 7.13888 15.667 8.99999 15.667Z"
+                                    fill="#003057" />
+                            </svg>
+                            The delivery address saved on your account is: 5 St Andrews Mews,
+                            London N16 5HR</span> <br>
+                        <span class="fs-12 txt-secondary">
+                            If you would like to change it you can do so here
+                        </span>
+                    </div>
+                    <div class="col-lg-6 d-flex align-items-center flex-wrap">
+                        <span class="fs-16 " style="color:
+                        #003057">Order total</span>
+                        <input style="max-width:136px" type="text"
+                            class="rounded text-center mx-3 form-control fw-bold border-0"
+                            placeholder="£0.00">
+                        <input type="hidden" value="{{auth()->user()->id}}" id="donner_id">
+                        <button class="btn-theme bg-primary text-white" id="addvoucher" type="button">Place order</button>
+                        {{-- <a href="#" class="btn-theme bg-primary text-white">Place order</a> --}}
+                    </div>
+                </div>
+            </div>
+        </div>
 </div>
 @endsection
 
@@ -126,11 +179,6 @@
                 });
 
         });
-
-
-
-
-
 
 
     });

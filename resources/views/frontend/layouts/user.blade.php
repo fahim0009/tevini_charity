@@ -55,16 +55,23 @@
 
     </div>
 
+
+    
+
+
     <script src="{{ asset('assets/user/js/jquery-3.5.1.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/user/js/bootstrap-5.bundle.min.js') }}"></script> --}}
+    {{-- <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script> --}}
+    <script src="{{ asset('assets/user/js/bootstrap-5.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/iconify.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/wow.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/app.js') }}"></script>
     <script src="{{URL::to('js/plugins/datatables.min.js')}}"></script>
     <script src="{{URL::to('js/plugins/dataTables.bootstrap.min.js')}}"></script>
+
+
+
     @yield('script')
     <script>
         function pagetop() {

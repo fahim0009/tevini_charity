@@ -251,24 +251,36 @@ use Illuminate\Support\Carbon;
                               <thead>
                                   <tr> 
                                     <th>Date</th>
-                                    <th>Transaction Id</th>
-                                    <th>Source</th>
-                                    <th>Note</th>
-                                    <th>Commission</th>
-                                    <th>Amount </th>
+                                    <th>Description</th>
+                                    <th>Comments</th>
+                                    <th>Reference/Voucher No</th>
+                                    <th>Amount</th>
+
                                   </tr>
                               </thead>
                               <tbody>
                                 @foreach ($intransactions as $transaction)
                                 <tr>
-                                        <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}} </td>
-                                        <td>{{ $transaction->t_id }}</td>
-                                        <td>{{ $transaction->source}}</td>
-                                        <td>{{ $transaction->note}}</td>
-                                        <td>£{{($transaction->commission)}}</td>
-                                        <td>£{{ $transaction->amount}}</td>
+                                    <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-20 txt-secondary fw-bold">@if($transaction->charity_id){{ $transaction->charity->name}}@endif</span>
+                                            <span class="fs-16 txt-secondary">{{$transaction->title}}</span>
+                                        </div>
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        {{$transaction->note}}
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        {{$transaction->t_id}}
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        £{{number_format($transaction->amount, 2)}} 
+                                    </td>
                                 </tr>
                                 @endforeach
+                                                    
+                                      
                               </tbody>
                           </table>
                   </div>
@@ -316,32 +328,126 @@ use Illuminate\Support\Carbon;
                               <thead>
                                   <tr> 
                                     <th>Date</th>
-                                    <th>Transaction Id</th>
-                                    <th>Charity Name</th>
-                                    <th>Voucher Number</th>
-                                    <th>Transaction Type</th>
-                                    <th>Status </th>
-                                    <th>Amount </th>
+                                    <th>Description</th>
+                                    <th>Comments</th>
+                                    <th>Reference/Voucher No</th>
+                                    <th>Amount</th>
                                   </tr>
                               </thead>
                               <tbody>
                                 @foreach ($outtransactions as $transaction)
-                                        <tr>
-                                            <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}} </td>
-                                            <td>{{ $transaction->t_id }}</td>
-                                            <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
-                                            <td>{{ $transaction->cheque_no}}</td>
-                                            <td>{{ $transaction->title}}</td>
-                                            <td>@if($transaction->pending == "0") Pending @endif</td>
-                                            <td>£{{ $transaction->amount}}</td>
-                                        </tr>
-                                        @endforeach
+                                <tr>
+                                    <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-20 txt-secondary fw-bold">@if($transaction->charity_id){{ $transaction->charity->name}}@endif</span>
+                                            <span class="fs-16 txt-secondary">{{$transaction->title}}</span>
+                                        </div>
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        {{$transaction->note}}
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        {{$transaction->t_id}}
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        £{{number_format($transaction->amount, 2)}} 
+                                    </td>
+                                </tr>
+                                @endforeach
+
+
+                                        
+
+
+
+
                               </tbody>
                           </table>
                   </div>
                 </div>
                 <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
-                    coming soon...
+                   
+                    
+                    <div class="col-md-12 my-3">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <form class="form-inline" action="{{route('user.transaction_search')}}" method ="POST">
+                                        @csrf
+                                        <div class="row">
+
+                                            <div class="col-md-3">
+                                                <div class="form-group my-2">
+                                                    <label for="fromDate"><small>Date From </small> </label>
+                                                    <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group my-2">
+                                                    <label for="toDate"><small>Date To </small> </label>
+                                                    <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5 d-flex align-items-center">
+                                                <div class="form-group d-flex mt-4">
+                                                <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                       </div>
+                    </div>
+
+                    <div class="data-container">
+                        <table class="table table-theme mt-4" id="example">
+                              <thead>
+                                  <tr> 
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Comments</th>
+                                    <th>Reference/Voucher No</th>
+                                    <th>Amount</th>
+
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                @foreach ($alltransactions as $transaction)
+
+                                    @if ($transaction->pending == 1)
+                                        <tr>
+                                            <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fs-20 txt-secondary fw-bold">@if($transaction->charity_id){{ $transaction->charity->name}}@endif</span>
+                                                    <span class="fs-16 txt-secondary">{{$transaction->title}}</span>
+                                                </div>
+                                            </td>
+                                            <td class="fs-16 txt-secondary">
+                                                {{$transaction->note}}
+                                            </td>
+                                            <td class="fs-16 txt-secondary">
+                                                {{$transaction->t_id}}
+                                            </td>
+                                            <td class="fs-16 txt-secondary">
+                                                £{{number_format($transaction->amount, 2)}} 
+                                            </td>
+                                        </tr>
+                                    @else
+                                        
+                                    @endif
+                                    
+                                @endforeach
+                                                    
+                                      
+                              </tbody>
+                          </table>
+                  </div>
+
+
+
                 </div>
             </div>
         </div>

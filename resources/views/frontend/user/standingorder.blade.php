@@ -3,7 +3,7 @@
 @section('content')
 
 <!-- content area -->
-<div class="content">
+{{-- <div class="content">
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">
@@ -73,6 +73,17 @@
                         
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div> --}}
+
+<!-- content area -->
+<div class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="pagetitle pb-2">
+                Coming Soon ...
             </div>
         </div>
     </div>

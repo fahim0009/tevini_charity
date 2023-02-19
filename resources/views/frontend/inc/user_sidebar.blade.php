@@ -15,10 +15,13 @@
     <div class="bottom-part">
         <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
         <a href="#" class="btn-theme bg-primary">Make a donation</a>
-        <a href="#" class="mt-2 d-flex justify-content-center txt-theme fw-bold align-items-center">
+        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="mt-2 d-flex justify-content-center txt-theme fw-bold align-items-center">
             <iconify-icon icon="humbleicons:logout"></iconify-icon>
             &nbsp;Log out
         </a>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            @csrf
+        </form>
     </div>
     <div class="collapsable" onclick="collaps();">
         <iconify-icon class="icon" icon="octicon:sidebar-collapse-24"></iconify-icon>

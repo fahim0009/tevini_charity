@@ -1,318 +1,339 @@
 @extends('frontend.layouts.user')
 @section('content')
-<div class="dashboard-content py-2 px-4">
-    {{-- donation calculation start  --}}
 
-        <div style="text-align: center; font-size:25px">
-            <p class="text-center" style="text-align: center">Ma'aser Calculator</p>
+<!-- content area -->
+<div class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="pagetitle pb-2">
+                Maaser calculator
+            </div>
         </div>
-<hr>
-        @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
-        <fieldset>
-            <legend>Add One-Off Income</legend>
-            <div class="oneoffermsg"></div>
-            <section class="">
-                <div class="row  my-3 mx-0 ">
-                    <div class=" col-md-12 bg-white px-4">
-                        <div class="form-container">
-                            <div class="overflow mx-auto">
-                                <table class="table shadow-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Choose Start Date  </th>
-                                            <th>Income</th>
-                                            <th>Description</th>
-                                            <th>Choose Your Percentage</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr class="item-row" style="position:realative;">
-                                            <td width="150px">
-                                                <input class="form-control" id="ostart_date" name="ostart_date" type="date" value="">
-                                            </td>
-                                            <td width="150px">
-                                                <input class="form-control" id="oincome_amount" name="oincome_amount" value=""  placeholder="Income">
-                                            </td>
-                                            <td width="150px">
-                                                <input style="min-width: 50px;"  type="text" id="oincome_title" name="oincome_title" class="form-control" value="" placeholder="Description">
-                                            </td>
-                                            <td width="250px">
-                                                <select name="odonation_percentage" id="odonation_percentage" class="form-control" aria-placeholder="Donation Percentage">
-                                                    <option value>Donation Percentage</option>
-                                                    <option value="10">10%</option>
-                                                    <option value="20">20%</option>
-                                              </select>
-                                            </td>
-                                            <td width="50px">
-                                                <div class="col-md-6 my-2">
-                                                    <button class="text-white btn-theme ml-1 mb-4" style="margin-top: -7px;" id="oincome_submit" type="button">Submit</button>
+    </div>
 
-                                                </div>
-                                            </td>
-                                            <td width="50px">
-                                                <div class="col-md-6 my-2">
-                                                    <a href="{{ route('user.onOffdonationDetails')}}" style="margin-top: -7px;" class="btn btn-primary">View</a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+    <div class="row ">
+        <div class="col-lg-3">
+            <div class="calculatior mt-5">
+                <div>
+                    <div class="fs-37 fw-bold txt-secondary">0.00 GBP</div>
+                    <div class="fs-16 fw-bold txt-secondary">Total maaser Goal</div>
+                    <div class="progress mt-5 mb-3">
+                        <div class="progress-bar   progress-bar-animated" role="progressbar"
+                            aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
+                        </div>
+                    </div>
+                    <div class="fs-23 fw-bold txt-primary mb-2 lh-1">You already paid £370.80
+                        through Tevini</div>
+                    <a href="#" class="fs-16 txt-secondary  ">Add external donation/s </a>
+                    <a href="#" class="btn-theme mt-3 bg-secondary text-white">Make a donation</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9 py-5">
+            <div class="fw-bold fs-36 txt-secondary">Add your income </div> <br>
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">One-off income</div> <br>
+            <div class="oneoffermsg"></div>
+            <div class="data-container">
+                <table class="table table-theme mt-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Choose Start Date  </th>
+                            <th scope="col">Income</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Choose Your Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="px-1">
+                                <input class="form-control" id="ostart_date" name="ostart_date" type="date" value="">
+                            </td>
+                            <td class="px-1">
+                                <input class="form-control" id="oincome_amount" name="oincome_amount" value=""  placeholder="Income">
+                            </td>
+                            <td class="fs-16 txt-secondary px-1">
+                                <input style="min-width: 50px;"  type="text" id="oincome_title" name="oincome_title" class="form-control" value="" placeholder="Description">
+                            </td>
+                            <td class="fs-16 txt-secondary px-1 text-center">
+                                <select name="odonation_percentage" id="odonation_percentage" class="form-control" aria-placeholder="Donation Percentage">
+                                    <option value>Donation Percentage</option>
+                                    <option value="10">10%</option>
+                                    <option value="20">20%</option>
+                              </select>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn-theme me-5 bg-secondary text-white float-end" id="oincome_submit" type="button">Submit</button>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ route('user.onOffdonationDetails')}}" class="btn-theme me-5 bg-secondary text-white float-end">View</a>
+                            </td>
+                        </tr>
+                            
+                    </tbody>
+                </table>
+
+
+            </div>
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Regular income</div> <br>
+            <div class="ermsg"></div>
+            <div class="data-container">
+                <table class="table table-theme mt-0">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Choose Start Date  </th>
+                            <th scope="col">Income</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Choose Option</th>
+                            <th scope="col">Choose Your Percentage</th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="inner">
+
+
+                        @forelse($donor_cals as $donor_cal)
+                        <tr class="item-row" style="position:realative;">
+                            <td class="px-1">
+                                
+                            </td>
+                            <td class="px-1">
+                                
+                                <input class="form-control" name="start_date[]" type="date" value="{{$donor_cal->start_date}}">
+                                <input class="form-control" name="donorcal_id[]" type="hidden" value="{{$donor_cal->id}}">
+
+                            </td>
+                            <td class="fs-16 txt-secondary px-1">
+                                <input class="form-control donor" name="income_amount[]" value="{{$donor_cal->income_amount}}"  placeholder="Income Amount">
+                                
+                            </td>
+                            <td class="fs-16 txt-secondary px-1">
+                                <input style="min-width: 50px;"  type="text" name="income_title[]" class="form-control donorAcc" value="{{$donor_cal->income_title}}" placeholder="Income Title">
+                                
+                            </td>
+                            <td class="fs-16 txt-secondary px-1 text-center">
+                                <select name="income_slot[]" id="income_slot" class="form-control" aria-placeholder="Income Slot">
+                                    <option value="">Select Donation Slot</option>
+                                    <option value="7" @if ($donor_cal->income_slot == "7") selected @endif>Weekly</option>
+                                    <option value="30" @if ($donor_cal->income_slot == "30") selected @endif>Monthly</option>
+                                </select>
+                                
+                            </td>
+                            <td class="text-center">
+                                <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
+                                    <option value="">Select Donation Percentage</option>
+                                    <option value="10" @if ($donor_cal->donation_percentage == "10") selected @endif>10%</option>
+                                    <option value="20" @if ($donor_cal->donation_percentage == "20") selected @endif>20%</option>
+                              </select>
+
+
+                            </td>
+                        </tr>
+                        @empty
+
+                        <tr class="item-row" style="position:realative;">
+                            <td class="px-1">
+                                <div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 8px;" onclick="removeRow(event)" >X</div>
+                                
+                            </td>
+                            <td class="px-1">
+                                
+                                <input class="form-control" name="start_date[]" type="date" value="">
+
+                            </td>
+                            <td class="fs-16 txt-secondary px-1">
+                                <input class="form-control" name="income_amount[]" value=""  placeholder="Income">
+                                
+                            </td>
+                            <td class="fs-16 txt-secondary px-1">
+                                <input style="min-width: 50px;"  type="text" name="income_title[]" class="form-control" value="" placeholder="Description">
+                                
+                            </td>
+                            <td class="fs-16 txt-secondary px-1 text-center">
+                                <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot">
+                                    <option value>Select Income Slot</option>
+                                    <option value="7">Weekly</option>
+                                    <option value="30">Monthly</option>
+                                </select>
+                                
+                            </td>
+                            <td class="text-center">
+                                <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
+                                    <option value>Donation Percentage</option>
+                                    <option value="10">10%</option>
+                                    <option value="20">20%</option>
+                              </select>
+
+
+                            </td>
+                        </tr>
+
+                        @endforelse
+                    </tbody>
+                    
+
+                    <tfoot>
+                        <tr>
+                            <td colspan="4">
+                                <span class="fs16 txt-primary add-row" type="submit" >Add +</span>
+                            </td>
+                            <td>
+
+                            </td>
+                            <td class="text-center">
+                                <div class="col-md-6 my-2">
+                                    @if ($donor_cals->isEmpty())
+                                    <button class="btn-theme me-5 bg-secondary text-white float-end" id="income_submit" type="button">Submit</button>
+                                    @else
+                                    <button class="btn-theme me-5 bg-secondary text-white float-end" id="income_update" type="button">Update</button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-12">
+            <div class="row ">
+                <div class="col-lg-6  px-3"> 
+                    
+                    <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Other Given Charity: </div> <br>
+
+                    <div class="otherermsg"></div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label for="">Donation Amount</label>
+                                <input type="number" name="d_amount" id="d_amount" class="form-control" value="" placeholder="Donation Amount">
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label for="">Donation receiver, Charity, Campaign</label>
+                                <input type="text" name="d_title" id="d_title" class="form-control" value="" placeholder="Donation receiver, Charity, Campaign">
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="form-group ">
+                                <label for=""> Date</label>
+                                <input type="date" name="donation_date" id="donation_date" class="form-control" value="" placeholder="Date">
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="col-lg-12 mt-4">
+                            <div class="form-group ">
+                                <input type="button" id="othrBtn" value="Submit" class="btn btn-primary">
                             </div>
                         </div>
                     </div>
+
                 </div>
-            </section>
 
-        </fieldset>
-        <fieldset >
-        <legend>Add Regular Income:</legend>
-        <div class="ermsg"></div>
-        <section class="">
-            <div class="row  my-3 mx-0 ">
-                <div class=" col-md-12 bg-white px-4">
-                    <div class="form-container">
-                        <div class="overflow mx-auto">
-                            <table class="table shadow-sm">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Choose Start Date  </th>
-                                        <th>Income</th>
-                                        <th>Description</th>
-                                        <th>Choose Option</th>
-                                        <th>Choose Your Percentage</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="inner">
-
-                                    @forelse($donor_cals as $donor_cal)
-
-                                    <tr class="item-row" style="position:realative;">
-                                        <td width = "50px">
-                                            {{-- <div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 8px;" onclick="removeRow(event)" >X</div> --}}
-                                        </td>
-                                        <td width="150px">
-                                            <input class="form-control" name="start_date[]" type="date" value="{{$donor_cal->start_date}}">
-                                            <input class="form-control" name="donorcal_id[]" type="hidden" value="{{$donor_cal->id}}">
-                                        </td>
-                                        <td width="150px">
-                                            <input class="form-control donor" name="income_amount[]" value="{{$donor_cal->income_amount}}"  placeholder="Income Amount">
-                                        </td>
-                                        <td width="150px">
-                                            <input style="min-width: 50px;"  type="text" name="income_title[]" class="form-control donorAcc" value="{{$donor_cal->income_title}}" placeholder="Income Title">
-                                        </td>
-                                        <td width="200px">
-                                            <select name="income_slot[]" id="income_slot" class="form-control" aria-placeholder="Income Slot">
-                                                <option value="">Select Donation Slot</option>
-                                                <option value="7" @if ($donor_cal->income_slot == "7") selected @endif>Weekly</option>
-                                                <option value="30" @if ($donor_cal->income_slot == "30") selected @endif>Monthly</option>
-                                            </select>
-                                        </td>
-                                        <td width="150px">
-                                            <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
-                                                <option value="">Select Donation Percentage</option>
-                                                <option value="10" @if ($donor_cal->donation_percentage == "10") selected @endif>10%</option>
-                                                <option value="20" @if ($donor_cal->donation_percentage == "20") selected @endif>20%</option>
-                                          </select>
-                                        </td>
-                                    </tr>
-
-                                    @empty
-
-                                    <tr class="item-row" style="position:realative;">
-                                        <td width = "50px">
-                                            <div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 8px;" onclick="removeRow(event)" >X</div>
-                                        </td>
-                                        <td width="150px">
-                                            <input class="form-control" name="start_date[]" type="date" value="">
-                                        </td>
-                                        <td width="150px">
-                                            <input class="form-control" name="income_amount[]" value=""  placeholder="Income">
-                                        </td>
-                                        <td width="150px">
-                                            <input style="min-width: 50px;"  type="text" name="income_title[]" class="form-control" value="" placeholder="Description">
-                                        </td>
-                                        <td width="200px">
-                                            <select name="income_slot[]" max-width="100px" id="income_slot" class="form-control" aria-placeholder="Income Slot">
-                                                <option value>Select Income Slot</option>
-                                                <option value="7">Weekly</option>
-                                                <option value="30">Monthly</option>
-                                            </select>
-                                        </td>
-                                        <td width="150px">
-                                            <select name="donation_percentage[]" id="donation_percentage" class="form-control" aria-placeholder="Donation Percentage">
-                                                <option value>Donation Percentage</option>
-                                                <option value="10">10%</option>
-                                                <option value="20">20%</option>
-                                          </select>
-                                        </td>
-                                    </tr>
-
-                                    @endforelse
-                                </tbody>
-                                <tr>
-                                    <td colspan="4">
-                                        <span type="submit" class="text-white btn-theme add-row"> + Add
-                                        </span>
-                                    </td>
-                                    <td width="80px">
-                                    </td>
-                                    <td width="250px">
-                                        <div class="col-md-6 my-2">
-                                            @if ($donor_cals->isEmpty())
-                                            <button class="text-white btn-theme ml-1 mb-4" id="income_submit" type="button">Submit</button>
-                                            @else
-                                            <button class="text-white btn-theme ml-1 mb-4" id="income_update" type="button">Update</button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
+                <div class="col-lg-6  px-3"> 
+                    
+                    <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Tevini Ltd. </div> <br>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <input type="text" class="form-control" value="{{$tevini_donation}}" readonly>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
-    </fieldset>
 
-
-        {{-- donation calculation start  --}}
-        {{-- <div style="text-align: center; font-size:25px">
-            <p class="text-center" style="text-align: center">Charity Goal</p>
-        </div>
-        <hr> --}}
-        <fieldset >
-            @if(isset($msg))<p class="text-center fw-bold">{{$msg}}</p>@endif
-            <legend>Other Given Charity:</legend>
-            <div class="otherermsg"></div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="transferFunds shadow-sm">
-                        <div class="para pl-2">
-                            <input type="number" name="d_amount" id="d_amount" class="form-control" value="" placeholder="Donation Amount">
+                    <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">AVAILABLE FOR DONATION :</div> <br>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <input type="text" class="form-control" value="{{$availabledonation}}" readonly>
+                            </div>
                         </div>
                     </div>
-                    <div class="transferFunds shadow-sm mt-2">
-                        <div class="para pl-2">
-                            <input type="text" name="d_title" id="d_title" class="form-control" value="" placeholder="Donation receiver, Charity, Campaign">
+
+                    <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Other Given Charity:</div> <br>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <input type="text" class="form-control" value="{{$otherdonation}}" readonly>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="transferFunds shadow-sm">
-                        <div class="para pl-2">
-                            <input type="date" name="donation_date" id="donation_date" class="form-control" value="" placeholder="Date">
-                        </div>
-                    </div>
-                    <div class="transferFunds shadow-sm mt-2">
-                        <div class="para pl-2">
-                            <input type="button" id="othrBtn" value="Submit" class="btn btn-primary">
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-        </fieldset>
+                </div>
 
 
-    {{-- new code  --}}
-    <fieldset >
-        <div class="row">
-            <div class="col-md-6">
-                <legend>Tevini Ltd.</legend>
-                <div class="transferFunds shadow-sm">
-                    <div class="para pl-2">
-                        <input type="text" class="form-control" value="{{$tevini_donation}}" readonly>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <legend>AVAILABLE FOR DONATION :</legend>
-                <div class="transferFunds shadow-sm">
-                    <div class="para pl-2">
-                        <input type="text" class="form-control" value="{{$availabledonation}}" readonly>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <br>
-                <legend>Other Given Charity:</legend>
-                <div class="transferFunds shadow-sm">
-                    <div class="para pl-2">
-                        <input type="text" class="form-control" value="{{$otherdonation}}" readonly>
-                    </div>
-                </div>
 
             </div>
         </div>
+    </div>
 
-    </fieldset>
 
-    {{-- end  --}}
-
-    <fieldset >
-        <legend>REGULAR INCOME DONATION DETAILS:</legend>
-        <div class="row">
+    <div class="row mb-5">
+        
+        <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">REGULAR INCOME DONATION DETAILS: </div> <br>
+        <div class="col-lg-12">
             <div class="stsermsg"></div>
-            <div class="col-md-12 mt-2 text-center">
-
-                <div class="overflow">
-                    <table class="table table-custom shadow-sm bg-white" id="exampleIn">
-                        <thead>
+            <div class="data-container">
+                <table class="table table-theme mt-4" id="exampleIn">
+                    <thead>
+                        <tr> 
+                            <th scope="col">Start Date</th>
+                            <th scope="col">Income Title</th>
+                            <th scope="col">Income by</th>
+                            <th scope="col">Donation Percentage</th>
+                            <th scope="col">Income Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">View</th>
+    
+    
+                        </tr>
+                    </thead>
+                    <tbody>
+    
+                        @foreach ($donor_cals as $data)
                             <tr>
-                                <th>Start Date</th>
-                                <th>Income Title</th>
-                                <th>Income by</th>
-                                <th>Donation Percentage</th>
-                                <th>Income Amount</th>
-                                <th>Status</th>
-                                <th>View</th>
+                                <td class="fs-16 txt-secondary">{{$data->start_date }}</td>
+                                <td class="fs-16 txt-secondary">{{$data->income_title }}</td>
+                                <td class="fs-16 txt-secondary">
+                                    @if ($data->income_slot == 7)
+                                        Weekly
+                                    @elseif ($data->income_slot == 30)
+                                        Monthly
+                                    @else
+                                        On/Off
+                                    @endif
+                                </td>
+                                <td class="fs-16 txt-secondary">{{$data->donation_percentage}}</td>
+                                <td class="fs-16 txt-secondary">{{$data->income_amount}}</td>
+                                <td class="fs-16 txt-secondary">
+    
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="flexSwitchCheckChecked"  data-id="{{$data->id}}" {{ $data->status ? 'checked' : '' }}>
+                                        <span class="flip-indecator" data-toggle-on="Active" data-toggle-off="Inactive"></span>
+                                    </div>
+    
+                                </td>
+                                <td class="fs-16 txt-secondary">
+                                    <a href="{{ route('user.donationdetails', $data->id)}}" class="btn btn-primary">View</a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-
-
-                            @foreach ($donor_cals as $data)
-                                <tr>
-                                    <td>{{$data->start_date }}</td>
-                                    <td>{{$data->income_title }}</td>
-                                    <td>
-                                        @if ($data->income_slot == 7)
-                                            Weekly
-                                        @elseif ($data->income_slot == 30)
-                                            Monthly
-                                        @else
-                                            On/Off
-                                        @endif
-                                    </td>
-                                    <td>{{$data->donation_percentage}}</td>
-                                    <td>{{$data->income_amount}}</td>
-                                    <td>
-
-                                        <div class="form-check form-switch">
-                                            <input type="checkbox" class="form-check-input" id="flexSwitchCheckChecked"  data-id="{{$data->id}}" {{ $data->status ? 'checked' : '' }}>
-                                            <span class="flip-indecator" data-toggle-on="Active" data-toggle-off="Inactive"></span>
-                                        </div>
-
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('user.donationdetails', $data->id)}}" class="btn btn-primary">View</a>
-                                    </td>
-                                </tr>
-                            @endforeach
-
-
-
-                        </tbody>
-                    </table>
-                </div>
-
-
+                        @endforeach
+    
+                    </tbody>
+                </table>
             </div>
+            
+            
+
+
+
         </div>
-    </fieldset>
+    </div>
 
 
 

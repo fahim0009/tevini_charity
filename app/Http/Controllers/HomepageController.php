@@ -60,6 +60,11 @@ class HomepageController extends Controller
         return view('frontend.thirdpartydonation');
     }
 
+    public function card()
+    {
+        return view('frontend.user.card');
+    }
+
 
     public function apidonationCheck(Request $request)
     {

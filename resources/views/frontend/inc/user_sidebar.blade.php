@@ -6,7 +6,7 @@
         <li><a href="{{ route('user.dashboard') }}" class="{{ (request()->is('user/dashboard*')) ? 'nav-link current' : '' }}">Dashboard</a></li>
         <li><a href="{{ route('user.makedonation') }}" class="{{ (request()->is('user/make-donation*')) ? 'nav-link current' : '' }}">Make a donation</a></li>
         <li><a href="{{ route('user.orderbook') }}" class="{{ (request()->is('user/order-voucher-book*')) ? 'nav-link current' : '' }}">Order voucher books</a></li>
-        <li><a href="tevini-card.html" class="{{ (request()->is('user/tevini-card*')) ? 'nav-link current' : '' }}">Tevini card</a></li>
+        <li><a href="{{ route('user.card')}}" class="{{ (request()->is('user/tevini-card*')) ? 'nav-link current' : '' }}">Tevini card</a></li>
         <li><a href="{{ route('user.transaction') }}" class="{{ (request()->is('user/transaction-view*')) ? 'nav-link current' : '' }}">View transactions</a></li>
         <li><a href="{{ route('user.standingorder') }}" class="{{ (request()->is('user/standing-order*')) ? 'nav-link current' : '' }}">Standing orders</a></li>
         <li><a href="{{ route('user.donationcal') }}" class="{{ (request()->is('user/donation-calculation*')) ? 'nav-link current' : '' }}">Maaser calculator</a></li>

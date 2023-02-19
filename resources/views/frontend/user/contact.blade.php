@@ -2,75 +2,97 @@
 @section('content')
 
 
-<div class="dashboard-content">
-    <section class="profile purchase-status">
-        <div class="title-section">
-            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-            <div class="mx-2">Contact Us </div>
+<!-- content area -->
+<div class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="pagetitle pb-2">
+                Contact Tevini
+            </div>
         </div>
-    </section>
-    <section class="px-4">
-        <div class="row my-3">
-             <div class="col-md-6  my-4 bg-white p-4 shadow-sm rounded">
-                 
-
-                <div class="contact-wrap w-100 p-md-5 p-4 my-5 shadow-lg">
-                      <div class="ermsg"></div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label class="label" for="name">Full Name</label>
-                                            <input type="text" class="form-control" name="name" id="name" value="{{ Auth::user()->name }}" placeholder="Name">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12"> 
-                                        <div class="form-group">
-                                            <label class="label" for="email">Email Address</label>
-                                            <input type="email" class="form-control" name="email" id="email" value="{{ Auth::user()->email }}" placeholder="Email">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label class="label" for="subject">Subject</label>
-                                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label class="label" for="#">Message</label>
-                                            <textarea name="message" class="form-control" id="message" cols="30" rows="4" placeholder="Message"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12 mt-3">
-                                        <div class="form-group">
-                                            <input type="button" id="submit" value="Submit" class="btn btn-primary">
-
-                                        </div>
-                                    </div>
-                                </div>
+    </div>
+    <form action="">
+        <div class="row ">
+            <div class="col-lg-6  px-3">
+                <div class="ermsg"></div>
+                <div class="row mt-4">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="label" for="name">Full Name</label>
+                            <input type="text" class="form-control" name="name" id="name" value="{{ Auth::user()->name }}" placeholder="Name">
                         </div>
+                    </div>
 
-                <!--<form action="">-->
-                <!--    <h6 class="mb-2 fw-bold">Sent Message</h6> <hr class="bg-secondary mb-3">-->
 
-                <!--   <div class="col my-3">-->
-                <!--      <input type="text" placeholder="Name" class="form-control ">-->
-                <!--   </div>-->
-                <!--   <div class="col my-3">-->
-                <!--    <input type="text" placeholder="subject" class="form-control ">-->
-                <!--   </div>-->
-                <!--    <textarea class="form-control" cols="30" rows="5"></textarea>-->
-                <!--    <button class="btn btn-theme mt-2 text-white">Send</button>-->
-                <!--</form>-->
+                    <div class="col-lg-12">
+                        <div class="form-group ">
+                            <label class="label" for="email">Email Address</label>
+                            <input type="email" class="form-control" name="email" id="email" value="{{ Auth::user()->email }}" placeholder="Email">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div class="form-group ">
+                            <label class="label" for="subject">Subject</label>
+                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div class="form-group ">
+                            <label class="label" for="#">Message</label>
+                            <textarea name="message" class="form-control" id="message" cols="30" rows="4" placeholder="Message"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 mt-4">
+                        <div class="form-group ">
+                            <input type="button" id="submit" value="Submit"  class="btn-theme bg-primary">
+                        </div>
+                    </div>
+                </div>
+                <div class="row p-3  " style="background-color: #D9D9D9;">
+                    <div>
+                        <span class="txt-secondary fs-36">Phone:</span> <br>
+                        <span class="txt-secondary fs-20"> 07490 956 227</span> <br>
+                    </div>
+                    <div>
+                        <span class="txt-secondary fs-36">Email:</span> <br>
+                        <span class="txt-secondary fs-20">  info@tevini.co.uk</span>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6  my-4 text-center">
-               <img class="img-fluid" src="{{ asset('assets/user/images/messenger.png') }}" alt="">
+            <div class="col-lg-6 border-left-lg px-3">
+                <div class="user mt-3">
+                    Top up your account
+                </div>
+                <br>
+                <div class="fs-24 fw-bold txt-secondary">
+                    To Top your Account Please use one of the following:
+                </div><br>
+                <div class="fs-24 fw-bold txt-secondary">
+                    1. Transfer funds to our bank account:
+                </div>
+                <div class="fs-16 my-3 txt-secondary">
+                    Tevini Ltd, <br>
+                    Sort Code: 40-52-40 <br>
+                    Account no: 00024463
+                </div>
+                <div class="fs-24 fw-bold txt-secondary">
+                    2. Send a cheque
+                </div>
+                <div class="fs-16 my-3 txt-secondary">
+                    payable to: Tevini Ltd Tevini Ltd <br>
+                    Tevini Ltd <br>
+                    5A Holmdale Terrace <br>
+                    London, N156PP
+                </div>
+                <div class="fs-24 fw-bold txt-secondary">
+                    3. Top-Up using your card: <br> Link
+                </div>
             </div>
-
         </div>
-    </section>
+    </form>
 </div>
-
 @endsection
 
 @section('script')

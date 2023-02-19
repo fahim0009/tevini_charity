@@ -75,6 +75,9 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('invite-friend', [HomepageController::class, 'inviteFriend'])->name('user.invitefriend');
     Route::get('settings', [HomepageController::class, 'userSettings'])->name('user.settings');
 
+    
+    Route::get('tevini-card', [HomepageController::class, 'card'])->name('user.card');
+
 
     // strip
     Route::get('stripe', [StripePaymentController::class, 'stripe']);

@@ -153,7 +153,6 @@ class UserController extends Controller
 
 
 
-
         $userdata= Auth::user();
         $userdata->name= $request->name;
         $userdata->surname= $request->surname;
@@ -166,7 +165,7 @@ class UserController extends Controller
 
             if ($request->image) {
 
-                unlink("images/".$userdata->photo);
+                // unlink("images/".$userdata->photo);
                 $request->validate([
                     'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 ]);

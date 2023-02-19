@@ -77,10 +77,13 @@ use Illuminate\Support\Carbon;
                                 <thead>
                                     <tr> 
                                         <th>Date</th>
-                                        <th>Description</th>
-                                        <th>Amount</th>
-                                        <th>Comments</th>
-                                        <th>Reference/Voucher No</th>
+                                        <th>Transaction Id</th>
+                                        <th>transaction type</th>
+                                        <th>Voucher Number</th>
+                                        <th>Charity Name</th>
+                                        <th>Status</th>
+                                        <th>Credit</th>
+                                        <th>Debit</th>
                                         <th>Balance</th>
                                     </tr>
                                 </thead>
@@ -115,91 +118,68 @@ use Illuminate\Support\Carbon;
                                                 @endphp
                                     @endforeach
                                 <tbody>
+                                    {{-- <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>Balance</td>
+                                        <td>£{{ number_format($tbalance, 2) }}</td>
+                                    </tr> --}}
                                     @foreach ($alltransactions as $data)
                                     @if($data->commission != 0)
-
-                                        <tr>
-                                            <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
-                                            <td>Commission</td>
-                                            <td>-£{{$data->commission}}</td>
-                                            <td></td>
-                                            <td>{{$data->t_id}}</td>
-                                            <td>£{{ number_format($tbalance, 2) }}</td>
-                                            @php
-                                            $tbalance = $tbalance + $data->commission;
-                                            @endphp
-                                        </tr>
+                                    <tr>
+                                        <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
+                                        <td>{{$data->t_id}} </td>
+                                        <td>Commission</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>-£{{$data->commission}}</td>
+                                        <td>£{{ number_format($tbalance, 2) }}</td>
+                                        @php
+                                        $tbalance = $tbalance + $data->commission;
+                                        @endphp
+                                    </tr>
                                     @endif
-                                    <tr> 
-                                        <td class="fs-16 txt-secondary">{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name}}@endif</span>
-                                                <span class="fs-16 txt-secondary">{{$data->title}}</span>
-                                            </div>
-                                        </td>
+                                    <tr>
+                                        <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{$data->t_id}} </td>
+                                        <td>{{$data->title}} </td>
+                                        <td>{{$data->cheque_no}}</td>
+                                        <td>@if($data->charity_id){{ $data->charity->name}}@endif</td>
+                                        <td>@if($data->pending == "0") Pending @endif</td>
 
-                                        @if($data->t_type == "In")
+                                            @if($data->t_type == "In")
                                                 @if($data->commission != 0)
-
-                                                    <td class="fs-16 txt-secondary">
-                                                        £ {{ number_format($data->amount + $data->commission, 2) }}
-                                                        <svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M10.0527 5.89619C9.96315 5.98283 9.84339 6.03126 9.71876 6.03126C9.59413 6.03126 9.47438 5.98283 9.38478 5.89619L5.96876 2.47432V11.656C5.96876 11.7803 5.91938 11.8995 5.83147 11.9874C5.74356 12.0753 5.62433 12.1247 5.50001 12.1247C5.37569 12.1247 5.25646 12.0753 5.16856 11.9874C5.08065 11.8995 5.03126 11.7803 5.03126 11.656V2.47432L1.61525 5.89619C1.52417 5.97094 1.40855 6.00914 1.29087 6.00336C1.17319 5.99758 1.06186 5.94823 0.978549 5.86492C0.895236 5.78161 0.84589 5.67028 0.84011 5.5526C0.834331 5.43492 0.87253 5.3193 0.947278 5.22822L5.16603 1.00947C5.2549 0.92145 5.37493 0.87207 5.50001 0.87207C5.6251 0.87207 5.74512 0.92145 5.834 1.00947L10.0527 5.22822C10.1408 5.31709 10.1901 5.43712 10.1901 5.56221C10.1901 5.68729 10.1408 5.80732 10.0527 5.89619Z" fill="#18988B"/>
-                                                            </svg>
-                                                    </td>
-                                                    <td class="fs-16 txt-secondary">
-                                                        {{$data->note}}
-                                                    </td>
-                                                    <td class="fs-16 txt-secondary">
-                                                        {{$data->t_id}}
-                                                    </td>
-                                                    <td class="fs-16 txt-secondary">
-                                                        £{{ number_format($tbalance, 2) }} 
-                                                    </td>
+                                                    <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
+                                                    <td></td>
+                                                    <td> £{{ number_format($tbalance, 2) }} </td>
                                                     @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
                                                 @else
-
-                                                    <td class="fs-16 txt-secondary">
-                                                        £{{number_format($data->amount, 2)}}
-                                                        <svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M10.0527 5.89619C9.96315 5.98283 9.84339 6.03126 9.71876 6.03126C9.59413 6.03126 9.47438 5.98283 9.38478 5.89619L5.96876 2.47432V11.656C5.96876 11.7803 5.91938 11.8995 5.83147 11.9874C5.74356 12.0753 5.62433 12.1247 5.50001 12.1247C5.37569 12.1247 5.25646 12.0753 5.16856 11.9874C5.08065 11.8995 5.03126 11.7803 5.03126 11.656V2.47432L1.61525 5.89619C1.52417 5.97094 1.40855 6.00914 1.29087 6.00336C1.17319 5.99758 1.06186 5.94823 0.978549 5.86492C0.895236 5.78161 0.84589 5.67028 0.84011 5.5526C0.834331 5.43492 0.87253 5.3193 0.947278 5.22822L5.16603 1.00947C5.2549 0.92145 5.37493 0.87207 5.50001 0.87207C5.6251 0.87207 5.74512 0.92145 5.834 1.00947L10.0527 5.22822C10.1408 5.31709 10.1901 5.43712 10.1901 5.56221C10.1901 5.68729 10.1408 5.80732 10.0527 5.89619Z" fill="#18988B"/>
-                                                            </svg>
-                                                    </td>
-                                                    <td class="fs-16 txt-secondary">
-                                                        {{$data->note}}
-                                                    </td>
-                                                    <td class="fs-16 txt-secondary">
-                                                        {{$data->t_id}}
-                                                    </td>
-                                                    <td class="fs-16 txt-secondary">
-                                                        £{{ number_format($tbalance, 2) }} 
-                                                    </td>
+                                                    <td>£{{number_format($data->amount, 2)}} </td>
+                                                    <td></td>
+                                                    <td> £{{ number_format($tbalance, 2) }} </td>
                                                     @php $tbalance = $tbalance - $data->amount; @endphp
                                                 @endif
-                                        @elseif($data->t_type == "Out")
-                                                 <td class="fs-16 txt-secondary">
-                                                    -£{{number_format($data->amount, 2) }}
-                                                    <svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M10.0527 7.18393C9.96315 7.08574 9.84339 7.03085 9.71876 7.03085C9.59413 7.03085 9.47438 7.08574 9.38478 7.18393L5.96876 11.0621V0.656192C5.96876 0.515295 5.91938 0.380169 5.83147 0.28054C5.74356 0.180912 5.62433 0.124942 5.50001 0.124942C5.37569 0.124942 5.25646 0.180912 5.16856 0.28054C5.08065 0.380169 5.03126 0.515295 5.03126 0.656192V11.0621L1.61525 7.18393C1.52417 7.09921 1.40855 7.05592 1.29087 7.06247C1.17319 7.06902 1.06186 7.12494 0.978549 7.21937C0.895236 7.31379 0.84589 7.43995 0.84011 7.57333C0.834331 7.7067 0.87253 7.83774 0.947278 7.94096L5.16603 12.7222C5.2549 12.822 5.37493 12.8779 5.50001 12.8779C5.6251 12.8779 5.74512 12.822 5.834 12.7222L10.0527 7.94096C10.1408 7.84024 10.1901 7.7042 10.1901 7.56244C10.1901 7.42068 10.1408 7.28465 10.0527 7.18393Z" fill="#003057"/>
-                                                    </svg> 
-                                                </td>
-                                                <td class="fs-16 txt-secondary">
-                                                    {{$data->note}}
-                                                </td>
-                                                <td class="fs-16 txt-secondary">
-                                                    {{$data->t_id}}
-                                                </td>
-                                                <td class="fs-16 txt-secondary">
-                                                    £{{ number_format($tbalance, 2) }}
-                                                </td> 
-                                                @if($data->pending != "0")
-                                                @php  $tbalance = $tbalance + $data->amount;  @endphp
-                                                @endif
-                                        @endif
-                                    </tr> 
+                                            @elseif($data->t_type == "Out")
+                                                <td></td>
+                                                <td>-£{{number_format($data->amount, 2) }}</td>
+                                                 <td> £{{ number_format($tbalance, 2) }} </td>
+                                                 @if($data->pending != "0")
+                                                 @php  $tbalance = $tbalance + $data->amount;  @endphp
+                                                 @endif
+                                            @endif
+
+                                    </tr>
                                 @endforeach
                                  <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>

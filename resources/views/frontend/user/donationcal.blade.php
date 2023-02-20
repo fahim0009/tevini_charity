@@ -13,7 +13,7 @@
 
     <div class="row ">
         <div class="col-lg-3">
-            <div class="calculatior mt-5">
+            <div class="calculatior mt-3" style="min-height: 0px">
                 <div>
                     <div class="fs-37 fw-bold txt-secondary">{{$availabledonation}} GBP</div>
                     <div class="fs-16 fw-bold txt-secondary">Total maaser Goal</div>
@@ -30,7 +30,7 @@
             </div>
 
 
-            <div class="calculatior mt-3">
+            <div class="calculatior mt-3" style="min-height: 0px">
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Add external donation: </div> <br>
@@ -71,7 +71,7 @@
 
 
         </div>
-        <div class="col-lg-9 py-5">
+        <div class="col-lg-9 py-3">
             <div class="fw-bold fs-36 txt-secondary">Add your income </div> <br>
             <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">One-off income</div> <br>
             <div class="oneoffermsg"></div>

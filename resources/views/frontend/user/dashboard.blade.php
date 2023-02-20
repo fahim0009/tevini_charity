@@ -1,5 +1,22 @@
 @extends('frontend.layouts.user')
 @section('content')
+
+@php
+    $alltransactions = \App\Models\Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+            ])->orderBy('id','DESC')->get();
+
+    
+    $tamount = \App\Models\Usertransaction::where('user_id','=', auth()->user()->id)
+                        ->where('status','=', '1')
+                        ->orderBy('id','DESC')->get();
+@endphp
+
+
 <div class="row ">
     <div class="col-lg-6">
         <div class="user">
@@ -29,7 +46,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6" style="display: none">
+    <div class="col-lg-6">
         <div class="row mb-5">
             <div class="col-lg-6">
                 <div class="user">
@@ -97,7 +114,7 @@
                 <div class="col-lg-3 mt-3 d-flex align-items-center ">
                     <span class="fs-16 txt-theme">£4.50</span>
                 </div>
-            </div>
+            </div> 
         </div>
 
         <!-- end -->
@@ -131,7 +148,7 @@
                     <span class="fs-16 txt-theme">£203.50</span>
                 </div>
             </div>
-
+            
         </div>
 
         <!-- end -->

@@ -175,6 +175,92 @@ $('#exampleIn').DataTable({
     ]
 });
 
+// datatable in
+$('#exampleAll').DataTable({
+    pageLength: 25,
+    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+    responsive: true,
+    columnDefs: [ { type: 'date', 'targets': [0] } ],
+    order: [[ 0, 'desc' ]],
+    dom: '<"html5buttons"B>lTfgitp',
+    buttons: [
+        {extend: 'copy'},
+        {extend: 'excel', title: title},
+        {extend: 'pdfHtml5',
+        title: 'Report',
+        orientation : 'portrait',
+            header:true,
+            customize: function ( doc ) {
+                doc.content.splice(0, 1, {
+                        text: [
+
+                                   { text: data+'\n',bold:true,fontSize:12 },
+                                   { text: title+'\n',bold:true,fontSize:15 }
+
+                        ],
+                        margin: [0, 0, 0, 12],
+                        alignment: 'center'
+                    });
+                doc.defaultStyle.alignment = 'center'
+            }
+        },
+        {extend: 'print',
+        title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
+        header:true,
+            customize: function (win){
+            $(win.document.body).addClass('white-bg');
+            $(win.document.body).css('font-size', '10px');
+            $(win.document.body).find('table')
+            .addClass('compact')
+            .css('font-size', 'inherit');
+        }
+        }
+    ]
+});
+
+// datatable in
+$('#exampleOut').DataTable({
+    pageLength: 25,
+    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+    responsive: true,
+    columnDefs: [ { type: 'date', 'targets': [0] } ],
+    order: [[ 0, 'desc' ]],
+    dom: '<"html5buttons"B>lTfgitp',
+    buttons: [
+        {extend: 'copy'},
+        {extend: 'excel', title: title},
+        {extend: 'pdfHtml5',
+        title: 'Report',
+        orientation : 'portrait',
+            header:true,
+            customize: function ( doc ) {
+                doc.content.splice(0, 1, {
+                        text: [
+
+                                   { text: data+'\n',bold:true,fontSize:12 },
+                                   { text: title+'\n',bold:true,fontSize:15 }
+
+                        ],
+                        margin: [0, 0, 0, 12],
+                        alignment: 'center'
+                    });
+                doc.defaultStyle.alignment = 'center'
+            }
+        },
+        {extend: 'print',
+        title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
+        header:true,
+            customize: function (win){
+            $(win.document.body).addClass('white-bg');
+            $(win.document.body).css('font-size', '10px');
+            $(win.document.body).find('table')
+            .addClass('compact')
+            .css('font-size', 'inherit');
+        }
+        }
+    ]
+});
+
 
 
 } );

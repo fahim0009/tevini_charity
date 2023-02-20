@@ -73,7 +73,7 @@ use Illuminate\Support\Carbon;
 
 
                     <div class="data-container">
-                          <table class="table table-theme mt-4">
+                          <table class="table table-theme mt-4" id="exampleAll">
                                 <thead>
                                     <tr> 
                                         <th>Date</th>
@@ -247,7 +247,7 @@ use Illuminate\Support\Carbon;
                     </div>
 
                     <div class="data-container">
-                        <table class="table table-theme mt-4" id="example">
+                        <table class="table table-theme mt-4"  id="exampleIn">
                               <thead>
                                   <tr> 
                                     <th>Date</th>
@@ -324,7 +324,7 @@ use Illuminate\Support\Carbon;
                     </div>
 
                     <div class="data-container">
-                        <table class="table table-theme mt-4" id="exampleIn">
+                        <table class="table table-theme mt-4" id="exampleOut">
                               <thead>
                                   <tr> 
                                     <th>Date</th>

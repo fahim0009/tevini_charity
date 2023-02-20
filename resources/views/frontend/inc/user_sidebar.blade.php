@@ -14,7 +14,7 @@
     </ul>
     <div class="bottom-part">
         <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
-        <a href="#" class="btn-theme bg-primary">Make a donation</a>
+        <a href="{{ route('user.makedonation')}}" class="btn-theme bg-primary">Make a donation</a>
         <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="mt-2 d-flex justify-content-center txt-theme fw-bold align-items-center">
             <iconify-icon icon="humbleicons:logout"></iconify-icon>
             &nbsp;Log out

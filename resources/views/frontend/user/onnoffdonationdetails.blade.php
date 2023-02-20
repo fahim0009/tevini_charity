@@ -8,47 +8,46 @@
 
 
 
-    <a href="{{ route('user.donationcal')}}" class="btn btn-primary">Back</a>
-    <fieldset >
+    <a href="{{ route('user.donationcal')}}" class="btn-theme bg-secondary text-white">Back</a>
 
 
-        <legend>DONATION DETAILS:</legend>
-        <div class="row">
-            <div class="col-md-12 mt-2 text-center">
+    <div class="row mb-5 mt-3">
+        
+        <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">DONATION DETAILS: </div> <br>
+        <div class="col-lg-12 mt-2">
+            <div class="stsermsg"></div>
+            <div class="data-container">
+                <table class="table table-theme mt-4" id="exampleIn">
+                    <thead>
+                        <tr> 
+                            <th scope="col">Date</th>
+                            <th scope="col">Income by</th>
+                            <th scope="col">Income Amount</th>
+                            <th scope="col">Donation Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-
-                <div class="overflow">
-                    <table class="table table-custom shadow-sm bg-white" id="exampleIn">
-                        <thead>
+                        @foreach ($donation as $data)
                             <tr>
-                                <th>Date</th>
-                                <th>Income by</th>
-                                <th>Income Amount</th>
-                                <th>Donation Amount</th>
+                                <td class="fs-16 txt-secondary">{{ date('d-M, Y', strtotime($data->date)) }}</td>
+                                <td class="fs-16 txt-secondary">One-Off</td>
+                                <td class="fs-16 txt-secondary">{{$data->income_amount}}</td>
+                                <td class="fs-16 txt-secondary"> {{$data->donation_amount}}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-
-
-                            @foreach ($donation as $data)
-                                <tr>
-                                    <td>{{ date('d-M, Y', strtotime($data->date)) }}</td>
-                                    <td>One-Off</td>
-                                    <td>{{$data->income_amount}}</td>
-                                    <td> {{$data->donation_amount}}</td>
-                                </tr>
-                            @endforeach
-
-
-
-                        </tbody>
-                    </table>
-                </div>
-
-
+                        @endforeach
+    
+                    </tbody>
+                </table>
             </div>
         </div>
-    </fieldset>
+    </div>
+
+
+
+
+
+
 
 
 

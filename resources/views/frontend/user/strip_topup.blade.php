@@ -79,7 +79,7 @@
                             <input type="hidden" name="donor_id" value="{{auth()->user()->id}}">
                             <div class="row">
                                 <div class="col-xs-12">
-                                    <button class="btn btn-primary btn-lg btn-block" type="submit">Pay Now</button>
+                                    <button class="btn-theme mt-3 bg-secondary text-white btn-block" type="submit">Pay Now</button>
                                 </div>
                             </div>
 

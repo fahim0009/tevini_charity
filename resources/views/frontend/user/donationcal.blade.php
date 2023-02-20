@@ -15,19 +15,61 @@
         <div class="col-lg-3">
             <div class="calculatior mt-5">
                 <div>
-                    <div class="fs-37 fw-bold txt-secondary">0.00 GBP</div>
+                    <div class="fs-37 fw-bold txt-secondary">{{$availabledonation}} GBP</div>
                     <div class="fs-16 fw-bold txt-secondary">Total maaser Goal</div>
                     <div class="progress mt-5 mb-3">
                         <div class="progress-bar   progress-bar-animated" role="progressbar"
                             aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
                         </div>
                     </div>
-                    <div class="fs-23 fw-bold txt-primary mb-2 lh-1">You already paid £370.80
+                    <div class="fs-23 fw-bold txt-primary mb-2 lh-1">You already paid £{{$tevini_donation}}
                         through Tevini</div>
-                    <a href="#" class="fs-16 txt-secondary  ">Add external donation/s </a>
-                    <a href="#" class="btn-theme mt-3 bg-secondary text-white">Make a donation</a>
+                    <a href="#" class="fs-16 txt-secondary  ">Other Given Charity: £{{$otherdonation}} </a>
+                    <a href="{{ route('user.makedonation')}}" class="btn-theme mt-3 bg-secondary text-white">Make a donation</a>
                 </div>
             </div>
+
+
+            <div class="calculatior mt-3">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Add external donation: </div> <br>
+
+                    <div class="otherermsg"></div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label for="">Donation Amount</label>
+                                <input type="number" name="d_amount" id="d_amount" class="form-control" value="" placeholder="Donation Amount">
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label for="">Donation receiver, Charity, Campaign</label>
+                                <input type="text" name="d_title" id="d_title" class="form-control" value="" placeholder="Donation receiver, Charity, Campaign">
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group ">
+                                <label for=""> Date</label>
+                                <input type="date" name="donation_date" id="donation_date" class="form-control" value="" placeholder="Date">
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group ">
+                                <input type="button" id="othrBtn" value="Submit" class="btn-theme mt-3 bg-secondary text-white">
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
         </div>
         <div class="col-lg-9 py-5">
             <div class="fw-bold fs-36 txt-secondary">Add your income </div> <br>
@@ -62,10 +104,10 @@
                               </select>
                             </td>
                             <td class="text-center">
-                                <button class="btn-theme me-5 bg-secondary text-white float-end" id="oincome_submit" type="button">Submit</button>
+                                <button class="btn-theme bg-secondary text-white float-end" id="oincome_submit" type="button">Submit</button>
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('user.onOffdonationDetails')}}" class="btn-theme me-5 bg-secondary text-white float-end">View</a>
+                                <a href="{{ route('user.onOffdonationDetails')}}" class="btn-theme bg-secondary text-white float-end">View</a>
                             </td>
                         </tr>
                             
@@ -197,7 +239,7 @@
         </div>
     </div>
 
-    <div class="row mb-5">
+    <div class="row mb-5" style="display:none">
         <div class="col-lg-12">
             <div class="row ">
                 <div class="col-lg-6  px-3"> 
@@ -266,17 +308,15 @@
 
                 </div>
 
-
-
             </div>
         </div>
     </div>
 
 
-    <div class="row mb-5">
+    <div class="row mb-5 mt-3">
         
         <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">REGULAR INCOME DONATION DETAILS: </div> <br>
-        <div class="col-lg-12">
+        <div class="col-lg-12 mt-2">
             <div class="stsermsg"></div>
             <div class="data-container">
                 <table class="table table-theme mt-4" id="exampleIn">

@@ -87,7 +87,8 @@
                     London, N156PP
                 </div>
                 <div class="fs-24 fw-bold txt-secondary">
-                    3. Top-Up using your card: <br> Link
+                    3. Top-Up using your card: <br> 
+                    <a href="{{ route('stripeDonation')}}" class="btn-theme bg-ternary">Top up account</a>
                 </div>
             </div>
         </div>

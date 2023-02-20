@@ -18,7 +18,7 @@
                 <a href="{{ route('user.makedonation') }}" class="btn-theme bg-primary">Make a
                     donation</a>
                 <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
-                <a href="#" class="btn-theme bg-ternary">Top up account</a>
+                <a href="{{ route('stripeDonation')}}" class="btn-theme bg-ternary">Top up account</a>
             </div>
         </div>
         <div class="  p-4 py-5 mt-2" style="background-color: #D9D9D9;">

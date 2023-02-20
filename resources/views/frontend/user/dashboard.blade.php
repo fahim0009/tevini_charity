@@ -8,12 +8,14 @@
         ])->orwhere([
             ['user_id','=', auth()->user()->id],
             ['pending','=', '0']
-            ])->orderBy('id','DESC')->get();
+            ])->orderBy('id','DESC')->limit(5)->get();
 
     
     $tamount = \App\Models\Usertransaction::where('user_id','=', auth()->user()->id)
                         ->where('status','=', '1')
                         ->orderBy('id','DESC')->get();
+                        
+use Illuminate\Support\Carbon;
 @endphp
 
 
@@ -50,108 +52,137 @@
         <div class="row mb-5">
             <div class="col-lg-6">
                 <div class="user">
-                    My transactions
+                    Latest transactions
                 </div>
 
             </div>
             <div class="col-lg-6 text-center">
-                <a href="#" class="btn-theme bg-ternary">View all transactions</a>
+                <a href="{{ route('user.transaction')}}" class="btn-theme bg-ternary">View all transactions</a>
             </div>
         </div>
-        <div class="row titleBar my-3 ">
-            <div class="col-lg-6">Description</div>
-            <div class="col-lg-3">Amount</div>
-            <div class="col-lg-3">Balance</div>
+        
+
+        <div class="data-container">
+            <table class="table table-theme mt-4">
+                <thead>
+                    <tr> 
+                        <th scope="col">Date</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Balance</th>
+                    </tr>
+                </thead>
+
+                <?php
+                $tbalance = 0;
+                ?>
+
+                @foreach ($tamount as $data)
+                    @if($data->commission != 0)
+                        @php
+                        $tbalance = $tbalance - $data->commission;
+                        @endphp
+                    @endif
+
+                    @php
+                    if($data->t_type == "In"){
+                        if($data->commission != 0){
+
+                        $tbalance = $tbalance + $data->amount + $data->commission;
+                        }else {
+
+                        $tbalance = $tbalance + $data->amount;
+                        }
+
+                    }
+                    @endphp
+
+                    @php
+                    if($data->t_type == "Out"){
+                    $tbalance = $tbalance - $data->amount;
+                    }
+                    @endphp
+                @endforeach
+
+
+                <tbody>
+                    @foreach ($alltransactions as $data)
+                        @if($data->commission != 0)
+
+                            <tr>
+                                <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fs-20 txt-secondary fw-bold"></span>
+                                        <span class="fs-16 txt-secondary">Commission</span>
+                                    </div>
+                                </td>
+                                <td>-£{{$data->commission}}</td>
+                                <td>£{{ number_format($tbalance, 2) }}</td>
+                                @php
+                                $tbalance = $tbalance + $data->commission;
+                                @endphp
+                            </tr>
+                        @endif
+
+                        <tr> 
+                            <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name}}@endif</span>
+                                    <span class="fs-16 txt-secondary">{{$data->title}}</span>
+                                </div>
+                            </td>
+                            @if($data->t_type == "In")
+
+                                @if($data->commission != 0)
+                                    <td class="fs-16 info txt-primary">
+                                        £{{ number_format($data->amount + $data->commission, 2) }}
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        £{{ number_format($tbalance, 2) }} 
+                                    </td>
+                                    @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
+                                @else
+
+                                    <td class="fs-16 info txt-primary">
+                                        £{{number_format($data->amount, 2)}}
+                                    </td>
+                                    <td class="fs-16 txt-secondary">
+                                        £{{ number_format($tbalance, 2) }}
+                                    </td> 
+                                    @php $tbalance = $tbalance - $data->amount; @endphp
+                                @endif
+
+                            @elseif($data->t_type == "Out")
+                                <td class="fs-16 info" class="info">
+                                    -£{{number_format($data->amount, 2) }}
+                                </td>
+                                <td class="fs-16 txt-secondary">
+                                    £{{ number_format($tbalance, 2) }}
+                                </td> 
+                                @if($data->pending != "0")
+                                @php  $tbalance = $tbalance + $data->amount;  @endphp
+                                @endif
+                            
+                            @endif
+                        </tr>
+                    
+                        @endforeach
+
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td>Previous Balance</td>
+                            <td>£{{ number_format($tbalance, 2) }}</td>
+                        </tr>
+
+                </tbody>
+            </table>
         </div>
 
-        <!-- loop start -->
-        <div class="row mb-4">
-            <div class="date">
-                Today
-            </div>
-            <div class="row">
-                <div class="col-lg-6 mt-3">
-                    <div class="info">Aim Habonim</div>
-                    <span class="fs-16 txt-theme">Online donation</span>
-                </div>
-                <div class="col-lg-3 mt-3 d-flex align-items-center ">
-                    <div class="info">-£18.00</div>
-                </div>
-                <div class="col-lg-3 mt-3 d-flex align-items-center ">
-                    <span class="fs-16 txt-theme">£4.50</span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-6 mt-3">
-                    <div class="info">Initact Solutions Ltd.</div>
-                    <span class="fs-16 txt-theme">Company donation</span>
-                </div>
-                <div class="col-lg-3 mt-3 d-flex align-items-center ">
-                    <div class="info txt-primary">£20.00</div>
-                </div>
-                <div class="col-lg-3 mt-3 d-flex align-items-center ">
-                    <span class="fs-16 txt-theme">£23.50</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- end -->
 
-        <!-- loop start -->
-
-        <div class="row mb-4">
-            <div class="date">
-                21 January 23
-            </div>
-            <div class="row">
-                <div class="col-lg-6 mt-3">
-                    <div class="info">Aim Habonim</div>
-                    <span class="fs-16 txt-theme">Online donation</span>
-                </div>
-                <div class="col-lg-3 mt-3 d-flex align-items-center ">
-                    <div class="info">-£18.00</div>
-                </div>
-                <div class="col-lg-3 mt-3 d-flex align-items-center ">
-                    <span class="fs-16 txt-theme">£4.50</span>
-                </div>
-            </div> 
-        </div>
-
-        <!-- end -->
-        <!-- loop start -->
-
-        <div class="row mb-4">
-            <div class="date">
-                20 January 23
-            </div>
-            <div class="row">
-                <div class="col-lg-6 mt-2">
-                    <div class="info">Bikur Cholim D’satamar</div>
-                    <span class="fs-16 txt-theme">Online donation</span>
-                </div>
-                <div class="col-lg-3 mt-2 d-flex align-items-center ">
-                    <div class="info">-£180.00</div>
-                </div>
-                <div class="col-lg-3 mt-2 d-flex align-items-center ">
-                    <span class="fs-16 txt-theme">£203.50</span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-6 mt-2">
-                    <div class="info">Bikur Cholim D’satamar</div>
-                    <span class="fs-16 txt-theme">Online donation</span>
-                </div>
-                <div class="col-lg-3 mt-2 d-flex align-items-center ">
-                    <div class="info txt-primary">-£180.00</div>
-                </div>
-                <div class="col-lg-3 mt-2 d-flex align-items-center ">
-                    <span class="fs-16 txt-theme">£203.50</span>
-                </div>
-            </div>
-            
-        </div>
-
-        <!-- end -->
 
     </div>
 

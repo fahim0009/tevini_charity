@@ -60,7 +60,7 @@ use Illuminate\Support\Carbon;
                                     </div>
                                     <div class="col-md-5 d-flex align-items-center">
                                         <div class="form-group d-flex mt-4">
-                                        <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                        <button class="btn-theme bg-primary" type="submit">Search</button>
                                         </div>
                                     </div>
                                 </div>
@@ -236,7 +236,7 @@ use Illuminate\Support\Carbon;
                                             </div>
                                             <div class="col-md-5 d-flex align-items-center">
                                                 <div class="form-group d-flex mt-4">
-                                                <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                                <button class="btn-theme bg-primary" type="submit">Search</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -311,7 +311,7 @@ use Illuminate\Support\Carbon;
                                         </div>
                                         <div class="col-md-5 d-flex align-items-center">
                                             <div class="form-group d-flex mt-4">
-                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                            <button class="btn-theme bg-primary" type="submit">Search</button>
                                             </div>
                                         </div>
                                     </div>
@@ -391,7 +391,7 @@ use Illuminate\Support\Carbon;
                                             </div>
                                             <div class="col-md-5 d-flex align-items-center">
                                                 <div class="form-group d-flex mt-4">
-                                                <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                                <button class="btn-theme bg-primary" type="submit">Search</button>
                                                 </div>
                                             </div>
                                         </div>

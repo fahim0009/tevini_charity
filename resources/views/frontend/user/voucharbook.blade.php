@@ -111,9 +111,7 @@
                     <div class="col-lg-6 d-flex align-items-center flex-wrap">
                         <span class="fs-16 " style="color:
                         #003057">Order total</span>
-                        <input style="max-width:136px" type="text"
-                            class="rounded text-center mx-3 form-control fw-bold border-0"
-                            placeholder="£0.00">
+                        <input style="max-width:136px" type="text" class="rounded text-center mx-3 form-control fw-bold border-0" placeholder="£0.00">
                         <input type="hidden" value="{{auth()->user()->id}}" id="donner_id">
                         <button class="btn-theme bg-primary text-white" id="addvoucher" type="button">Place order</button>
                         {{-- <a href="#" class="btn-theme bg-primary text-white">Place order</a> --}}

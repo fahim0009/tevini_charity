@@ -359,7 +359,7 @@
     
                                 </td>
                                 <td class="fs-16 txt-secondary">
-                                    <a href="{{ route('user.donationdetails', $data->id)}}" class="btn btn-primary">View</a>
+                                    <a href="{{ route('user.donationdetails', $data->id)}}" class="btn-theme bg-secondary text-white">View</a>
                                 </td>
                             </tr>
                         @endforeach

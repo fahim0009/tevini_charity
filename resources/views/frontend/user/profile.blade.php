@@ -35,12 +35,14 @@
                     <img class="img-fluid mt-3 mb-2" width="150px" src="@if(Auth::user()->photo){{asset('images/'.Auth::user()->photo)}} @else https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg @endif">
                      
                     {{-- <a href="#" class="txt-theme txt-secondary fs-14 my-2">Update profile picture</a> --}}
+                    <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data" >
+                        @csrf
+                    <input type="file" id="image" name="image" class="txt-theme txt-secondary fs-14 my-2">
                 </div>
 
                 <div class="col-lg-9 border-left-lg  pt-3  ">
                     <div class="col-lg-11 mx-auto">
-                        <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data" >
-                            @csrf
+                        
 
 
                             <div class="row mt-4">
@@ -60,16 +62,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-12">
-                                    <div class="form-group mb-3">
-                                        <label for="">Email</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ Auth::user()->email }}" readonly="readonly">
-                                        </div>
-                                    </div>
-                                </div>
 
-                                
                                 <div class="col-lg-6">
                                     <div class="form-group mb-3">
                                         <label for="">Phone</label>
@@ -81,12 +74,21 @@
 
                                 <div class="col-lg-6">
                                     <div class="form-group mb-3">
+                                        <label for="">Email</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ Auth::user()->email }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- <div class="col-lg-6" style="display: none">
+                                    <div class="form-group mb-3">
                                         <label for="">Image</label>
                                         <div class="d-flex align-items-center">
                                             <input type="file" id="image" name="image" class="form-control">
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
                                 
                                 
                                 <div class="col-lg-6">

@@ -21,7 +21,7 @@
                 <tbody>
              @foreach (\App\Models\OrderHistory::where('order_id', $array['order_id'])->get() as $order)
                         <tr style="border: 1px solid black; text-align:center">
-                            <td>£{{ $order->voucher->amount }} {{$order->voucher->type}} @if($order->voucher->note)({{$order->voucher->note}})@endif</td>
+                            <td>£{{ $order->voucher->amount }} {{$order->voucher->type}} @if($order->voucher->note)(£{{$order->voucher->single_amount}} of{{$order->voucher->note}})@endif</td>
                             <td>{{$order->number_voucher}}</td>
                             @if($order->voucher->type !="Prepaid")
                             <td></td>

@@ -30,7 +30,7 @@ class DonationReport extends Mailable
     {
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
         ->replyTo($this->array['cc'], 'Tevini')
-        ->subject('Donation receipt')
+        ->subject('Tevini Ltd')
         ->markdown('mail.donation');
     }
 }

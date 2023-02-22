@@ -312,7 +312,7 @@ class DonorController extends Controller
             file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
             $array['name'] = $user->name;
             $array['view'] = 'mail.donorreport';
-            $array['subject'] = 'Donor Report';
+            $array['subject'] = 'Monthly statement';
             $array['from'] = 'info@tevini.co.uk';
             $array['content'] = 'Hi, Your donation report has been placed';
             $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';

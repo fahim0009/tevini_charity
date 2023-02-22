@@ -610,8 +610,6 @@ class DonorController extends Controller
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation submited Successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
-
-
     }
 
 

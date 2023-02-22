@@ -152,7 +152,11 @@ use Illuminate\Support\Carbon;
                                                         {{$data->note}}
                                                     </td>
                                                     <td class="fs-16 txt-secondary">
+                                                        @if ($data->title == "Voucher")
+                                                        {{$data->cheque_no}}
+                                                        @else
                                                         {{$data->t_id}}
+                                                        @endif
                                                     </td>
                                                     <td class="fs-16 txt-secondary">
                                                         £{{ number_format($tbalance, 2) }} 
@@ -170,7 +174,11 @@ use Illuminate\Support\Carbon;
                                                         {{$data->note}}
                                                     </td>
                                                     <td class="fs-16 txt-secondary">
+                                                        @if ($data->title == "Voucher")
+                                                        {{$data->cheque_no}}
+                                                        @else
                                                         {{$data->t_id}}
+                                                        @endif
                                                     </td>
                                                     <td class="fs-16 txt-secondary">
                                                         £{{ number_format($tbalance, 2) }} 
@@ -188,7 +196,11 @@ use Illuminate\Support\Carbon;
                                                     {{$data->note}}
                                                 </td>
                                                 <td class="fs-16 txt-secondary">
+                                                    @if ($data->title == "Voucher")
+                                                    {{$data->cheque_no}}
+                                                    @else
                                                     {{$data->t_id}}
+                                                    @endif
                                                 </td>
                                                 <td class="fs-16 txt-secondary">
                                                     £{{ number_format($tbalance, 2) }}
@@ -272,7 +284,11 @@ use Illuminate\Support\Carbon;
                                         {{$transaction->note}}
                                     </td>
                                     <td class="fs-16 txt-secondary">
-                                        {{$transaction->t_id}}
+                                        @if ($transaction->title == "Voucher")
+                                                {{$transaction->cheque_no}}
+                                                @else
+                                                {{$transaction->t_id}}
+                                                @endif
                                     </td>
                                     <td class="fs-16 txt-secondary">
                                         £{{number_format($transaction->amount, 2)}} 
@@ -348,7 +364,11 @@ use Illuminate\Support\Carbon;
                                         {{$transaction->note}}
                                     </td>
                                     <td class="fs-16 txt-secondary">
-                                        {{$transaction->t_id}}
+                                        @if ($transaction->title == "Voucher")
+                                                {{$transaction->cheque_no}}
+                                                @else
+                                                {{$transaction->t_id}}
+                                                @endif
                                     </td>
                                     <td class="fs-16 txt-secondary">
                                         £{{number_format($transaction->amount, 2)}} 
@@ -416,7 +436,7 @@ use Illuminate\Support\Carbon;
                               <tbody>
                                 @foreach ($alltransactions as $transaction)
 
-                                    @if ($transaction->pending == 1)
+                                    @if ($transaction->pending == 0)
                                         <tr>
                                             <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
                                             <td>
@@ -429,7 +449,11 @@ use Illuminate\Support\Carbon;
                                                 {{$transaction->note}}
                                             </td>
                                             <td class="fs-16 txt-secondary">
+                                                @if ($transaction->title == "Voucher")
+                                                {{$transaction->cheque_no}}
+                                                @else
                                                 {{$transaction->t_id}}
+                                                @endif
                                             </td>
                                             <td class="fs-16 txt-secondary">
                                                 £{{number_format($transaction->amount, 2)}} 

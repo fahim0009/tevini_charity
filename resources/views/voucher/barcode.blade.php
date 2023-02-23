@@ -23,6 +23,8 @@
                         <p class="mb-1">Name: {{$user->name}}</p>
                         <p class="mb-1">Email: {{$user->email}}</p>
                         <p class="mb-1">Address: {{$user->address}}</p>
+                        <br>
+                        <p class="mb-1">Delivery Option: {{$order->delivery_option}}</p>
                     </div>
                     <div class="text-start text-muted mb-4">
                         <p class="mb-1">Order date: {{$order->created_at}}</p>

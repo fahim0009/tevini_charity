@@ -67,7 +67,7 @@
                     <div class="col-lg-4">
                         <div class="inner">
                             <div class="left text-center">
-                                <input type="checkbox" class="form-check">
+                                <input type="checkbox" id="delivery" name="delivery" class="form-check delivery_option">
                             </div>
                             <div class="right">
                                 <div class="title">
@@ -80,7 +80,7 @@
                     <div class="col-lg-6">
                         <div class="inner">
                             <div class="left text-center">
-                                <input type="checkbox" class="form-check">
+                                <input type="checkbox" id="collection"  name="collection"  class="form-check delivery_option">
                             </div>
                             <div class="right">
                                 <div class="title">
@@ -133,6 +133,12 @@
 <script>
     $(document).ready(function () {
 
+        $('[type="checkbox"]').change(function(){
+            if(this.checked){
+                $('[type="checkbox"]').not(this).prop('checked', false);
+            }
+        });
+
         //header for csrf-token is must in laravel
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
         //
@@ -151,12 +157,15 @@
               .map(function(){return $(this).val();}).get();
 
             var did = $("#donner_id").val();
-            // console.log(qtys);
+            var delivery = $('#delivery').prop('checked');
+            var collection = $('#collection').prop('checked');
+
+            console.log(collection);
 
                 $.ajax({
                     url: url,
                     method: "POST",
-                    data: {voucherIds:voucherIds,qtys:qtys,did:did},
+                    data: {voucherIds,qtys,did,delivery,collection},
 
                     success: function (d) {
                         if (d.status == 303) {

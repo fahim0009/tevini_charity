@@ -8,7 +8,7 @@
     </section>
     @include('inc.user_menue')
   <section class="">
-   
+
    <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -72,7 +72,7 @@
     </div>
   </section>
 </div>
-   
+
   </section>
 </div>
 @endsection
@@ -85,7 +85,7 @@
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
         //
         var url = "{{URL::to('/admin/addvoucher')}}";
-        
+
         $("#addvoucher").click(function(){
 
             $("#loading").show();
@@ -97,7 +97,6 @@
               .map(function(){return $(this).val();}).get();
 
             var did = $("#donner_id").val();
-            // console.log(qtys);
 
                 $.ajax({
                     url: url,

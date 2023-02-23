@@ -75,6 +75,18 @@ class OrderController extends Controller
             exit();
             }
 
+            if($request->delivery == "false" && $request->collection == "false"){
+                $message ="<div class='alert alert-danger'>Please select delivery option.</div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+
+            if($request->delivery == "true"){
+                $delivery_opt = "Delivery";
+            }elseif($request->collection == "true"){
+                $delivery_opt = "Collection";
+            }
+
             foreach($voucher_ids as $key => $id){
                 $order_amount+= Voucher::where('id',$id)->first()->amount*$qtys[$key];
 
@@ -99,6 +111,7 @@ class OrderController extends Controller
         $order->user_id = $request->did;
         $order->order_id = time() . "-" . $request->did;
         $order->amount = $prepaid_amount;
+        $order->delivery_option = $delivery_opt;
         $order->notification = 1;
         $order->status = 0;
         if($order->save()){
@@ -178,6 +191,7 @@ class OrderController extends Controller
             $array['client_no'] = $user->accountno;
             $email = $user->email;
             $array['order_id'] = $order->id;
+            $array['delivery_option'] = $delivery_opt;
 
 
             Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
@@ -780,10 +794,6 @@ class OrderController extends Controller
                     $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
                     $donor->increment('balance',$amount*$order->number_voucher);
                     $donor->save();
-
-                    // $utransaction = Usertransaction::find(Usertransaction::where('t_unq',$order->o_unq)->first()->id);
-                    // $utransaction->status = '0';
-                    // $utransaction->save();
 
                     Usertransaction::where(['order_id'=>$request->orderId])->update(['status'=>'0']);
 

@@ -5,6 +5,7 @@
    <p>This message is to confirm that you have made the request below via the Tevini  website. It will be dealt with in due course.</p>
 
    <p>Client number : {{$array['client_no']}}</p>
+   <p>Delivery Option : {{ $array['delivery_option']}}</p>
 
    <p>Request Date : {{date('m-d-Y')}}</p>
 

@@ -427,7 +427,6 @@ class DonorController extends Controller
 
 
         if(empty($request->charity_id)){
-            // $message ="<div class='alert alert-danger'>Please select beneficiary field.</div>";
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
@@ -540,7 +539,6 @@ class DonorController extends Controller
 
 
         if(empty($request->charity_id)){
-            // $message ="<div class='alert alert-danger'>Please select beneficiary field.</div>";
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();

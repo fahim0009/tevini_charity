@@ -57,7 +57,7 @@
                                 @php $n++; @endphp
                             <tr>
                                 <td>{{$n}}</td>
-                                <td>£{{ $orderDtl->voucher->amount }} {{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)({{ $orderDtl->voucher->note }}) @endif</td>
+                                <td>£{{ $orderDtl->voucher->amount }} {{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)(£{{$orderDtl->voucher->single_amount}} of {{ $orderDtl->voucher->note }}) @endif</td>
                                 <td>{{ $orderDtl->number_voucher}}</td>
                                 <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->voucher->amount }}@endif</td>
                                 <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->amount}} @endif</td>

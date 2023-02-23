@@ -60,7 +60,7 @@
                                 @php $n++; @endphp
                             <tr>
                                     <td>{{$n}}</td>
-                                    <td>{{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)({{ $orderDtl->voucher->note }}) @endif</td>
+                                    <td>{{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)(£{{$orderDtl->voucher->single_amount}} of {{ $orderDtl->voucher->note }}) @endif</td>
                                     <td>
                                         @if($orderDtl->startbarcode)
                                         {!! DNS1D::getBarcodeHTML($orderDtl->startbarcode, 'PHARMA') !!}

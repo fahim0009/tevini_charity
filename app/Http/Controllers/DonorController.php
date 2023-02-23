@@ -497,6 +497,24 @@ class DonorController extends Controller
 
             $user = User::where('id',Auth::user()->id)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
+            $charity = Charity::where('id',$request->charity_id)->first();
+            $donation = Donation::where('id',$data->id)->first();
+
+            // charity mail
+            $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
+            $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
+            $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
+            $array['cc'] = $contactmail;
+            $array['charity'] = $charity;
+            $array['user'] = $user;
+            $email = $charity->email;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new DonationreportCharity($array));
+
 
             $array['name'] = $user->name;
             $array['cc'] = $contactmail;

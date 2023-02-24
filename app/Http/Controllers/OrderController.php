@@ -85,6 +85,8 @@ class OrderController extends Controller
                 $delivery_opt = "Delivery";
             }elseif($request->collection == "true"){
                 $delivery_opt = "Collection";
+            }else{
+                $delivery_opt = null;
             }
 
             foreach($voucher_ids as $key => $id){

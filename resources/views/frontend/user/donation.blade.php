@@ -218,8 +218,10 @@
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
+                                $(".rightbar").animate({ scrollTop: 0 }, "fast");
                             }else if(d.status == 300){
                                 $(".ermsg").html(d.message);
+                                $(".rightbar").animate({ scrollTop: 0 }, "fast");
                                 window.setTimeout(function(){location.reload()},2000)
                             }
                         },

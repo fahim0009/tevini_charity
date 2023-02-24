@@ -1,6 +1,10 @@
 @extends('frontend.layouts.user')
 @section('content')
-
+<style>
+body {
+  overflow-x: hidden;
+}
+</style>
 <div class="content">
     <div class="row">
         <div class="col-lg-12">
@@ -124,11 +128,6 @@
 @endsection
 
 @section('script')
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#userorderbook").addClass('active');
-    });
-</script>
 <script>
     $(document).ready(function () {
 
@@ -167,10 +166,10 @@
                     success: function (d) {
                         if (d.status == 303) {
                             $(".ermsg").html(d.message);
-                            pagetop();
+                            $(".rightbar").animate({ scrollTop: 0 }, "fast");
                         }else if(d.status == 300){
                             $(".ermsg").html(d.message);
-                            pagetop();
+                            $(".rightbar").animate({ scrollTop: 0 }, "fast");
                             window.setTimeout(function(){location.reload()},2000)
                         }
                     },
@@ -210,9 +209,7 @@
 	}
 
 
-
-
-
     });
+
 </script>
 @endsection

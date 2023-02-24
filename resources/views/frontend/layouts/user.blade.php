@@ -21,12 +21,12 @@
     <link rel="icon" href="{{ asset('assets/user/images/favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/user/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/user/css/bootstrap-5.1.3min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/user/css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/user/css/swiper-bundle.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/user/css/slick.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/user/css/animate.min.css') }}" />
     <link rel="stylesheet" href="{{URL::to('/css/datatables.min.css')}}">
     <link href="{{URL::to('/css/common.css')}}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/user/css/dashboard.css') }}">
     @yield('css')
 </head>
 
@@ -56,32 +56,32 @@
     </div>
 
 
-    
+
 
 
     <script src="{{ asset('assets/user/js/jquery-3.5.1.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/bootstrap.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script> --}}
-    <script src="{{ asset('assets/user/js/bootstrap-5.bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/user/js/bootstrap-5.bundle.min.js') }}"></script> --}}
     <script src="{{ asset('assets/user/js/iconify.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/wow.min.js') }}"></script>
     <script src="{{ asset('assets/user/js/app.js') }}"></script>
     <script src="{{URL::to('js/plugins/datatables.min.js')}}"></script>
     <script src="{{URL::to('js/plugins/dataTables.bootstrap.min.js')}}"></script>
-
-
-
+    <script>
+        new WOW().init();
+    </script>
     @yield('script')
     <script>
-        function pagetop() {
+
+function pagetop() {
         window.scrollTo({
-        top: 10,
+        top: 30,
         behavior: 'smooth',
         });
         }
-
-
+        
 $(document).ready(function() {
 
 var title = 'Report: ';

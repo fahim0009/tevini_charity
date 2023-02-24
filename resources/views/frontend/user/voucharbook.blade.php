@@ -27,7 +27,8 @@
                         <div class="inner my-3">
                             <div class="left text-center">
                                 <input type="hidden" value="{{$voucher->id}}" name="v_ids[]">
-                                <input type="text" class="box-input" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
+                                <input type="hidden" class="total" value="">
+                                <input type="text" class="box-input qty" v_amount="{{ $voucher->amount }}" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
                                 <label>Qty</label>
                             </div>
                             <div class="right">
@@ -104,14 +105,14 @@
                             </svg>
                             The delivery address saved on your account is: {{Auth::user()->houseno}}, {{Auth::user()->street}}
                             {{Auth::user()->town}} {{Auth::user()->postcode}}</span> <br>
-                        <span class="fs-12 txt-secondary">
+                        {{-- <span class="fs-12 txt-secondary">
                             If you would like to change it you can do so here
-                        </span>
+                        </span> --}}
                     </div>
                     <div class="col-lg-6 d-flex align-items-center flex-wrap">
                         <span class="fs-16 " style="color:
                         #003057">Order total</span>
-                        <input style="max-width:136px" type="text" class="rounded text-center mx-3 form-control fw-bold border-0" placeholder="£0.00">
+                        <input style="max-width:136px" type="text" id="net_total" value="" class="rounded text-center mx-3 form-control fw-bold border-0" placeholder="£0.00">
                         <input type="hidden" value="{{auth()->user()->id}}" id="donner_id">
                         <button class="btn-theme bg-primary text-white" id="addvoucher" type="button">Place order</button>
                         {{-- <a href="#" class="btn-theme bg-primary text-white">Place order</a> --}}
@@ -121,8 +122,6 @@
         </div>
 </div>
 @endsection
-
-
 
 @section('script')
 <script type="text/javascript">
@@ -160,8 +159,6 @@
             var delivery = $('#delivery').prop('checked');
             var collection = $('#collection').prop('checked');
 
-            console.log(collection);
-
                 $.ajax({
                     url: url,
                     method: "POST",
@@ -186,6 +183,34 @@
                 });
 
         });
+
+
+        // each row total price show
+        $("body").delegate(".qty","keyup",function(event){
+		event.preventDefault();
+        var total = 0;
+
+		var row = $(this).parent().parent();
+		var amount = row.find('.qty').attr("v_amount");
+		var qty = row.find('.qty').val();
+        var total = amount * qty;
+        row.find('.total').val(total.toFixed(2));
+        net_total();
+
+	})
+
+    // net total
+    function net_total(){
+		var total = 0;
+		$('.total').each(function(){
+			total += ($(this).val()-0);
+		})
+		$('#net_total').val(total.toFixed(2));
+
+	}
+
+
+
 
 
     });

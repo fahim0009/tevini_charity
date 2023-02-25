@@ -107,6 +107,7 @@ class TransactionController extends Controller
             ['created_at', '>=', $fromDate],
             ['created_at', '<=', $toDate.' 23:59:59'],
         ])->where('status','=', '1')->orderBy('id','DESC')->get();
+
         $alltransactions = Usertransaction::where([
             ['created_at', '>=', $fromDate],
             ['created_at', '<=', $toDate.' 23:59:59'],
@@ -116,7 +117,7 @@ class TransactionController extends Controller
             ['created_at', '>=', $fromDate],
             ['created_at', '<=', $toDate.' 23:59:59'],
             ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
+            ['pending','=', '1']
             ])->orderBy('id','DESC')->get();
 
         $intransactions = Usertransaction::where([
@@ -138,19 +139,29 @@ class TransactionController extends Controller
             ['created_at', '<=', $toDate.' 23:59:59'],
             ['t_type','=', 'Out'],
             ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
+            ['pending','=', '1']
             ])->orderBy('id','DESC')->get();
+
+        $pending_transactions = Usertransaction::where([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['t_type','=', 'Out'],
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+        ])->orderBy('id','DESC')->get();
+
 
 
         }else{
 
-            $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
+        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
+
         $alltransactions = Usertransaction::where([
             ['user_id','=', auth()->user()->id],
             ['status','=', '1']
         ])->orwhere([
             ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
+            ['pending','=', '1']
             ])->orderBy('id','DESC')->get();
 
         $intransactions = Usertransaction::where([
@@ -166,18 +177,25 @@ class TransactionController extends Controller
         ])->orwhere([
             ['t_type','=', 'Out'],
             ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
+            ['pending','=', '1']
             ])->orderBy('id','DESC')->get();
 
+        $pending_transactions = Usertransaction::where([
+            ['t_type','=', 'Out'],
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+        ])->orderBy('id','DESC')->get();
+
+
+
         }
-
-
 
         return view('frontend.user.transaction')
         ->with('alltransactions',$alltransactions)
         ->with('intransactions',$intransactions)
         ->with('tamount',$tamount)
-        ->with('outtransactions',$outtransactions);
+        ->with('outtransactions',$outtransactions)
+        ->with('pending_transactions',$pending_transactions);
     }
 
     public function donorTransaction(Request $request, $id)

@@ -105,16 +105,7 @@ use Illuminate\Support\Carbon;
                                     @endforeach
 
                                 <tbody>
-                                    {{-- <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>Balance</td>
-                                        <td>£{{ number_format($tbalance, 2) }}</td>
-                                    </tr> --}}
+
                                     @foreach ($alltransactions as $data)
                                     @if($data->commission != 0)
                                     <tr>

@@ -7,14 +7,18 @@
             ['status','=', '1']
         ])->orwhere([
             ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
+            ['pending','=', '1']
             ])->orderBy('id','DESC')->limit(5)->get();
 
-    
-    $tamount = \App\Models\Usertransaction::where('user_id','=', auth()->user()->id)
-                        ->where('status','=', '1')
-                        ->orderBy('id','DESC')->get();
-                        
+
+    $tamount = \App\Models\Usertransaction::where([
+                ['user_id','=', auth()->user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=', auth()->user()->id],
+                ['pending','=', '1']
+                ])->orderBy('id','DESC')->get();
+
 use Illuminate\Support\Carbon;
 @endphp
 
@@ -60,12 +64,12 @@ use Illuminate\Support\Carbon;
                 <a href="{{ route('user.transaction')}}" class="btn-theme bg-ternary">View all transactions</a>
             </div>
         </div>
-        
+
 
         <div class="data-container">
             <table class="table table-theme mt-4">
                 <thead>
-                    <tr> 
+                    <tr>
                         <th scope="col">Date</th>
                         <th scope="col">Description</th>
                         <th scope="col">Amount</th>
@@ -125,7 +129,7 @@ use Illuminate\Support\Carbon;
                             </tr>
                         @endif
 
-                        <tr> 
+                        <tr>
                             <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                             <td>
                                 <div class="d-flex flex-column">
@@ -140,7 +144,7 @@ use Illuminate\Support\Carbon;
                                         £{{ number_format($data->amount + $data->commission, 2) }}
                                     </td>
                                     <td class="fs-16 txt-secondary">
-                                        £{{ number_format($tbalance, 2) }} 
+                                        £{{ number_format($tbalance, 2) }}
                                     </td>
                                     @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
                                 @else
@@ -150,7 +154,7 @@ use Illuminate\Support\Carbon;
                                     </td>
                                     <td class="fs-16 txt-secondary">
                                         £{{ number_format($tbalance, 2) }}
-                                    </td> 
+                                    </td>
                                     @php $tbalance = $tbalance - $data->amount; @endphp
                                 @endif
 
@@ -160,14 +164,14 @@ use Illuminate\Support\Carbon;
                                 </td>
                                 <td class="fs-16 txt-secondary">
                                     £{{ number_format($tbalance, 2) }}
-                                </td> 
+                                </td>
                                 @if($data->pending != "0")
                                 @php  $tbalance = $tbalance + $data->amount;  @endphp
                                 @endif
-                            
+
                             @endif
                         </tr>
-                    
+
                         @endforeach
 
                         <tr>

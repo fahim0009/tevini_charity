@@ -300,10 +300,6 @@ class DonorController extends Controller
                         ['created_at', '<=', $toDate.' 23:59:59'],
                         ['t_type','=', 'In'],
                         ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $id],
-                        ['t_type','=', 'In'],
-                        ['pending','=', '0']
                     ])->sum('amount');
 
                 $amountout = Usertransaction::where([
@@ -312,10 +308,6 @@ class DonorController extends Controller
                         ['created_at', '<=', $toDate.' 23:59:59'],
                         ['t_type','=', 'Out'],
                         ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $id],
-                        ['t_type','=', 'Out'],
-                        ['pending','=', '0']
                     ])->sum('amount');
 
                 $pending = Usertransaction::where([
@@ -324,6 +316,7 @@ class DonorController extends Controller
                         ['created_at', '<=', $toDate.' 23:59:59'],
                         ['pending','=', '0']
                     ])->sum('amount');
+
 
 
 
@@ -342,21 +335,14 @@ class DonorController extends Controller
                         ['user_id','=', $id],
                         ['t_type','=', 'In'],
                         ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $id],
-                        ['t_type','=', 'In'],
-                        ['pending','=', '0']
                     ])->sum('amount');
 
                 $amountout = Usertransaction::where([
                         ['user_id','=', $id],
                         ['t_type','=', 'Out'],
                         ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $id],
-                        ['t_type','=', 'Out'],
-                        ['pending','=', '0']
                     ])->sum('amount');
+                    
                 $pending = Usertransaction::where([
                         ['user_id','=', $id],
                         ['pending','=', '0']

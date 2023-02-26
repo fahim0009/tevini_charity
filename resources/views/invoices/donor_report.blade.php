@@ -156,13 +156,13 @@ use app\Models\Provoucher;
                     <tr>
                         <td colspan="4" style="width:60%">{{$user->street}}</td>
                         <td></td>
-                        <td style="width:30%">Credit: £{{ number_format($amountout, 2) }}</td>
+                        <td style="width:30%">Money In: £{{ number_format($amountin, 2) }}</td>
                     </tr>
 
                     <tr>
                         <td colspan="4" style="width:60%">{{$user->town}}</td>
                         <td></td>
-                        <td style="width:30%">Debit: £{{ number_format($amountin, 2) }}</td>
+                        <td style="width:30%">Money Out: £{{ number_format($amountout, 2) }}</td>
                     </tr>
                     <tr>
                         <td colspan="4" style="width:60%"></td>

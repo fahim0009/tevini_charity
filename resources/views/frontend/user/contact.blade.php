@@ -81,8 +81,7 @@
                     2. Send a cheque
                 </div>
                 <div class="fs-16 my-3 txt-secondary">
-                    payable to: Tevini Ltd Tevini Ltd <br>
-                    Tevini Ltd <br>
+                    Payable to: Tevini Ltd  <br>
                     5A Holmdale Terrace <br>
                     London, N156PP
                 </div>

@@ -37,7 +37,7 @@ body {
                             </div>
                             <div class="right">
                                 <div class="title">
-                                    £{{ $voucher->single_amount }}
+                                    £{{ $voucher->single_amount }} @if ($voucher->single_amount == "0" ) <span class="bottom-data">Blank Cheque</span>  @endif
                                     @if ($voucher->type == 'Prepaid')
                                     <div class="badge prepaid">
                                         Prepaid
@@ -49,7 +49,9 @@ body {
                                     @endif
 
                                 </div>
-                                <span class="bottom-data">{{$voucher->note}} = £{{ $voucher->amount }}</span>
+                                
+                                <span class="bottom-data">{{$voucher->note}}@if ($voucher->type == 'Prepaid') = £{{ $voucher->amount }} @endif</span>
+                                
                             </div>
                         </div>
                     </div>

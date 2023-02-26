@@ -106,27 +106,6 @@ use app\Models\Provoucher;
                 </div>
 
             </div>
-            <p class="donated">
-                    <p>{{$user->name}}</p>
-                    <p>{{$user->street}}</p>
-                    <p>{{$user->town}}</p>
-            </p>
-        </div>
-        <div class="tableData">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Transaction Id</th>
-                        <th>transaction type</th>
-                        <th>Voucher Number</th>
-                        <th>Charity Name</th>
-                        <th>Status</th>
-                        <th>Credit</th>
-                        <th>Debit</th>
-                        <th>Balance</th>
-                    </tr>
-                </thead>
 
             <?php
                 $tbalance = 0;
@@ -152,13 +131,72 @@ use app\Models\Provoucher;
                     }
                     @endphp
 
-                            @php
-                            if($data->t_type == "Out"){
-                            $tbalance = $tbalance - $data->amount;
-                            }
-                            @endphp
+                    @php
+                    if($data->t_type == "Out"){
+                    $tbalance = $tbalance - $data->amount;
+                    }
+                    @endphp
                 @endforeach
 
+
+            <table style="width:100%">
+                <tbody>
+                    <tr>
+                        <td colspan="4" style="width:60%"></td>
+                        <td></td>
+                        <td style="width:30%"><h3>Account Summery</h3></td>
+                    </tr>
+                    
+                    <tr>
+                        <td colspan="4" style="width:60%">{{$user->name}}</td>
+                        <td></td>
+                        <td style="width:30%">Balance: £{{ number_format($tbalance, 2) }}</td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" style="width:60%">{{$user->street}}</td>
+                        <td></td>
+                        <td style="width:30%">Credit: £{{ number_format($amountout, 2) }}</td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" style="width:60%">{{$user->town}}</td>
+                        <td></td>
+                        <td style="width:30%">Debit: £{{ number_format($amountin, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="width:60%"></td>
+                        <td></td>
+                        <td style="width:30%">Pending Amount: £{{ number_format($pending, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {{-- <p class="donated">
+                <p>{{$user->name}}</p>
+                <p>{{$user->street}}</p>
+                <p>{{$user->town}}</p>
+            </p> --}}
+
+            
+        </div>
+        <div class="tableData">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Transaction Id</th>
+                        <th>transaction type</th>
+                        <th>Voucher Number</th>
+                        <th>Charity Name</th>
+                        <th>Status</th>
+                        <th>Credit</th>
+                        <th>Debit</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+
+            
             <tbody>
                 {{-- <tr>
                     <td></td>

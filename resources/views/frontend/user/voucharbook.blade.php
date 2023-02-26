@@ -32,7 +32,7 @@ body {
                             <div class="left text-center">
                                 <input type="hidden" value="{{$voucher->id}}" name="v_ids[]">
                                 <input type="hidden" class="total" value="">
-                                <input type="text" class="box-input qty" v_amount="{{ $voucher->amount }}" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
+                                <input type="text" class="box-input qty" v_amount="{{ $voucher->amount }}" v_type="{{ $voucher->type }}" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
                                 <label>Qty</label>
                             </div>
                             <div class="right">
@@ -190,9 +190,15 @@ body {
         var total = 0;
 
 		var row = $(this).parent().parent();
+		var type = row.find('.qty').attr("v_type");
 		var amount = row.find('.qty').attr("v_amount");
 		var qty = row.find('.qty').val();
-        var total = amount * qty;
+            if (type == "Prepaid") {
+            var total = amount * qty;
+            } else { 
+            var total = parseInt('00');
+            }
+            // var total = amount * qty;
         row.find('.total').val(total.toFixed(2));
         net_total();
 

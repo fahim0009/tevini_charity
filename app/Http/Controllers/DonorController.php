@@ -294,33 +294,7 @@ class DonorController extends Controller
                     ['pending','=', '0']
                     ])->orderBy('id','DESC')->get();
 
-                $amountin = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['created_at', '>=', $fromDate],
-                        ['created_at', '<=', $toDate.' 23:59:59'],
-                        ['t_type','=', 'In'],
-                        ['status','=', '1']
-                    ])->sum('amount');
-
-                $amountout = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['created_at', '>=', $fromDate],
-                        ['created_at', '<=', $toDate.' 23:59:59'],
-                        ['t_type','=', 'Out'],
-                        ['status','=', '1']
-                    ])->sum('amount');
-
-                $pending = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['created_at', '>=', $fromDate],
-                        ['created_at', '<=', $toDate.' 23:59:59'],
-                        ['pending','=', '0']
-                    ])->sum('amount');
-
-
-
-
-            }else{
+              }else{
 
                 $report = Usertransaction::where([
                     ['user_id','=', $id],
@@ -329,24 +303,7 @@ class DonorController extends Controller
                    ['user_id','=', $id],
                    ['pending','=', '0']
                    ])->orderBy('id','DESC')->get();
-                
-                
-                $amountin = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['t_type','=', 'In'],
-                        ['status','=', '1']
-                    ])->sum('amount');
 
-                $amountout = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['t_type','=', 'Out'],
-                        ['status','=', '1']
-                    ])->sum('amount');
-                    
-                $pending = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['pending','=', '0']
-                    ])->sum('amount');
 
                 $fromDate = "";
                 $toDate   = "";
@@ -354,7 +311,7 @@ class DonorController extends Controller
             $user = User::find($id);
             $contactmail = ContactMail::where('id', 1)->first()->name;
             $array['cc'] = $contactmail;
-            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount','amountin','amountout','pending'));
+            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
             $output = $pdf->output();
             file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
             $array['name'] = $user->name;

@@ -109,8 +109,37 @@ use app\Models\Provoucher;
 
             <?php
                 $tbalance = 0;
+                $amountin = 0;
+                $amountout = 0;
+                $pending = 0;
             ?>
+            {{-- money in / money out / pending cal  --}}
+            @foreach ($report as $data)
+                @php
+                if($data->t_type == "In"){
+                    if($data->commission != 0){
+                    $amountin = $amountin + $data->amount + $data->commission;
+                    }else {
+                    $amountin = $amountin + $data->amount;
+                    }
 
+                }
+                @endphp
+
+                @php
+                if($data->t_type == "Out"){
+                    if($data->pending != "0"){
+                        $amountout = $amountout + $data->amount;
+                    }else {
+                        $pending = $pending + $data->amount;
+
+                    }
+                }
+                @endphp
+
+    @endforeach
+
+              {{-- total balance cal  --}}
               @foreach ($tamount as $data)
                     @if($data->commission != 0)
                         @php
@@ -146,7 +175,7 @@ use app\Models\Provoucher;
                         <td></td>
                         <td style="width:30%"><h3>Account Summery</h3></td>
                     </tr>
-                    
+
                     <tr>
                         <td colspan="4" style="width:60%">{{$user->name}}</td>
                         <td></td>
@@ -178,7 +207,7 @@ use app\Models\Provoucher;
                 <p>{{$user->town}}</p>
             </p> --}}
 
-            
+
         </div>
         <div class="tableData">
             <table>
@@ -196,19 +225,9 @@ use app\Models\Provoucher;
                     </tr>
                 </thead>
 
-            
+
             <tbody>
-                {{-- <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>Balance</td>
-                    <td>£{{ number_format($tbalance, 2) }}</td>
-                </tr> --}}
-                @foreach ($report as $data)
+                  @foreach ($report as $data)
                     @if($data->commission != 0)
                     <tr>
                         <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>

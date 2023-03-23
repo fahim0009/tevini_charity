@@ -233,7 +233,7 @@
                 $.ajax({
                     url: url,
                     method: "POST",
-                    data: {charityId,donorIds,donorAccs,chqNos,amts,notes},
+                    data: {charityId,donorIds,donorAccs,chqNos,amts,notes,waitings},
 
                     success: function (d) {
                         if (d.status == 303) {
@@ -280,10 +280,13 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
     var notes = $("input[name='note[]']")
       .map(function(){return $(this).val();}).get();
 
+    var waitings = $("select[name='waiting[]']")
+        .map(function(){return $(this).val();}).get();    
+
         $.ajax({
             url: urld,
             method: "POST",
-            data: {charityId,donorIds,donorNms,donorAccs,chqNos,amts,notes},
+            data: {charityId,donorIds,donorNms,donorAccs,chqNos,amts,notes,waitings},
 
             success: function (d) {
                 if (d.status == 303) {

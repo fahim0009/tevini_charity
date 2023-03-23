@@ -220,6 +220,8 @@ class OrderController extends Controller
         $chqs = $request->chqNos;
         $amounts = $request->amts;
         $notes = $request->notes;
+        $waitings = $request->waitings;
+
 
         $check_chqs = Provoucher::all();
 
@@ -268,6 +270,7 @@ class OrderController extends Controller
                 $pvsr->voucher_number = $chqs[$key];
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
+                $pvsr->waiting = $waitings[$key];
                 $pvsr->status = 1;
                 $pvsr->save();
                 }
@@ -289,6 +292,8 @@ class OrderController extends Controller
         // $vtyps = $request->vTyps;
         $amounts = $request->amts;
         $notes = $request->notes;
+        $waitings = $request->waitings;
+
 
         $check_chqs = Provoucher::all();
 
@@ -365,6 +370,7 @@ class OrderController extends Controller
                 $pvsr->cheque_no = $chqs[$key];
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
+                $pvsr->waiting = $waitings[$key];
                 if($limitChk >= $amounts[$key]){
                     $pvsr->status = 1;
                 }else{

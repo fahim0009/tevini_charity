@@ -23,6 +23,7 @@
                                         <th>Check No</th>
                                         <th>Amount</th>
                                         <th>Note</th>
+                                        <th>Waiting</th>
                                     </tr>
                                 </thead>
                                 <tbody id="inner">
@@ -54,6 +55,15 @@
                                         <td width="250px">
                                             <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value="{{$voucher->note}}">
                                         </td>
+                                        <td width="250px">
+                                            <input style="min-width: 200px;" name="waiting[]" type="checkbox" class="form-control waiting" value="{{$voucher->note}}">
+                                        </td>
+                                        <td width="150px">
+                                            <select name="waiting[]" class="form-control">
+                                                <option value="No"  @if(isset($voucher->waiting) && $voucher->waiting == "No") selected @endif>No</option>
+                                                <option value="Yes" @if(isset($voucher->waiting) && $voucher->waiting == "Yes") selected @endif>Yes</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                     @else
                                     <tr class="item-row" style="position:realative;">
@@ -75,39 +85,49 @@
                                         <td width="250px">
                                             <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value="{{$voucher->note}}">
                                         </td>
+                                        <td width="150px">
+                                            <select name="waiting[]" class="form-control">
+                                                <option value="No"  @if(isset($voucher->waiting) && $voucher->waiting == "No") selected @endif>No</option>
+                                                <option value="Yes" @if(isset($voucher->waiting) && $voucher->waiting == "Yes") selected @endif>Yes</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                     @endif
                                     @empty
                                     <tr class="item-row">
                                         <td width="230px">
-                                            <select name="charity" id="charity_list" class="form-control">
+                                            <select name="charity" id="charity_list" style="min-width: 150px;" class="form-control">
                                             <option value>Select</option>
                                                 @foreach ($charities as $charity)
                                                     <option value="{{ $charity->id }}">{{ $charity->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td width="150px">
+                                        <td width="200px">
                                             <input class="form-control donor" name="donor_acc[]"  placeholder="Type Acc no...">
                                         </td>
-                                        <td width="200px">
+                                        <td width="250px">
                                             <input style="min-width: 50px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value>
                                             <input type="hidden" name="donor[]"  class="donorid" value>
                                         </td>
-                                        <td width="100px">
+                                        <td width="250px">
                                             <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value>
                                         </td>
 
-                                        <td width="40px">
-                                            <input style="min-width: 30px;" name="amount[]" type="text" class="amount form-control" value>
+                                        <td width="30px">
+                                            <input style="min-width: 20px;" name="amount[]" type="text" class="amount form-control" value>
                                         </td>
                                         <td width="250px">
                                             <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value>
                                         </td>
+                                        <td width="150px">
+                                            <select name="waiting[]" class="form-control">
+                                                <option value="No">No</option>
+                                                <option value="Yes">Yes</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                     @endforelse
-
-
 
                                 </tbody>
                                 <tr>
@@ -157,7 +177,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
 <script>
     $('#charity_list').select2({
-      width: '200px',
+      width: '250px',
       placeholder: "Select charity",
       allowClear: true
     });
@@ -176,7 +196,7 @@
         $(document).ready(function() {
             $(".add-row").click(function() {
                 var markup =
-                    '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="150px"><input class="form-control donor" name="donor_acc[]" placeholder="Type Acc no..."></td><td width="200px"><input style="min-width:50px" type="text" name="donor_name[]" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" class="donorid" value></td><td width="100px"><input style="min-width:100px" name="check[]" type="text" class="check form-control" value></td> <td width="40px"><input style="min-width:30px" name="amount[]" type="text" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td></tr>';
+                    '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white; user-select:none;  padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input class="form-control donor" name="donor_acc[]" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:50px" type="text" name="donor_name[]" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" class="check form-control" value></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td> <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
                 $("table #inner ").append(markup);
             });
 
@@ -186,7 +206,6 @@
 
         var url = "{{URL::to('/admin/pvoucher-store')}}";
 
-        // $("#addvoucher").click(function(){
 
             $("body").delegate("#addvoucher","click",function(event){
                 event.preventDefault();
@@ -207,6 +226,9 @@
 
             var notes = $("input[name='note[]']")
               .map(function(){return $(this).val();}).get();
+
+            var waitings = $("select[name='waiting[]']")
+              .map(function(){return $(this).val();}).get();  
 
                 $.ajax({
                     url: url,
@@ -311,10 +333,10 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
         $("body").on("blur","input", function()
         {
-            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note") && !clicked.is("span#select2-charity_list-container.select2-selection__rendered")) {
+            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note") && !clicked.is(".waiting") && !clicked.is("span#select2-charity_list-container.select2-selection__rendered")) {
                 $("#barcode").focus();
             }
-        })
+        });
 
         $('#charity_list').on("select2:selecting", function(e) {
             $("#barcode").focus();

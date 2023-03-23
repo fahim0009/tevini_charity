@@ -156,9 +156,6 @@ $("#vsrCancel").click(function(){
         charityIds[i] = $(this).attr('charity_id');
     });    
 
-      console.log(charityIds);
-      console.log(voucherIds);
-
         $.ajax({
             url: urlc,
             method: "POST",

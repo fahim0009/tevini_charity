@@ -74,6 +74,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/waiting-voucher*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('waitingvoucher') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Waiting Vouchers
+                </a>
+            </li>
+
             <li class="nav-item {{ (request()->is('admin/order*')) ? 'active' : '' }}">
                 <a href="#">
                     <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>

@@ -9,6 +9,11 @@
             </div>
             <div class="ermsg"></div>
         </section>
+    <!-- Image loader -->
+    <div id='loading' style='display:none ;'>
+        <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+   </div>
+    <!-- Image loader -->
         <section class="">
             <div class="row  my-3 mx-0 ">
                 <div class=" col-md-12 bg-white px-4">
@@ -38,11 +43,11 @@
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td width="150px">
-                                            <input class="form-control donor" name="donor_acc[]" value="{{$voucher->donor_acc}}"  placeholder="Type Acc no...">
+                                        <td width="200px">
+                                            <input style="min-width: 100px;" class="form-control donor" name="donor_acc[]" value="{{$voucher->donor_acc}}"  placeholder="Type Acc no...">
                                         </td>
                                         <td width="200px">
-                                            <input style="min-width: 50px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="{{$voucher->donor_name}}">
+                                            <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="{{$voucher->donor_name}}">
                                             <input type="hidden" name="donor[]"  class="donorid" value="{{$voucher->donor_id}}">
                                         </td>
                                         <td width="100px">
@@ -54,10 +59,7 @@
                                         </td>
                                         <td width="250px">
                                             <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value="{{$voucher->note}}">
-                                        </td>
-                                        <td width="250px">
-                                            <input style="min-width: 200px;" name="waiting[]" type="checkbox" class="form-control waiting" value="{{$voucher->note}}">
-                                        </td>
+                                        </td>                
                                         <td width="150px">
                                             <select name="waiting[]" class="form-control">
                                                 <option value="No"  @if(isset($voucher->waiting) && $voucher->waiting == "No") selected @endif>No</option>
@@ -69,10 +71,10 @@
                                     <tr class="item-row" style="position:realative;">
                                         <td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td>
                                         <td width="150px">
-                                            <input class="form-control donor" name="donor_acc[]" value="{{$voucher->donor_acc}}"  placeholder="Type Acc no...">
+                                            <input style="min-width: 100px;" class="form-control donor" name="donor_acc[]" value="{{$voucher->donor_acc}}"  placeholder="Type Acc no...">
                                         </td>
                                         <td width="200px">
-                                            <input style="min-width: 50px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="{{$voucher->donor_name}}">
+                                            <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="{{$voucher->donor_name}}">
                                             <input type="hidden" name="donor[]"  class="donorid" value="{{$voucher->donor_id}}">
                                         </td>
                                         <td width="100px">
@@ -96,7 +98,7 @@
                                     @empty
                                     <tr class="item-row">
                                         <td width="230px">
-                                            <select name="charity" id="charity_list" style="min-width: 150px;" class="form-control">
+                                            <select name="charity" id="charity_list" style="min-width: 100px;" class="form-control">
                                             <option value>Select</option>
                                                 @foreach ($charities as $charity)
                                                     <option value="{{ $charity->id }}">{{ $charity->name }}</option>
@@ -104,18 +106,18 @@
                                             </select>
                                         </td>
                                         <td width="200px">
-                                            <input class="form-control donor" name="donor_acc[]"  placeholder="Type Acc no...">
+                                            <input style="min-width: 100px;" class="form-control donor" type="number" name="donor_acc[]"  placeholder="Type Acc no...">
                                         </td>
                                         <td width="250px">
-                                            <input style="min-width: 50px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value>
+                                            <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value>
                                             <input type="hidden" name="donor[]"  class="donorid" value>
                                         </td>
                                         <td width="250px">
                                             <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value>
                                         </td>
 
-                                        <td width="30px">
-                                            <input style="min-width: 20px;" name="amount[]" type="text" class="amount form-control" value>
+                                        <td width="250px">
+                                            <input style="min-width: 100px;" name="amount[]" type="text" class="form-control amount" value>
                                         </td>
                                         <td width="250px">
                                             <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value>
@@ -196,7 +198,7 @@
         $(document).ready(function() {
             $(".add-row").click(function() {
                 var markup =
-                    '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white; user-select:none;  padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input class="form-control donor" name="donor_acc[]" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:50px" type="text" name="donor_name[]" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" class="check form-control" value></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td> <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
+                    '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white; user-select:none;  padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" class="form-control donor" name="donor_acc[]" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" name="donor_name[]" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" class="check form-control" value></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td> <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
                 $("table #inner ").append(markup);
             });
 
@@ -209,6 +211,8 @@
 
             $("body").delegate("#addvoucher","click",function(event){
                 event.preventDefault();
+
+            $("#loading").show();    
 
             var charityId = $("select[name='charity']").val();
 
@@ -245,6 +249,9 @@
                             window.setTimeout(function(){window.location.href="https://www.tevini.co.uk/admin/process-voucher/"+d.batch_id},2000)
                         }
                     },
+                    complete:function(d){
+                        $("#loading").hide();
+                    },
                     error: function (d) {
                         console.log(d);
                     }
@@ -255,10 +262,10 @@
 // voucher draft
 var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
-// $("#addvoucher").click(function(){
-
     $("body").delegate("#Draftvoucher","click",function(event){
         event.preventDefault();
+
+    $("#loading").show();    
 
     var charityId = $("select[name='charity']").val();
 
@@ -297,6 +304,9 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                     pagetop();
                 }
             },
+            complete:function(d){
+                        $("#loading").hide();
+                    },
             error: function (d) {
                 console.log(d);
             }

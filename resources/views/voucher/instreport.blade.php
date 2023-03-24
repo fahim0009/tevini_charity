@@ -16,11 +16,11 @@ use app\Models\Provoucher;
             </div>
 
         </section>
-        <!-- Image loader -->
+    <!-- Image loader -->
     <div id='loading' style='display:none ;'>
         <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
    </div>
- <!-- Image loader -->
+    <!-- Image loader -->
  <div class="ermsg"></div>
         <section class="px-4">
 

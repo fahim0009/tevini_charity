@@ -11,6 +11,7 @@ use App\Http\Controllers\DonorController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\CharityController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Admin\AdminController;
@@ -121,6 +122,7 @@ Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, '
 // api
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
 Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
+Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 
 
 

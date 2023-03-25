@@ -22,6 +22,11 @@ class CharityController extends Controller
         return view('charity.index', compact('users'));
     }
 
+    public function charity_login_show()
+    {
+        return view('frontend.charity.charity_login');
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -196,4 +201,11 @@ class CharityController extends Controller
 
         return back();
     }
+
+
+
+  
+
+
+
 }

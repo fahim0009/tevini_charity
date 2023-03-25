@@ -18,6 +18,7 @@
                     <a href="{{ route('contact') }}">contact</a>
                     <a href="{{route('register')}}">open an account</a>
                     <a href="{{route('login')}}">log in</a>
+                    <a href="{{route('charity_loginshow')}}">Charity log in</a>
                 </div>
                 <p class="footer-bottom mt-3 mb-0">
                     <span class="mx-4">  5A Holmdale Terrace,    London, N15 6PP </span> | <span class="mx-4">PHONE: +44 7490956227</span>

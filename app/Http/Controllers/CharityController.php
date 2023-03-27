@@ -17,15 +17,10 @@ class CharityController extends Controller
      */
     public function index()
     {
-
         $users = Charity::orderBy('id','DESC')->get();
         return view('charity.index', compact('users'));
     }
 
-    public function charity_login_show()
-    {
-        return view('frontend.charity.charity_login');
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -202,6 +197,13 @@ class CharityController extends Controller
         return back();
     }
 
+
+    // charity function start 
+
+    public function charity_login_show()
+    {
+        return view('frontend.charity.charity_login');
+    }
 
     public function charityDashboard()
     {

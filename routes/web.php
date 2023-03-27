@@ -128,8 +128,9 @@ Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'ch
 
 // chatiry login
 Route::post('charity_login', [CharityAuthController::class, 'login'])->name('charity.login');
-
-// user part start
+Route::middleware(['auth:sanctum,charity', 'verified']);
+// charity part start
 Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
     Route::get('/dashboard', [CharityController::class, 'charityDashboard'])->name('charityDashboard');
+    Route::get('profile', [CharityController::class, 'profileShow'])->name('charity.profile');
 });

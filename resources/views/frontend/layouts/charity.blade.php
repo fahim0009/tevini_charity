@@ -35,13 +35,13 @@
     <div class="dashboard-wraper">
             {{-- sidebar start here  --}}
 
-            @include('frontend.inc.user_sidebar')
+            @include('frontend.inc.charity_sidebar')
         {{-- sidebar close here  --}}
 
         <div class="rightbar">
             <!--user header --   topbar -->
             {{-- topbar start here  --}}
-            @include('frontend.inc.user_header')
+            @include('frontend.inc.charity_header')
             {{-- topbar close here  --}}
 
             <!-- content area -->

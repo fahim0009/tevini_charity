@@ -208,7 +208,12 @@ class CharityController extends Controller
     public function charityDashboard()
     {
 
-        return view('charity.dashboard');
+        return view('frontend.charity.dashboard');
+    }
+
+    public function profileShow()
+    {
+        return view('frontend.charity.profile');
     }
 
   

@@ -19,7 +19,7 @@
                           <img src="{{ asset('assets/front/images/logo.svg') }}" width="190px"  class=" mx-auto d-none d-sm-block  d-lg-block"> 
                      </div>
                      <br> 
-                        <form method="POST" action="{{ route('login') }}" class="form-custom mt-5">
+                        <form method="POST" action="{{ route('charity.login') }}" class="form-custom mt-5">
                           @csrf
                           <div class="title text-center mb-5 txt-secondary">Charity Login</div>
                           @if(session()->has('error'))

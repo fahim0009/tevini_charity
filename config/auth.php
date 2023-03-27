@@ -46,6 +46,10 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+        'charity' => [
+            'driver' => 'session',
+            'provider' => 'charities',
+        ]
     ],
 
     /*
@@ -69,6 +73,12 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+
+        
+        'charities' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Charity::class,
         ],
 
         // 'users' => [

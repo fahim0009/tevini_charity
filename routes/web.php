@@ -14,6 +14,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\CharityController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripePaymentController;
+use App\Http\Controllers\CharityAuthController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -125,5 +126,10 @@ Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonatio
 Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 
 
+// chatiry login
+Route::post('charity_login', [CharityAuthController::class, 'login'])->name('charity.login');
 
-
+// user part start
+Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
+    Route::get('/dashboard', [CharityController::class, 'charityDashboard'])->name('charityDashboard');
+});

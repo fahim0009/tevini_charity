@@ -3,11 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Charity extends Model
+class Charity extends Authenticatable
 {
     use HasFactory;
+    use Notifiable;
+
+    protected $guard = 'charity';
 
     public function donation()
     {

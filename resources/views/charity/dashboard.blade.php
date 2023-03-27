@@ -1,0 +1,1 @@
+<h1>Charity dashboard {{ Auth::charity()->email }}</h1>

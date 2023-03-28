@@ -132,5 +132,8 @@ Route::middleware(['auth:sanctum,charity', 'verified']);
 // charity part start
 Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
     Route::get('/dashboard', [CharityController::class, 'charityDashboard'])->name('charityDashboard');
-    Route::get('profile', [CharityController::class, 'profileShow'])->name('charity.profile');
+    Route::get('/profile', [CharityController::class, 'profileShow'])->name('charity.profile');
+    Route::get('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard');
+    Route::post('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard_search');
+    Route::post('/profile', [CharityController::class, 'updateCharity_profile'])->name('charity_profileUpdate');
 });

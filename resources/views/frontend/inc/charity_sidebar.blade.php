@@ -3,9 +3,8 @@
         <img src="{{ asset('assets/user/images/logo.svg') }}" width="114px" class="mx-auto" alt="logo">
     </div>
     <ul class="navigation">
-        <li><a href="{{ route('user.dashboard') }}" class="{{ (request()->is('user/dashboard*')) ? 'nav-link current' : '' }}">Dashboard</a></li>
-        <li><a href="{{ route('user.makedonation') }}" class="{{ (request()->is('user/make-donation*')) ? 'nav-link current' : '' }}">Make a donation</a></li>
-        <li><a href="{{ route('user.donationrecord') }}" class="{{ (request()->is('user/donation-record*')) ? 'nav-link current' : '' }}">Donation Record</a></li>
+        <li><a href="{{ route('charityDashboard') }}" class="{{ (request()->is('charity/dashboard*')) ? 'nav-link current' : '' }}">Dashboard</a></li>
+        <li><a href="{{ route('tran_charity_dashboard') }}" class="{{ (request()->is('charity/charity-transaction*')) ? 'nav-link current' : '' }}">Transaction</a></li>
     </ul>
     <div class="bottom-part">
         <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="mt-2 d-flex justify-content-center txt-theme fw-bold align-items-center">

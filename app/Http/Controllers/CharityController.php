@@ -7,6 +7,12 @@ use App\Models\Commission;
 use App\Models\User;
 use App\Models\Charity;
 use Illuminate\Http\Request;
+use App\Models\Usertransaction;
+use Illuminate\support\Facades\Auth;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\Hash;
+
 
 class CharityController extends Controller
 {
@@ -214,6 +220,109 @@ class CharityController extends Controller
     public function profileShow()
     {
         return view('frontend.charity.profile');
+    }
+
+
+    public function updateCharity_profile(Request $request)
+    {
+
+        // $chkemail = Charity::where('email','=', $request->email)->whereNotIn('id', [auth('charity')->user()->id])->count();
+
+        // if( $chkemail > 0){
+        //     $message ="This email has already exists.";
+        //     return redirect()->route('user.profile')->with(['status'=> 303,'error'=> $message]);
+
+        // }
+
+        if ($request->password) {
+            if ($request->password != $request->cpassword) {
+                $message ="Password doesn't match!!";
+                return redirect()->route('charity.profile')->with(['status'=> 303,'error'=> $message]);
+            }
+        }
+
+
+
+        $charity = Charity::findOrFail(auth('charity')->user()->id);
+        $charity->name = $request->name;
+        $charity->number = $request->phone;
+        $charity->address = $request->address;
+        $charity->town = $request->town;
+        $charity->post_code = $request->postcode;
+
+   
+
+            // if ($request->image) {
+
+            //     $request->validate([
+            //         'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            //     ]);
+            //     $rand = mt_rand(100000, 999999);
+            //     $imageName = time(). $rand .'.'.$request->image->extension();
+            //     $request->image->move(public_path('images'), $imageName);
+            //     $userdata->photo= $imageName;
+            // }
+
+        if ($request->password) {
+            $charity->password= Hash::make($request->password);
+        }
+
+        if ($charity->save()) {
+            $message ="Profile Update Successfully";
+
+        return redirect()->route('charity.profile')->with(['status'=> 303,'message'=> $message]);
+        }
+        else{
+            return back()->with(['status'=> 303,'message'=>'Server Error!!']);
+        }
+
+    }
+
+    
+    public function charityTransaction(Request $request)
+    {
+
+        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
+            $fromDate = $request->input('fromDate');
+            $toDate   = $request->input('toDate');
+
+            $intransactions = Usertransaction::where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['t_type','=', 'Out'],
+                ['charity_id','=', auth('charity')->user()->id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+            $outtransactions = Transaction::where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['t_type','=', 'Out'],
+                ['charity_id','=', auth('charity')->user()->id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+        }else{
+
+            $intransactions = Usertransaction::where([
+                ['t_type','=', 'Out'],
+                ['charity_id','=', auth('charity')->user()->id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+            $outtransactions= Transaction::where([
+                ['t_type','=', 'Out'],
+                ['charity_id','=', auth('charity')->user()->id],
+                ['status','=', '1']
+            ])->orderBy('id','DESC')->get();
+
+        }
+
+
+
+        return view('frontend.charity.transaction')
+        ->with('intransactions',$intransactions)
+        ->with('outtransactions',$outtransactions);
     }
 
   

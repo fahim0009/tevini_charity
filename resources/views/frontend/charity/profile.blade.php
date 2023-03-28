@@ -35,16 +35,14 @@
                     <img class="img-fluid mt-3 mb-2" width="150px" src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg">
                      
                     {{-- <a href="#" class="txt-theme txt-secondary fs-14 my-2">Update profile picture</a> --}}
-                    {{-- <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data" >
-                        @csrf
-                    <input type="file" id="image" name="image" class="txt-theme txt-secondary fs-14 my-2"> --}}
+                    {{-- <input type="file" id="image" name="image" class="txt-theme txt-secondary fs-14 my-2"> --}}
                 </div>
 
                 <div class="col-lg-9 border-left-lg  pt-3  ">
                     <div class="col-lg-11 mx-auto">
                         
-
-
+                    <form action="{{ route('charity_profileUpdate') }}" method="POST" enctype="multipart/form-data" >
+                        @csrf
                             <div class="row mt-4">
                                 <div class="col-lg-6  ">
                                     <div class="form-group mb-3">
@@ -94,7 +92,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Postcode</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" id="postcode" name="postcode" placeholder="enter postcode" value="{{ auth('charity')->user()->postcode }}" readonly="readonly">
+                                            <input type="text" class="form-control" id="postcode" name="postcode" placeholder="enter postcode" value="{{ auth('charity')->user()->post_code }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -156,14 +154,13 @@
 
         $("body").delegate(".editBtn","click",function(event){
             event.preventDefault();
-            $("#name").attr("readonly", false);
-            $("#surname").attr("readonly", false);
+            // $("#name").attr("readonly", false);
             $("#phone").attr("readonly", false);
             $("#houseno").attr("readonly", false);
             $("#street").attr("readonly", false);
             $("#town").attr("readonly", false);
             $("#postcode").attr("readonly", false);
-            $("#email").attr("readonly", false);
+            // $("#email").attr("readonly", false);
             $("#password").attr("readonly", false);
             $("#cpassword").attr("readonly", false);
             $("#editBtn").hide();

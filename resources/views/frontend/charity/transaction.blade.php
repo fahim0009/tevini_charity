@@ -17,6 +17,10 @@ use Illuminate\Support\Carbon;
                   <button class="nav-link active" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Transaction In</button>
                   <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-transcationIn" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Transcation Out</button>
 
+                <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
+                        type="button" role="tab" aria-controls="pending" aria-selected="false">Pending
+                        transaction</button>
+
                 </div>
               </nav>
               <div class="tab-content" id="nav-tabContent">
@@ -84,6 +88,8 @@ use Illuminate\Support\Carbon;
                         </div>
                     </div>
                 </div>
+
+                {{-- transaction in  --}}
                 <div class="tab-pane fade" id="nav-transcationIn" role="tabpanel" aria-labelledby="nav-profile-tab">
                     <div class="row my-2">
                         <div class="col-md-12 my-3">
@@ -149,6 +155,53 @@ use Illuminate\Support\Carbon;
                         </div>
                     </div>
                 </div>
+
+        
+            {{-- Pending Transaction  --}}
+            <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+
+                <div class="data-container">
+                    <table class="table table-theme mt-4" id="exampleOut">
+                          <thead>
+                              <tr>
+                                <th>Date</th>
+                                <th>Transaction Id</th>
+                                <th>Reference/Voucher No</th>
+                                <th>Amount</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                            @foreach ($pending_transactions as $transaction)
+
+                                    <tr>
+                                        <td>{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{ $transaction->t_id }}</td>
+                                        <td>
+                                            @if ($transaction->title == "Voucher")
+                                            {{$transaction->cheque_no}}
+                                            @else
+                                            {{$transaction->t_id}}
+                                            @endif
+                                        </td>
+                                        <td>
+                                            £{{number_format($transaction->amount, 2)}}
+                                        </td>
+                                    </tr>
+
+
+                            @endforeach
+
+
+                          </tbody>
+                      </table>
+              </div>
+
+
+
+
+            </div>
+
+
 
               </div>
         </div>

@@ -302,6 +302,14 @@ class CharityController extends Controller
                 ['status','=', '1']
             ])->orderBy('id','DESC')->get();
 
+            $pending_transactions = Usertransaction::where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['t_type','=', 'Out'],
+                ['charity_id','=', auth('charity')->user()->id],
+                ['pending','=', '0']
+            ])->orderBy('id','DESC')->get();
+
         }else{
 
             $intransactions = Usertransaction::where([
@@ -316,13 +324,20 @@ class CharityController extends Controller
                 ['status','=', '1']
             ])->orderBy('id','DESC')->get();
 
+            $pending_transactions = Usertransaction::where([
+                ['t_type','=', 'Out'],
+                ['charity_id','=', auth('charity')->user()->id],
+                ['pending','=', '0']
+            ])->orderBy('id','DESC')->get();
+
+
         }
-
-
 
         return view('frontend.charity.transaction')
         ->with('intransactions',$intransactions)
-        ->with('outtransactions',$outtransactions);
+        ->with('outtransactions',$outtransactions)
+        ->with('pending_transactions',$pending_transactions);
+
     }
 
   

@@ -352,12 +352,12 @@ class OrderController extends Controller
                 $utransaction->amount =  $amounts[$key];
                 $utransaction->cheque_no =  $chqs[$key];
                 $utransaction->title =  "Voucher";
-                if($limitChk >= $amounts[$key]){
-                $utransaction->pending = 1;
-                $utransaction->status =  1;
+                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
+                $utransaction->pending = 0; //transaction pending e ase
+                $utransaction->status =  0; //status pending
                 }else{
-                $utransaction->pending = 0;
-                $utransaction->status =  0;
+                $utransaction->pending = 1; //transaction complete
+                $utransaction->status =  1; //status complete  
                 }
                 $utransaction->save();
 
@@ -370,10 +370,10 @@ class OrderController extends Controller
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
                 $pvsr->waiting = $waitings[$key];
-                if($limitChk >= $amounts[$key]){
-                    $pvsr->status = 1;
+                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
+                    $pvsr->status = 0;  //process voucher pending
                 }else{
-                    $pvsr->status = 0;
+                    $pvsr->status = 1;  //process voucher complete
                 }
                 $pvsr->tran_id =  $utransaction->id;
                 $pvsr->save();
@@ -756,13 +756,12 @@ class OrderController extends Controller
 
         $voucher = Provoucher::where('id',$voucher_id)->first();
 
-        $utransaction = Usertransaction::find($voucher->tran_id);
-        $utransaction->pending = '3';
-        $utransaction->save();
+        Usertransaction::where('id', $voucher->tran_id)->delete();
 
         $pstatus = Provoucher::find($voucher_id);
         $pstatus->status = 3;
         $pstatus->save();
+
         }
         foreach($result as $chrt_id => $vchr_ids)
         {
@@ -909,14 +908,13 @@ public function watingvoucherCancel(Request $request)
 
         $voucher = Provoucher::where('id',$voucher_id)->first();
 
-        $utransaction = Usertransaction::find($voucher->tran_id);
-        $utransaction->pending = '3';
-        $utransaction->save();
+        Usertransaction::where('id', $voucher->tran_id)->delete();
 
         $pstatus = Provoucher::find($voucher_id);
         $pstatus->status = 3;
         $pstatus->waiting = "Cancel";
         $pstatus->save();
+
         }
 
     //     foreach($result as $chrt_id => $vchr_ids)

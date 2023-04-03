@@ -64,9 +64,11 @@ use Illuminate\Support\Carbon;
                                     <thead>
                                         <tr>
                                             <th>Date</th>
+                                            <th>Donor</th>
                                             <th>Transaction Id</th>
                                             <th>Transaction Type</th>
                                             <th>Voucher Number</th>
+                                            <th>Notes</th>
                                             <th>Amount </th>
                                         </tr>
                                     </thead>
@@ -75,9 +77,11 @@ use Illuminate\Support\Carbon;
                                         @foreach ($intransactions as $transaction)
                                         <tr>
                                                 <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
+                                                <td>{{ $transaction->user->name }}</td>
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->title}}</td>
                                                 <td>{{ $transaction->cheque_no}}</td>
+                                                <td>{{ $transaction->note}}</td>
                                                 <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach

@@ -1,6 +1,6 @@
 @component('mail::message')
 
-<h3>Dear Mr {{$array['name']}},</h3>
+<h2>Dear Mr {{$array['name']}},</h2>
 
 <p>Thank you for your kind donation.</p>
 <p>Please check the attached.</p>

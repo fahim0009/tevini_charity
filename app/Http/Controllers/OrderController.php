@@ -19,6 +19,7 @@ use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use App\Mail\InstantReport;
 use App\Mail\PendingvReport;
+use App\Mail\WaitingvoucherReport;
 use Auth;
 use PDF;
 
@@ -943,6 +944,59 @@ public function watingvoucherCancel(Request $request)
     //     ->cc($contactmail)
     //     ->send(new PendingvReport($array));
     // }
+
+    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
+    return response()->json(['status'=> 300,'message'=>$message]);
+
+    }
+
+
+    public function watingvoucherMail(Request $request)
+    {
+     if(empty($request->voucherIds)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $array1 = $request->donorIds;
+        $array2 = $request->voucherIds;
+
+        $result = [];
+
+        $index = 0;
+        foreach( $array1 as $key => $value ){
+            $result[$value][] = $array2[$index];
+            $index++;
+        }
+
+
+        foreach($result as $donor_id => $vchr_ids)
+        {
+
+        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+        $donor = User::where('id','=',$donor_id)->first();
+
+        $pdf = PDF::loadView('invoices.waiting_vreport', compact('remittances','donor'));
+        $output = $pdf->output();
+        file_put_contents(public_path().'/invoices/'.'waiting_voucher_Report#'.$donor->id.'.pdf', $output);
+
+        $contactmail = ContactMail::where('id', 1)->first()->name;
+
+        $array['subject'] = 'Waiting Voucher Report';
+        $array['from'] = 'info@tevini.co.uk';
+        $array['cc'] = $contactmail;
+        $array['name'] = $donor->name;
+        $email = $donor->email;
+        $array['donor'] = $donor;
+        $array['file'] = public_path().'/invoices/waiting_voucher_Report#'.$donor->id.'.pdf';
+        $array['file_name'] = 'waiting_voucher_Report#'.$donor->id.'.pdf';
+        $array['subjectsingle'] = 'Report Placed - '.$donor->id;
+
+        Mail::to($email)
+        ->cc($contactmail)
+        ->send(new WaitingvoucherReport($array));
+        }
 
     $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);

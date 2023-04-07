@@ -15,6 +15,7 @@ use App\Http\Controllers\CharityController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\CharityAuthController;
+use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -67,6 +68,11 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
     Route::get('order-voucher-book', [OrderController::class, 'userOrderVoucherBook'])->name('user.orderbook');
     Route::get('order-history', [OrderController::class, 'userOrderview'])->name('user.orderhistory');
+
+    // voucher controller satart 
+    Route::get('process-voucher', [VoucherController::class, 'processed_Voucher_show'])->name('user.process_voucher');
+    Route::post('waiting-completeBydonor', [VoucherController::class, 'waiting_CompleteBydonor']);
+    Route::post('waiting-cancelBydonor', [VoucherController::class, 'waiting_CancelBydonor']);
 
 
     Route::get('my-report', [ReportController::class, 'userReport'])->name('user.report');

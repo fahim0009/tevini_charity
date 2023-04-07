@@ -998,7 +998,7 @@ public function watingvoucherCancel(Request $request)
         ->send(new WaitingvoucherReport($array));
         }
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
+    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Send mail to donor successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);
 
     }

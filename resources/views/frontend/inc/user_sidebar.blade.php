@@ -8,6 +8,7 @@
         <li><a href="{{ route('user.donationrecord') }}" class="{{ (request()->is('user/donation-record*')) ? 'nav-link current' : '' }}">Donation Record</a></li>
         <li><a href="{{ route('user.orderbook') }}" class="{{ (request()->is('user/order-voucher-book*')) ? 'nav-link current' : '' }}">Order voucher books</a></li>
         <li><a href="{{ route('user.orderhistory') }}" class="{{ (request()->is('user/order-history*')) ? 'nav-link current' : '' }}">Order Record</a></li>
+        <li><a href="{{ route('user.process_voucher') }}" class="{{ (request()->is('user/process-voucher*')) ? 'nav-link current' : '' }}">Waiting Voucher</a></li>
         <li><a href="{{ route('user.card')}}" class="{{ (request()->is('user/tevini-card*')) ? 'nav-link current' : '' }}">Tevini card</a></li>
         <li><a href="{{ route('user.transaction') }}" class="{{ (request()->is('user/transaction-view*')) ? 'nav-link current' : '' }}">View transactions</a></li>
         <li><a href="{{ route('user.standingorder') }}" class="{{ (request()->is('user/standing-order*')) ? 'nav-link current' : '' }}">Standing orders</a></li>

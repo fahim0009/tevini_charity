@@ -57,7 +57,7 @@ use Illuminate\Support\Carbon;
                                                         @if($voucher->waiting == "Yes") Waiting @endif
                                                         </td>
                                                         <td>
-                                                            <button class="btn btn-success rounded-pill vsrComplete" id="{{ $voucher->id }}" onclick="return confirm('Are you sure you want to confirm this?');" charity_id="{{ $voucher->charity_id }}" voucher_id="{{ $voucher->id }}" type="button">Confirm</button>
+                                                            <button class="btn btn-success rounded-pill vsrComplete" id="{{ $voucher->id }}" charity_id="{{ $voucher->charity_id }}" voucher_id="{{ $voucher->id }}" type="button">Confirm</button>
                                                             <button class="btn btn-danger rounded-pill vsrCancel" id="cancel{{ $voucher->id }}" charity_id="{{ $voucher->charity_id }}" voucher_id="{{  $voucher->id }}" type="button">Cancel</button>
                                                         </td>
         
@@ -99,7 +99,8 @@ use Illuminate\Support\Carbon;
     
     $(".vsrComplete").click(function(){
 
-        // confirm("Are you sure to confirm this?");
+        if (confirm("Are you sure you want to confirm this voucher?")) {
+
         $("#loading").show();
    
             var charity_id = $(this).attr('charity_id');
@@ -128,6 +129,10 @@ use Illuminate\Support\Carbon;
                     console.log(d);
                 }
             });
+
+            } else {
+            console.log("Execute cancelled by user.");
+             }
     
     });
     
@@ -136,6 +141,9 @@ use Illuminate\Support\Carbon;
     var urlc = "{{URL::to('/user/waiting-cancelBydonor')}}";
     
     $(".vsrCancel").click(function(){
+
+        if (confirm("Are you sure you want to cancel this voucher?")) {
+       
         $("#loading").show();
 
         var charity_id = $(this).attr('charity_id');
@@ -164,6 +172,10 @@ use Illuminate\Support\Carbon;
                     console.log(d);
                 }
             });
+
+            } else {
+                console.log("Execute cancelled by user.");
+            }
     
     });
     

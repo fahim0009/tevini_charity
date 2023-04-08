@@ -96,7 +96,7 @@ class VoucherController extends Controller
     //     ->send(new PendingvReport($array));
     // }
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
+    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher complete successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);
     
 }
@@ -151,7 +151,7 @@ public function waiting_CancelBydonor(Request $request)
     //     ->send(new PendingvReport($array));
     // }
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
+    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher cancel successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);
 
     }

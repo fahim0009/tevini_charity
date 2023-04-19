@@ -3,9 +3,9 @@
 
 <h2>Dear {{ $array['donor']->name}},</h2>
 
-<p>The waiting vouchers are listed in the attached file. Please check and confirm.</p>
+<p>The attached voucher is waiting for your confirmation, please click on the link to sign in to your Tevini account and confirm or decline the voucher in the 'pending confirmation' section.</p>
 
-<p>To confirm, please login to your dashboard and click on "Waiting Voucher" on the left side.</p>
+<p>If we do not hear from you within 7 working days of this email the voucher will automatically clear.</p>
 
 
 @component('mail::button', ['url' => url('https://www.tevini.co.uk/user/process-voucher')])

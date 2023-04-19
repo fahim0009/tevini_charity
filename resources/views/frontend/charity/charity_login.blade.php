@@ -28,7 +28,7 @@
                                   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                               </div>
                           @endif
-                          @error('email')
+                          @error('login')
                                   <div class="alert alert-danger alert-dismissible fade show alert-custom" role="alert">
                                       <strong>{{ $message }}</strong>
                                       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -44,7 +44,7 @@
 
 
                           <div class="form-group">
-                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email">
+                          <input id="login" type="text" class="form-control @error('login') is-invalid @enderror" name="login" value="{{ old('login') }}" required autofocus placeholder="Email or Account Number">
                           </div>
                           <div class="form-group">
                             <input id="password" type="password"  placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">

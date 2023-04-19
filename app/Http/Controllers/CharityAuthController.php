@@ -51,16 +51,24 @@ class CharityAuthController extends Controller
     public function login(Request $request)
     {
         $this->validate($request, [
-            'email' => 'required|email',
+            'login' => 'required|string',
             'password' => 'required',
         ]);
-
-        if(auth()->guard('charity')->attempt(['email' => $request->input('email'),  'password' => $request->input('password')])){
-
+    
+        $fieldType = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'acc_no';
+    
+        $loginData = [
+            $fieldType => $request->input('login'),
+            'password' => $request->input('password')
+        ];
+    
+        if(auth()->guard('charity')->attempt($loginData)){
             return redirect()->route('charityDashboard');
-
         }else {
-            return back()->with('error','Whoops! invalid email and password.');
+            return back()->with('error','Whoops! invalid email/ account no and password.');
         }
+
     }
+
+
 }

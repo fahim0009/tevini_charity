@@ -159,9 +159,13 @@ use app\Models\Provoucher;
                     </td>
                     <td>
                         @if($remittance->status == 1)
-                        Complete
+                        COMPLETE
+                        @elseif($remittance->status == 0 && $remittance->waiting == "Yes")
+                        AWAITING CONFIRMATION
+                        @elseif($remittance->status == 0 && $remittance->waiting == "No")
+                        PENDING
                         @elseif($remittance->status == 3)
-                        Cancel
+                        CANCEL
                         @endif
                     </td>
                     </tr>

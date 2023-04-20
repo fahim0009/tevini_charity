@@ -117,9 +117,13 @@ use app\Models\Provoucher;
                                         </td>
                                         <td>
                                             @if($data->status == 1)
-                                            Complete
-                                            @elseif($data->status == 0)
-                                            Pending
+                                            COMPLETE
+                                            @elseif($data->status == 0 && $data->waiting == "Yes")
+                                            AWAITING CONFIRMATION
+                                            @elseif($data->status == 0 && $data->waiting == "No")
+                                            PENDING
+                                            @elseif($data->status == 3)
+                                            CANCEL
                                             @endif
                                         </td>
                                     </tr>

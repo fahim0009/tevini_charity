@@ -47,6 +47,7 @@
                                             <th>Cheque No</th>
                                             <th>Note</th>
                                             <th>Amount</th>
+                                            <th>Image</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -62,10 +63,9 @@
                                                 <td>{{ $voucher->cheque_no}}</td>
                                                 <td>{{ $voucher->note}}</td>
                                                 <td>£{{ $voucher->amount}}</td>
+                                                <td><input type="file" id="image{{ $voucher->id }}" process_voucher_id="{{ $voucher->id }}" name="image{{ $voucher->id }}" class="txt-theme txt-secondary fs-14 my-2"></td>
                                                 <td>
                                                 @if($voucher->status == "0") Pending @endif
-                                                @if($voucher->status == "1") Complete @endif
-                                                @if($voucher->status == "3") Cancel @endif
                                                 </td>
 
                                         </tr>
@@ -176,6 +176,42 @@ $("#vsrCancel").click(function(){
                 console.log(d);
             }
         });
+
+});
+
+//upload image for send mail
+var urlimgadd = "{{URL::to('/admin/waiting-voucherimgadd')}}";
+$("input[type='file']").on("change", function() {
+    var image = $(this)[0].files[0];
+    var process_voucher_id = $(this).attr('process_voucher_id');
+    var formData = new FormData();
+    formData.append('image', image);
+    formData.append('process_voucher_id', process_voucher_id);
+
+        $.ajax({
+        url: urlimgadd,
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        contentType: false,
+        processData: false,
+        success: function (d) {
+            if (d.status == 303) {
+                $(".ermsg").html(d.message);
+                pagetop();
+            }else if(d.status == 300){
+                // $(".ermsg").html(d.message);
+                console.log(d.message);
+                pagetop();
+            }
+        },
+        complete:function(d){
+                    $("#loading").hide();
+                },
+        error: function (d) {
+            console.log(d);
+        }
+    });
 
 });
 

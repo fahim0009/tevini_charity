@@ -28,10 +28,21 @@ class WaitingvoucherReport extends Mailable
      */
     public function build()
     {
-        return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
-                    ->replyTo($this->array['cc'], 'Tevini')
-                    ->subject('Waiting voucher Report')
-                    ->attach($this->array['file'],['as'=>$this->array['file_name'], 'mime'=>'application/pdf'])
-                    ->markdown('mail.waiting_voucher');
+
+        $email = $this->markdown('mail.waiting_voucher');
+        $email->from('info@tevini.co.uk', 'Tevini.co.uk')
+              ->replyTo($this->array['cc'], 'Tevini')
+              ->subject('Waiting voucher Report')
+              ->attach($this->array['file'], ['as'=>$this->array['file_name'], 'mime'=>'application/pdf']);
+    
+        foreach ($this->array['image_attachments'] as $attachment) {
+            $email->attach($attachment['path'], ['as' => $attachment['name']]);
+        }
+    
+        return $email;
+
     }
+
+
+
 }

@@ -81,15 +81,7 @@
                                     </div>
                                 </div>
 
-                                {{-- <div class="col-lg-6" style="display: none">
-                                    <div class="form-group mb-3">
-                                        <label for="">Image</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="file" id="image" name="image" class="form-control">
-                                        </div>
-                                    </div>
-                                </div> --}}
-                                
+                               
                                 
                                 <div class="col-lg-6">
                                     <div class="form-group mb-3">

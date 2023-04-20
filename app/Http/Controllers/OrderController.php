@@ -17,6 +17,8 @@ use App\Models\Batchprov;
 use App\Models\Commission;
 use App\Models\Usertransaction;
 use App\Models\ContactMail;
+use App\Models\ProvouchersImages;
+
 use App\Mail\InstantReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingvoucherReport;
@@ -804,18 +806,18 @@ class OrderController extends Controller
             exit();
         }
 
-        $array1 = $request->charityIds;
-        $array2 = $request->voucherIds;
+        $donor_ids = $request->donorIds;
+        $voucher_ids = $request->voucherIds;
 
         $result = [];
 
         $index = 0;
-        foreach( $array1 as $key => $value ){
-            $result[$value][] = $array2[$index];
+        foreach( $donor_ids as $key => $value ){
+            $result[$value][] = $voucher_ids[$index];
             $index++;
         }
 
-        foreach($array2 as $key => $voucher_id)
+        foreach($voucher_ids as $key => $voucher_id)
         {
 
         $voucher = Provoucher::where('id',$voucher_id)->first();
@@ -893,18 +895,18 @@ public function watingvoucherCancel(Request $request)
             exit();
         }
 
-        $array1 = $request->charityIds;
-        $array2 = $request->voucherIds;
+        $donor_ids = $request->donorIds;
+        $voucher_ids = $request->voucherIds;
 
         $result = [];
 
         $index = 0;
-        foreach( $array1 as $key => $value ){
-            $result[$value][] = $array2[$index];
+        foreach( $donor_ids as $key => $value ){
+            $result[$value][] = $voucher_ids[$index];
             $index++;
         }
 
-        foreach($array2 as $key => $voucher_id)
+        foreach($voucher_ids as $key => $voucher_id)
         {
 
         $voucher = Provoucher::where('id',$voucher_id)->first();
@@ -950,6 +952,39 @@ public function watingvoucherCancel(Request $request)
 
     }
 
+    public function watingvoucherImageadd(Request $request)
+    {
+        $process_voucherId =$request->process_voucher_id;
+
+        $image_record = ProvouchersImages::where('provouchers_id', $process_voucherId)->first();
+
+        if ($image_record) {
+            $Old_image_path = public_path('images/waiting_voucher/'.$image_record->image_name);
+            unlink($Old_image_path);
+            $image_record->delete();
+        }
+
+        if ($request->image) {
+            $file = $request->image;
+            if($file != null){
+            $originalName = $file->getClientOriginalName();
+            $filename = $process_voucherId . '_' . $originalName;
+
+            $request->image->move(public_path('images/waiting_voucher'), $filename);
+
+            // Insert a record in the database with the unique filename and the unique ID
+            $image = new ProvouchersImages();
+            $image->image_name = $filename;
+            $image->provouchers_id = $process_voucherId;
+            $image->save();
+            }
+        }
+
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>File added successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
+
+    }
+
 
     public function watingvoucherMail(Request $request)
     {
@@ -959,20 +994,38 @@ public function watingvoucherCancel(Request $request)
             exit();
         }
 
-        $array1 = $request->donorIds;
-        $array2 = $request->voucherIds;
+        $donor_ids = $request->donorIds;
+        $voucher_ids = $request->voucherIds;
 
         $result = [];
 
         $index = 0;
-        foreach( $array1 as $key => $value ){
-            $result[$value][] = $array2[$index];
+        foreach( $donor_ids as $key => $value ){
+            $result[$value][] = $voucher_ids[$index];
             $index++;
         }
 
 
         foreach($result as $donor_id => $vchr_ids)
         {
+
+        $image_records = ProvouchersImages::whereIn('provouchers_id', $vchr_ids)->get(); 
+
+        $image_attachments = [];
+
+        foreach ($image_records as $image_record) {
+            $image_path = public_path('images/waiting_voucher/'.$image_record->image_name);
+    
+            if (file_exists($image_path)) {
+                // If the image file exists, add it as an attachment to the email
+                $image_attachments[] = [
+                    'path' => $image_path,
+                    'name' => $image_record->image_name,
+                ];
+            }
+        }
+
+
 
         $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
         $donor = User::where('id','=',$donor_id)->first();
@@ -989,6 +1042,7 @@ public function watingvoucherCancel(Request $request)
         $array['name'] = $donor->name;
         $email = $donor->email;
         $array['donor'] = $donor;
+        $array['image_attachments'] = $image_attachments;
         $array['file'] = public_path().'/invoices/waiting_voucher_Report#'.$donor->id.'.pdf';
         $array['file_name'] = 'waiting_voucher_Report#'.$donor->id.'.pdf';
         $array['subjectsingle'] = 'Report Placed - '.$donor->id;

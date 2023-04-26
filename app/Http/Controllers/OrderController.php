@@ -798,6 +798,8 @@ class OrderController extends Controller
 
     }
 
+    ///////////////// waiting voucher start ////////////////////
+
     public function watingvoucherComplete(Request $request)
     {
      if(empty($request->voucherIds)){

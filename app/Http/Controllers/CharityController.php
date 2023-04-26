@@ -52,6 +52,8 @@ class CharityController extends Controller
             'email' => 'required|email',
             'acc' => 'required',
             ]);
+          
+        $password = '111111';    
 
         $user = new Charity;
         $user->name = $request->name;
@@ -66,6 +68,9 @@ class CharityController extends Controller
           }else{
             $user->balance = $request->balance;
           }
+        if ($password) {
+            $user->password= Hash::make($password);
+        }   
         if($user->save()){
 
             $message ="Charity Created Successfully";
@@ -117,6 +122,15 @@ class CharityController extends Controller
             'acc_no' => 'required'
             ]);
 
+
+        if ($request->password) {
+            if ($request->password != $request->cpassword) {
+                $message ="Password doesn't match!!";
+                return redirect()->route('charitylist')->with(['status'=> 303,'error'=> $message]);
+            }
+        }
+
+
         $user = Charity::findOrFail($id);
         $user->name = $request->name;
         $user->email = $request->email;
@@ -125,6 +139,9 @@ class CharityController extends Controller
         $user->town = $request->town;
         $user->post_code = $request->post_code;
         $user->acc_no = $request->acc_no;
+        if ($request->password) {
+            $user->password= Hash::make($request->password);
+        }
         if($user->save()){
 
             $message ="Charity Update Successfully";

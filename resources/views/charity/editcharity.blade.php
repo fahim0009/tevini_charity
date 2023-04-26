@@ -36,7 +36,7 @@
                              <label for="">Post Code</label>
                             <input type="text" name="post_code" id="post_code" placeholder="" class="form-control @error('address') is-invalid @enderror" value="{{ $users->post_code }}">
                          </div>
-    
+
 
                     </div>
                     <div class="col-md-6  my-4  bg-white">
@@ -53,6 +53,14 @@
                         <div class="col my-3">
                             <label for="">Charity Number</label>
                            <input type="text" name="acc_no" id="acc_no" placeholder="Account no" class="form-control @error('address') is-invalid @enderror"  value="{{ $users->acc_no }}">
+                        </div>
+                        <div class="col my-3">
+                            <label for="password">Password</label>
+                           <input type="password" name="password" id="password" placeholder="Password" class="form-control">
+                        </div>                       
+                        <div class="col my-3">
+                            <label for="cpassword">Confirm Password</label>
+                           <input type="password" name="cpassword" id="cpassword" placeholder="Confirm Password" class="form-control">
                         </div>
                     </div>
                     <div class="col-md-6">

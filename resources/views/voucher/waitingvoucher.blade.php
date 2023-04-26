@@ -112,13 +112,18 @@ $("#vsrComplete").click(function(){
     var charityIds = [];    
     $('.getvid:checkbox:checked').each(function(i){
         charityIds[i] = $(this).attr('charity_id');
-    });        
+    });
+    
+    var donorIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        donorIds[i] = $(this).attr('donor_id');
+    });  
 
 
         $.ajax({
             url: url,
             method: "POST",
-            data: {voucherIds,charityIds},
+            data: {voucherIds,charityIds,donorIds},
 
             success: function (d) {
                 if (d.status == 303) {
@@ -126,6 +131,7 @@ $("#vsrComplete").click(function(){
                     pagetop();
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
+                    location.reload();
                     pagetop();
                 }
             },
@@ -153,12 +159,17 @@ $("#vsrCancel").click(function(){
     var charityIds = [];    
     $('.getvid:checkbox:checked').each(function(i){
         charityIds[i] = $(this).attr('charity_id');
-    });    
+    });
+    
+    var donorIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        donorIds[i] = $(this).attr('donor_id');
+    });  
 
         $.ajax({
             url: urlc,
             method: "POST",
-            data: {voucherIds,charityIds},
+            data: {voucherIds,charityIds,donorIds},
 
             success: function (d) {
                 if (d.status == 303) {
@@ -166,6 +177,7 @@ $("#vsrCancel").click(function(){
                     pagetop();
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
+                    location.reload();
                     pagetop();
                 }
             },
@@ -246,6 +258,7 @@ $("#vsrMail").click(function(){
                     pagetop();
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
+                    location.reload();
                     pagetop();
                 }
             },

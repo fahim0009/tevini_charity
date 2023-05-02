@@ -809,12 +809,13 @@ class OrderController extends Controller
         }
 
         $donor_ids = $request->donorIds;
+        $charity_ids = $request->charityIds;
         $voucher_ids = $request->voucherIds;
 
         $result = [];
 
         $index = 0;
-        foreach( $donor_ids as $key => $value ){
+        foreach( $charity_ids as $key => $value ){
             $result[$value][] = $voucher_ids[$index];
             $index++;
         }
@@ -856,32 +857,32 @@ class OrderController extends Controller
             }   
         }
 
-    //     foreach($result as $chrt_id => $vchr_ids)
-    //     {
+        foreach($result as $chrt_id => $vchr_ids)
+        {
 
-    //     $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-    //     $charity = Charity::where('id','=',$chrt_id)->first();
+        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+        $charity = Charity::where('id','=',$chrt_id)->first();
 
-    //     $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
-    //     $output = $pdf->output();
-    //     file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
+        $pdf = PDF::loadView('invoices.waiting_vouchercomplete', compact('remittances','charity'));
+        $output = $pdf->output();
+        file_put_contents(public_path().'/invoices/'.'confirm_waiting_voucher#'.$charity->id.'.pdf', $output);
 
-    //     $contactmail = ContactMail::where('id', 1)->first()->name;
+        $contactmail = ContactMail::where('id', 1)->first()->name;
 
-    //     $array['subject'] = 'Remittance Report';
-    //     $array['from'] = 'info@tevini.co.uk';
-    //     $array['cc'] = $contactmail;
-    //     $array['name'] = $charity->name;
-    //     $email = $charity->email;
-    //     $array['charity'] = $charity;
-    //     $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
-    //     $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
-    //     $array['subjectsingle'] = 'Report Placed - '.$charity->id;
+        $array['subject'] = 'Remittance Report';
+        $array['from'] = 'info@tevini.co.uk';
+        $array['cc'] = $contactmail;
+        $array['name'] = $charity->name;
+        $email = $charity->email;
+        $array['charity'] = $charity;
+        $array['file'] = public_path().'/invoices/confirm_waiting_voucher#'.$charity->id.'.pdf';
+        $array['file_name'] = 'confirm_waiting_voucher#'.$charity->id.'.pdf';
+        $array['subjectsingle'] = 'Report Placed - '.$charity->id;
 
-    //     Mail::to($email)
-    //     ->cc($contactmail)
-    //     ->send(new PendingvReport($array));
-    // }
+        Mail::to($email)
+        ->cc($contactmail)
+        ->send(new PendingvReport($array));
+    }
 
     $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);

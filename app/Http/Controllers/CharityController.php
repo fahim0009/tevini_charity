@@ -176,6 +176,28 @@ class CharityController extends Controller
         }
     }
 
+    public function activeCharity(Request $request)
+    {
+        $data = Charity::find($request->id);
+        $data->status = $request->status;
+        $data->save();
+
+        if($request->status==1){
+            $active = Charity::find($request->id);
+            $active->status = $request->status;
+            $active->save();
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }else{
+            $deactive = Charity::find($request->id);
+            $deactive->status = $request->status;
+            $deactive->save();
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+
+    }
+
 
     public function topup($id)
     {

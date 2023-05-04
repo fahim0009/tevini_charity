@@ -100,6 +100,7 @@
 
         <section id="contentContainer">
             <div class="row my-3">
+                <div class="stsermsg"></div>
 
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
@@ -114,6 +115,7 @@
                                     <th>Post Code</th>
                                     <th>Charity Number</th>
                                     <th>Balance</th>
+                                    <th>Status</th>
                                     <th>Action </th>
                                 </tr>
                             </thead>
@@ -128,6 +130,11 @@
                                         <td>{{$user->post_code}}</td>
                                         <td>{{$user->acc_no}}</td>
                                         <td>£{{$user->balance}}</td>
+                                        <td style="text-align: center">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input campaignstatus" type="checkbox" role="switch"  data-id="{{$user->id}}" id="campaignstatus" @if ($user->status == 1) checked @endif >
+                                            </div>
+                                        </td>
                                         <td>
                                         <div class="d-flex justify-content-center align-items-center flex-column text-white">
                                              <a class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1" href="{{ route('charity.pay',$user->id) }}" target="blank">
@@ -163,7 +170,37 @@
 @endsection
 
 @section('script')
-
+<script>
+    $(function() {
+      $('.campaignstatus').change(function() {
+        var url = "{{URL::to('/admin/active-charity')}}";
+          var status = $(this).prop('checked') == true ? 1 : 0;
+          var id = $(this).data('id');
+           console.log(id);
+          $.ajax({
+              type: "GET",
+              dataType: "json",
+              url: url,
+              data: {'status': status, 'id': id},
+              success: function(d){
+                // console.log(data.success)
+                if (d.status == 303) {
+                        pagetop();
+                        $(".stsermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }else if(d.status == 300){
+                        pagetop();
+                        $(".stsermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+          });
+      })
+    })
+</script>
 <script>
     $(document).ready(function () {
 

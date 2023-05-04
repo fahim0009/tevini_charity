@@ -57,19 +57,37 @@ class CharityAuthController extends Controller
             'login' => 'required|string',
             'password' => 'required',
         ]);
+
+        $input = $request->all();
+
+        $chksts = Charity::where('email', $input['login'])->orwhere('acc_no',$input['login'])->first();
+        if ($chksts) {
+            if ($chksts->status == 1) {
+                
+                $fieldType = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'acc_no';
     
-        $fieldType = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'acc_no';
-    
-        $loginData = [
-            $fieldType => $request->input('login'),
-            'password' => $request->input('password')
-        ];
-    
-        if(auth()->guard('charity')->attempt($loginData)){
-            return redirect()->route('charityDashboard');
+                $loginData = [
+                    $fieldType => $request->input('login'),
+                    'password' => $request->input('password')
+                ];
+            
+                if(auth()->guard('charity')->attempt($loginData)){
+                    return redirect()->route('charityDashboard');
+                }else {
+                    return back()->with('error','Whoops! invalid email/ account no and password.');
+                }
+
+            }else{
+                return view('frontend.charity.charity_login')
+                ->with('message','Your ID is Deactive.');
+            }
         }else {
-            return back()->with('error','Whoops! invalid email/ account no and password.');
+            return view('frontend.charity.charity_login')
+                ->with('message','Credential Error. You are not authenticate user.');
         }
+        
+    
+        
 
     }
 

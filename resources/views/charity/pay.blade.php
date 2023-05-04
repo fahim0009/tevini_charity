@@ -1,8 +1,5 @@
 @extends('layouts.admin')
-
 @section('content')
-
-
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -11,7 +8,7 @@
             <a href="{{ route('charitylist') }}"><button type="button" class="btn btn-success">back</button></a>
         </div>
     </section>
-    <!-- Image loader -->
+<!-- Image loader -->
     {{-- <div id='loading' style='display:none ;'>
         <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
    </div> --}}
@@ -73,7 +70,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <form class="form-inline" method="POST" action="{{ route('charity.pay.store') }}"  enctype="multipart/form-data">
+                    <form class="form-inline" id="payForm" method="POST" action="{{ route('charity.pay.store') }}"  enctype="multipart/form-data">
                             @csrf
                         <div class="row">
                             <div class="col-md-2"></div>
@@ -95,8 +92,8 @@
                                 </select>
                                 </div>
                                 <input type="hidden" name="topupid" id="topupid" value="{{ $charity->id }}">
-                                    <div class="form-group my-2">
-                                    <button type="submit" class="my-2 btn btn-sm btn-info text-white">Add</button>
+                                <div class="form-group my-2">
+                                    <button type="submit" id="payBtn" class="my-2 btn btn-sm btn-info text-white">Add</button>
                                 </div>
                             </div>
                         </div>
@@ -107,5 +104,19 @@
     </div>
   </section>
 </div>
-
 @endsection
+
+@section('script')
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#payForm").submit(function(){
+
+        $("#payBtn").prop("disabled", true).css("cursor", "progress");
+
+
+    });
+    
+ });
+</script>
+@endsection
+

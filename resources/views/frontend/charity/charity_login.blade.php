@@ -41,6 +41,12 @@
                                   </div>
                           @enderror
 
+                          @if (isset($message))
+                                <span class="login-head" role="alert">
+                                    <strong><p style="color: red">{{ $message }}</p></strong>
+                                </span>
+                            @endif
+
 
 
                           <div class="form-group">

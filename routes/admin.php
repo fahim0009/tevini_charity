@@ -124,6 +124,10 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/faq', [HomepageController::class, 'faq'])->name('faq');
     Route::get('/settings', [HomepageController::class, 'adminSettings'])->name('admin.settings');
 
+    
+    // active deactive charity
+    Route::get('active-charity', [CharityController::class, 'activeCharity']);
+
     // topup
     Route::get('/topup/{id}/{amount}', [DonorController::class, 'topup'])->name('topup');
     Route::post('/topupstore', [DonorController::class, 'topupStore'])->name('topup.store');

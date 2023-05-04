@@ -6,13 +6,17 @@ use App\Models\Transaction;
 use App\Models\Commission;
 use App\Models\User;
 use App\Models\Charity;
-use Illuminate\Http\Request;
+use App\Models\ContactMail;
 use App\Models\Usertransaction;
+
+use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
+use App\Mail\CharitypayReport;
 
 class CharityController extends Controller
 {
@@ -221,9 +225,12 @@ class CharityController extends Controller
 
     public function payStore(Request $request)
     {
-        $user = Charity::find($request->topupid);
-        $user->decrement('balance',$request->balance);
+        $charity_bal = Charity::find($request->topupid);
+        $charity_bal->decrement('balance',$request->balance);
         $t_id = time() . "-" . $request->topupid;
+
+        $charity = Charity::where('id','=',$request->topupid)->first();
+
 
             $transaction = new Transaction();
             $transaction->t_id = $t_id;
@@ -234,6 +241,24 @@ class CharityController extends Controller
             $transaction->note = $request->note;
             $transaction->status = "1";
             $transaction->save();
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+    
+            $array['subject'] = 'Payment Confirmmation';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $array['name'] = $charity->name;
+            $email = $charity->email;
+            $array['charity'] = $charity;
+            $array['amount'] = $request->balance;
+            $array['note'] = $request->note;
+            $array['t_id'] = $t_id;
+            $array['subjectsingle'] = 'Report Placed - '.$charity->name;
+    
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new CharitypayReport($array));
+
 
             $message ="Amount pay Successfully. Transaction id is: ". $t_id;
             return back()->with('message', $message);

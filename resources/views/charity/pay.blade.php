@@ -11,6 +11,11 @@
             <a href="{{ route('charitylist') }}"><button type="button" class="btn btn-success">back</button></a>
         </div>
     </section>
+    <!-- Image loader -->
+    {{-- <div id='loading' style='display:none ;'>
+        <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+   </div> --}}
+ <!-- Image loader -->
     @if(session()->has('message'))
         <section class="px-4">
             <div class="row my-3">

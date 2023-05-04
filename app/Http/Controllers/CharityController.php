@@ -244,7 +244,7 @@ class CharityController extends Controller
 
             $contactmail = ContactMail::where('id', 1)->first()->name;
     
-            $array['subject'] = 'Payment Confirmmation';
+            $array['subject'] = 'Payment Confirmation';
             $array['from'] = 'info@tevini.co.uk';
             $array['cc'] = $contactmail;
             $array['name'] = $charity->name;

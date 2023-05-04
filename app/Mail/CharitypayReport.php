@@ -30,7 +30,7 @@ class CharitypayReport extends Mailable
     {
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
                     ->replyTo($this->array['cc'], 'Tevini')
-                    ->subject('Payment Confirmmation')
+                    ->subject('Payment Confirmation')
                     ->markdown('mail.charitypayment');
     }
 }

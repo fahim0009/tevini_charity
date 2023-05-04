@@ -6,6 +6,9 @@ use App\Models\Charity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Redirect;
 
 class CharityAuthController extends Controller
 {
@@ -68,6 +71,44 @@ class CharityAuthController extends Controller
             return back()->with('error','Whoops! invalid email/ account no and password.');
         }
 
+    }
+
+    public function charityRegistraion()
+    {
+        return view('frontend.charity.charity_register');
+    }
+
+    public function charityRegistraionStore(Request $request)
+    {
+
+        $this->validate($request,[
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:charities'],
+            'phone' => 'required',
+            'password' => ['required','min:6'],
+            'confirm_password' => 'required|same:password',
+        ]);
+        
+        $data = new Charity();
+        $data->name = $request->name;
+        $data->email = $request->email;
+        $data->address = $request->address;
+        $data->town = $request->town;
+        $data->number = $request->phone;
+        $data->post_code = $request->postcode;
+        $data->password = Hash::make($request->password);
+
+        if(isset($request->bank_statement)){
+            $rand = mt_rand(100000, 999999);
+            $imageName = time(). $rand .'.'.$request->bank_statement->extension();
+            $request->bank_statement->move(public_path('images'), $imageName);
+            $data->bank_statement= $imageName;
+        }
+
+        $data->save();
+        // return redirect()->route('login');
+        // return back()->with('message', "Charity Registration Successful. Please Login"); 
+        return Redirect::back()->withErrors(['msg' => 'Charity Registration Successful.']);
     }
 
 

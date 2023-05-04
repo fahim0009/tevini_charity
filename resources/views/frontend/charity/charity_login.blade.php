@@ -70,7 +70,7 @@
                           </div>
                           <div class="form-group d-flex justify-content-center">
                               <span class="txt-primary fs-20 me-2 ">or</span>
-                               <a href="{{ route('register') }}" class="theme-link"> Apply for an account</a>
+                               <a href="{{ route('charity.register') }}" class="theme-link"> Apply for an account</a>
                           </div>
                       </form>
                   </div>

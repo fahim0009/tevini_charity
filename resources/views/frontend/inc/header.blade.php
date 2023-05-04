@@ -28,9 +28,22 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('contact') }}">Contact </a>
                         </li>
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <a class="nav-link" href="{{ route('register') }}">Open an account</a>
+                        </li> --}}
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fw-bold" href="#" id="navbarDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Open an account
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{{ route('register') }}">Register as Donor</a></li>
+                                <li><a class="dropdown-item" href="{{ route('charity.register') }}">Register as Charity</a></li>
+                            </ul>
                         </li>
+
+
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle fw-bold" href="#" id="navbarDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">

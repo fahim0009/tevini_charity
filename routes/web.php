@@ -134,6 +134,12 @@ Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'ch
 
 // chatiry login
 Route::post('charity_login', [CharityAuthController::class, 'login'])->name('charity.login');
+
+// charity registration
+Route::get('charity-registration', [CharityAuthController::class, 'charityRegistraion'])->name('charity.register');
+Route::post('charity-registration', [CharityAuthController::class, 'charityRegistraionStore'])->name('charity.registration');
+
+
 Route::middleware(['auth:sanctum,charity', 'verified']);
 // charity part start
 Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){

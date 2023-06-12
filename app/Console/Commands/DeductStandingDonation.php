@@ -48,16 +48,16 @@ class DeductStandingDonation extends Command
     public function handle()
     {
 
-        $dt = Carbon::now();
-        $current_date = $dt->date; // sub month will change in every month
+        // $dt = Carbon::now();
+        $current_date = now()->format('Y-m-d'); // current date with server format
 
-        $activestand_orders = StandingDonation::where('status', '1')->orderBy('id', 'desc')->first();
+        $activestand_orders = StandingDonation::where('status', '=' ,'1')->orderBy('id','DESC')->get();
 
+        
         foreach($activestand_orders as $activestand_order)
         {
             
-
-            $donationdetails = StandingdonationDetail::where('standing_donation_id', $activestand_orders->id)->orderBy('id', 'desc')->first();
+            $donationdetails = StandingdonationDetail::where('standing_donation_id', '=' , $activestand_order->id)->orderBy('id', 'desc')->first();
 
                 if(isset($donationdetails)){
                     $start_date = $donationdetails->instalment_date;
@@ -65,9 +65,10 @@ class DeductStandingDonation extends Command
                     $start_date = $activestand_order->starting;
                 }
 
-                $instalment_date = $start_date->addMonth($activestand_order->iterval);
-
-
+                $start_date_carbon = Carbon::parse($start_date);
+                $instalment_date_carbon = $start_date_carbon->addMonths($activestand_order->interval);
+                $instalment_date = $instalment_date_carbon->format('Y-m-d');
+                
                 if($activestand_order->payments == 2){
 
 
@@ -75,7 +76,7 @@ class DeductStandingDonation extends Command
 
                                 $doncaldetl = new StandingdonationDetail;
                                 $doncaldetl->standing_donation_id = $activestand_order->id;
-                                $doncaldetl->donor_id = $activestand_order->user_id;
+                                $doncaldetl->user_id = $activestand_order->user_id;
                                 $doncaldetl->charity_id = $activestand_order->charity_id;
                                 $doncaldetl->amount = $activestand_order->amount;
                                 $doncaldetl->instalment_date = $instalment_date;
@@ -83,15 +84,23 @@ class DeductStandingDonation extends Command
                                 $doncaldetl->status = 0;
                                 $doncaldetl->save();
 
+                                $user = User::find($activestand_order->user_id);
+                                $user->decrement('balance',$activestand_order->amount);
+                                $user->save();
+        
+                                $charity = Charity::find($activestand_order->charity_id);
+                                $charity->increment('balance',$activestand_order->amount);
+                                $charity->save();
+
                     }
 
                 }elseif($activestand_order->payments == 1){
 
-                    if (($current_date >= $instalment_date) && ($current_date >= $instalment_date)) {
+                    if (($current_date >= $instalment_date) && ($activestand_order->payment_made < $activestand_order->number_payments)) {
 
                         $doncaldetl = new StandingdonationDetail;
                         $doncaldetl->standing_donation_id = $activestand_order->id;
-                        $doncaldetl->donor_id = $activestand_order->user_id;
+                        $doncaldetl->user_id = $activestand_order->user_id;
                         $doncaldetl->charity_id = $activestand_order->charity_id;
                         $doncaldetl->amount = $activestand_order->amount;
                         $doncaldetl->instalment_date = $instalment_date;
@@ -99,7 +108,19 @@ class DeductStandingDonation extends Command
                         $doncaldetl->status = 0;
                         $doncaldetl->save();
 
-            }
+                        $user = User::find($activestand_order->user_id);
+                        $user->decrement('balance',$activestand_order->amount);
+                        $user->save();
+
+                        $charity = Charity::find($activestand_order->charity_id);
+                        $charity->increment('balance',$activestand_order->amount);
+                        $charity->save();
+
+                        $standing_order = StandingDonation::find($activestand_order->id);
+                        $standing_order->increment('payment_made',1);
+                        $standing_order->save();
+
+                 }
 
 
                 }

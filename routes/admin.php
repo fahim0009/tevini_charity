@@ -184,6 +184,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/donation/standing', [DonationController::class, 'donationStanding'])->name('donationstanding');
     // active deactive standing order
     Route::post('active-standingdonation', [DonationController::class, 'activeStandingdnsn']);
+    Route::get('test-std', [DonationController::class, 'stdTest']);
 
 
 

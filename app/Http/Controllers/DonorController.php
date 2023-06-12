@@ -776,15 +776,6 @@ class DonorController extends Controller
         return view('donor.donationlist',compact('donation'));
     }
 
-    public function donationStanding()
-    {
-        $donation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['status','=','0']
-        ])->get();
-        return view('donor.standing',compact('donation'));
-    }
-
     public function donationRecord()
     {
         $donation = Donation::where([

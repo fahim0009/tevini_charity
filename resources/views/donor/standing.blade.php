@@ -40,7 +40,7 @@
 
         <section class="px-4"  id="contentContainer">
             <div class="row my-3">
-
+                <div class="stsermsg"></div>
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
                         <div class="table-responsive">
@@ -52,11 +52,10 @@
                                     <th>Beneficiary</th>
                                     <th>amount</th>
                                     <th>Annonymous Donation</th>
-                                    <th>Standing Order</th>
                                     <th>Starting</th>
                                     <th>Interval</th>
+                                    <th>Number of Payments</th>
                                     <th>Charity Note</th>
-                                    <!--<th>Topup</th>-->
                                     <th>Note</th>
                                     <th>Status</th>
                                 </tr>
@@ -76,18 +75,23 @@
                                         @else
                                             No
                                         @endif</td>
-                                        <td>@if ($data->standing_order == "true")
-                                            Yes
-                                        @else
-                                            No
-                                        @endif</td>
                                         <td>{{$data->starting}}</td>
                                         <td>{{$data->interval}}</td>
+                                        @if ($data->payments == 1)
+                                        <td>{{$data->number_payments}}</td>
+                                        @else
+                                        <td>Continuous payments</td>
+                                        @endif
                                         <td>{{$data->charitynote}}</td>
                                         <!--<td> <a href="{{ route('topup',[$data->user->id,$data->amount]) }}" target="blank">-->
                                         <!--    <button type="button" class="btn btn-success">Add</button></a> </td>-->
                                         <td>{{$data->mynote}}</td>
-                                        <td>Pending</td>
+                                        <td style="text-align: center">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input standingdnstatus" type="checkbox" role="switch"  data-id="{{$data->id}}" @if ($data->status == 1) checked @endif >
+                                            </div>
+                                        </td>
+                                        {{-- <td>Pending</td> --}}
 
                                     </tr>
                                 @empty
@@ -112,6 +116,40 @@
 @endsection
 
 @section('script')
+<script>
+ $(document).ready(function () {
+//header for csrf-token is must in laravel
+ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
+    $(function() {
+      $('.standingdnstatus').change(function() {
+        var url = "{{URL::to('/admin/active-standingdonation')}}";
+          var status = $(this).prop('checked') == true ? 1 : 0;
+          var id = $(this).data('id');
+
+          $.ajax({
+              url: url,
+              method: "POST",
+              data: {'status': status, 'id': id},
+              success: function(d){
+                if (d.status == 303) {
+                        pagetop();
+                        $(".stsermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }else if(d.status == 300){
+                        pagetop();
+                        $(".stsermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+          });
+      })
+    })
+
+});
+</script>
 
 @endsection

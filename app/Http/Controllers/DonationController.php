@@ -3,10 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+
+use App\Models\StandingDonation;
 use App\Models\DonationCalculator;
 use App\Models\DonationDetail;
 use App\Models\OtherDonation;
+use App\Models\Charity;
+use App\Models\User;
+use App\Models\Donation;
+use App\Models\OverdrawnRecord;
+use App\Models\Transaction;
 use App\Models\Usertransaction;
+use App\Models\ContactMail;
+use App\Mail\TopupReport;
+use App\Mail\DonationReport;
+use App\Mail\DonationstandingReport;
+use App\Mail\DonerReport;
+use App\Mail\DonationreportCharity;
 use Carbon\Carbon;
 use Auth;
 
@@ -364,7 +378,137 @@ class DonationController extends Controller
     }
 
 
+    // standing order start 
 
+    public function userStantingDonationStore(Request $request)
+    {
+
+
+        if(empty($request->charity_id)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->amount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        if($request->c_donation == "false"){
+            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $data = new StandingDonation;
+        $data->user_id = Auth::user()->id;
+        $data->charity_id = $request->charity_id;
+        $data->amount = $request->amount;
+        $data->currency = "GBP";
+        $data->ano_donation = $request->ano_donation;
+        $data->standing_order = $request->standard;
+        $data->payments = $request->payments_type;
+        $data->number_payments = $request->number_payments;
+        $data->starting = $request->starting;
+        $data->interval = $request->interval;   
+        $data->charitynote = $request->charitynote;
+        $data->mynote = $request->mynote;
+        $data->notification = 1;
+        $data->status = 0;
+
+        if($data->save()){
+
+            // $utransaction = new Usertransaction();
+            // $utransaction->t_id = time() . "-" . Auth::user()->id;
+            // $utransaction->user_id = Auth::user()->id;
+            // $utransaction->charity_id = $request->charity_id;
+            // $utransaction->donation_id = $data->id;
+            // $utransaction->t_type = "Out";
+            // $utransaction->amount =  $request->amount;
+            // $utransaction->title =  "Online Donation";
+            // $utransaction->status =  1;
+            // $utransaction->save();
+
+            // $user = User::find(Auth::user()->id);
+            // $user->decrement('balance',$request->amount);
+            // $user->save();
+
+            // $charity = Charity::find($request->charity_id);
+            // $charity->increment('balance',$request->amount);
+            // $charity->save();
+
+            $user = User::where('id',Auth::user()->id)->first();
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $charity = Charity::where('id',$request->charity_id)->first();
+            $donation = StandingDonation::where('id',$data->id)->first();
+
+            // charity mail
+            // $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
+            // $output = $pdf->output();
+            // file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
+            // $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
+            // $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
+            // $array['cc'] = $contactmail;
+            // $array['charity'] = $charity;
+            // $array['user'] = $user;
+            // $email = $charity->email;
+
+            // Mail::to($email)
+            // ->cc($contactmail)
+            // ->send(new DonationreportCharity($array));
+
+
+            $array['name'] = $user->name;
+            $array['donation'] = $donation;
+            $array['cc'] = $contactmail;
+            $array['client_no'] = $user->accountno;
+            $email = $user->email;
+            $array['amount'] = $request->amount;
+            $array['charity_note'] = $request->charitynote;
+            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new DonationstandingReport($array));
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Standing order donation submited Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+
+    }
+
+    public function donationStanding()
+    {
+        $donation = StandingDonation::all();
+        return view('donor.standing',compact('donation'));
+    }
+
+    public function activeStandingdnsn(Request $request)
+    {
+
+        if($request->status==1){
+            $active = StandingDonation::find($request->id);
+            $active->status = $request->status;
+            $active->save();
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }else{
+            $deactive = StandingDonation::find($request->id);
+            $deactive->status = $request->status;
+            $deactive->save();
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+
+    }
 
 
 }

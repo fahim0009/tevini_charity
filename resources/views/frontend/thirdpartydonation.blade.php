@@ -100,7 +100,7 @@
                 $tevini_hash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
                 }
         }
-        @endphp
+    @endphp
 <section class="homeBanner">
     <div class="container d-flex justify-content-center align-items-center">
         <div class="col-md-10 mx-auto">
@@ -123,7 +123,6 @@
                 </div>
 
                 @elseif (hash_equals($tevini_hash, $gateway_hash))
-
                 {{-- if link is ok  --}}
                 <div class="col-lg-6 col-md-12 position-relative">
                     <div class="px-3 pb-5">

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\DonationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AboutController;
@@ -128,6 +129,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // active deactive charity
     Route::get('active-charity', [CharityController::class, 'activeCharity']);
 
+
+
     // topup
     Route::get('/topup/{id}/{amount}', [DonorController::class, 'topup'])->name('topup');
     Route::post('/topupstore', [DonorController::class, 'topupStore'])->name('topup.store');
@@ -174,9 +177,15 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // donation
     Route::get('/donation/list', [DonorController::class, 'donationlist'])->name('donationlist');
-    Route::get('/donation/standing', [DonorController::class, 'donationStanding'])->name('donationstanding');
     Route::get('/donation/record', [DonorController::class, 'donationRecord'])->name('donationrecord');
     Route::post('/donation-status', [DonorController::class, 'donationStatus']);
+
+    // standing order 
+    Route::get('/donation/standing', [DonationController::class, 'donationStanding'])->name('donationstanding');
+    // active deactive standing order
+    Route::post('active-standingdonation', [DonationController::class, 'activeStandingdnsn']);
+
+
 
     // Campaign
     Route::get('/campaign', [CampaignController::class, 'index'])->name('campaign');

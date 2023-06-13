@@ -182,9 +182,10 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // standing order 
     Route::get('/donation/standing', [DonationController::class, 'donationStanding'])->name('donationstanding');
+    Route::get('/donation/standing/{id}', [DonationController::class, 'singledonationStanding'])->name('singlestanding');
     // active deactive standing order
     Route::post('active-standingdonation', [DonationController::class, 'activeStandingdnsn']);
-    Route::get('test-std', [DonationController::class, 'stdTest']);
+    Route::get('cron-job', [DonationController::class, 'stdTest']);
 
 
 

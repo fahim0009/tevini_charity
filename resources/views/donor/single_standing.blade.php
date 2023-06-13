@@ -11,7 +11,9 @@
         <section class="profile purchase-status">
             <div class="title-section">
                 <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                <div class="mx-2">Standing Order</div>
+                <div class="mx-2">Standing Order Details</div>
+                <a href="{{ route('donationstanding') }}"><button type="button" class="btn btn-success">back</button></a>
+
             </div>
         </section>
 
@@ -28,58 +30,23 @@
                                     <th>Donor</th>
                                     <th>Beneficiary</th>
                                     <th>amount</th>
-                                    <th>Annonymous Donation</th>
-                                    <th>Starting</th>
-                                    <th>Interval</th>
-                                    <th>Number of Payments</th>
-                                    <th>Charity Note</th>
-                                    <th>Note</th>
-                                    <th>View</th>
-                                    <th>Status</th>
+                                    <th>Date</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php
                                 $n = 1;
                                 ?>
-                                @forelse ($donation as $data)
+                                @forelse ($singleStddonation as $data)
                                     <tr>
                                         <td>{{$data->created_at}}</td>
                                         <td>{{$data->user->name}}</td>
                                         <td>{{$data->charity->name}}</td>
                                         <td>{{$data->amount}}</td>
-                                        <td>@if ($data->ano_donation == "true")
-                                            Yes
-                                        @else
-                                            No
-                                        @endif</td>
-                                        <td>{{$data->starting}}</td>
-                                        <td>{{$data->interval}}</td>
-                                        @if ($data->payments == 1)
-                                        <td>{{$data->number_payments}}</td>
-                                        @else
-                                        <td>Continuous payments</td>
-                                        @endif
-                                        <td>{{$data->charitynote}}</td>
-                                        <!--<td> <a href="{{ route('topup',[$data->user->id,$data->amount]) }}" target="blank">-->
-                                        <!--    <button type="button" class="btn btn-success">Add</button></a> </td>-->
-                                        <td>{{$data->mynote}}</td>
-                                        <td>
-                                            <a href="{{ route('singlestanding', $data->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
-                                        </td>
-                                        <td style="text-align: center">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input standingdnstatus" type="checkbox" role="switch"  data-id="{{$data->id}}" @if ($data->status == 1) checked @endif >
-                                            </div>
-                                        </td>
-                                        {{-- <td>Pending</td> --}}
-
+                                        <td>{{$data->instalment_date}}</td>
                                     </tr>
                                 @empty
                                 @endforelse
-
-
-
 
                             </tbody>
                         </table>

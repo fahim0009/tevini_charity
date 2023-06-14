@@ -48,7 +48,6 @@ class DeductStandingDonation extends Command
     public function handle()
     {
 
-        // $dt = Carbon::now();
         $current_date = now()->format('Y-m-d'); // current date with server format
 
         $activestand_orders = StandingDonation::where('status', '=' ,'1')->orderBy('id','DESC')->get();
@@ -84,6 +83,17 @@ class DeductStandingDonation extends Command
                                 $doncaldetl->status = 0;
                                 $doncaldetl->save();
 
+                                $utransaction = new Usertransaction();
+                                $utransaction->t_id = time() . "-" . $activestand_order->user_id;
+                                $utransaction->user_id = $activestand_order->user_id;
+                                $utransaction->charity_id = $activestand_order->charity_id;
+                                $utransaction->standing_donationdetails_id = $activestand_order->id;
+                                $utransaction->t_type = "Out";
+                                $utransaction->amount =   $activestand_order->amount;
+                                $utransaction->title =  "Standing order donation";
+                                $utransaction->status =  1;
+                                $utransaction->save();
+
                                 $user = User::find($activestand_order->user_id);
                                 $user->decrement('balance',$activestand_order->amount);
                                 $user->save();
@@ -107,6 +117,17 @@ class DeductStandingDonation extends Command
                         $doncaldetl->instalment_mode = "Fiexed";
                         $doncaldetl->status = 0;
                         $doncaldetl->save();
+
+                        $utransaction = new Usertransaction();
+                        $utransaction->t_id = time() . "-" . $activestand_order->user_id;
+                        $utransaction->user_id = $activestand_order->user_id;
+                        $utransaction->charity_id = $activestand_order->charity_id;
+                        $utransaction->standing_donationdetails_id = $activestand_order->id;
+                        $utransaction->t_type = "Out";
+                        $utransaction->amount =   $activestand_order->amount;
+                        $utransaction->title =  "Standing order donation";
+                        $utransaction->status =  1;
+                        $utransaction->save();
 
                         $user = User::find($activestand_order->user_id);
                         $user->decrement('balance',$activestand_order->amount);

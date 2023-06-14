@@ -460,17 +460,6 @@ class DonorController extends Controller
         $data->currency = "GBP";
         $data->ano_donation = $request->ano_donation;
         $data->standing_order = $request->standard;
-        if($data->standing_order == "true"){
-        $data->payments = $request->payments_type;
-        $data->number_payments = $request->number_payments;
-        $data->starting = $request->starting;
-        $data->interval = $request->interval;
-        }else{
-        $data->payments = null;
-        $data->number_payments = null;
-        $data->starting = null;
-        $data->interval = null;
-        }
         $data->confirm_donation = $request->c_donation;
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;

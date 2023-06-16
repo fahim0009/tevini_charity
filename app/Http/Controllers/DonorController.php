@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Provoucher;
 use App\Models\User;
 use App\Models\Donation;
+use App\Models\StandingDonation;
+use App\Models\StandingdonationDetail;
 use App\Models\OverdrawnRecord;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
@@ -693,26 +695,6 @@ class DonorController extends Controller
     }
 
 
-
-    public function userStandingOrder()
-    {
-        $donation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['user_id','=', auth()->user()->id],
-            ['status','!=','3']
-        ])->get();
-
-        $pdonation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=','3']
-        ])->get();
-
-        return view('frontend.user.standingorder')
-        ->with('donation',$donation)
-        ->with('pdonation',$pdonation);
-    }
-
     public function userStandingOrderinAdmin($id)
     {
         $donation = Donation::where([
@@ -741,6 +723,16 @@ class DonorController extends Controller
         ])->get();
 
         return view('frontend.user.donationrecord')
+        ->with('donation',$donation);
+    }
+
+    public function userStandingrecod()
+    {
+        $donation = StandingDonation::where([
+            ['user_id','=', auth()->user()->id]
+        ])->get();
+
+        return view('frontend.user.standingdonationrecord')
         ->with('donation',$donation);
     }
 

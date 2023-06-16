@@ -60,10 +60,11 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction_search');
     Route::get('make-donation', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
     Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
-
+// standing donation 
     Route::post('standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
-    Route::get('standing-order', [DonorController::class, 'userStandingOrder'])->name('user.standingorder');
+    Route::post('active-standingdonation', [DonationController::class, 'activeStandinguser'])->name('user.standingstatus');
     Route::get('donation-record', [DonorController::class, 'userDonationrecod'])->name('user.donationrecord');
+    Route::get('standing-order-record', [DonorController::class, 'userStandingrecod'])->name('user.standingrecord');
 
     //voucher
     Route::post('/addvoucher', [OrderController::class, 'storeVoucher'])->name('voucher.store');

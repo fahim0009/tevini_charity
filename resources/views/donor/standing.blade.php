@@ -72,7 +72,6 @@
                                                 <input class="form-check-input standingdnstatus" type="checkbox" role="switch"  data-id="{{$data->id}}" @if ($data->status == 1) checked @endif >
                                             </div>
                                         </td>
-                                        {{-- <td>Pending</td> --}}
 
                                     </tr>
                                 @empty

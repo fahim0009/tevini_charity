@@ -512,6 +512,31 @@ class DonationController extends Controller
 
     }
 
+    public function activeStandinguser(Request $request)
+    {
+
+        if($request->status==1){
+            $active = StandingDonation::where([
+                ['id','=', $request->id],
+                ['user_id','=', Auth::user()->id],
+            ])->first();
+            $active->status = $request->status;
+            $active->save();
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }else{
+            $deactive = StandingDonation::where([
+                ['id','=', $request->id],
+                ['user_id','=', Auth::user()->id],
+            ])->first();
+            $deactive->status = $request->status;
+            $deactive->save();
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+
+    }
+
     public function stdTest()
     {
       

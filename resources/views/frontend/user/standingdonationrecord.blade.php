@@ -52,7 +52,7 @@ use Illuminate\Support\Carbon;
                                                         <td>{{$data->charitynote}}</td>
                                                         <td>{{$data->mynote}}</td>
                                                         <td>
-                                                            <a href="{{ route('singlestanding', $data->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
+                                                            <a href="{{ route('user.singlestanding', $data->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
                                                         </td>
                                                         <td style="text-align: center">
                                                             <div class="form-check form-switch">

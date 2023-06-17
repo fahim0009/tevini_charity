@@ -652,6 +652,19 @@ class DonationController extends Controller
 
     }
 
+    
+    public function usersingleStanding($id)
+    {
+
+        $singleStddonation = StandingdonationDetail::where([
+            ['id','=', $id],
+            ['user_id','=', auth()->user()->id]
+        ])->orderBy('id','DESC')->get();
+
+        return view('frontend.user.singlestandingrecord',compact('singleStddonation'));
+
+    }
+
 
 
 

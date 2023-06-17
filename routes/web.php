@@ -68,7 +68,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('standing-order-record/{id}', [DonationController::class, 'usersingleStanding'])->name('user.singlestanding');
 
     //voucher
-    Route::post('/addvoucher', [OrderController::class, 'storeVoucher'])->name('voucher.store');
+    Route::post('/addvoucher', [OrderController::class, 'storeVoucher']);
 
     Route::get('order-voucher-book', [OrderController::class, 'userOrderVoucherBook'])->name('user.orderbook');
     Route::get('order-history', [OrderController::class, 'userOrderview'])->name('user.orderhistory');

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Provoucher;
 use App\Models\User;
 use App\Models\Donation;
+use App\Models\StandingDonation;
+use App\Models\StandingdonationDetail;
 use App\Models\OverdrawnRecord;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
@@ -460,17 +462,6 @@ class DonorController extends Controller
         $data->currency = "GBP";
         $data->ano_donation = $request->ano_donation;
         $data->standing_order = $request->standard;
-        if($data->standing_order == "true"){
-        $data->payments = $request->payments_type;
-        $data->number_payments = $request->number_payments;
-        $data->starting = $request->starting;
-        $data->interval = $request->interval;
-        }else{
-        $data->payments = null;
-        $data->number_payments = null;
-        $data->starting = null;
-        $data->interval = null;
-        }
         $data->confirm_donation = $request->c_donation;
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;
@@ -704,26 +695,6 @@ class DonorController extends Controller
     }
 
 
-
-    public function userStandingOrder()
-    {
-        $donation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['user_id','=', auth()->user()->id],
-            ['status','!=','3']
-        ])->get();
-
-        $pdonation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=','3']
-        ])->get();
-
-        return view('frontend.user.standingorder')
-        ->with('donation',$donation)
-        ->with('pdonation',$pdonation);
-    }
-
     public function userStandingOrderinAdmin($id)
     {
         $donation = Donation::where([
@@ -755,6 +726,16 @@ class DonorController extends Controller
         ->with('donation',$donation);
     }
 
+    public function userStandingrecod()
+    {
+        $donation = StandingDonation::where([
+            ['user_id','=', auth()->user()->id]
+        ])->get();
+
+        return view('frontend.user.standingdonationrecord')
+        ->with('donation',$donation);
+    }
+
     public function userDonationrecodinAdmin($id)
     {
         $donation = Donation::where([
@@ -774,15 +755,6 @@ class DonorController extends Controller
             ['status','=','0']
         ])->get();
         return view('donor.donationlist',compact('donation'));
-    }
-
-    public function donationStanding()
-    {
-        $donation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['status','=','0']
-        ])->get();
-        return view('donor.standing',compact('donation'));
     }
 
     public function donationRecord()

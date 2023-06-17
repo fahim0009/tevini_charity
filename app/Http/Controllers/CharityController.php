@@ -180,10 +180,6 @@ class CharityController extends Controller
 
     public function activeCharity(Request $request)
     {
-        $data = Charity::find($request->id);
-        $data->status = $request->status;
-        $data->save();
-
         if($request->status==1){
             $active = Charity::find($request->id);
             $active->status = $request->status;

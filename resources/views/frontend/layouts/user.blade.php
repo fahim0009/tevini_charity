@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="{{ asset('assets/user/css/swiper-bundle.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/user/css/slick.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/user/css/animate.min.css') }}" />
+    <link rel="stylesheet" href="{{URL::to('assets/vendor/font-awesome/css/font-awesome.min.css')}}">
     <link rel="stylesheet" href="{{URL::to('/css/datatables.min.css')}}">
     <link href="{{URL::to('/css/common.css')}}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/user/css/dashboard.css') }}">

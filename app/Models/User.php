@@ -126,5 +126,15 @@ class User extends Authenticatable
       return $this->hasOne('App\Models\DonationCalculator');
     }
 
+    public function standingdonationdetail()
+    {
+      return $this->hasOne('App\Models\StandingdonationDetail');
+    }
+
+    public function standingdonation()
+    {
+      return $this->hasOne('App\Models\StandingDonation');
+    }
+
 
 }

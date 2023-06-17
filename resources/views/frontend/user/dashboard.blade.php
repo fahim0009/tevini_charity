@@ -19,6 +19,14 @@
                 ['pending','=', '1']
                 ])->orderBy('id','DESC')->get();
 
+    $pending_transactions = \App\Models\Usertransaction::where([
+            ['t_type','=', 'Out'],
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+        ])->sum('amount');
+
+    $donation_req = \App\Models\CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
+
 use Illuminate\Support\Carbon;
 @endphp
 
@@ -28,9 +36,18 @@ use Illuminate\Support\Carbon;
         <div class="user">
             Welcome, {{auth()->user()->name}}
         </div>
+        <div class="ermsg"></div>
+        @if (isset($donation_req))
+        @foreach ($donation_req as $item)
+            <p>You have donation request. Please click <a href="{{route('user.makedonation')}}?cid={{$item->charity_id}}&amount={{$item->amount}}" class="btn-theme bg-primary">here</a>
+            <input type="button" value="X" linkid="{{$item->id}}"  class="btn-theme bg-warning close">
+            </p>
+        @endforeach
+        @endif
         <br>
         <h4 class="txt-dash">Account Balance</h4>
         <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
+        <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
         <div class="row my-2">
             <div class="col-lg-6 ">
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
@@ -191,4 +208,40 @@ use Illuminate\Support\Carbon;
     </div>
 
 </div>
+@endsection
+
+@section('script')
+
+
+<script>
+    $(document).ready(function () {
+        //header for csrf-token is must in laravel
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+
+        //  make mail start
+        var url = "{{URL::to('/user/close-a-link')}}";
+        $(".close").click(function(){
+            linkid = $(this).attr('linkid');
+            $.ajax({
+                url: url,
+                method: "POST",
+                data: {linkid},
+                success: function (d) {
+                    if (d.status == 303) {
+                        $(".ermsg").html(d.message);
+                    }else if(d.status == 300){
+                        $(".ermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+            });                
+
+        });
+        // send mail end =
+    });
+</script>
+
 @endsection

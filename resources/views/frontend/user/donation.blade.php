@@ -12,6 +12,15 @@
 
 </style>
 
+@php
+    if (isset($_GET["cid"])) {
+        $cid = $_GET["cid"];
+    } 
+    if (isset($_GET["amount"])) {
+        $amount = $_GET["amount"];
+    } 
+@endphp
+
 <div class="content">
     <div class="row">
         <div class="col-lg-12">
@@ -46,7 +55,7 @@
                                 <option value="">Select a charity</option>
                                 <option value="">Please Select</option>
                                 @foreach (App\Models\Charity::all() as $charity)
-                                <option value="{{ $charity->id }}">{{ $charity->name }} - ({{ $charity->acc_no }})</option>
+                                <option value="{{ $charity->id }}" @if (isset($cid)) @if ($charity->id == $cid) selected @endif @endif>{{ $charity->name }} - ({{ $charity->acc_no }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -55,7 +64,7 @@
                         <div class="form-group">
                             <label for="">Amount</label>
                             <div class="d-flex align-items-center">
-                                <input type="text" class="form-control me-3" name="amount" id="amount" placeholder="0.00"> <span
+                                <input type="text" class="form-control me-3" name="amount" id="amount" placeholder="0.00" value="@if(isset($amount)){{$amount}}@endif"> <span
                                     class="txt-secondary fs-16">GBP</span>
                             </div>
                         </div>
@@ -106,9 +115,11 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">STARTING</label>
-                                            <select class="form-control" name="starting" id="starting">
+                                            {{-- <select class="form-control" name="starting" id="starting">
                                                 <option value="1 Jan 2022">1 Jan 2022</option>
-                                            </select>
+                                            </select> --}}
+                                            <input type="date" class="form-control" name="starting" id="starting">
+
 
                                         </div>
                                     </div>
@@ -117,9 +128,16 @@
                                             <label for="">INTERVAL</label>
                                             <select class="form-control" id="interval" name="interval">
                                                 <option value="Monthly">Monthly</option>
-                                                <option value="Every 3 month">Every 3 month</option>
+                                                {{-- <option value="Every 3 month">Every 3 month</option> --}}
                                             </select>
+                                        </div>
+                                    </div>
 
+                                    
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="">Total</label>
+                                            <input type="text" class="form-control" id="totalamt" name="totalamt" readonly>
                                         </div>
                                     </div>
                                 </div>

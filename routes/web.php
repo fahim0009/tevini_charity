@@ -106,6 +106,9 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     // other donation store
     Route::post('other-donation-store', [DonationController::class, 'otherDonationStore'])->name('donation.otherdonation');
 
+    // charity donation link close request 
+    Route::post('/close-a-link', [CharityController::class, 'closecharityLink']);
+
 
 });
 // user part end
@@ -148,4 +151,8 @@ Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
     Route::get('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard');
     Route::post('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard_search');
     Route::post('/profile', [CharityController::class, 'updateCharity_profile'])->name('charity_profileUpdate');
+
+    
+    Route::get('/create-a-link', [CharityController::class, 'charityLink'])->name('charity.link');
+    Route::post('/create-a-link', [CharityController::class, 'charityLinkStore']);
 });

@@ -90,6 +90,12 @@
                                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password">
                             </div>
 
+                            <div class="col-lg-12 mt-3">
+                                <p class="para mb-3 text-muted fs-6 ">
+                                    <input type="checkbox" class="me-2" required>I agree to the <a href="{{route('terms')}}" style="text-decoration: none;color:#212529"> Terms & Conditions. </a><br>
+                                </p>
+                            </div>
+
 
 
                             <div class="form-group">

@@ -19,11 +19,11 @@
                 ['pending','=', '1']
                 ])->orderBy('id','DESC')->get();
 
-    // $pending_transactions = \App\Models\Usertransaction::where([
-    //         ['t_type','=', 'Out'],
-    //         ['user_id','=', auth()->user()->id],
-    //         ['pending','=', '0']
-    //     ])->sum('amount');
+    $pending_transactions = \App\Models\Usertransaction::where([
+            ['t_type','=', 'Out'],
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '0']
+        ])->sum('amount');
 
     $donation_req = \App\Models\CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
 
@@ -47,7 +47,7 @@ use Illuminate\Support\Carbon;
         <br>
         <h4 class="txt-dash">Account Balance</h4>
         <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
-        {{-- <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p> --}}
+        <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
         <div class="row my-2">
             <div class="col-lg-6 ">
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">

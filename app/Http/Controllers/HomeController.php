@@ -70,7 +70,7 @@ class HomeController extends Controller
         $totalamount = 0;
         foreach ($period as $p) {
             $finYear[] = $p->format('m-Y');
-            $currentmonthgift2 = Usertransaction::where('user_id','=', Auth::user()->id)->where('gift','=','1')
+            $currentmonthgift2 = Usertransaction::where('user_id','=', auth()->user()->id)->where('gift','=','1')
                             ->where('gift','=', 1)
                             ->whereMonth('created_at', $p->format('m'))
                             ->whereYear('created_at', $p->format('Y'))
@@ -82,7 +82,7 @@ class HomeController extends Controller
         // previous year data end
 
         // current year data start
-        $currentyr = Usertransaction::where('user_id','=', Auth::user()->id)->where('gift','=','1')
+        $currentyr = Usertransaction::where('user_id','=', auth()->user()->id)->where('gift','=','1')
                         ->whereBetween('created_at',
                             [Carbon::now()->subMonth(4), Carbon::now()]
                         )

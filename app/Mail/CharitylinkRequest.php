@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class DonationReport extends Mailable
+class CharitylinkRequest extends Mailable
 {
     use Queueable, SerializesModels;
     public $array;
@@ -31,7 +31,7 @@ class DonationReport extends Mailable
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
         ->replyTo($this->array['cc'], 'Tevini')
         ->subject('Tevini Ltd')
-        ->markdown('mail.donation');
+        ->markdown('mail.charity_linkrequest');
     }
     
 }

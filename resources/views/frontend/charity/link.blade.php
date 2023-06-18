@@ -10,6 +10,11 @@
             </div>
         </div>
     </div>
+<!-- Image loader -->
+<div id='loading' style='display:none ;'>
+    <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+</div>
+<!-- Image loader -->
     <form action="">
         <div class="row ">
             <div class="col-lg-6  px-3">
@@ -65,7 +70,7 @@
         //  make mail start
         var url = "{{URL::to('/charity/create-a-link')}}";
         $("#submit").click(function(){
-                
+            $("#loading").show();    
             var name= $("#name").val();           
             var email= $("#email").val();
             var amount= $("#amount").val();
@@ -81,6 +86,9 @@
                         window.setTimeout(function(){location.reload()},2000)
                     }
                 },
+                complete:function(data){
+                            $("#loading").hide();
+                        },
                 error: function (d) {
                     console.log(d);
                 }

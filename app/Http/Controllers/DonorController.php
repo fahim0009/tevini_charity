@@ -17,6 +17,7 @@ use App\Models\Charity;
 use App\Models\ContactMail;
 use App\Mail\TopupReport;
 use App\Mail\DonationReport;
+use App\Mail\DonationstandingReport;
 use App\Mail\DonerReport;
 use App\Mail\DonationreportCharity;
 use PDF;
@@ -545,11 +546,6 @@ class DonorController extends Controller
             exit();
         }
 
-        if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
         if($request->c_donation == "false"){
             $message ="<div class='alert alert-danger'>Please accept condition.</div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -565,17 +561,6 @@ class DonorController extends Controller
         $data->currency = "GBP";
         $data->ano_donation = $request->ano_donation;
         $data->standing_order = $request->standard;
-        if($data->standing_order == "true"){
-        $data->payments = $request->payments_type;
-        $data->number_payments = $request->number_payments;
-        $data->starting = $request->starting;
-        $data->interval = $request->interval;
-        }else{
-        $data->payments = null;
-        $data->number_payments = null;
-        $data->starting = null;
-        $data->interval = null;
-        }
         $data->confirm_donation = $request->c_donation;
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;
@@ -623,6 +608,76 @@ class DonorController extends Controller
         }
     }
 
+
+    public function userstandingDonationAdminStore(Request $request)
+    {
+
+
+        if(empty($request->charity_id)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(empty($request->amount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        if($request->c_donation == "false"){
+            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $donner_id = $request->donner_id;
+
+        $data = new StandingDonation;
+        $data->user_id = $donner_id;
+        $data->charity_id = $request->charity_id;
+        $data->amount = $request->amount;
+        $data->currency = "GBP";
+        $data->ano_donation = $request->ano_donation;
+        $data->standing_order = $request->standard;
+        $data->payments = $request->payments_type;
+        $data->number_payments = $request->number_payments;
+        $data->starting = $request->starting;
+        $data->interval = $request->interval;
+        $data->charitynote = $request->charitynote;
+        $data->mynote = $request->mynote;
+        $data->notification = 1;
+        $data->status = 0;
+
+        if($data->save()){
+
+            $user = User::where('id',$donner_id)->first();
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $donation = StandingDonation::where('id',$data->id)->first();
+
+            $array['name'] = $user->name;
+            $array['cc'] = $contactmail;
+            $array['client_no'] = $user->accountno;
+            $email = $user->email;
+            $array['amount'] = $request->amount;
+            $array['donation'] = $donation;
+            $array['charity_note'] = $request->charitynote;
+            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new DonationstandingReport($array));
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Standing order donation submited successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
 
 
     public function addAccount(Request $request)

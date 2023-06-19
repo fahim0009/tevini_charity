@@ -5,7 +5,7 @@
     <ul class="navigation">
         <li><a href="{{ route('charityDashboard') }}" class="{{ (request()->is('charity/dashboard*')) ? 'nav-link current' : '' }}">Dashboard</a></li>
         <li><a href="{{ route('tran_charity_dashboard') }}" class="{{ (request()->is('charity/charity-transaction*')) ? 'nav-link current' : '' }}">Transaction</a></li>
-        <li><a href="{{ route('charity.link') }}" class="{{ (request()->is('charity/create-a-link*')) ? 'nav-link current' : '' }}">Link</a></li>
+        <li><a href="{{ route('charity_link') }}" class="{{ (request()->is('charity/create-a-link*')) ? 'nav-link current' : '' }}">Link</a></li>
     </ul>
     <div class="bottom-part">
         <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="mt-2 d-flex justify-content-center txt-theme fw-bold align-items-center">

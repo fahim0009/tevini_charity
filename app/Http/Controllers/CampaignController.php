@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
+use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
     public function index()
     {
-
         $data = Campaign::orderBy('id','DESC')->get();
         return view('campaign.index', compact('data'));
     }
@@ -98,6 +98,13 @@ class CampaignController extends Controller
             return response()->json(['status'=> 300,'message'=>$message]);
         }
 
+    }
+
+    public function getAllCampaignDonor()
+    {
+        $data = Usertransaction::select('id', 'user_id','amount','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->get();
+        // dd($data);
+        return view('campaign.donorlist', compact('data'));
     }
 
 

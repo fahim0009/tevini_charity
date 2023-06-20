@@ -43,6 +43,15 @@
                     Campaign
                 </a>
             </li>
+
+            
+            <li class="nav-item {{ (request()->is('admin/cmpgn/donor-list')) ? 'active' : '' }}" id="">
+                <a href="{{ route('campaign.donor') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Campaign Donor 
+                </a>
+            </li>
+
             <li class="nav-item {{ (request()->is('admin/gateway*')) ? 'active' : '' }}" id="">
                 <a href="{{ url('admin/gateway') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>

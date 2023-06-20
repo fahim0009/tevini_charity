@@ -112,6 +112,7 @@ use Illuminate\Support\Carbon;
                 data: {voucher_id,charity_id},
     
                 success: function (d) {
+                    console.log(d);
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);
                         pagetop();
@@ -123,7 +124,7 @@ use Illuminate\Support\Carbon;
                 complete:function(d){
                             $("#loading").hide();
                             $("#"+voucher_id).attr('disabled',true);
-                            window.setTimeout(function(){location.reload()},2000);
+                            // window.setTimeout(function(){location.reload()},2000);
                         },
                 error: function (d) {
                     console.log(d);

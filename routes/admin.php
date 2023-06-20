@@ -197,6 +197,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
     Route::post('/update-url', [CampaignController::class, 'updateUrl'])->name('updateurl');
 
+    Route::get('/cmpgn/donor-list', [CampaignController::class, 'getAllCampaignDonor'])->name('campaign.donor');
+
     // gateway
     Route::resource('gateway','App\Http\Controllers\GatewayController');
 

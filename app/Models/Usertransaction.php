@@ -36,4 +36,8 @@ class Usertransaction extends Model
       public function charity(){
         return $this->belongsTo('App\Models\Charity');
       }
+
+      public function campaign(){
+        return $this->belongsTo('App\Models\Campaign');
+      }
 }

@@ -102,7 +102,7 @@ class CampaignController extends Controller
 
     public function getAllCampaignDonor()
     {
-        $data = Usertransaction::select('id', 'user_id','amount','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->get();
+        $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->get();
         // dd($data);
         return view('campaign.donorlist', compact('data'));
     }

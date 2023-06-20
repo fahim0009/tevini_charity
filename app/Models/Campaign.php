@@ -12,4 +12,9 @@ class Campaign extends Model
     public function charity(){
         return $this->belongsTo('App\Models\Charity');
       }
+
+    public function usertransaction()
+    {
+      return $this->hasMany('App\Models\Usertransaction');
+    }
 }

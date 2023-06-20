@@ -200,13 +200,34 @@
 
         $("#payments_type").change(function () {
                 var number_payments = $(this).val();
+                var amount = Number($("#amount").val());
                 if (number_payments == "2") {
                     $("#number_payments").val(" ");
+                    $("#totalamt").val(amount);
                     $("#number_payments").attr("disabled", true);
                   }else{
                     $("#number_payments").attr("disabled", false);
                   }
         });
+
+        //calculation end
+        $("#amount, #number_payments").keyup(function(){
+            var number_payments = Number($("#number_payments").val());
+            var amount = Number($("#amount").val());
+            console.log(number_payments);
+            if (number_payments == 0) {
+                
+            var totalamt = amount;
+            $("#totalamt").val(totalamt.toFixed(2));
+
+            } else {
+                
+            var totalamt = amount * number_payments;
+            $("#totalamt").val(totalamt.toFixed(2));
+            
+            }
+        });
+        //calculation end  
 
  //header for csrf-token is must in laravel
  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });

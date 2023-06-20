@@ -28,6 +28,7 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Donor</th>
+                                    <th>Campaign</th>
                                     <th>Amount</th>
                                 </tr>
                             </thead>
@@ -36,6 +37,7 @@
                                     <tr>
                                         <td>{{$item->created_at->format('d/m/Y') }}</td>
                                         <td>{{$item->user->name}}</td>
+                                        <td>{{$item->campaign->campaign_title}}</td>
                                         <td>{{$item->amount}}</td>
                                     </tr>
                                 @empty

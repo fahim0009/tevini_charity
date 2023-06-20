@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 use App\Mail\CharitypayReport;
+use App\Mail\CharitylinkRequest;
 use App\Mail\DonationReport;
 use App\Models\CharityLink;
 
@@ -468,9 +469,9 @@ class CharityController extends Controller
             $array['charity_note'] = $request->charitynote;
             $array['charity_name'] = Charity::where('id',$data->charity_id)->first()->name;
 
-            // Mail::to($email)
-            // ->cc($contactmail)
-            // ->send(new DonationReport($array));
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new CharitylinkRequest($array));
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Request send successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);

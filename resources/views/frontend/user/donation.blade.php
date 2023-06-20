@@ -115,34 +115,17 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">STARTING</label>
-<<<<<<< HEAD
-                                            {{-- <select class="form-control" name="starting" id="starting">
-                                                <option value="1 Jan 2022">1 Jan 2022</option>
-                                            </select> --}}
                                             <input type="date" class="form-control" name="starting" id="starting">
-
-=======
-                                            <input type="date" class="form-control" name="starting" id="starting">
-                                            {{-- <select class="form-control" name="starting" id="starting">
-                                                <option value="1 Jan 2022">1 Jan 2022</option>
-                                            </select> --}}
->>>>>>> 09cc2a5e9b8d352071eaff4a238cb128c45c5ec5
-
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">INTERVAL</label>
                                             <select class="form-control" id="interval" name="interval">
-<<<<<<< HEAD
-                                                <option value="Monthly">Monthly</option>
-                                                {{-- <option value="Every 3 month">Every 3 month</option> --}}
-=======
                                                 <option value="1">Monthly</option>
                                                 <option value="3">Every 3 month</option>
                                                 <option value="6">Every 6 month</option>
                                                 <option value="12">Yearly</option>
->>>>>>> 09cc2a5e9b8d352071eaff4a238cb128c45c5ec5
                                             </select>
                                         </div>
                                     </div>

@@ -18,19 +18,7 @@
     @include('inc.user_menue')
   <section class="">
    <div class="dashboard-content">
-    {{-- <section class=" px-4">
-        <div class="alert mt-3 alert-warning alert-dismissible fade show" role="alert">
-            <div class="d-inline">
-                <span class="iconify" data-icon="akar-icons:info-fill"></span>
-            </div>
-            <small>Please note our office will be closed from Monday 27th December until Tuesday 4th
-                January.
-                Payments and vouchers will still be processed. i Emails, web contact forms and phone
-                messages
-                will still be monitored and replied to but may take slightly longer than usual.</small>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </section> --}}
+
     <section class="profile purchase-status px-4">
         <div class="title-section">
             <span class="iconify" data-icon="clarity:heart-solid"></span>
@@ -114,19 +102,17 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="">STARTING</label>
-                                                    <select class="form-control" name="starting" id="starting">
-                                                        <option value="1 Jan 2022">1 Jan 2022</option>
-                                                    </select>
-
+                                                    <input type="date" class="form-control" name="starting" id="starting">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="">INTERVAL</label>
                                                     <select class="form-control" id="interval" name="interval">
-                                                        <option value="Monthly">Monthly</option>
-                                                        <option value="Every 3 month">Every 3 month</option>
+                                                        <option value="1">Monthly</option>
+                                                        <option value="3">Every 3 month</option>
+                                                        <option value="6">Every 6 month</option>
+                                                        <option value="12">Yearly</option>
                                                     </select>
 
                                                 </div>
@@ -177,6 +163,7 @@
         $("#payments_type").change(function () {
                 var number_payments = $(this).val();
                 if (number_payments == "2") {
+                    $("#number_payments").val(" ");
                     $("#number_payments").attr("disabled", true);
                   }else{
                     $("#number_payments").attr("disabled", false);
@@ -187,7 +174,6 @@
  $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
             //  make doantion start
-            var url = "{{URL::to('/admin/make-donation')}}";
             $("#addBtn").click(function(){
                  $("#loading").show();
                     var donner_id= $("#donner_id").val();
@@ -203,10 +189,17 @@
                     var charitynote= $("#charitynote").val();
                     var mynote= $("#mynote").val();
 
+                    if($("#standard").is(":checked")) {
+                        var url = "{{URL::to('/admin/make-stnddonation')}}";
+                    } else {
+                        var url = "{{URL::to('/admin/make-donation')}}";
+                    }
+
+
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {donner_id:donner_id,charity_id:charity_id,amount:amount,ano_donation:ano_donation,standard:standard,payments_type:payments_type,number_payments:number_payments,starting:starting,interval:interval,c_donation:c_donation,charitynote:charitynote,mynote:mynote},
+                        data: {donner_id,charity_id,amount,ano_donation,standard,payments_type,number_payments,starting,interval,c_donation,charitynote,mynote},
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);

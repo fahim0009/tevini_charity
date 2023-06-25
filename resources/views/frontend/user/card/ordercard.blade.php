@@ -1,0 +1,136 @@
+@extends('frontend.layouts.user')
+@section('content')
+
+<!-- content area -->
+<div class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="pagetitle pb-2">
+                Order Card
+            </div>
+        </div>
+    </div>
+
+
+    @if(session()->has('success'))
+    <section class="px-4">
+        <div class="row my-3">
+            <div class="alert alert-success" id="successMessage">{{ session()->get('success') }}</div>
+        </div>
+    </section>
+    @endif
+    @if(session()->has('error'))
+    <section class="px-4">
+        <div class="row my-3">
+            <div class="alert alert-danger" id="errMessage">{{ session()->get('error') }}</div>
+        </div>
+    </section>
+    @endif
+
+
+    <form  action="{{ route('orderCardstore') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="row mt-3">
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="">Title</label>
+                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="Test Title">
+                    <input type="hidden" name="CardholderId" id="CardholderId" value="{{$CardHolderId}}">
+                </div>
+                <div class="col-md-6">
+                    <label for="">FirstName</label>
+                    <input type="text" name="FirstName" id="FirstName" placeholder="FirstName" class="form-control" value="Test Name">
+                </div>
+                <div class="col-md-6">
+                    <label for="LastName">Last Name</label>
+                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control" value="Last Name">
+                </div>
+
+                <div class="col-md-12">
+                    <label for="Address1">Address1</label>
+                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="Address1">
+                </div>
+
+                <div class="col-md-12">
+                    <label for="Address2">Address2</label>
+                    <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="Address2">
+                </div>
+
+                <div class="col-md-12">
+                    <label for="Address3">Address3</label>
+                    <input type="text" name="Address3" id="Address3" placeholder="Address3" class="form-control" value="Address3">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="">City</label>
+                    <input type="text" name="City" id="City" placeholder="City" class="form-control" value="Harpenden">
+                </div>
+                <div class="col-md-4">
+                    <label for="">State</label>
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="Bedfordshire">
+                </div>
+                <div class="col-md-4">
+                    <label for="">PostCode</label>
+                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="AL5 3NG">
+                </div>
+            </div>
+
+            
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="">RecipientEmail</label>
+                    <input type="email" name="RecipientEmail" id="RecipientEmail" placeholder="RecipientEmail" class="form-control" value="{{Auth::user()->email}}">
+                </div>
+                <div class="col-md-6">
+                    <label for="">Dob </label>
+                    <input type="date" name="Dob" id="Dob" placeholder="Dob" class="form-control">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="SecondSurname">SecondSurname</label>
+                    <input type="text" name="SecondSurname" id="SecondSurname" placeholder="SecondSurname" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="NameOnCard">NameOnCard</label>
+                    <input type="text" name="NameOnCard" id="NameOnCard" placeholder="NameOnCard" class="form-control" >
+                </div>
+                <div class="col-md-6">
+                    <label for="CardDesign">CardDesign</label>
+                    <input type="text" name="CardDesign" id="CardDesign" placeholder="CardDesign" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label for="AdditionalCardEmbossData">AdditionalCardEmbossData</label>
+                    <input type="text" name="AdditionalCardEmbossData" id="AdditionalCardEmbossData" placeholder="AdditionalCardEmbossData" class="form-control" >
+                </div>
+
+
+            </div>
+
+            <div>
+                <div class="col-lg-12 mt-4">
+                    <div class="form-group ">
+                        <button class="d-block btn-theme bg-secondary mt-5">Submit</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </form>
+</div>
+
+
+@endsection
+
+@section('script')
+
+
+<script>
+
+</script>
+
+@endsection

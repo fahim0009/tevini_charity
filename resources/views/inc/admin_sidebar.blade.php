@@ -117,6 +117,8 @@
                 </ul>
             </li>
 
+            
+
 
 
             {{-- <li class="nav-item {{ (request()->is('admin/donor*')) ? 'active' : '' }}">
@@ -246,6 +248,33 @@
                 </ul>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/productfee*')) ? 'active' : '' }}" id="admintransaction">
+                <a href="{{ route('productfee') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Product fee
+                </a>
+            </li>
+
+            <li class="nav-item {{ (request()->is('admin/cardprofile*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('cardprofile') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Card Profile
+                </a>
+            </li>
+
+            <li class="nav-item {{ (request()->is('admin/spend-profile*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('spendprofile') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Spend profile
+                </a>
+            </li>
+
+            <li class="nav-item {{ (request()->is('admin/product/index*')) ? 'active' : '' }}" id="admintransaction">
+                <a href="{{ route('product.index') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Product
+                </a>
+            </li>
 
             {{-- <li class="nav-item " id="admindashboard">
                 <a href="./utility.html">

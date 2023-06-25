@@ -16,6 +16,8 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\CharityAuthController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\CardServiceController;
+use App\Http\Controllers\ProductFeeController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -112,6 +114,24 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
     // charity donation link close request 
     Route::post('/close-a-link', [CharityController::class, 'closecharityLink']);
+
+    // card service
+    Route::get('card-service', [CardServiceController::class, 'index'])->name('userCardService');
+    Route::post('cardprofile/store', [CardServiceController::class, 'cardprofilestore'])->name('cardprofile.store');
+
+    // apply for card
+    Route::get('apply-for-card', [CardServiceController::class, 'applyForCard'])->name('applyforcard');
+    Route::post('apply-for-card', [CardServiceController::class, 'applyForCardstore'])->name('applyforcardstore');
+
+
+    // apply for card
+    Route::get('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolder'])->name('applyforcardholder');
+    Route::post('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolderStore'])->name('applyforcardholderstore');
+
+    
+    // apply for card
+    Route::get('order-card', [CardServiceController::class, 'orderCard'])->name('orderCard');
+    Route::post('order-card', [CardServiceController::class, 'orderCardStore'])->name('orderCardstore');
 
 
 });

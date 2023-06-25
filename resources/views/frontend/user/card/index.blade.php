@@ -90,9 +90,11 @@
         @endif
         @if ($data)
             <a href="{{route('applyforcard')}}" class="d-block btn-theme bg-secondary mt-5">Apply for card</a>
-            <a href="{{route('applyforcardholder')}}" class="d-block btn-theme bg-primary">Apply for cardholder</a>
+
             @if ($CardHolderId)
-                <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
+            <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
+            @else
+            <a href="{{route('applyforcardholder')}}" class="d-block btn-theme bg-primary">Apply for cardholder</a>
             @endif
         @endif
     </div>

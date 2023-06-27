@@ -23,14 +23,11 @@
                     </div>
 
                     <div class="col-lg-12">
-                        <div class="form-group ">
-                            <label class="label" for="CardDesign">CardDesign</label>
-                            <input type="text" class="form-control" name="CardDesign" id="CardDesign" >
+                        <div class="form-group">
+                            <label class="label" for="ProductType">ProductType</label>
+                            <input type="text" class="form-control" name="ProductType" id="ProductType">
                         </div>
                     </div>
-
-
-                    
                     
                 </div>
             </div>
@@ -39,12 +36,7 @@
                 <div class="row mt-4">
 
 
-                    <div class="col-lg-12">
-                        <div class="form-group">
-                            <label class="label" for="ProductType">ProductType</label>
-                            <input type="text" class="form-control" name="ProductType" id="ProductType">
-                        </div>
-                    </div>
+                    
                     
                     
                     <div class="col-lg-12">

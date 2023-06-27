@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CardHolder;
+use App\Models\CardProduct;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
@@ -83,43 +84,43 @@ class CardServiceController extends Controller
         $ProductCode = time().Auth::user()->id;
         $Currency = "GBP";
         $CardProgram = $request->input('CardProgram');
-        $CardDesign = $request->input('CardDesign');
+        $CardDesign = "TEVINI";
         $CardProduct = $request->input('CardProduct');
-        $FundsOwnership = "0";
+        $FundsOwnership = "1";
         $ProductType = $request->input('ProductType');
         $IsActive = true;
-        $IsVirtual = true;
-        $CorporateLoadMaxBalance = "100000";
-        $CorporateLoadMinLoadAmount = "1";
-        $MaxDailyBalance = "100000";
-        $MaxDailyLoad = "100000";
-        $MaxWeeklyLoad = "1000000";
-        $MaxMonthlyLoad = "10000000";
-        $MaxYearlyLoad = "100000000";
+        $IsVirtual = false;
+        $CorporateLoadMaxBalance = "";
+        $CorporateLoadMinLoadAmount = "";
+        $MaxDailyBalance = "";
+        $MaxDailyLoad = "";
+        $MaxWeeklyLoad = "";
+        $MaxMonthlyLoad = "";
+        $MaxYearlyLoad = "";
         $Reloadable = true;
         $ForEmployee = true;
         $OnlineTransactions = true;
-        $ATMTransactions = true;
-        $DebitFeePercentage = "0";
-        $CreditFeePercentage = "0";
-        $AutoTopupEnabled = true;
-        $AutoTopupDefaultAmount = "0";
-        $AutoTopUpTopUpThreshold = "0";
+        $ATMTransactions = false;
+        $DebitFeePercentage = "";
+        $CreditFeePercentage = "";
+        $AutoTopupEnabled = false;
+        $AutoTopupDefaultAmount = "";
+        $AutoTopUpTopUpThreshold = "";
         $TokeniseWithoutPaymentCardEnabled = true;
-        $MaxTopupValue = "100000";
-        $MinTopupValue = "0";
+        $MaxTopupValue = "";
+        $MinTopupValue = "";
 
-        $RewardsPointsEnabled = true;
+        $RewardsPointsEnabled = false;
         $RewardsPointPerUnit = 0;
-        $AllowAnonymousPinReveal = true;
-        $KycCheck = true;
-        $PepsSanctionsCheck = true;
+        $AllowAnonymousPinReveal = false;
+        $KycCheck = false;
+        $PepsSanctionsCheck = false;
         $SpendProfileId = $request->input('SpendProfileId');
         $SpendProfileName = $request->input('SpendProfileName');
         $CreditProfileId = $request->input('CreditProfileId');
         $CreditProfileName = $request->input('CreditProfileName');
         // dd($CreditProfileName);
-        $FundingSource = 1;
+        $FundingSource = 2;
         $TransactionAlerts = true;
 
         // Send a POST request to the API with the updated finance fee value
@@ -169,6 +170,11 @@ class CardServiceController extends Controller
     
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
+
+            $cardproduct = new CardProduct();
+            $cardproduct->user_id = Auth::user()->id;
+            $cardproduct->ProductCode = $ProductCode;
+            $cardproduct->save();
             return redirect()->route('userCardService')->with('successmsg', 'Product Create Successfully!');
         } else {
             return redirect()->back()->with('error', 'Unable to create product.');
@@ -276,12 +282,14 @@ class CardServiceController extends Controller
     public function orderCardStore(Request $request)
     {
 
-        $ProductCode = time().Auth::user()->id;
+        $ProductCodeId = CardProduct::where('user_id', Auth::user()->id)->first()->ProductCode;
+
+        $ProductCode = $ProductCodeId;
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
         $SecondSurname = $request->input('SecondSurname');
         $NameOnCard = $request->input('NameOnCard');
-        $CardDesign = $request->input('CardDesign');
+        $CardDesign = "TEVINI";
         $AdditionalCardEmbossData = $request->input('AdditionalCardEmbossData');
         $Title = $request->input('Title');
         $Address1 = $request->input('Address1');
@@ -295,7 +303,7 @@ class CardServiceController extends Controller
         $RecipientEmail = $request->input('RecipientEmail');
         $Dob = $request->Dob;
         $Language = "en-GB";
-        // dd($ProductCode, $FirstName,$LastName,$SecondSurname,$NameOnCard,$CardDesign,$AdditionalCardEmbossData,$Title,$Address1,$Address2,$Address3,$PostCode,$State,$City,$ISOCountryCode,$RecipientEmail,$Dob,$CardholderId);
+        
         
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')

@@ -92,6 +92,7 @@
             <a href="{{route('applyforcard')}}" class="d-block btn-theme bg-secondary mt-5">Apply for card</a>
 
             @if ($CardHolderId)
+            <a href="#" class="d-block btn-theme bg-primary">Update cardholder</a>
             <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
             @else
             <a href="{{route('applyforcardholder')}}" class="d-block btn-theme bg-primary">Apply for cardholder</a>

@@ -151,28 +151,6 @@
                 </div>
             </div>
 
-            <div class="row">
-
-                <div class="col-md-4">
-                    <label for="">Country</label>
-                    <input type="text" name="Country" id="Country" placeholder="Country" class="form-control" value="UK">
-                </div>
-
-                <div class="col-md-4">
-                    <label for="">Language</label>
-                    <input type="text" name="Language" id="Language" placeholder="Language" class="form-control" value="en-GB">
-                </div>
-
-                <div class="col-md-4">
-                    <label for="">OnfidoId</label>
-                    <input type="text" name="OnfidoId" id="OnfidoId" placeholder="OnfidoId" class="form-control" value="1">
-                    <input type="hidden" name="Gender" id="Gender" placeholder="Gender" class="form-control" value="1">
-                </div>
-
-                
-
-                
-            </div>
 
 
 

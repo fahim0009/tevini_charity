@@ -59,72 +59,58 @@ class CardServiceController extends Controller
     
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
-            return redirect()->back()->with('success', 'Credit Profile Request Create Successfully!');
-        } else {
-            return redirect()->back()->with('error', 'Unable to update credit profile.');
-        }
-    }
+            // apply for product start
 
-    public function applyForCard()
-    {
-        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            $spendProfile = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/product/spendProfile/2', [
                     'Accept' => 'application/json',
                 ]);
                 
-        $data = $response->json();
+            $sProfile = $spendProfile->json();
 
-        // dd($data);
+            $ProductCode = time().Auth::user()->id;
+            $Currency = "GBP";
+            $CardProgram = "TEVINI PROGRAM";
+            $CardDesign = "TEVINI";
+            $CardProduct = "TEVINI CARD PRODUCT";
+            $FundsOwnership = "1";
+            $ProductType = "Tevini Donor Card";
+            $IsActive = true;
+            $IsVirtual = false;
+            $CorporateLoadMaxBalance = "";
+            $CorporateLoadMinLoadAmount = "";
+            $MaxDailyBalance = "";
+            $MaxDailyLoad = "";
+            $MaxWeeklyLoad = "";
+            $MaxMonthlyLoad = "";
+            $MaxYearlyLoad = "";
+            $Reloadable = true;
+            $ForEmployee = true;
+            $OnlineTransactions = true;
+            $ATMTransactions = false;
+            $DebitFeePercentage = "";
+            $CreditFeePercentage = "";
+            $AutoTopupEnabled = false;
+            $AutoTopupDefaultAmount = "";
+            $AutoTopUpTopUpThreshold = "";
+            $TokeniseWithoutPaymentCardEnabled = true;
+            $MaxTopupValue = "";
+            $MinTopupValue = "";
+            $RewardsPointsEnabled = false;
+            $RewardsPointPerUnit = 0;
+            $AllowAnonymousPinReveal = false;
+            $KycCheck = false;
+            $PepsSanctionsCheck = false;
+            $SpendProfileId = $sProfile['SpendProfile']['SpendProfileId'];
+            $SpendProfileName = $sProfile['SpendProfile']['ProfileName'];
+            $CreditProfileId = Auth::user()->CreditProfileId;
+            $CreditProfileName = Auth::user()->name;
+            $FundingSource = 2;
+            $TransactionAlerts = true;
 
-        return view('frontend.user.card.applyforcard', compact('data'));
-    }
 
-    public function applyForCardstore(Request $request)
-    {
-        $ProductCode = time().Auth::user()->id;
-        $Currency = "GBP";
-        $CardProgram = $request->input('CardProgram');
-        $CardDesign = "TEVINI";
-        $CardProduct = $request->input('CardProduct');
-        $FundsOwnership = "1";
-        $ProductType = $request->input('ProductType');
-        $IsActive = true;
-        $IsVirtual = false;
-        $CorporateLoadMaxBalance = "";
-        $CorporateLoadMinLoadAmount = "";
-        $MaxDailyBalance = "";
-        $MaxDailyLoad = "";
-        $MaxWeeklyLoad = "";
-        $MaxMonthlyLoad = "";
-        $MaxYearlyLoad = "";
-        $Reloadable = true;
-        $ForEmployee = true;
-        $OnlineTransactions = true;
-        $ATMTransactions = false;
-        $DebitFeePercentage = "";
-        $CreditFeePercentage = "";
-        $AutoTopupEnabled = false;
-        $AutoTopupDefaultAmount = "";
-        $AutoTopUpTopUpThreshold = "";
-        $TokeniseWithoutPaymentCardEnabled = true;
-        $MaxTopupValue = "";
-        $MinTopupValue = "";
-
-        $RewardsPointsEnabled = false;
-        $RewardsPointPerUnit = 0;
-        $AllowAnonymousPinReveal = false;
-        $KycCheck = false;
-        $PepsSanctionsCheck = false;
-        $SpendProfileId = $request->input('SpendProfileId');
-        $SpendProfileName = $request->input('SpendProfileName');
-        $CreditProfileId = $request->input('CreditProfileId');
-        $CreditProfileName = $request->input('CreditProfileName');
-        // dd($CreditProfileName);
-        $FundingSource = 2;
-        $TransactionAlerts = true;
-
-        // Send a POST request to the API with the updated finance fee value
-        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            // Send a POST request to the API with the updated finance fee value
+            $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product', [
                 'ProductCode' => $ProductCode,
                 'Currency' => $Currency,
@@ -166,20 +152,139 @@ class CardServiceController extends Controller
                 'FundingSource' => $FundingSource,
                 'TransactionAlerts' => $TransactionAlerts,
             ]);
-        $data = $response->json();
-    
-        // Check the response status code to see if the update was successful
-        if ($response->ok()) {
 
-            $cardproduct = new CardProduct();
-            $cardproduct->user_id = Auth::user()->id;
-            $cardproduct->ProductCode = $ProductCode;
-            $cardproduct->save();
-            return redirect()->route('userCardService')->with('successmsg', 'Product Create Successfully!');
+
+            // Check the response status code to see if the update was successful
+            if ($productResponse->ok()) {
+
+                $cardproduct = new CardProduct();
+                $cardproduct->user_id = Auth::user()->id;
+                $cardproduct->ProductCode = $ProductCode;
+                $cardproduct->save();
+                return redirect()->route('userCardService')->with('successmsg', 'Card Product Create Successfully!');
+            } else {
+                return redirect()->back()->with('error', 'Unable to create product.');
+            }
+            // apply for product end
+            return redirect()->back()->with('success', 'Credit Profile Request Create Successfully!');
         } else {
-            return redirect()->back()->with('error', 'Unable to create product.');
+            return redirect()->back()->with('error', 'Unable to update credit profile.');
         }
     }
+
+    // public function applyForCard()
+    // {
+    //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+    //             ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/product/spendProfile/2', [
+    //                 'Accept' => 'application/json',
+    //             ]);
+                
+    //     $data = $response->json();
+
+    //     // dd($data);
+
+    //     return view('frontend.user.card.applyforcard', compact('data'));
+    // }
+
+    // public function applyForCardstore(Request $request)
+    // {
+    //     $ProductCode = time().Auth::user()->id;
+    //     $Currency = "GBP";
+    //     $CardProgram = $request->input('CardProgram');
+    //     $CardDesign = "TEVINI";
+    //     $CardProduct = $request->input('CardProduct');
+    //     $FundsOwnership = "1";
+    //     $ProductType = $request->input('ProductType');
+    //     $IsActive = true;
+    //     $IsVirtual = false;
+    //     $CorporateLoadMaxBalance = "";
+    //     $CorporateLoadMinLoadAmount = "";
+    //     $MaxDailyBalance = "";
+    //     $MaxDailyLoad = "";
+    //     $MaxWeeklyLoad = "";
+    //     $MaxMonthlyLoad = "";
+    //     $MaxYearlyLoad = "";
+    //     $Reloadable = true;
+    //     $ForEmployee = true;
+    //     $OnlineTransactions = true;
+    //     $ATMTransactions = false;
+    //     $DebitFeePercentage = "";
+    //     $CreditFeePercentage = "";
+    //     $AutoTopupEnabled = false;
+    //     $AutoTopupDefaultAmount = "";
+    //     $AutoTopUpTopUpThreshold = "";
+    //     $TokeniseWithoutPaymentCardEnabled = true;
+    //     $MaxTopupValue = "";
+    //     $MinTopupValue = "";
+    //     $RewardsPointsEnabled = false;
+    //     $RewardsPointPerUnit = 0;
+    //     $AllowAnonymousPinReveal = false;
+    //     $KycCheck = false;
+    //     $PepsSanctionsCheck = false;
+    //     $SpendProfileId = $request->input('SpendProfileId');
+    //     $SpendProfileName = $request->input('SpendProfileName');
+    //     $CreditProfileId = $request->input('CreditProfileId');
+    //     $CreditProfileName = $request->input('CreditProfileName');
+    //     $FundingSource = 2;
+    //     $TransactionAlerts = true;
+
+    //     // Send a POST request to the API with the updated finance fee value
+    //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+    //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product', [
+    //             'ProductCode' => $ProductCode,
+    //             'Currency' => $Currency,
+    //             'CardProgram' => $CardProgram,
+    //             'CardDesign' => $CardDesign,
+    //             'CardProduct' => $CardProduct,
+    //             'FundsOwnership' => $FundsOwnership,
+    //             'ProductType' => $ProductType,
+    //             'IsActive' => $IsActive,
+    //             'IsVirtual' => $IsVirtual,
+    //             'CorporateLoadMaxBalance' => $CorporateLoadMaxBalance,
+    //             'CorporateLoadMinLoadAmount' => $CorporateLoadMinLoadAmount,
+    //             'MaxDailyBalance' => $MaxDailyBalance,
+    //             'MaxDailyLoad' => $MaxDailyLoad,
+    //             'MaxWeeklyLoad' => $MaxWeeklyLoad,
+    //             'MaxMonthlyLoad' => $MaxMonthlyLoad,
+    //             'MaxYearlyLoad' => $MaxYearlyLoad,
+    //             'Reloadable' => $Reloadable,
+    //             'ForEmployee' => $ForEmployee,
+    //             'OnlineTransactions' => $OnlineTransactions,
+    //             'ATMTransactions' => $ATMTransactions,
+    //             'DebitFeePercentage' => $DebitFeePercentage,
+    //             'CreditFeePercentage' => $CreditFeePercentage,
+    //             'AutoTopupEnabled' => $AutoTopupEnabled,
+    //             'AutoTopupDefaultAmount' => $AutoTopupDefaultAmount,
+    //             'AutoTopUpTopUpThreshold' => $AutoTopUpTopUpThreshold,
+    //             'TokeniseWithoutPaymentCardEnabled' => $TokeniseWithoutPaymentCardEnabled,
+    //             'MaxTopupValue' => $MaxTopupValue,
+    //             'MinTopupValue' => $MinTopupValue,
+    //             'RewardsPointsEnabled' => $RewardsPointsEnabled,
+    //             'RewardsPointPerUnit' => $RewardsPointPerUnit,
+    //             'AllowAnonymousPinReveal' => $AllowAnonymousPinReveal,
+    //             'KycCheck' => $KycCheck,
+    //             'PepsSanctionsCheck' => $PepsSanctionsCheck,
+    //             'SpendProfileId' => $SpendProfileId,
+    //             'SpendProfileName' => $SpendProfileName,
+    //             'CreditProfileId' => $CreditProfileId,
+    //             'CreditProfileName' => $request->CreditProfileName,
+    //             'FundingSource' => $FundingSource,
+    //             'TransactionAlerts' => $TransactionAlerts,
+    //         ]);
+    //     $data = $response->json();
+    
+    //     // Check the response status code to see if the update was successful
+    //     if ($response->ok()) {
+
+    //         $cardproduct = new CardProduct();
+    //         $cardproduct->user_id = Auth::user()->id;
+    //         $cardproduct->ProductCode = $ProductCode;
+    //         $cardproduct->save();
+    //         return redirect()->route('userCardService')->with('successmsg', 'Product Create Successfully!');
+    //     } else {
+    //         return redirect()->back()->with('error', 'Unable to create product.');
+    //     }
+    // }
 
     public function applyForCardHolder()
     {
@@ -190,7 +295,6 @@ class CardServiceController extends Controller
     {
 
         $FirstName = $request->input('FirstName');
-        
         $LastName = $request->input('LastName');
         $UserName = $request->input('UserName');
         $SecondSurname = $request->input('SecondSurname');
@@ -199,9 +303,9 @@ class CardServiceController extends Controller
         $Mobile = $request->input('Mobile');
         $LandlineTelephone = $request->input('LandlineTelephone');
         $DateOfBirth = $request->DateOfBirth;
-        // dd($DateOfBirth);
         $SocialSecurityNumber = $request->input('SocialSecurityNumber');
         $IdCardNumber = $request->input('IdCardNumber');
+
         $Nationality = $request->input('Nationality');
         $Title = $request->input('Title');
         $TaxIdCardNumber = $request->input('TaxIdCardNumber');
@@ -209,6 +313,7 @@ class CardServiceController extends Controller
         $Address1 = $request->input('Address1');
         $Address2 = $request->input('Address2');
         $PostCode = $request->input('PostCode');
+
         $State = $request->input('State');
         $City = $request->input('City');
         $Language = "en-GB";
@@ -257,10 +362,34 @@ class CardServiceController extends Controller
             $cardholder = new CardHolder;
             $cardholder->user_id = Auth::user()->id;
             $cardholder->CardHolderId = $responseData['CardHolderId'];
+            $cardholder->FirstName = $FirstName;
+            $cardholder->LastName = $LastName;
+            $cardholder->UserName = $UserName;
+            $cardholder->SecondSurname = $SecondSurname;
+            $cardholder->Email = $Email;
+            $cardholder->Password = $Password;
+            $cardholder->Mobile = $Mobile;
+            $cardholder->LandlineTelephone = $LandlineTelephone;
+            $cardholder->DateOfBirth = $DateOfBirth;
+            $cardholder->SocialSecurityNumber = $SocialSecurityNumber;
+            $cardholder->IdCardNumber = $IdCardNumber;
+            $cardholder->Nationality = $Nationality;
+            $cardholder->Title = $Title;
+            $cardholder->TaxIdCardNumber = $TaxIdCardNumber;
+            $cardholder->HouseNumberOrBuilding = $HouseNumberOrBuilding;
+            $cardholder->Address1 = $Address1;
+            $cardholder->Address2 = $Address2;
+            $cardholder->PostCode = $PostCode;
+            $cardholder->State = $State;
+            $cardholder->City = $City;
+            $cardholder->Language = $Language;
+            $cardholder->OnfidoId = $OnfidoId;
+            $cardholder->Country = $Country;
+            $cardholder->Gender = $Gender;
             $cardholder->save();
 
             // Redirect back with success message and API response data
-            return redirect()->route('userCardService')->with('success', 'API request successful')->with('responseData', $responseData);
+            return redirect()->route('userCardService')->with('success', 'Card request successful')->with('responseData', $responseData);
 
         } else {
             // API request failed
@@ -274,9 +403,9 @@ class CardServiceController extends Controller
 
     public function orderCard()
     {
-        $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
-        // dd($CardHolderId);
-        return view('frontend.user.card.ordercard', compact('CardHolderId'));
+        $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+        // dd($CardHolderData);
+        return view('frontend.user.card.ordercard', compact('CardHolderData'));
     }
 
     public function orderCardStore(Request $request)
@@ -352,6 +481,33 @@ class CardServiceController extends Controller
         }
     }
    
+
+    public function cardActivation(Request $request)
+    {
+        $ProfileName = Auth::user()->name;
+        $CreditLimit =  Auth::user()->balance;
+        $IsPrePaid = true;
+
+        // Send a POST request to the API with the updated finance fee value
+        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/creditProfile', [
+                'ProfileName' => $ProfileName,
+                'CreditLimit' => $CreditLimit,
+                'IsPrePaid' => $IsPrePaid,
+            ]);
+
+            $data = $response->json();
+            $userupdate = User::find(Auth::user()->id);
+            $userupdate->CreditProfileId = $data['CreditProfile']['CreditProfileId'];
+            $userupdate->save();
+    
+        // Check the response status code to see if the update was successful
+        if ($response->ok()) {
+            return redirect()->back()->with('success', 'Credit Profile Request Create Successfully!');
+        } else {
+            return redirect()->back()->with('error', 'Unable to update credit profile.');
+        }
+    }
     
 
 

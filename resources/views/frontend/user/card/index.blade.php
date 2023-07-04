@@ -89,7 +89,7 @@
         </section>
         @endif
         @if ($data)
-            <a href="{{route('applyforcard')}}" class="d-block btn-theme bg-secondary mt-5">Apply for card</a>
+            {{-- <a href="{{route('applyforcard')}}" class="d-block btn-theme bg-secondary mt-5">Apply for card</a> --}}
 
             @if ($CardHolderId)
             <a href="#" class="d-block btn-theme bg-primary">Update cardholder</a>

@@ -241,4 +241,5 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/product/update/{id}', [ProductController::class, 'update'])->name('product.update');
     Route::get('/product/view/{id}', [ProductController::class, 'view'])->name('product.view');
 
+    
 });

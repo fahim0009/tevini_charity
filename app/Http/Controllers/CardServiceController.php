@@ -484,28 +484,53 @@ class CardServiceController extends Controller
 
     public function cardActivation(Request $request)
     {
-        $ProfileName = Auth::user()->name;
-        $CreditLimit =  Auth::user()->balance;
-        $IsPrePaid = true;
+        
+        $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
+        // dd($CardHolderId);
+        return view('frontend.user.card.cardactivation', compact('CardHolderId'));
+    }
+
+
+    public function cardActivationstore(Request $request)
+    {
+        $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
+
+        $PAN = $request->PAN;
+        $CardDisplayName = $request->CardDisplayName;
+
+
 
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/creditProfile', [
-                'ProfileName' => $ProfileName,
-                'CreditLimit' => $CreditLimit,
-                'IsPrePaid' => $IsPrePaid,
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/cardProxyId', [
+                'PAN' => $PAN,
             ]);
-
-            $data = $response->json();
-            $userupdate = User::find(Auth::user()->id);
-            $userupdate->CreditProfileId = $data['CreditProfile']['CreditProfileId'];
-            $userupdate->save();
     
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
-            return redirect()->back()->with('success', 'Credit Profile Request Create Successfully!');
+            // apply for product start
+            $data = $response->json();
+            $CardProxyId = $data['CardProxyId']['CardProxyId'];
+
+            // Send a POST request to the API with the updated finance fee value
+            $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product', [
+                
+                'CardHolderId' => $CardHolderId,
+                'CardProxyId' => $CardProxyId,
+                'CardDisplayName' => $CardDisplayName,
+                
+            ]);
+
+
+            // Check the response status code to see if the update was successful
+            if ($productResponse->ok()) {
+                return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
+            } else {
+                return redirect()->back()->with('error', 'Unable to active card.');
+            }
         } else {
-            return redirect()->back()->with('error', 'Unable to update credit profile.');
+            return redirect()->back()->with('error', 'Unable to active card.');
         }
     }
     

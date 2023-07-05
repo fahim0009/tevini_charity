@@ -138,6 +138,11 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('/card-activation', [CardServiceController::class, 'cardActivation'])->name('cardActivation');
     Route::post('/card-activation', [CardServiceController::class, 'cardActivationstore'])->name('cardActivationstore');
 
+    
+    // // card service
+    // Route::get('card-activation', [CardServiceController::class, 'index'])->name('cardActivation');
+    // Route::post('cardprofile/store', [CardServiceController::class, 'cardprofilestore'])->name('cardActivation.store');
+
 
 });
 // user part end

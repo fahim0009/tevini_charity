@@ -62,7 +62,7 @@ class CardServiceController extends Controller
             // apply for product start
 
             $spendProfile = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/product/spendProfile/2', [
+                ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/product/spendProfile/1', [
                     'Accept' => 'application/json',
                 ]);
                 
@@ -510,7 +510,8 @@ class CardServiceController extends Controller
         if ($response->ok()) {
             // apply for product start
             $data = $response->json();
-            $CardProxyId = $data['CardProxyId']['CardProxyId'];
+            $CardProxyId = $data['CardProxyId'];
+            
 
             // Send a POST request to the API with the updated finance fee value
             $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -521,7 +522,7 @@ class CardServiceController extends Controller
                 'CardDisplayName' => $CardDisplayName,
                 
             ]);
-
+            // dd($productResponse);
 
             // Check the response status code to see if the update was successful
             if ($productResponse->ok()) {

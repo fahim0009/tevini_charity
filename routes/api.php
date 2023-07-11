@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CardServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +15,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('/transaction-store', [CardServiceController::class, 'pruchaseStore'])->name('purchaseStore');
+
+Route::group(['middleware' => ['auth:api']], function () {
+    // return $request->user();
+
+    // return url from Qpay Card
+
+
 });

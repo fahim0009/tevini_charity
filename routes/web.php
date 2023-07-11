@@ -127,6 +127,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     // apply for card
     Route::get('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolder'])->name('applyforcardholder');
     Route::post('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolderStore'])->name('applyforcardholderstore');
+    Route::get('update-cardholder', [CardServiceController::class, 'updateCardHolder'])->name('cardholderUpdate');
 
     
     // apply for card
@@ -175,6 +176,8 @@ Route::post('charity_login', [CharityAuthController::class, 'login'])->name('cha
 // charity registration
 Route::get('charity-registration', [CharityAuthController::class, 'charityRegistraion'])->name('charity.register');
 Route::post('charity-registration', [CharityAuthController::class, 'charityRegistraionStore'])->name('charity.registration');
+
+
 
 
 Route::middleware(['auth:sanctum,charity', 'verified']);

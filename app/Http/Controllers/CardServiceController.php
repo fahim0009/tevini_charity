@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CardHolder;
 use App\Models\CardProduct;
+use App\Models\PurchaseHistory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
@@ -400,6 +401,11 @@ class CardServiceController extends Controller
         }
     }
 
+    public function updateCardHolder()
+    {
+        return view('frontend.user.card.updatecardholder');
+    }
+
 
     public function orderCard()
     {
@@ -537,6 +543,63 @@ class CardServiceController extends Controller
     
 
 
+    // return url
+    public function pruchaseStore(Request $request)
+    {
+        // $data = $request->data;
+        // dd($data);
 
+        $phistry = new PurchaseHistory();
+        $phistry->Utid = $request->Utid;
+        $phistry->messageID = $request->messageID;
+        $phistry->instCode = $request->instCode;
+        $phistry->txnType = $request->txnType;
+        $phistry->msgType = $request->msgType;
+        $phistry->tlogId = $request->tlogId;
+        $phistry->orgTlogID = $request->orgTlogID;
+        $phistry->timeout = $request->timeout;
+        $phistry->repeat = $request->repeat;
+        $phistry->PAN = $request->PAN;
+        $phistry->cardID = $request->cardID;
+        $phistry->accNo = $request->accNo;
+        $phistry->curBill = $request->curBill;
+        $phistry->avlBal = $request->avlBal;
+        $phistry->blkAmt = $request->blkAmt;
+        $phistry->localDate = $request->localDate;
+        $phistry->localTime = $request->localTime;
+        $phistry->amtTxn = $request->amtTxn;
+        $phistry->curTxn = $request->curTxn;
+        $phistry->billAmt = $request->billAmt;
+        $phistry->billConvRate = $request->billConvRate;
+        $phistry->amtCom = $request->amtCom;
+        $phistry->amtPad = $request->amtPad;
+        $phistry->txnCode = $request->txnCode;
+        $phistry->termCode = $request->termCode;
+        $phistry->crdAcptID = $request->crdAcptID;
+        $phistry->crdAcptLoc = $request->crdAcptLoc;
+        $phistry->MCC = $request->MCC;
+        $phistry->poschp = $request->poschp;
+        $phistry->poscdim = $request->poscdim;
+        $phistry->poscham = $request->poscham;
+        $phistry->poscp = $request->poscp;
+        $phistry->approvalCode = $request->approvalCode;
+        $phistry->sysDate = $request->sysDate;
+        $phistry->rev = $request->rev;
+        $phistry->orgItemId = $request->orgItemId;
+        $phistry->itemSrc = $request->itemSrc;
+        $phistry->amtFee = $request->amtFee;
+        $phistry->crdproduct = $request->crdproduct;
+        $phistry->ctxLocalDate = $request->ctxLocalDate;
+        $phistry->ctxLocalTime = $request->ctxLocalTime;
+        $phistry->aVSChkRs = $request->aVSChkRs;
+        $phistry->threeDSecChkRs = $request->threeDSecChkRs;
+        $phistry->actionCode = $request->actionCode;
+        $phistry->amtCashback = $request->amtCashback;
+        $phistry->trn = $request->trn;
+        $phistry->txnSubCode = $request->txnSubCode;
+        $phistry->save();
+        
+        
+    }
 
 }

@@ -15,7 +15,7 @@ use App\Http\Controllers\CardServiceController;
 |
 */
 
-Route::post('/transaction-store', [CardServiceController::class, 'pruchaseStore'])->name('purchaseStore');
+Route::post('/authorisations', [CardServiceController::class, 'pruchaseStore'])->name('purchaseStore');
 
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();

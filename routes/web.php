@@ -128,6 +128,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolder'])->name('applyforcardholder');
     Route::post('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolderStore'])->name('applyforcardholderstore');
     Route::get('update-cardholder', [CardServiceController::class, 'updateCardHolder'])->name('cardholderUpdate');
+    Route::post('update-cardholder', [CardServiceController::class, 'updateCardHolderPost'])->name('cardholderUpdatePost');
 
     
     // apply for card

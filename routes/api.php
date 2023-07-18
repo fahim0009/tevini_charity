@@ -15,7 +15,9 @@ use App\Http\Controllers\CardServiceController;
 |
 */
 
-Route::post('/authorisations', [CardServiceController::class, 'pruchaseStore'])->name('purchaseStore');
+Route::post('/authorisations', [CardServiceController::class, 'authorisation'])->name('authorisation');
+Route::post('/settlement', [CardServiceController::class, 'settlement'])->name('settlement');
+Route::post('/expired', [CardServiceController::class, 'expired'])->name('expired');
 
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();

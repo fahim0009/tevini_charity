@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Authorisation;
 use App\Models\CardHolder;
 use App\Models\CardProduct;
+use App\Models\Expired;
 use App\Models\PurchaseHistory;
 use App\Models\User;
+use App\Models\Settlement;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -403,8 +406,128 @@ class CardServiceController extends Controller
 
     public function updateCardHolder()
     {
-        return view('frontend.user.card.updatecardholder');
+        $data = CardHolder::where('user_id', Auth::user()->id)->first();
+        // dd($data);
+        return view('frontend.user.card.updatecardholder', compact('data'));
     }
+
+    // update cardholder
+    public function updateCardHolderPost(Request $request)
+    {
+
+        $CardHolderId = $request->input('CardHolderId');
+        $FirstName = $request->input('FirstName');
+        $LastName = $request->input('LastName');
+        $UserName = $request->input('UserName');
+        $SecondSurname = $request->input('SecondSurname');
+        $Email = $request->input('Email');
+        $Password = $request->input('Password');
+        $Mobile = $request->input('Mobile');
+        $LandlineTelephone = $request->input('LandlineTelephone');
+        $DateOfBirth = $request->DateOfBirth;
+        $SocialSecurityNumber = $request->input('SocialSecurityNumber');
+        $IdCardNumber = $request->input('IdCardNumber');
+
+        $Nationality = $request->input('Nationality');
+        $Title = $request->input('Title');
+        $TaxIdCardNumber = $request->input('TaxIdCardNumber');
+        $HouseNumberOrBuilding = $request->input('HouseNumberOrBuilding');
+        $Address1 = $request->input('Address1');
+        $Address2 = $request->input('Address2');
+        $PostCode = $request->input('PostCode');
+
+        $State = $request->input('State');
+        $City = $request->input('City');
+        $Language = "en-GB";
+        $OnfidoId = 1;
+        $Country = "UK";
+        $Gender = 1;
+
+        
+        
+        // Send a POST request to the API with the updated finance fee value
+        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/user/cardHolderId/'.$CardHolderId.'', [
+                'AcceptedTAndCs' => true,
+                'ShownAutoCommsOptIn' => true,
+                'PassedSanctions' => true,
+                'PassedPeps' => true,
+                'PassedKyc' => true,
+                'IsActive' => true,
+                'FirstName' => $FirstName,
+                'LastName' => $LastName,
+                'UserName' => $UserName,
+                'SecondSurname' => $SecondSurname,
+                'Email' => $Email,
+                'Password' => $Password,
+                'Mobile' => $Mobile,
+                'LandlineTelephone' => $LandlineTelephone,
+                'Language' => "en-GB",
+                'DateOfBirth' => $DateOfBirth,
+                'SocialSecurityNumber' => $SocialSecurityNumber,
+                'IdCardNumber' => $IdCardNumber,
+                'Nationality' => $Nationality,
+                'Title' => $Title,
+                'TaxIdCardNumber' => $TaxIdCardNumber,
+                'HouseNumberOrBuilding' => $HouseNumberOrBuilding,
+                'Address1' => $Address1,
+                'Address2' => $Address2,
+                'PostCode' => $PostCode,
+                'City' => $City,
+                'State' => $State,
+                'Country' => "UK",
+                'OnfidoId' => "1",
+                'Gender' => "1"
+
+            ]);
+
+        // Check the API response
+        if ($response->successful()) {
+            // API request succeeded
+            $responseData = $response->json();
+            // Process the response data as needed
+            
+
+            // return $responseData;
+            $cardholder = CardHolder::find($request->cardid);
+            $cardholder->FirstName = $FirstName;
+            $cardholder->LastName = $LastName;
+            $cardholder->UserName = $UserName;
+            $cardholder->SecondSurname = $SecondSurname;
+            $cardholder->Email = $Email;
+            $cardholder->Password = $Password;
+            $cardholder->Mobile = $Mobile;
+            $cardholder->LandlineTelephone = $LandlineTelephone;
+            $cardholder->DateOfBirth = $DateOfBirth;
+            $cardholder->SocialSecurityNumber = $SocialSecurityNumber;
+            $cardholder->IdCardNumber = $IdCardNumber;
+            $cardholder->Nationality = $Nationality;
+            $cardholder->Title = $Title;
+            $cardholder->TaxIdCardNumber = $TaxIdCardNumber;
+            $cardholder->HouseNumberOrBuilding = $HouseNumberOrBuilding;
+            $cardholder->Address1 = $Address1;
+            $cardholder->Address2 = $Address2;
+            $cardholder->PostCode = $PostCode;
+            $cardholder->State = $State;
+            $cardholder->City = $City;
+            $cardholder->Language = $Language;
+            $cardholder->OnfidoId = $OnfidoId;
+            $cardholder->Country = $Country;
+            $cardholder->Gender = $Gender;
+            $cardholder->save();
+
+            // Redirect back with success message and API response data
+            return redirect()->route('userCardService')->with('success', 'Card request update successful')->with('responseData', $responseData);
+
+        } else {
+            // API request failed
+            $errorResponse = $response->json();
+            // Handle the error response
+            // Redirect back with error message and error response data
+            return redirect()->back()->with('error', 'API request failed')->with('errorResponse', $errorResponse);
+        }
+    }
+    // update cardholder end
 
 
     public function orderCard()
@@ -544,60 +667,198 @@ class CardServiceController extends Controller
 
 
     // return url
-    public function pruchaseStore(Request $request)
+    public function authorisation(Request $request)
     {
-        // $data = $request->data;
-        // dd($data);
 
-        $phistry = new PurchaseHistory();
-        $phistry->Utid = $request->Utid;
-        $phistry->messageID = $request->messageID;
-        $phistry->instCode = $request->instCode;
-        $phistry->txnType = $request->txnType;
-        $phistry->msgType = $request->msgType;
-        $phistry->tlogId = $request->tlogId;
-        $phistry->orgTlogID = $request->orgTlogID;
-        $phistry->timeout = $request->timeout;
-        $phistry->repeat = $request->repeat;
-        $phistry->PAN = $request->PAN;
-        $phistry->cardID = $request->cardID;
-        $phistry->accNo = $request->accNo;
-        $phistry->curBill = $request->curBill;
-        $phistry->avlBal = $request->avlBal;
-        $phistry->blkAmt = $request->blkAmt;
-        $phistry->localDate = $request->localDate;
-        $phistry->localTime = $request->localTime;
-        $phistry->amtTxn = $request->amtTxn;
-        $phistry->curTxn = $request->curTxn;
-        $phistry->billAmt = $request->billAmt;
-        $phistry->billConvRate = $request->billConvRate;
-        $phistry->amtCom = $request->amtCom;
-        $phistry->amtPad = $request->amtPad;
-        $phistry->txnCode = $request->txnCode;
-        $phistry->termCode = $request->termCode;
-        $phistry->crdAcptID = $request->crdAcptID;
-        $phistry->crdAcptLoc = $request->crdAcptLoc;
-        $phistry->MCC = $request->MCC;
-        $phistry->poschp = $request->poschp;
-        $phistry->poscdim = $request->poscdim;
-        $phistry->poscham = $request->poscham;
-        $phistry->poscp = $request->poscp;
-        $phistry->approvalCode = $request->approvalCode;
-        $phistry->sysDate = $request->sysDate;
-        $phistry->rev = $request->rev;
-        $phistry->orgItemId = $request->orgItemId;
-        $phistry->itemSrc = $request->itemSrc;
-        $phistry->amtFee = $request->amtFee;
-        $phistry->crdproduct = $request->crdproduct;
-        $phistry->ctxLocalDate = $request->ctxLocalDate;
-        $phistry->ctxLocalTime = $request->ctxLocalTime;
-        $phistry->aVSChkRs = $request->aVSChkRs;
-        $phistry->threeDSecChkRs = $request->threeDSecChkRs;
-        $phistry->actionCode = $request->actionCode;
-        $phistry->amtCashback = $request->amtCashback;
-        $phistry->trn = $request->trn;
-        $phistry->txnSubCode = $request->txnSubCode;
-        $phistry->save();
+        $DateTime = now();
+// dd($DateTime);
+        $data = new Authorisation();
+        $data->Utid = $request->Utid;
+        $data->messageID = $request->messageID;
+        $data->instCode = $request->instCode;
+        $data->txnType = $request->txnType;
+        $data->msgType = $request->msgType;
+        $data->tlogId = $request->tlogId;
+        $data->orgTlogID = $request->orgTlogID;
+        $data->timeout = $request->timeout;
+        $data->repeat = $request->repeat;
+        $data->PAN = $request->PAN;
+        $data->cardID = $request->cardID;
+        $data->accNo = $request->accNo;
+        $data->curBill = $request->curBill;
+        $data->avlBal = $request->avlBal;
+        $data->blkAmt = $request->blkAmt;
+        $data->localDate = $request->localDate;
+        $data->localTime = $request->localTime;
+        $data->amtTxn = $request->amtTxn;
+        $data->curTxn = $request->curTxn;
+        $data->billAmt = $request->billAmt;
+        $data->billConvRate = $request->billConvRate;
+        $data->amtCom = $request->amtCom;
+        $data->amtPad = $request->amtPad;
+        $data->txnCode = $request->txnCode;
+        $data->termCode = $request->termCode;
+        $data->crdAcptID = $request->crdAcptID;
+        $data->crdAcptLoc = $request->crdAcptLoc;
+        $data->MCC = $request->MCC;
+        $data->poschp = $request->poschp;
+        $data->poscdim = $request->poscdim;
+        $data->poscham = $request->poscham;
+        $data->poscp = $request->poscp;
+        $data->approvalCode = $request->approvalCode;
+        $data->sysDate = $request->sysDate;
+        $data->rev = $request->rev;
+        $data->orgItemId = $request->orgItemId;
+        $data->itemSrc = $request->itemSrc;
+        $data->amtFee = $request->amtFee;
+        $data->crdproduct = $request->crdproduct;
+        $data->ctxLocalDate = $request->ctxLocalDate;
+        $data->ctxLocalTime = $request->ctxLocalTime;
+        $data->aVSChkRs = $request->aVSChkRs;
+        $data->threeDSecChkRs = $request->threeDSecChkRs;
+        $data->actionCode = $request->actionCode;
+        $data->amtCashback = $request->amtCashback;
+        $data->trn = $request->trn;
+        $data->txnSubCode = $request->txnSubCode;
+        if ($data->save()) {
+            // Send a POST request to the API with the updated finance fee value
+            $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                
+                'Type' => "AUTH",
+                'DateTime' => $DateTime,
+                
+            ]);
+        } else {
+            return redirect()->back()->with('error', 'Authorization error.');
+        }
+        
+        
+        
+    }
+
+    public function settlement(Request $request)
+    {
+        $DateTime = now();
+        $data = new Settlement();
+        $data->MTID = $request->MTID;
+        $data->localDate = $request->localDate;
+        $data->localTime = $request->localTime;
+        $data->tlogId = $request->tlogId;
+        $data->orgTlogID = $request->orgTlogID;
+        $data->orgItemId = $request->orgItemId;
+        $data->PAN = $request->PAN;
+        $data->cardID = $request->cardID;
+        $data->txnCode = $request->txnCode;
+        $data->txnSubCode = $request->txnSubCode;
+        $data->amtFee = $request->amtFee;
+        $data->curTxn = $request->curTxn;
+        $data->amtTxn = $request->amtTxn;
+        $data->amtCashback = $request->amtCashback;
+        $data->billAmt = $request->billAmt;
+        $data->curBill = $request->curBill;
+        $data->billConvRate = $request->billConvRate;
+        $data->CURSET = $request->CURSET;
+        $data->AMTSET = $request->AMTSET;
+        $data->RATESET = $request->RATESET;
+        $data->RATESETECB = $request->RATESETECB;
+        $data->approvalCode = $request->approvalCode;
+        $data->crdAcptID = $request->crdAcptID;
+        $data->crdAcptLoc = $request->crdAcptLoc;
+        $data->termCode = $request->termCode;
+        $data->MCC = $request->MCC;
+        $data->ctxLocalDate = $request->ctxLocalDate;
+        $data->ctxLocalTime = $request->ctxLocalTime;
+        $data->PRODCODE = $request->PRODCODE;
+        $data->trn = $request->trn;
+        $data->poschp = $request->poschp;
+        $data->poscp = $request->poscp;
+        $data->poscdim = $request->poscdim;
+        $data->poscham = $request->poscham;
+        $data->settlementActionCode = $request->settlementActionCode;
+        $data->Utid = $request->Utid;
+        if ($data->save()) {
+            // Send a POST request to the API with the updated finance fee value
+            $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                
+                'Type' => "SETTLEMENT",
+                'DateTime' => $DateTime,
+                
+            ]);
+        } else {
+            return redirect()->back()->with('error', 'SETTLEMENT ERROR.');
+        }
+        
+        
+    }
+
+    public function expired(Request $request)
+    {
+
+        $DateTime = now();
+
+        $data = new Expired();
+        $data->Utid = $request->Utid;
+        $data->messageID = $request->messageID;
+        $data->instCode = $request->instCode;
+        $data->txnType = $request->txnType;
+        $data->msgType = $request->msgType;
+        $data->tlogId = $request->tlogId;
+        $data->orgTlogID = $request->orgTlogID;
+        $data->timeout = $request->timeout;
+        $data->repeat = $request->repeat;
+        $data->PAN = $request->PAN;
+        $data->cardID = $request->cardID;
+        $data->accNo = $request->accNo;
+        $data->curBill = $request->curBill;
+        $data->avlBal = $request->avlBal;
+        $data->blkAmt = $request->blkAmt;
+        $data->localDate = $request->localDate;
+        $data->localTime = $request->localTime;
+        $data->amtTxn = $request->amtTxn;
+        $data->curTxn = $request->curTxn;
+        $data->billAmt = $request->billAmt;
+        $data->billConvRate = $request->billConvRate;
+        $data->amtCom = $request->amtCom;
+        $data->amtPad = $request->amtPad;
+        $data->txnCode = $request->txnCode;
+        $data->termCode = $request->termCode;
+        $data->crdAcptID = $request->crdAcptID;
+        $data->crdAcptLoc = $request->crdAcptLoc;
+        $data->MCC = $request->MCC;
+        $data->poschp = $request->poschp;
+        $data->poscdim = $request->poscdim;
+        $data->poscham = $request->poscham;
+        $data->poscp = $request->poscp;
+        $data->approvalCode = $request->approvalCode;
+        $data->sysDate = $request->sysDate;
+        $data->rev = $request->rev;
+        $data->orgItemId = $request->orgItemId;
+        $data->itemSrc = $request->itemSrc;
+        $data->amtFee = $request->amtFee;
+        $data->crdproduct = $request->crdproduct;
+        $data->ctxLocalDate = $request->ctxLocalDate;
+        $data->ctxLocalTime = $request->ctxLocalTime;
+        $data->aVSChkRs = $request->aVSChkRs;
+        $data->threeDSecChkRs = $request->threeDSecChkRs;
+        $data->actionCode = $request->actionCode;
+        $data->amtCashback = $request->amtCashback;
+        $data->trn = $request->trn;
+        $data->txnSubCode = $request->txnSubCode;
+        if ($data->save()) {
+            // Send a POST request to the API with the updated finance fee value
+            $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                
+                'Type' => "EXPIRED",
+                'DateTime' => $DateTime,
+                
+            ]);
+        } else {
+            return redirect()->back()->with('error', 'EXPIRED ERROR.');
+        }
+        
         
         
     }

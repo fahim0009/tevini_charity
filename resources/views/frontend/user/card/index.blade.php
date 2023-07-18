@@ -46,29 +46,6 @@
             <div class="col">
                 <p><strong>Available Balance : </strong>{{$data['CreditProfile']['AvailableBalance']}}</p>
             </div>
-
-            <div class="col my-3">
-                <p><strong>Is Pre Paid : </strong>{{($data['CreditProfile']['IsPrePaid'] == 1)?'Yes':'No'}}</p>
-            </div>
-
-            <div class="col">
-                <p><strong>Balance Due : </strong>{{$data['CreditProfile']['BalanceDue']}}</p>
-            </div>
-
-            <div class="col">
-                <p><strong>Amount Spent : </strong>{{$data['CreditProfile']['AmountSpent']}}</p>
-            </div>
-
-            <div class="col">
-                <p><strong>Payment Frequency : </strong>{{$data['CreditProfile']['PaymentFrequency']}}</p>
-            </div>
-
-            <div class="col">
-                <p><strong>Payment Terms : </strong>{{$data['CreditProfile']['PaymentTerms']}}</p>
-            </div>
-            <div class="col">
-                <p><strong>Payment Type : </strong>{{$data['CreditProfile']['PaymentType']}}</p>
-            </div>
         @else
             <form  action="{{ route('cardprofile.store') }}" method="POST" enctype="multipart/form-data" >
                 @csrf
@@ -92,7 +69,7 @@
             {{-- <a href="{{route('applyforcard')}}" class="d-block btn-theme bg-secondary mt-5">Apply for card</a> --}}
 
             @if ($CardHolderId)
-            <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder</a>
+            <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder </a>
             <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
             
             <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>

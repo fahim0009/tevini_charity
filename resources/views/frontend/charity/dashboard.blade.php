@@ -3,7 +3,7 @@
 @php
     $pending_transactions = \App\Models\Usertransaction::where([
             ['t_type','=', 'Out'],
-            ['user_id','=', auth('charity')->user()->id],
+            ['charity_id','=', auth('charity')->user()->id],
             ['pending','=', '0']
         ])->sum('amount');
 

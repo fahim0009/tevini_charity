@@ -644,7 +644,7 @@ class CardServiceController extends Controller
 
             // Send a POST request to the API with the updated finance fee value
             $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product', [
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/card/activate', [
                 
                 'CardHolderId' => $CardHolderId,
                 'CardProxyId' => $CardProxyId,
@@ -663,7 +663,60 @@ class CardServiceController extends Controller
             return redirect()->back()->with('error', 'Unable to active card.');
         }
     }
+
+    // set card pin
+    public function cardSetPin(Request $request)
+    {
+        
+        $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
+        // dd($CardHolderId);
+        return view('frontend.user.card.setpin', compact('CardHolderId'));
+    }
     
+    public function cardSetPinstore(Request $request)
+    {
+
+        $PAN = $request->PAN;
+        $PIN = $request->PIN;
+        // Send a POST request to the API with the updated finance fee value
+        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/cardProxyId', [
+                'PAN' => $PAN,
+            ]);
+    
+        // Check the response status code to see if the update was successful
+        if ($response->ok()) {
+            // apply for product start
+            $data = $response->json();
+            $CardProxyId = $data['CardProxyId'];
+            
+
+            // Send a POST request to the API with the updated finance fee value
+            $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/card/pin/setPin', [
+                
+                'PIN' => $PIN,
+                'CardProxyId' => $CardProxyId,
+                
+            ]);
+            // dd($productResponse);
+
+            // Check the response status code to see if the update was successful
+            if ($productResponse->ok()) {
+                return redirect()->route('userCardService')->with('successmsg', 'Card PIN add Successfully!');
+            } else {
+                return redirect()->back()->with('error', 'Unable to set pin.');
+            }
+        } else {
+            return redirect()->back()->with('error', 'Unable to set pin.');
+        }
+    }
+
+    public function cardStatusChange(Request $request)
+    {
+        
+        return view('frontend.user.card.status');
+    }
 
 
     // return url
@@ -671,7 +724,7 @@ class CardServiceController extends Controller
     {
 
         $DateTime = now();
-// dd($DateTime);
+            // dd($DateTime);
         $data = new Authorisation();
         $data->Utid = $request->Utid;
         $data->messageID = $request->messageID;

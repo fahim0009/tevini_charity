@@ -140,6 +140,14 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('/card-activation', [CardServiceController::class, 'cardActivation'])->name('cardActivation');
     Route::post('/card-activation', [CardServiceController::class, 'cardActivationstore'])->name('cardActivationstore');
 
+    // cardSetPin
+    Route::get('/card-setpin', [CardServiceController::class, 'cardSetPin'])->name('cardSetPin');
+    Route::post('/card-setpin', [CardServiceController::class, 'cardSetPinstore'])->name('cardSetPinstore');
+
+    
+    // cardSetPin
+    Route::get('/card-status-change', [CardServiceController::class, 'cardStatusChange'])->name('cardStatusChange');
+    Route::post('/card-status-change', [CardServiceController::class, 'cardStatusChangeStore'])->name('cardStatusChangeStore');
     
     // // card service
     // Route::get('card-activation', [CardServiceController::class, 'index'])->name('cardActivation');
@@ -169,6 +177,11 @@ Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, '
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
 Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
 Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
+
+// change password
+
+Route::get('/change-user-password', [App\Http\Controllers\HomeController::class, 'changePassword'])->name('user.chkpassword');
+Route::post('/change-user-password', [App\Http\Controllers\HomeController::class, 'passwordChange'])->name('user.pwdchange');
 
 
 // chatiry login

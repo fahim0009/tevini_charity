@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Usertransaction;
 use App\Models\DonationCalculator;
 use App\Models\DonationDetail;
+use App\Models\User;
 use Carbon\Carbon;
 use DateTime;
 use Carbon\CarbonPeriod;
 use Illuminate\support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -40,7 +43,14 @@ class HomeController extends Controller
         }if (auth()->user()->is_type == 'seller') {
             return redirect()->route('seller.dashboard');
         }if (auth()->user()->is_type == 'user') {
-            return redirect()->route('user.dashboard');
+
+            if (auth()->user()->passwordchk == '0') {
+                return redirect()->route('user.chkpassword');
+            } else {
+                return redirect()->route('user.dashboard');
+            }
+            
+
         }
         if (auth()->user()->is_type == 0) {
             return view('home');
@@ -97,6 +107,38 @@ class HomeController extends Controller
         return view('frontend.user.dashboard',compact('currentyramount','totalamount'));
 
     }
+    public function changePassword()
+    {
+        return view('frontend.user.passwordchange');
+    }
+
+    public function passwordChange(Request $request)
+    {
+
+
+      if ($request['password']) {
+            $request->validate([
+              'password' => [
+                                'required',
+                                Password::min(8)
+                                    ->letters()
+                                    ->mixedCase()
+                                    ->numbers()
+                                    ->symbols()
+              ],
+              
+              'password_confirmation' => 'required|same:password'
+            ]);
+
+           
+      }
+
+          $data = User::find(Auth::user()->id);
+          $data->password = Hash::make($request['password']);
+          $data->passwordchk = '1';
+          $data->save();
+           return redirect()->back()->with('success', 'User Updated Successfully'); 
+  	}
 
     public function sellerHome()
     {

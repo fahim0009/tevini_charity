@@ -32,6 +32,7 @@ class User extends Authenticatable
         'postcode',
         'accountno',
         'balance',
+        'passwordchk',
 
         'country',
         'city',

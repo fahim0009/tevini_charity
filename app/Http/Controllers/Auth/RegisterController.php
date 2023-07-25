@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ContactMail;
 
@@ -55,11 +56,21 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            // 'password' => ['required', 'string', 'min:6', 'confirmed'],
             'houseno' => ['required', 'string', 'max:255'],
             'streetname' => ['required', 'string', 'max:255'],
             'town' => ['required', 'string', 'max:255'],
             'postcode' => ['required', 'string', 'max:255'],
+            'password' => [
+                              'required',
+                              Password::min(8)
+                                  ->letters()
+                                  ->mixedCase()
+                                  ->numbers()
+                                  ->symbols()
+            ],
+            
+            'password_confirmation' => 'required|same:password'
         ]);
     }
 
@@ -80,11 +91,11 @@ class RegisterController extends Controller
             'street' => $data['streetname'],
             'town' => $data['town'],
             'postcode' => $data['postcode'],
+            'passwordchk' => 1,
             'notification' => 1,
             'status' => 0,
 
         ]);
-
 
     //   $mail_to_send_to = $data['email'];
 

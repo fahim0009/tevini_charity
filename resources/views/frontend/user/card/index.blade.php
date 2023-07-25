@@ -73,6 +73,9 @@
             <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
             
             <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+
+            <a href="{{route('cardSetPin')}}" class="d-block btn-theme bg-primary">Set Pin</a>
+            <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
             
             @else
             <a href="{{route('applyforcardholder')}}" class="d-block btn-theme bg-primary">Apply for cardholder</a>

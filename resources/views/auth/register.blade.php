@@ -33,14 +33,14 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @enderror
-                    @error('password')
+                    {{-- @error('password')
                         <div class="alert alert-danger alert-dismissible fade show alert-custom" role="alert">
                             <small class="text-danger text-capitalize">
                                 <strong>{{ $message }}</strong>
                             </small>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @enderror
+                    @enderror --}}
                         <form method="POST" class="form-custom" action="{{ route('register') }}">
                                 @csrf
 
@@ -83,11 +83,21 @@
                                 <input id="password" type="password" placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
                 
                 
+                                @error('password')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 <div id="iconsPass-0" class="pass-icons-container" style="top: 12.5px;"></div>
                             </div>
                             <div class="form-group">
                 
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password">
+                                <input id="password-confirm" type="password" class="form-control  @error('password') is-invalid @enderror" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password">
+                                @error('password_confirmation')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                             </div>
 
                             <div class="col-lg-12 mt-3">

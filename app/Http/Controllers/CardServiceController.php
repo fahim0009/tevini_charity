@@ -640,7 +640,12 @@ class CardServiceController extends Controller
             // apply for product start
             $data = $response->json();
             $CardProxyId = $data['CardProxyId'];
-            
+
+            // store card proxi id for showing transaction
+            $updateproduct = CardProduct::where('user_id',Auth::user()->id)->first();
+            $upPid = CardProduct::find($updateproduct->id);
+            $upPid->CardProxyId =  $data['CardProxyId'];
+            $upPid->save();
 
             // Send a POST request to the API with the updated finance fee value
             $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')

@@ -242,4 +242,12 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/product/view/{id}', [ProductController::class, 'view'])->name('product.view');
 
     
+    Route::get('/authorisation', [ProductController::class, 'getAuthorisation'])->name('authorisation');
+    Route::get('/settlement', [ProductController::class, 'getSettlement'])->name('settlement');
+
+    
+    Route::get('/card-transaction', [ProductController::class, 'getCardTransaction'])->name('cardTransaction');
+    Route::get('/user-card-transaction', [ProductController::class, 'getUserCardTransaction'])->name('cardservice.tran');
+
+    
 });

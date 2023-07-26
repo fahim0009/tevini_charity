@@ -269,10 +269,31 @@
                 </a>
             </li>
 
-            <li class="nav-item {{ (request()->is('admin/product/index*')) ? 'active' : '' }}" id="admintransaction">
+            <li class="nav-item {{ (request()->is('admin/product/index*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('product.index') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                     Product
+                </a>
+            </li>
+
+            <li class="nav-item {{ (request()->is('admin/authorisation*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('authorisation') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Authorisation
+                </a>
+            </li>
+
+            <li class="nav-item {{ (request()->is('admin/settlement*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('settlement') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Settlement
+                </a>
+            </li>
+
+            <li class="nav-item {{ (request()->is('admin/card-transaction*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('cardTransaction') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Card Transaction
                 </a>
             </li>
 

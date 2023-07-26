@@ -78,13 +78,13 @@
 
                                                         <div class="mb-3">
                                                             <label for="fromDate" class="form-label">From Date</label>
-                                                            <input type="date" class="form-control" id="fromDate" name="fromDate">
+                                                            <input type="date" class="form-control" id="fromDate" name="fromDate" required>
                                                             <input type="hidden" class="form-control" value="{{$data->CardProxyId}}" id="CardProxyId" name="CardProxyId">
                                                         </div>
                                                         
                                                         <div class="mb-3">
                                                             <label for="endDate" class="form-label">End Date</label>
-                                                            <input type="date" class="form-control" id="endDate" name="endDate">
+                                                            <input type="date" class="form-control" id="endDate" name="endDate" required>
                                                         </div>
                                                     </div>
                                             </div>

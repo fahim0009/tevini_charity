@@ -59,6 +59,21 @@ class VoucherController extends Controller
             $donor->decrement('balance',$voucher->amount);
             $donor->save();
 
+            // card balance update
+            if (isset($donor->CreditProfileId)) {
+                $CreditProfileId = $donor->CreditProfileId;
+                $CreditProfileName = $donor->name;
+                $AvailableBalance = 0 - $voucher->amount;
+                $comment = "Waiting voucher complete by donor";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->waiting = "No";

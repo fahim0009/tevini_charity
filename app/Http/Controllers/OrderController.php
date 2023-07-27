@@ -25,6 +25,8 @@ use App\Mail\WaitingvoucherReport;
 use Auth;
 use PDF;
 
+use Illuminate\Support\Facades\Http;
+
 class OrderController extends Controller
 {
     public function userStandingOrder()
@@ -180,9 +182,25 @@ class OrderController extends Controller
             }
 
             if($prepaid_amount !=0){
-            $user = User::find($request->did);
-            $user->decrement('balance',$prepaid_amount);
-            $user->save();
+                $user = User::find($request->did);
+                $user->decrement('balance',$prepaid_amount);
+                $user->save();
+
+                // card balance update
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 - $prepaid_amount;
+                    $comment = "Voucher Store";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+                // card balance update end
             }
 
             $user = User::where('id',$request->did)->first();
@@ -698,6 +716,22 @@ class OrderController extends Controller
             $donor->decrement('balance',$voucher->amount);
             $donor->save();
 
+            // card balance update
+            if (isset($donor->CreditProfileId)) {
+                $CreditProfileId = $donor->CreditProfileId;
+                $CreditProfileName = $donor->name;
+                $AvailableBalance = 0 - $voucher->amount;
+                $comment = "Provoucher complete";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+
 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->status = 1;
@@ -843,6 +877,23 @@ class OrderController extends Controller
             $donor = User::find($voucher->user_id);
             $donor->decrement('balance',$voucher->amount);
             $donor->save();
+
+            // card balance update
+            if (isset($donor->CreditProfileId)) {
+                $CreditProfileId = $donor->CreditProfileId;
+                $CreditProfileName = $donor->name;
+                $AvailableBalance = 0 - $voucher->amount;
+                $comment = "waiting voucher complete";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+
 
 
             $pstatus = Provoucher::find($voucher_id);
@@ -1079,6 +1130,22 @@ public function watingvoucherCancel(Request $request)
                     $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
                     $donor->increment('balance',$amount*$order->number_voucher);
                     $donor->save();
+
+                    // card balance update
+                    if (isset($donor->CreditProfileId)) {
+                        $CreditProfileId = $donor->CreditProfileId;
+                        $CreditProfileName = $donor->name;
+                        $AvailableBalance = $amount*$order->number_voucher;
+                        $comment = "Make a donation or Standing order";
+                        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                'CreditProfileId' => $CreditProfileId,
+                                'CreditProfileName' => $CreditProfileName,
+                                'AvailableBalance' => $AvailableBalance,
+                                'comment' => $comment,
+                            ]);
+                    }
+                    // card balance update end
 
                     Usertransaction::where(['order_id'=>$request->orderId])->update(['status'=>'0']);
 

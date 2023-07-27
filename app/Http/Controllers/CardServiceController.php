@@ -626,6 +626,9 @@ class CardServiceController extends Controller
 
         $PAN = $request->PAN;
         $CardDisplayName = $request->CardDisplayName;
+        $cardNumber = substr($PAN, -4);
+
+        // dd($cardNumber);
 
 
 
@@ -645,6 +648,7 @@ class CardServiceController extends Controller
             $updateproduct = CardProduct::where('user_id',Auth::user()->id)->first();
             $upPid = CardProduct::find($updateproduct->id);
             $upPid->CardProxyId =  $data['CardProxyId'];
+            $upPid->cardNumber =  $cardNumber;
             $upPid->save();
 
             // Send a POST request to the API with the updated finance fee value
@@ -728,9 +732,16 @@ class CardServiceController extends Controller
     public function authorisation(Request $request)
     {
 
+        $cardNumber = substr($request->PAN, -4);
+        $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+
         $DateTime = now();
-            // dd($DateTime);
+            // dd($chkuser);
         $data = new Authorisation();
+        if (isset($chkuser)) {
+            $data->user_id = $chkuser->user_id;
+        }
+
         $data->Utid = $request->Utid;
         $data->messageID = $request->messageID;
         $data->instCode = $request->instCode;
@@ -779,6 +790,14 @@ class CardServiceController extends Controller
         $data->trn = $request->trn;
         $data->txnSubCode = $request->txnSubCode;
         if ($data->save()) {
+
+            if (isset($chkuser)) {
+                $user = User::find($chkuser->user_id);
+                $user->balance = $user->balance - $request->billAmt;
+                $user->save();
+            }
+
+
             // Send a POST request to the API with the updated finance fee value
             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
@@ -797,8 +816,14 @@ class CardServiceController extends Controller
 
     public function settlement(Request $request)
     {
+        $cardNumber = substr($request->PAN, -4);
+        $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+
         $DateTime = now();
         $data = new Settlement();
+        if (isset($chkuser)) {
+            $data->user_id = $chkuser->user_id;
+        }
         $data->MTID = $request->MTID;
         $data->localDate = $request->localDate;
         $data->localTime = $request->localTime;
@@ -836,6 +861,14 @@ class CardServiceController extends Controller
         $data->settlementActionCode = $request->settlementActionCode;
         $data->Utid = $request->Utid;
         if ($data->save()) {
+
+            if (isset($chkuser)) {
+                $user = User::find($chkuser->user_id);
+                $user->balance = $user->balance - $request->billAmt;
+                $user->save();
+            }
+
+
             // Send a POST request to the API with the updated finance fee value
             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
@@ -854,9 +887,15 @@ class CardServiceController extends Controller
     public function expired(Request $request)
     {
 
+        
+        $cardNumber = substr($request->PAN, -4);
+        $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
         $DateTime = now();
 
         $data = new Expired();
+        if (isset($chkuser)) {
+            $data->user_id = $chkuser->user_id;
+        }
         $data->Utid = $request->Utid;
         $data->messageID = $request->messageID;
         $data->instCode = $request->instCode;

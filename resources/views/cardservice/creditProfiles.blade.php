@@ -73,8 +73,8 @@
                                         <td>{{ $profile->balance }}</td>
                                         <td>
                                             <a href="{{ route('cardprofileview', ['id' => $profile->CreditProfileId ]) }}" class="btn btn-success" type="button">View</a>
-                                            {{-- <a href="{{ route('cardprofileedit', ['id' => $profile->CreditProfileId ]) }}" class="btn btn-primary">Update Balance</a> --}}
-                                            <a href="{{ route('cardprofilelimite', ['id' => $profile->CreditProfileId ]) }}" class="btn btn-primary">Update Balance</a>
+                                            <a href="{{ route('cardprofileedit', ['id' => $profile->CreditProfileId ]) }}" class="btn btn-primary">Update Balance</a>
+                                            {{-- <a href="{{ route('cardprofilelimite', ['id' => $profile->CreditProfileId ]) }}" class="btn btn-primary">Update Limit</a> --}}
                                         </td>
                                     </tr>
                                 @empty

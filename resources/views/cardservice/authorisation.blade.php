@@ -50,6 +50,7 @@
                                     <th>txnType</th>
                                     <th>msgType</th>
                                     <th>tlogId</th>
+                                    <th>view</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -61,6 +62,9 @@
                                         <td>{{ $data->txnType }}</td>
                                         <td>{{ $data->msgType }}</td>
                                         <td>{{ $data->tlogId }}</td>
+                                        <td>
+                                            <a href="{{route('authorisation.details', $data->id)}}" class="btn btn-success">View</a>
+                                        </td>
                                     </tr>
                                 @empty
                                 @endforelse

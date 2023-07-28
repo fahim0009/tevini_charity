@@ -243,6 +243,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     
     Route::get('/authorisation', [ProductController::class, 'getAuthorisation'])->name('authorisation');
+    Route::get('/authorisation/{id}', [ProductController::class, 'getAuthorisationDetails'])->name('authorisation.details');
     Route::get('/settlement', [ProductController::class, 'getSettlement'])->name('settlement');
 
     

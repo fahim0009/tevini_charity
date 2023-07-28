@@ -37,6 +37,13 @@ class ProductController extends Controller
         return view('cardservice.authorisation', compact('data'));
     }
 
+    public function getAuthorisationDetails($id)
+    {
+        $data = Authorisation::where('id', $id)->first();
+        
+        return view('cardservice.authorisationDetails', compact('data'));
+    }
+
     public function getSettlement(Request $request)
     {
         $data = Settlement::orderby('id', 'DESC')->get();

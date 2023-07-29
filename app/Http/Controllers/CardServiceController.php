@@ -9,6 +9,7 @@ use App\Models\Expired;
 use App\Models\PurchaseHistory;
 use App\Models\User;
 use App\Models\Settlement;
+use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -795,6 +796,18 @@ class CardServiceController extends Controller
                 $user = User::find($chkuser->user_id);
                 $user->balance = $user->balance - $request->billAmt;
                 $user->save();
+
+
+                $utran = new Usertransaction;
+                $utran->t_id =  time() . "-" . $chkuser->user_id;
+                $utran->user_id = $chkuser->user_id;
+                $utran->t_type = "Out";
+                $utran->source = "Tevini Card";
+                $utran->amount = $request->billAmt;
+                $utran->title = "Tevini Card Payment";
+                $utran->pending = 1;
+                $utran->status = 1;
+                $utran->save();
             }
 
 

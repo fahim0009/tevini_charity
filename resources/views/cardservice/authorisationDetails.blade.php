@@ -108,6 +108,74 @@
                             <p><strong>termCode : </strong> {{$data->termCode}} </p>
                         </div>
 
+                        
+                        <div class="col">
+                            <p><strong>crdAcptID : </strong> {{$data->crdAcptID}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>crdAcptLoc : </strong> {{$data->crdAcptLoc}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>MCC : </strong> {{$data->MCC}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>poschp : </strong> {{$data->poschp}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>poscdim : </strong> {{$data->poscdim}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>poscham : </strong> {{$data->poscham}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>poscp : </strong> {{$data->poscp}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>approvalCode : </strong> {{$data->approvalCode}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>sysDate : </strong> {{$data->sysDate}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>rev : </strong> {{$data->rev}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>orgItemId : </strong> {{$data->orgItemId}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>itemSrc : </strong> {{$data->itemSrc}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>amtFee : </strong> {{$data->amtFee}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>crdproduct : </strong> {{$data->crdproduct}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>ctxLocalDate : </strong> {{$data->ctxLocalDate}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>ctxLocalTime : </strong> {{$data->ctxLocalTime}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>aVSChkRs : </strong> {{$data->aVSChkRs}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>threeDSecChkRs : </strong> {{$data->threeDSecChkRs}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>actionCode : </strong> {{$data->actionCode}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>amtCashback : </strong> {{$data->amtCashback}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>trn : </strong> {{$data->trn}} </p>
+                        </div>
+                        <div class="col">
+                            <p><strong>txnSubCode : </strong> {{$data->txnSubCode}} </p>
+                        </div>
+
                     </div>
                     <div class="col-md-6  my-4  bg-white">
                     </div>

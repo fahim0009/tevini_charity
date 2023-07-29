@@ -55,7 +55,7 @@
 
                          <div class="col my-3">
                             <label for="">Available Balance</label>
-                           <input type="number" name="AvailableBalance" id="AvailableBalance" placeholder="AvailableBalance" class="form-control @error('AvailableBalance') is-invalid @enderror">
+                           <input type="number" name="AvailableBalance" id="AvailableBalance" placeholder="AvailableBalance" class="form-control @error('AvailableBalance') is-invalid @enderror" step="any">
                         </div>
 
                          <div class="col my-3">
@@ -88,22 +88,22 @@
                            <p><strong>Profile Name : </strong> {{$data['CreditProfile']['ProfileName']}} </p>
                         </div>
 
-                         <div class="col">
+                         {{-- <div class="col">
                             <p><strong>Credit Limit : </strong>{{$data['CreditProfile']['CreditLimit']}}</p>
-                        </div>
+                        </div> --}}
                          <div class="col">
                             <p><strong>Available Balance : </strong>{{$data['CreditProfile']['AvailableBalance']}}</p>
                         </div>
 
-                         <div class="col my-3">
+                         {{-- <div class="col my-3">
                             <p><strong>Is Pre Paid : </strong>{{($data['CreditProfile']['IsPrePaid'] == 1)?'Yes':'No'}}</p>
                         </div>
 
                         <div class="col">
                             <p><strong>Balance Due : </strong>{{$data['CreditProfile']['BalanceDue']}}</p>
-                        </div>
+                        </div> --}}
 
-                        <div class="col">
+                        {{-- <div class="col">
                             <p><strong>Amount Spent : </strong>{{$data['CreditProfile']['AmountSpent']}}</p>
                         </div>
 
@@ -116,7 +116,7 @@
                         </div>
                         <div class="col">
                             <p><strong>Payment Type : </strong>{{$data['CreditProfile']['PaymentType']}}</p>
-                        </div>
+                        </div> --}}
 
                     </div>
                     <div class="col-md-6  my-4  bg-white">

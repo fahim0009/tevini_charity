@@ -48,36 +48,27 @@ class ProductController extends Controller
     {
         $data = Settlement::orderby('id', 'DESC')->get();
         return view('cardservice.settlement', compact('data'));
-        
     }
 
     public function getCardTransaction(Request $request)
     {
         $data = CardProduct::whereNotNull('CardProxyId')->get();
-        
         return view('cardservice.carduser', compact('data'));
     }
 
     public function getUserCardTransaction(Request $request)
     {
-
-
         $cardProxyId = $request->CardProxyId;
         $startDate = $request->fromDate;
         $endDate = $request->endDate;
 
         // dd($cardProxyId);
-
-
-
         try {
             $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/transaction/cardProxyId/'.$cardProxyId.'/startDate/'.$startDate.'/endDate/'.$endDate.'', [
                     'Accept' => 'application/json',
                 ]);
 
-                
-            
             $data = $response->json();
             // return $data;
             // dd($data);

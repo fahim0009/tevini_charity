@@ -9,6 +9,7 @@ use App\Models\Usertransaction;
 use App\Models\Campaign;
 use App\Models\Charity;
 use App\Models\Gateway;
+use Illuminate\Support\Facades\Http;
 
 class HomepageController extends Controller
 {
@@ -110,9 +111,27 @@ class HomepageController extends Controller
 
             $user = User::find($donor_id);
             $user->decrement('balance',$request->amt);
+            $user->save();
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = 0 - $request->amt;
+                $comment = "Make a donation or Standing order";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
 
             $ch = Charity::find($campaign_dtls->charity_id);
             $ch->increment('balance',$request->amt);
+            $ch->save();
 
             $success_hash = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
 

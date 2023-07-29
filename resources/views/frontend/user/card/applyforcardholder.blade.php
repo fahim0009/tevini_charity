@@ -38,7 +38,7 @@
                 </div>
                 <div class="col-md-6">
                     <label for="">LastName</label>
-                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control">
+                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control" value="{{Auth::user()->surname}}">
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
 
                     
                     <label for="">Email (**unique email)</label>
-                    <input type="text" name="Email" id="Email" placeholder="Email" class="form-control @error('Email') is-invalid @enderror" value="{{Auth::user()->email}}">
+                    <input type="text" name="Email" id="Email" placeholder="Email" class="form-control @error('Email') is-invalid @enderror" value="">
                 </div>
 
                 
@@ -71,11 +71,11 @@
             <div class="row">
                 <div class="col-md-6">
                     <label for="">Mobile (** start +44)</label>
-                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="+44 11223344">
+                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="+44">
                 </div>
                 <div class="col-md-6">
                     <label for="">LandlineTelephone</label>
-                    <input type="text" name="LandlineTelephone" id="LandlineTelephone" placeholder="LandlineTelephone" class="form-control" value="11122233">
+                    <input type="text" name="LandlineTelephone" id="LandlineTelephone" placeholder="LandlineTelephone" class="form-control" value="">
                 </div>
             </div>
 
@@ -84,12 +84,12 @@
 
                 <div class="col-md-4" style="display: none">
                     <label for="">SocialSecurityNumber</label>
-                    <input type="number" name="SocialSecurityNumber" id="SocialSecurityNumber" placeholder="SocialSecurityNumber" class="form-control" value="12345678">
+                    <input type="number" name="SocialSecurityNumber" id="SocialSecurityNumber" placeholder="SocialSecurityNumber" class="form-control" value="">
                 </div>
 
                 <div class="col-md-4" style="display: none">
                     <label for="">IdCardNumber</label>
-                    <input type="number" name="IdCardNumber" id="IdCardNumber" placeholder="IdCardNumber" class="form-control" value="001">
+                    <input type="number" name="IdCardNumber" id="IdCardNumber" placeholder="IdCardNumber" class="form-control" value="">
                 </div>
             </div>
 
@@ -98,13 +98,13 @@
 
                 <div class="col-md-4" style="display: none">
                     <label for="">TaxIdCardNumber</label>
-                    <input type="text" name="TaxIdCardNumber" id="TaxIdCardNumber" placeholder="TaxIdCardNumber" class="form-control" value="0002">
+                    <input type="text" name="TaxIdCardNumber" id="TaxIdCardNumber" placeholder="TaxIdCardNumber" class="form-control" value="">
                 </div>
 
                 
                 <div class="col-md-4">
                     <label for="">DateOfBirth</label>
-                    <input type="datetime-local" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required>
+                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required>
                 </div>
 
                 <div class="col-md-4">
@@ -114,7 +114,7 @@
 
                 <div class="col-md-4">
                     <label for="">Title</label>
-                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="Test Title">
+                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="">
                 </div>
             </div>
 
@@ -122,17 +122,17 @@
 
                 <div class="col-md-4">
                     <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="445">
+                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="">
                 </div>
 
                 <div class="col-md-4">
                     <label for="">Address1</label>
-                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="Test Address 1">
+                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="">
                 </div>
 
                 <div class="col-md-4">
                     <label for="">Address2</label>
-                    <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="Test Address 2">
+                    <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="">
                 </div>
             </div>
 
@@ -140,17 +140,17 @@
 
                 <div class="col-md-4">
                     <label for="">City</label>
-                    <input type="text" name="City" id="City" placeholder="City" class="form-control"  value="Harpenden">
+                    <input type="text" name="City" id="City" placeholder="City" class="form-control"  value="">
                 </div>
 
                 <div class="col-md-4">
                     <label for="">PostCode</label>
-                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="AL5 3NG">
+                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="">
                 </div>
 
                 <div class="col-md-4">
                     <label for="">State</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="Bedfordshire">
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="">
                 </div>
             </div>
 

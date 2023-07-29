@@ -371,7 +371,7 @@ class CardServiceController extends Controller
             $cardholder->UserName = $UserName;
             $cardholder->SecondSurname = $SecondSurname;
             $cardholder->Email = $Email;
-            $cardholder->Password = $Password;
+            // $cardholder->Password = $Password;
             $cardholder->Mobile = $Mobile;
             $cardholder->LandlineTelephone = $LandlineTelephone;
             $cardholder->DateOfBirth = $DateOfBirth;
@@ -495,7 +495,7 @@ class CardServiceController extends Controller
             $cardholder->UserName = $UserName;
             $cardholder->SecondSurname = $SecondSurname;
             $cardholder->Email = $Email;
-            $cardholder->Password = $Password;
+            // $cardholder->Password = $Password;
             $cardholder->Mobile = $Mobile;
             $cardholder->LandlineTelephone = $LandlineTelephone;
             $cardholder->DateOfBirth = $DateOfBirth;
@@ -944,6 +944,13 @@ class CardServiceController extends Controller
         $data->trn = $request->trn;
         $data->txnSubCode = $request->txnSubCode;
         if ($data->save()) {
+
+            if (isset($chkuser)) {
+                $user = User::find($chkuser->user_id);
+                $user->balance = $user->balance + $request->billAmt;
+                $user->save();
+            }
+
             // Send a POST request to the API with the updated finance fee value
             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [

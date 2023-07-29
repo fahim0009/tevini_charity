@@ -13,6 +13,7 @@ use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class DeductStandingDonation extends Command
 {
@@ -97,6 +98,22 @@ class DeductStandingDonation extends Command
                                 $user = User::find($activestand_order->user_id);
                                 $user->decrement('balance',$activestand_order->amount);
                                 $user->save();
+
+                                // card balance update
+                                if (isset($user->CreditProfileId)) {
+                                    $CreditProfileId = $user->CreditProfileId;
+                                    $CreditProfileName = $user->name;
+                                    $AvailableBalance = 0 - $activestand_order->amount;
+                                    $comment = "Make a donation or Standing order";
+                                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                            'CreditProfileId' => $CreditProfileId,
+                                            'CreditProfileName' => $CreditProfileName,
+                                            'AvailableBalance' => $AvailableBalance,
+                                            'comment' => $comment,
+                                        ]);
+                                }
+                                // card balance update end
         
                                 $charity = Charity::find($activestand_order->charity_id);
                                 $charity->increment('balance',$activestand_order->amount);
@@ -132,6 +149,22 @@ class DeductStandingDonation extends Command
                         $user = User::find($activestand_order->user_id);
                         $user->decrement('balance',$activestand_order->amount);
                         $user->save();
+
+                        // card balance update
+                        if (isset($user->CreditProfileId)) {
+                            $CreditProfileId = $user->CreditProfileId;
+                            $CreditProfileName = $user->name;
+                            $AvailableBalance = 0 - $activestand_order->amount;
+                            $comment = "Make a donation or Standing order";
+                            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                    'CreditProfileId' => $CreditProfileId,
+                                    'CreditProfileName' => $CreditProfileName,
+                                    'AvailableBalance' => $AvailableBalance,
+                                    'comment' => $comment,
+                                ]);
+                        }
+                        // card balance update end
 
                         $charity = Charity::find($activestand_order->charity_id);
                         $charity->increment('balance',$activestand_order->amount);

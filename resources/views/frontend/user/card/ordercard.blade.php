@@ -86,7 +86,7 @@
                 </div>
                 <div class="col-md-6">
                     <label for="">Dob </label>
-                    <input type="datetime-local" name="Dob" id="Dob" placeholder="Dob" class="form-control" value="{{$CardHolderData->DateOfBirth}}" readonly>
+                    <input type="date" name="Dob" id="Dob" placeholder="Dob" class="form-control" value="{{$CardHolderData->DateOfBirth}}" readonly>
                 </div>
             </div>
 

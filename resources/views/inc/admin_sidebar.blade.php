@@ -262,12 +262,12 @@
                 </a>
             </li>
 
-            <li class="nav-item {{ (request()->is('admin/spend-profile*')) ? 'active' : '' }}" id="">
+            {{-- <li class="nav-item {{ (request()->is('admin/spend-profile*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('spendprofile') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                     Spend profile
                 </a>
-            </li>
+            </li> --}}
 
             <li class="nav-item {{ (request()->is('admin/product/index*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('product.index') }}">

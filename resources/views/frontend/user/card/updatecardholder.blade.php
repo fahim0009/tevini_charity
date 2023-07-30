@@ -106,7 +106,7 @@
                 
                 <div class="col-md-4">
                     <label for="">DateOfBirth</label>
-                    <input type="datetime-local" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required value="{{$data->DateOfBirth}}">
+                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required value="{{$data->DateOfBirth}}">
                 </div>
 
                 <div class="col-md-4">

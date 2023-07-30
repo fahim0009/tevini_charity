@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Authorisation;
 use App\Models\CardProduct;
+use App\Models\Expired;
 use App\Models\Settlement;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
@@ -33,14 +34,12 @@ class ProductController extends Controller
     public function getAuthorisation(Request $request)
     {
         $data = Authorisation::orderby('id', 'DESC')->get();
-        
         return view('cardservice.authorisation', compact('data'));
     }
 
     public function getAuthorisationDetails($id)
     {
         $data = Authorisation::where('id', $id)->first();
-        
         return view('cardservice.authorisationDetails', compact('data'));
     }
 
@@ -48,6 +47,18 @@ class ProductController extends Controller
     {
         $data = Settlement::orderby('id', 'DESC')->get();
         return view('cardservice.settlement', compact('data'));
+    }
+
+    public function getExpired(Request $request)
+    {
+        $data = Expired::orderby('id', 'DESC')->get();
+        return view('cardservice.expired', compact('data'));
+    }
+
+    public function getExpiredDetails($id)
+    {
+        $data = Expired::where('id', $id)->first();
+        return view('cardservice.expiredDetails', compact('data'));
     }
 
     public function getCardTransaction(Request $request)

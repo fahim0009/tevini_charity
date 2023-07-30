@@ -290,6 +290,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/expired*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('expired') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Expired
+                </a>
+            </li>
+
             <li class="nav-item {{ (request()->is('admin/card-transaction*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('cardTransaction') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>

@@ -45,10 +45,10 @@
                             <thead>
                                 <tr>
                                     <th>Utid</th>
-                                    <th>messageID</th>
-                                    <th>instCode</th>
-                                    <th>txnType</th>
-                                    <th>msgType</th>
+                                    <th>MTID</th>
+                                    <th>localDate</th>
+                                    <th>orgTlogID</th>
+                                    <th>billAmt</th>
                                     <th>tlogId</th>
                                 </tr>
                             </thead>
@@ -56,10 +56,10 @@
                                 @forelse ($data as $data)
                                     <tr>
                                         <td>{{ $data->Utid }}</td>
-                                        <td>{{ $data->messageID }}</td>
-                                        <td>{{ $data->instCode }}</td>
-                                        <td>{{ $data->txnType }}</td>
-                                        <td>{{ $data->msgType }}</td>
+                                        <td>{{ $data->MTID }}</td>
+                                        <td>{{ $data->localDate }}</td>
+                                        <td>{{ $data->orgTlogID }}</td>
+                                        <td>{{ $data->billAmt }}</td>
                                         <td>{{ $data->tlogId }}</td>
                                     </tr>
                                 @empty

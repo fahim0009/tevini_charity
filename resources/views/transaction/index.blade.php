@@ -208,9 +208,7 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}} </td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->user_id){{ $transaction->user->name}}@endif</td>
-                                            <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif
-                                            @if($transaction->crdAcptID){{ $transaction->crdAcptLoc}}@endif
-                                            </td>
+                                            <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
                                             <td>{{ $transaction->name}}</td>
                                             <td>{{ $transaction->note}}</td>
                                             <td>£{{ $transaction->amount}}</td>

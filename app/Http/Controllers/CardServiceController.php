@@ -804,12 +804,13 @@ class CardServiceController extends Controller
                 $utran->t_type = "Out";
                 $utran->source = "Tevini Card";
                 $utran->amount = $request->billAmt;
+                $utran->crdAcptLoc = $request->crdAcptLoc;
+                $utran->crdAcptID = $request->crdAcptID;
                 $utran->title = "Tevini Card Payment";
                 $utran->pending = 1;
                 $utran->status = 1;
                 $utran->save();
             }
-
 
             // Send a POST request to the API with the updated finance fee value
             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -822,7 +823,6 @@ class CardServiceController extends Controller
         } else {
             return redirect()->back()->with('error', 'Authorization error.');
         }
-        
         
         
     }

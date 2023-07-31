@@ -125,7 +125,9 @@ use Illuminate\Support\Carbon;
                                             <td>{{$data->t_id}} </td>
                                             <td>{{$data->title}} </td>
                                             <td>{{$data->cheque_no}}</td>
-                                            <td>@if($data->charity_id){{ $data->charity->name}}@endif</td>
+                                            <td>@if($data->charity_id){{ $data->charity->name}}@endif
+                                                @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
+                                            </td>
                                             <td>@if($data->pending == "0") Pending @endif</td>
 
                                                 @if($data->t_type == "In")

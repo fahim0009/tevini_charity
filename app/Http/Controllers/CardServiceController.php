@@ -804,6 +804,8 @@ class CardServiceController extends Controller
                 $utran->t_type = "Out";
                 $utran->source = "Tevini Card";
                 $utran->amount = $request->billAmt;
+                $utran->crdAcptLoc = $request->crdAcptLoc;
+                $utran->crdAcptID = $request->crdAcptID;
                 $utran->title = "Tevini Card Payment";
                 $utran->pending = 1;
                 $utran->status = 1;

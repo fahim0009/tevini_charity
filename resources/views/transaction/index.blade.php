@@ -16,8 +16,8 @@ use Illuminate\Support\Carbon;
             <nav>
                 <div class="nav nav-tabs" id="nav-tab" role="tablist">
                   <button class="nav-link active" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Transaction Out</button>
-                  <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-transcationIn" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Transcation In</button>
-                  <button class="nav-link" id="nav-all" data-bs-toggle="tab" data-bs-target="#nav-transcationAll" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">All Transcation</button>
+                  <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-transcationIn" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Transaction In</button>
+                  <button class="nav-link" id="nav-all" data-bs-toggle="tab" data-bs-target="#nav-transcationAll" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">All Transaction</button>
 
                 </div>
               </nav>

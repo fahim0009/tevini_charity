@@ -135,7 +135,9 @@ use Illuminate\Support\Carbon;
                             <td class="fs-16 txt-secondary">{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                             <td>
                                 <div class="d-flex flex-column">
-                                    <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name}}@endif</span>
+                                    <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name}}@endif 
+                                        @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
+                                    </span>
                                     <span class="fs-16 txt-secondary">{{$data->title}}</span>
                                 </div>
                             </td>
@@ -319,7 +321,9 @@ use Illuminate\Support\Carbon;
                                         <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
                                         <td>
                                             <div class="d-flex flex-column">
-                                                <span class="fs-20 txt-secondary fw-bold">@if($transaction->charity_id){{ $transaction->charity->name}}@endif</span>
+                                                <span class="fs-20 txt-secondary fw-bold">@if($transaction->charity_id){{ $transaction->charity->name}}@endif
+                                                @if(isset($transaction->crdAcptID)){{ $transaction->crdAcptLoc}}@endif
+                                                </span>
                                                 <span class="fs-16 txt-secondary">{{$transaction->title}}</span>
                                             </div>
                                         </td>

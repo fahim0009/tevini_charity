@@ -9,6 +9,7 @@ use App\Models\Expired;
 use App\Models\PurchaseHistory;
 use App\Models\User;
 use App\Models\Settlement;
+use App\Models\Transaction;
 use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
@@ -846,6 +847,18 @@ class CardServiceController extends Controller
                 $utran->pending = 1;
                 $utran->status = 1;
                 $utran->save();
+
+                $chtran = new Transaction();
+                $chtran->t_id =  $utran->t_id;
+                $chtran->user_id = $chkuser->user_id;
+                $chtran->t_type = "Out";
+                $chtran->name = "Tevini Card";
+                $chtran->amount = $request->billAmt;
+                $chtran->crdAcptLoc = $request->crdAcptLoc;
+                $chtran->crdAcptID = $request->crdAcptID;
+                $chtran->note = "Tevini Card Payment";
+                $chtran->status = 1;
+                $chtran->save();
             }
 
             // Send a POST request to the API with the updated finance fee value

@@ -8,6 +8,7 @@
             <div class="pagetitle pb-2">
                  Card Set Pin
             </div>
+            <h3>Your card pin: {{$pin}}</h3>
         </div>
     </div>
 

@@ -33,10 +33,6 @@
         <div class="row mt-3">
             <div class="row">
                 <div class="col-md-6">
-                    <label for="PAN">Card Number</label>
-                    <input type="text" name="PAN" id="PAN" placeholder="PAN" class="form-control">
-                </div>
-                <div class="col-md-6">
                     <label for="Status">Status</label>
                     <select name="Status" id="Status" class="form-control">
                         <option value="">Select</option>

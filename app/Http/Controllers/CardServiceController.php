@@ -394,7 +394,7 @@ class CardServiceController extends Controller
             $cardholder->save();
 
             // Redirect back with success message and API response data
-            return redirect()->route('userCardService')->with('success', 'Card request successful')->with('responseData', $responseData);
+            return redirect()->route('userCardService')->with('success', 'Card holder information save successful')->with('responseData', $responseData);
 
         } else {
             // API request failed
@@ -677,10 +677,20 @@ class CardServiceController extends Controller
     // set card pin
     public function cardSetPin(Request $request)
     {
-        
+        $proxyid = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
+
+
+        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/card/pin/cardProxyId/'.$proxyid.'', [
+                    'Accept' => 'application/json',
+                ]);
+                
+        $alldata = $response->json();
+        $pin = $alldata['PIN'];
+        // dd($pin);
         $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
         // dd($CardHolderId);
-        return view('frontend.user.card.setpin', compact('CardHolderId'));
+        return view('frontend.user.card.setpin', compact('CardHolderId','pin'));
     }
     
     public function cardSetPinstore(Request $request)
@@ -726,6 +736,32 @@ class CardServiceController extends Controller
     {
         
         return view('frontend.user.card.status');
+    }
+
+
+    public function cardStatusChangeStore(Request $request)
+    {
+        $CardProxyrId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
+
+        $Status = $request->Status;
+
+
+        // Send a POST request to the API with the updated finance fee value
+        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/card/status', [
+                'CardProxyId' => $CardProxyrId,
+                'Status' => $Status,
+            ]);
+    
+        // Check the response status code to see if the update was successful
+        if ($response->ok()) {
+            // apply for product start
+
+            // Check the response status code to see if the update was successful
+            return redirect()->route('userCardService')->with('successmsg', 'Card Status Change Successfully!');
+        } else {
+            return redirect()->back()->with('error', 'Unable to change status.');
+        }
     }
 
 

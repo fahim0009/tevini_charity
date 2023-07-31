@@ -124,7 +124,7 @@ use Illuminate\Support\Carbon;
                                             <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                             <td>{{$data->t_id}} </td>
                                             <td>{{$data->title}} </td>
-                                            <td>{{$data->cheque_no}}</td>
+                                            <td>{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
                                             <td>@if($data->charity_id){{ $data->charity->name}}@endif
                                                 @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
                                             </td>

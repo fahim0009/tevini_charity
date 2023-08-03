@@ -1,6 +1,11 @@
 @extends('frontend.layouts.user')
 @section('content')
 
+
+@php
+    $chkCardAvailable = \App\Models\CardProduct::where('user_id', Auth::user()->id)->first();
+@endphp
+
 <div class="row ">
     <div class="col-md-12">
         @if(session()->has('success'))
@@ -70,12 +75,14 @@
 
             @if ($CardHolderId)
             <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder </a>
+            @if (isset($chkCardAvailable->cardNumber))
+                <a href="{{route('cardSetPin')}}" class="d-block btn-theme bg-primary">Set Pin</a>
+                <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
+            @else
+                
             <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
-            
             <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
-
-            <a href="{{route('cardSetPin')}}" class="d-block btn-theme bg-primary">Set Pin</a>
-            <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
+            @endif
             
             @else
             <a href="{{route('applyforcardholder')}}" class="d-block btn-theme bg-primary">Apply for cardholder</a>

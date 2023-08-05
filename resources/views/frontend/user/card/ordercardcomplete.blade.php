@@ -12,23 +12,14 @@
     </div>
 
 
-    @if(session()->has('success'))
     <section class="px-4">
         <div class="row my-3">
-            <div class="alert alert-success" id="successMessage">{{ session()->get('success') }}</div>
+            <div class="alert alert-success" id="successMessage"> You have already ordered card {{$order->created_at}}. Here is details. Thank you.</div>
         </div>
     </section>
-    @endif
-    @if(session()->has('error'))
-    <section class="px-4">
-        <div class="row my-3">
-            <div class="alert alert-danger" id="errMessage">{{ session()->get('error') }}</div>
-        </div>
-    </section>
-    @endif
 
 
-    <form  action="{{ route('orderCardstore') }}" method="POST" enctype="multipart/form-data">
+    <form  action="" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="row mt-3">
             <div class="row">
@@ -101,20 +92,20 @@
                 </div>
                 <div class="col-md-6">
                     <label for="NameOnCard">NameOnCard</label>
-                    <input type="text" name="NameOnCard" id="NameOnCard" placeholder="NameOnCard" class="form-control">
+                    <input type="text" name="NameOnCard" id="NameOnCard" placeholder="NameOnCard" class="form-control"   value="{{$order->NameOnCard}}" readonly>
                 </div>
                 <div class="col-md-6">
                     <label for="AdditionalCardEmbossData">AdditionalCardEmbossData</label>
-                    <input type="text" name="AdditionalCardEmbossData" id="AdditionalCardEmbossData" placeholder="AdditionalCardEmbossData" class="form-control">
+                    <input type="text" name="AdditionalCardEmbossData" id="AdditionalCardEmbossData" placeholder="AdditionalCardEmbossData" class="form-control"  value="{{$order->AdditionalCardEmbossData}}" readonly>
                 </div>
 
 
             </div>
-
+            
             <div>
                 <div class="col-lg-12 mt-4">
                     <div class="form-group ">
-                        <button class="d-block btn-theme bg-secondary mt-5">Submit</button>
+                        
                     </div>
                 </div>
             </div>

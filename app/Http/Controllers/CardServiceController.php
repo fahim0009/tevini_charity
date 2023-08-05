@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Authorisation;
 use App\Models\CardHolder;
+use App\Models\CardOrder;
 use App\Models\CardProduct;
 use App\Models\Expired;
 use App\Models\PurchaseHistory;
@@ -300,12 +301,18 @@ class CardServiceController extends Controller
     public function applyForCardHolderStore(Request $request)
     {
 
+        $chknumber =  $request->input('Mobile');
+        $num = substr($chknumber, 0, 3);
+
+        if ($num == "+44") {
+            
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
-        $UserName = $request->input('UserName');
+        // $UserName = $request->input('UserName');
+        $UserName = "TEVINI".Auth::user()->id;
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
-        $Password = $request->input('Password');
+        $Password = "TEVINI@a123";
         $Mobile = $request->input('Mobile');
         $LandlineTelephone = $request->input('LandlineTelephone');
         $DateOfBirth = $request->DateOfBirth;
@@ -404,6 +411,11 @@ class CardServiceController extends Controller
             // Redirect back with error message and error response data
             return redirect()->back()->with('error', 'API request failed')->with('errorResponse', $errorResponse);
         }
+        } else {
+
+            return redirect()->back()->with('error', 'Mobile number start with +44.');
+        }
+        
     }
 
     public function updateCardHolder()
@@ -420,10 +432,10 @@ class CardServiceController extends Controller
         $CardHolderId = $request->input('CardHolderId');
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
-        $UserName = $request->input('UserName');
+        // $UserName = $request->input('UserName');
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
-        $Password = $request->input('Password');
+        // $Password = $request->input('Password');
         $Mobile = $request->input('Mobile');
         $LandlineTelephone = $request->input('LandlineTelephone');
         $DateOfBirth = $request->DateOfBirth;
@@ -458,10 +470,10 @@ class CardServiceController extends Controller
                 'IsActive' => true,
                 'FirstName' => $FirstName,
                 'LastName' => $LastName,
-                'UserName' => $UserName,
+                // 'UserName' => $UserName,
                 'SecondSurname' => $SecondSurname,
                 'Email' => $Email,
-                'Password' => $Password,
+                // 'Password' => $Password,
                 'Mobile' => $Mobile,
                 'LandlineTelephone' => $LandlineTelephone,
                 'Language' => "en-GB",
@@ -494,7 +506,7 @@ class CardServiceController extends Controller
             $cardholder = CardHolder::find($request->cardid);
             $cardholder->FirstName = $FirstName;
             $cardholder->LastName = $LastName;
-            $cardholder->UserName = $UserName;
+            // $cardholder->UserName = $UserName;
             $cardholder->SecondSurname = $SecondSurname;
             $cardholder->Email = $Email;
             // $cardholder->Password = $Password;
@@ -534,15 +546,25 @@ class CardServiceController extends Controller
 
     public function orderCard()
     {
-        $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-        // dd($CardHolderData);
-        return view('frontend.user.card.ordercard', compact('CardHolderData'));
+        $chkorder = CardOrder::where('user_id', Auth::user()->id)->first();
+        if (isset($chkorder)) {
+            $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+            // dd($CardHolderData);
+            $order = CardOrder::where('user_id', Auth::user()->id)->first();
+            return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
+        } else {
+            $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+            // dd($CardHolderData);
+            return view('frontend.user.card.ordercard', compact('CardHolderData'));
+        }
+        
     }
 
     public function orderCardStore(Request $request)
     {
 
         $ProductCodeId = CardProduct::where('user_id', Auth::user()->id)->first()->ProductCode;
+
 
         $ProductCode = $ProductCodeId;
         $FirstName = $request->input('FirstName');
@@ -561,9 +583,11 @@ class CardServiceController extends Controller
         $City = $request->input('City');
         $ISOCountryCode = "GBR";
         $RecipientEmail = $request->input('RecipientEmail');
+        $HouseNumberOrBuilding = $request->input('HouseNumberOrBuilding');
         $Dob = $request->Dob;
         $Language = "en-GB";
         
+        // dd($CardholderId);
         
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -590,13 +614,35 @@ class CardServiceController extends Controller
 
             ]);
 
-            
-
         // Check the API response
         if ($response->successful()) {
             // API request succeeded
             $responseData = $response->json();
             // Process the response data as needed
+
+            $order = new CardOrder;
+            $order->user_id = Auth::user()->id;
+            $order->FirstName = $FirstName;
+            $order->LastName = $LastName;
+            $order->ProductCode = $ProductCode;
+            $order->SecondSurname = $SecondSurname;
+            $order->RecipientEmail = $RecipientEmail;
+            $order->NameOnCard = $NameOnCard;
+            $order->CardDesign = $CardDesign;
+            $order->AdditionalCardEmbossData = $AdditionalCardEmbossData;
+            $order->Language = "en-GB";
+            $order->ISOCountryCode = $ISOCountryCode;
+            $order->CardholderId = $CardholderId;
+            $order->Dob = $Dob;
+            $order->Title = $Title;
+            $order->Address1 = $Address1;
+            $order->Address2 = $Address2;
+            $order->Address3 = $Address3;
+            $order->PostCode = $PostCode;
+            $order->City = $City;
+            $order->State = $State;
+            $order->HouseNumberOrBuilding = $HouseNumberOrBuilding;
+            $order->save();
     
 
             // Redirect back with success message and API response data
@@ -608,7 +654,7 @@ class CardServiceController extends Controller
             // Handle the error response
             return $errorResponse;
             // Redirect back with error message and error response data
-            return redirect()->back()->with('error', 'API request failed')->with('errorResponse', $errorResponse);
+            return redirect()->back()->with('error', 'Card order request failed')->with('errorResponse', $errorResponse);
         }
     }
    

@@ -47,7 +47,7 @@
                     <label for="">SecondSurname</label>
                     <input type="text" name="SecondSurname" id="SecondSurname" placeholder="SecondSurname" class="form-control">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" style="display: none">
                     <label for="">UserName (**Unique username)</label>
                     <input type="text" name="UserName" id="UserName" placeholder="UserName" class="form-control">
 
@@ -57,7 +57,7 @@
                 </div>
 
                 
-                <div class="col-md-6">
+                <div class="col-md-6" style="display: none">
                     <label for="">Password (**
                         Password must be at least 8 characters. Must have at least one uppercase ('A'-'Z'), one lowercase ('a'-'z') letter and number ('0'-'9'). No special characters allowed!)</label>
                     <input type="password" name="Password" id="Password" placeholder="Password" class="form-control">
@@ -122,7 +122,7 @@
 
                 <div class="col-md-4">
                     <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="">
+                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="" required>
                 </div>
 
                 <div class="col-md-4">
@@ -140,17 +140,17 @@
 
                 <div class="col-md-4">
                     <label for="">City</label>
-                    <input type="text" name="City" id="City" placeholder="City" class="form-control"  value="">
+                    <input type="text" name="City" id="City" placeholder="City" class="form-control"  value="" required>
                 </div>
 
                 <div class="col-md-4">
                     <label for="">PostCode</label>
-                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="">
+                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="" required>
                 </div>
 
                 <div class="col-md-4">
                     <label for="">State</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="">
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="" required>
                 </div>
             </div>
 

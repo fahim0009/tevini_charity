@@ -49,7 +49,7 @@
                     <label for="">SecondSurname</label>
                     <input type="text" name="SecondSurname" id="SecondSurname" placeholder="SecondSurname" class="form-control">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" style="display: none">
                     <label for="">UserName (**Unique username)</label>
                     <input type="text" name="UserName" id="UserName" placeholder="UserName" class="form-control" value="{{$data->UserName}}">
 
@@ -59,7 +59,7 @@
                 </div>
 
                 
-                <div class="col-md-6">
+                <div class="col-md-6" style="display: none">
                     <label for="">Password (**
                         Password must be at least 8 characters. Must have at least one uppercase ('A'-'Z'), one lowercase ('a'-'z') letter and number ('0'-'9'). No special characters allowed!)</label>
                     <input type="password" name="Password" id="Password" placeholder="Password" class="form-control">

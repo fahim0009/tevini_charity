@@ -303,17 +303,22 @@ class CardServiceController extends Controller
 
         $chknumber =  $request->input('Mobile');
         $num = substr($chknumber, 0, 3);
-
         if ($num == "+44") {
+            $num4 = substr($chknumber, 3, 1);
+            if ($num4 == 0) {
+                $phone_number = '+44'.substr($request->Mobile, 4);
+            }else{
+                $phone_number = $request->Mobile;
+            }
             
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
         // $UserName = $request->input('UserName');
-        $UserName = "TEVINI".Auth::user()->id;
+        $UserName = "TEVINI2".Auth::user()->id;
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
         $Password = "TEVINI@a123";
-        $Mobile = $request->input('Mobile');
+        $Mobile = $phone_number;
         $LandlineTelephone = $request->input('LandlineTelephone');
         $DateOfBirth = $request->DateOfBirth;
         $SocialSecurityNumber = $request->input('SocialSecurityNumber');
@@ -428,21 +433,23 @@ class CardServiceController extends Controller
     // update cardholder
     public function updateCardHolderPost(Request $request)
     {
-
-        
         $chknumber =  $request->input('Mobile');
         $num = substr($chknumber, 0, 3);
 
         if ($num == "+44") {
+            $num4 = substr($chknumber, 3, 1);
+            if ($num4 == 0) {
+                $phone_number = '+44'.substr($request->Mobile, 4);
+            }else{
+                $phone_number = $request->Mobile;
+            }
 
             $CardHolderId = $request->input('CardHolderId');
             $FirstName = $request->input('FirstName');
             $LastName = $request->input('LastName');
-            // $UserName = $request->input('UserName');
             $SecondSurname = $request->input('SecondSurname');
             $Email = $request->input('Email');
-            // $Password = $request->input('Password');
-            $Mobile = $request->input('Mobile');
+            $Mobile = $phone_number;
             $LandlineTelephone = $request->input('LandlineTelephone');
             $DateOfBirth = $request->DateOfBirth;
             $SocialSecurityNumber = $request->input('SocialSecurityNumber');

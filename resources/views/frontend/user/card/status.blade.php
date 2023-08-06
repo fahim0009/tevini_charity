@@ -36,6 +36,7 @@
                     <label for="Status">Status</label>
                     <select name="Status" id="Status" class="form-control">
                         <option value="">Select</option>
+                        <option value="NORMAL">NORMAL</option>
                         <option value="STOLEN">STOLEN</option>
                         <option value="LOST">LOST</option>
                         <option value="SUSPEND">SUSPEND</option>

@@ -32,7 +32,7 @@
         @csrf
         <div class="row mt-3">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-12" style="display: none">
                     <label for="">Title</label>
                     <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="Test Title" readonly value="{{$CardHolderData->Title}}">
                     <input type="hidden" name="CardholderId" id="CardholderId" value="{{$CardHolderData->CardHolderId}}" readonly>
@@ -103,9 +103,9 @@
                     <label for="NameOnCard">NameOnCard</label>
                     <input type="text" name="NameOnCard" id="NameOnCard" placeholder="NameOnCard" class="form-control">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" style="display: none">
                     <label for="AdditionalCardEmbossData">AdditionalCardEmbossData</label>
-                    <input type="text" name="AdditionalCardEmbossData" id="AdditionalCardEmbossData" placeholder="AdditionalCardEmbossData" class="form-control">
+                    <input type="text" name="AdditionalCardEmbossData" id="AdditionalCardEmbossData" placeholder="AdditionalCardEmbossData" class="form-control" value="TEVINI">
                 </div>
 
 

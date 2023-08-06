@@ -429,117 +429,126 @@ class CardServiceController extends Controller
     public function updateCardHolderPost(Request $request)
     {
 
-        $CardHolderId = $request->input('CardHolderId');
-        $FirstName = $request->input('FirstName');
-        $LastName = $request->input('LastName');
-        // $UserName = $request->input('UserName');
-        $SecondSurname = $request->input('SecondSurname');
-        $Email = $request->input('Email');
-        // $Password = $request->input('Password');
-        $Mobile = $request->input('Mobile');
-        $LandlineTelephone = $request->input('LandlineTelephone');
-        $DateOfBirth = $request->DateOfBirth;
-        $SocialSecurityNumber = $request->input('SocialSecurityNumber');
-        $IdCardNumber = $request->input('IdCardNumber');
-
-        $Nationality = $request->input('Nationality');
-        $Title = $request->input('Title');
-        $TaxIdCardNumber = $request->input('TaxIdCardNumber');
-        $HouseNumberOrBuilding = $request->input('HouseNumberOrBuilding');
-        $Address1 = $request->input('Address1');
-        $Address2 = $request->input('Address2');
-        $PostCode = $request->input('PostCode');
-
-        $State = $request->input('State');
-        $City = $request->input('City');
-        $Language = "en-GB";
-        $OnfidoId = 1;
-        $Country = "UK";
-        $Gender = 1;
-
         
-        
-        // Send a POST request to the API with the updated finance fee value
-        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/user/cardHolderId/'.$CardHolderId.'', [
-                'AcceptedTAndCs' => true,
-                'ShownAutoCommsOptIn' => true,
-                'PassedSanctions' => true,
-                'PassedPeps' => true,
-                'PassedKyc' => true,
-                'IsActive' => true,
-                'FirstName' => $FirstName,
-                'LastName' => $LastName,
-                // 'UserName' => $UserName,
-                'SecondSurname' => $SecondSurname,
-                'Email' => $Email,
-                // 'Password' => $Password,
-                'Mobile' => $Mobile,
-                'LandlineTelephone' => $LandlineTelephone,
-                'Language' => "en-GB",
-                'DateOfBirth' => $DateOfBirth,
-                'SocialSecurityNumber' => $SocialSecurityNumber,
-                'IdCardNumber' => $IdCardNumber,
-                'Nationality' => $Nationality,
-                'Title' => $Title,
-                'TaxIdCardNumber' => $TaxIdCardNumber,
-                'HouseNumberOrBuilding' => $HouseNumberOrBuilding,
-                'Address1' => $Address1,
-                'Address2' => $Address2,
-                'PostCode' => $PostCode,
-                'City' => $City,
-                'State' => $State,
-                'Country' => "UK",
-                'OnfidoId' => "1",
-                'Gender' => "1"
+        $chknumber =  $request->input('Mobile');
+        $num = substr($chknumber, 0, 3);
 
-            ]);
+        if ($num == "+44") {
 
-        // Check the API response
-        if ($response->successful()) {
-            // API request succeeded
-            $responseData = $response->json();
-            // Process the response data as needed
-            
+            $CardHolderId = $request->input('CardHolderId');
+            $FirstName = $request->input('FirstName');
+            $LastName = $request->input('LastName');
+            // $UserName = $request->input('UserName');
+            $SecondSurname = $request->input('SecondSurname');
+            $Email = $request->input('Email');
+            // $Password = $request->input('Password');
+            $Mobile = $request->input('Mobile');
+            $LandlineTelephone = $request->input('LandlineTelephone');
+            $DateOfBirth = $request->DateOfBirth;
+            $SocialSecurityNumber = $request->input('SocialSecurityNumber');
+            $IdCardNumber = $request->input('IdCardNumber');
+            $Nationality = $request->input('Nationality');
+            $Title = $request->input('Title');
+            $TaxIdCardNumber = $request->input('TaxIdCardNumber');
+            $HouseNumberOrBuilding = $request->input('HouseNumberOrBuilding');
+            $Address1 = $request->input('Address1');
+            $Address2 = $request->input('Address2');
+            $PostCode = $request->input('PostCode');
+            $State = $request->input('State');
+            $City = $request->input('City');
+            $Language = "en-GB";
+            $OnfidoId = 1;
+            $Country = "UK";
+            $Gender = 1;
 
-            // return $responseData;
-            $cardholder = CardHolder::find($request->cardid);
-            $cardholder->FirstName = $FirstName;
-            $cardholder->LastName = $LastName;
-            // $cardholder->UserName = $UserName;
-            $cardholder->SecondSurname = $SecondSurname;
-            $cardholder->Email = $Email;
-            // $cardholder->Password = $Password;
-            $cardholder->Mobile = $Mobile;
-            $cardholder->LandlineTelephone = $LandlineTelephone;
-            $cardholder->DateOfBirth = $DateOfBirth;
-            $cardholder->SocialSecurityNumber = $SocialSecurityNumber;
-            $cardholder->IdCardNumber = $IdCardNumber;
-            $cardholder->Nationality = $Nationality;
-            $cardholder->Title = $Title;
-            $cardholder->TaxIdCardNumber = $TaxIdCardNumber;
-            $cardholder->HouseNumberOrBuilding = $HouseNumberOrBuilding;
-            $cardholder->Address1 = $Address1;
-            $cardholder->Address2 = $Address2;
-            $cardholder->PostCode = $PostCode;
-            $cardholder->State = $State;
-            $cardholder->City = $City;
-            $cardholder->Language = $Language;
-            $cardholder->OnfidoId = $OnfidoId;
-            $cardholder->Country = $Country;
-            $cardholder->Gender = $Gender;
-            $cardholder->save();
+            // Send a POST request to the API with the updated finance fee value
+            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/user/cardHolderId/'.$CardHolderId.'', [
+                    'AcceptedTAndCs' => true,
+                    'ShownAutoCommsOptIn' => true,
+                    'PassedSanctions' => true,
+                    'PassedPeps' => true,
+                    'PassedKyc' => true,
+                    'IsActive' => true,
+                    'FirstName' => $FirstName,
+                    'LastName' => $LastName,
+                    // 'UserName' => $UserName,
+                    'SecondSurname' => $SecondSurname,
+                    'Email' => $Email,
+                    // 'Password' => $Password,
+                    'Mobile' => $Mobile,
+                    'LandlineTelephone' => $LandlineTelephone,
+                    'Language' => "en-GB",
+                    'DateOfBirth' => $DateOfBirth,
+                    'SocialSecurityNumber' => $SocialSecurityNumber,
+                    'IdCardNumber' => $IdCardNumber,
+                    'Nationality' => $Nationality,
+                    'Title' => $Title,
+                    'TaxIdCardNumber' => $TaxIdCardNumber,
+                    'HouseNumberOrBuilding' => $HouseNumberOrBuilding,
+                    'Address1' => $Address1,
+                    'Address2' => $Address2,
+                    'PostCode' => $PostCode,
+                    'City' => $City,
+                    'State' => $State,
+                    'Country' => "UK",
+                    'OnfidoId' => "1",
+                    'Gender' => "1"
 
-            // Redirect back with success message and API response data
-            return redirect()->route('userCardService')->with('success', 'Card request update successful')->with('responseData', $responseData);
+                ]);
+
+            // Check the API response
+            if ($response->successful()) {
+                // API request succeeded
+                $responseData = $response->json();
+                // Process the response data as needed
+                
+
+                // return $responseData;
+                $cardholder = CardHolder::find($request->cardid);
+                $cardholder->FirstName = $FirstName;
+                $cardholder->LastName = $LastName;
+                // $cardholder->UserName = $UserName;
+                $cardholder->SecondSurname = $SecondSurname;
+                $cardholder->Email = $Email;
+                // $cardholder->Password = $Password;
+                $cardholder->Mobile = $Mobile;
+                $cardholder->LandlineTelephone = $LandlineTelephone;
+                $cardholder->DateOfBirth = $DateOfBirth;
+                $cardholder->SocialSecurityNumber = $SocialSecurityNumber;
+                $cardholder->IdCardNumber = $IdCardNumber;
+                $cardholder->Nationality = $Nationality;
+                $cardholder->Title = $Title;
+                $cardholder->TaxIdCardNumber = $TaxIdCardNumber;
+                $cardholder->HouseNumberOrBuilding = $HouseNumberOrBuilding;
+                $cardholder->Address1 = $Address1;
+                $cardholder->Address2 = $Address2;
+                $cardholder->PostCode = $PostCode;
+                $cardholder->State = $State;
+                $cardholder->City = $City;
+                $cardholder->Language = $Language;
+                $cardholder->OnfidoId = $OnfidoId;
+                $cardholder->Country = $Country;
+                $cardholder->Gender = $Gender;
+                $cardholder->save();
+
+                // Redirect back with success message and API response data
+                return redirect()->route('userCardService')->with('success', 'Card request update successful')->with('responseData', $responseData);
+
+            } else {
+                // API request failed
+                $errorResponse = $response->json();
+                // Handle the error response
+                // Redirect back with error message and error response data
+                return redirect()->back()->with('error', 'API request failed')->with('errorResponse', $errorResponse);
+            }
 
         } else {
-            // API request failed
-            $errorResponse = $response->json();
-            // Handle the error response
-            // Redirect back with error message and error response data
-            return redirect()->back()->with('error', 'API request failed')->with('errorResponse', $errorResponse);
+            return redirect()->back()->with('error', 'Mobile number start with +44.');
         }
+
+
+
     }
     // update cardholder end
 

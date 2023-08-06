@@ -39,7 +39,7 @@
                         <option value="STOLEN">STOLEN</option>
                         <option value="LOST">LOST</option>
                         <option value="SUSPEND">SUSPEND</option>
-                        <option value="BLOCK">BLOCK</option>
+                        {{-- <option value="BLOCK">BLOCK</option> --}}
                     </select>
                 </div>
 

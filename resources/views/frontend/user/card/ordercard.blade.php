@@ -46,12 +46,12 @@
                     <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control" value="{{$CardHolderData->LastName}}" readonly>
                 </div>
 
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <label for="Address1">Address1</label>
                     <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{$CardHolderData->Address1}}" readonly>
                 </div>
 
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <label for="Address2">Address2</label>
                     <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="{{$CardHolderData->Address2}}" readonly>
                 </div>
@@ -72,7 +72,7 @@
                     <input type="text" name="City" id="City" placeholder="City" class="form-control" value="{{$CardHolderData->City}}" readonly>
                 </div>
                 <div class="col-md-3">
-                    <label for="">State</label>
+                    <label for="">County</label>
                     <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{$CardHolderData->State}}" readonly>
                 </div>
                 <div class="col-md-3">

@@ -156,7 +156,7 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label for="">State</label>
+                    <label for="">Country</label>
                     <input type="text" name="State" id="State" placeholder="State" class="form-control" value="" required>
                 </div>
             </div>

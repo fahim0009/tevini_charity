@@ -34,13 +34,13 @@
             <div class="row">
                 <div class="col-md-6">
                     <label for="">FirstName</label>
-                    <input type="text" name="FirstName" id="FirstName" placeholder="FirstName" class="form-control" value="{{$data->FirstName}}">
+                    <input type="text" name="FirstName" id="FirstName" placeholder="FirstName" class="form-control" value="{{$data->FirstName}}" readonly>
                     <input type="hidden" name="CardHolderId" id="CardHolderId" class="form-control" value="{{$data->CardHolderId}}">
                     <input type="hidden" name="cardid" id="cardid" class="form-control" value="{{$data->id}}">
                 </div>
                 <div class="col-md-6">
                     <label for="">LastName</label>
-                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control" value="{{$data->LastName}}">
+                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control" value="{{$data->LastName}}" readonly>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@
             <div class="row">
                 <div class="col-md-6" style="display: none">
                     <label for="">LandlineTelephone</label>
-                    <input type="text" name="LandlineTelephone" id="LandlineTelephone" placeholder="LandlineTelephone" class="form-control" value="{{$data->LandlineTelephone}}">
+                    <input type="text" name="LandlineTelephone" id="LandlineTelephone" placeholder="LandlineTelephone" class="form-control" value="{{$data->LandlineTelephone}}" readonly>
                 </div>
             </div>
 
@@ -113,12 +113,12 @@
                 
                 <div class="col-md-6">
                     <label for="">DateOfBirth</label>
-                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required value="{{$data->DateOfBirth}}">
+                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required value="{{$data->DateOfBirth}}" readonly>
                 </div>
 
                 <div class="col-md-6">
                     <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{$data->HouseNumberOrBuilding}}">
+                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{$data->HouseNumberOrBuilding}}" readonly>
                 </div>
 
                 <div class="col-md-4" style="display: none">
@@ -138,12 +138,12 @@
 
                 <div class="col-md-6">
                     <label for="">Address1</label>
-                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{$data->Address1}}">
+                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{$data->Address1}}" readonly>
                 </div>
 
                 <div class="col-md-6">
                     <label for="">Address2</label>
-                    <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="{{$data->Address2}}">
+                    <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="{{$data->Address2}}" readonly>
                 </div>
             </div>
 
@@ -151,17 +151,17 @@
 
                 <div class="col-md-4">
                     <label for="">City</label>
-                    <input type="text" name="City" id="City" placeholder="City" class="form-control"   value="{{$data->City}}">
+                    <input type="text" name="City" id="City" placeholder="City" class="form-control"   value="{{$data->City}}" readonly>
                 </div>
 
                 <div class="col-md-4">
                     <label for="">PostCode</label>
-                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="{{$data->PostCode}}">
+                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="{{$data->PostCode}}" readonly>
                 </div>
 
                 <div class="col-md-4">
-                    <label for="">State</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{$data->State}}">
+                    <label for="">Country</label>
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{$data->State}}" readonly>
                 </div>
             </div>
 

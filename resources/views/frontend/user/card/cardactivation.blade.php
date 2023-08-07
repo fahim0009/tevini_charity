@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="col-md-12">
-                    <input type="checkbox" class="me-2" required>I agree to the <a href="{{route('cardterms')}}" style="text-decoration: none;color:#212529" target="blank"> Terms & Conditions. </a><br>
+                    <input type="checkbox" class="me-2" required>I have read and accept the cardholder  <a href="{{route('cardterms')}}" style="text-decoration: none;color:#212529" target="blank"> Terms & Conditions. </a><br>
                 </div>
 
             </div>

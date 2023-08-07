@@ -19,6 +19,11 @@ class AboutController extends Controller
         return view('frontend.terms-condition');
     }
 
+    public function cardterms()
+    {
+        return view('frontend.cardterms-condition');
+    }
+
     public function aboutHelp()
     {
         $abouthelp = AboutHelp::all();

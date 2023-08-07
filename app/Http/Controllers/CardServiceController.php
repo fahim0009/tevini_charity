@@ -110,8 +110,8 @@ class CardServiceController extends Controller
             $PepsSanctionsCheck = false;
             $SpendProfileId = $sProfile['SpendProfile']['SpendProfileId'];
             $SpendProfileName = $sProfile['SpendProfile']['ProfileName'];
-            $CreditProfileId = Auth::user()->CreditProfileId;
-            $CreditProfileName = Auth::user()->name;
+            $CreditProfileId = $data['CreditProfile']['CreditProfileId'];
+            $CreditProfileName = $userupdate->name;
             $FundingSource = 2;
             $TransactionAlerts = true;
 

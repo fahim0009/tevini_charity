@@ -169,6 +169,7 @@ Route::get('/why-use-us', [App\Http\Controllers\AboutController::class, 'whyuseu
 Route::get('/team', [App\Http\Controllers\AboutController::class, 'team'])->name('team');
 Route::get('/blog', [App\Http\Controllers\AboutController::class, 'blog'])->name('blog');
 Route::get('/terms-&-condition', [App\Http\Controllers\AboutController::class, 'terms'])->name('terms');
+Route::get('/card-terms-&-condition', [App\Http\Controllers\AboutController::class, 'cardterms'])->name('cardterms');
 Route::get('/how-it-works', [App\Http\Controllers\HomepageController::class, 'howitWorks'])->name('howitWorks');
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');

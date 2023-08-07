@@ -49,13 +49,24 @@
                     <label for="">SecondSurname</label>
                     <input type="text" name="SecondSurname" id="SecondSurname" placeholder="SecondSurname" class="form-control">
                 </div>
+
+                <div class="col-md-6">
+                    
+                    <label for="">Email (**unique email)</label>
+                    <input type="text" name="Email" id="Email" placeholder="Email" class="form-control @error('Email') is-invalid @enderror" value="{{$data->Email}}">
+                </div>
+
+                
+                <div class="col-md-6">
+                    <label for="">Mobile (** start +44)</label>
+                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="{{$data->Mobile}}">
+                </div>
+
                 <div class="col-md-6" style="display: none">
                     <label for="">UserName (**Unique username)</label>
                     <input type="text" name="UserName" id="UserName" placeholder="UserName" class="form-control" value="{{$data->UserName}}">
 
                     
-                    <label for="">Email (**unique email)</label>
-                    <input type="text" name="Email" id="Email" placeholder="Email" class="form-control @error('Email') is-invalid @enderror" value="{{$data->Email}}">
                 </div>
 
                 
@@ -71,11 +82,7 @@
         
 
             <div class="row">
-                <div class="col-md-6">
-                    <label for="">Mobile (** start +44)</label>
-                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="{{$data->Mobile}}">
-                </div>
-                <div class="col-md-6">
+                <div class="col-md-6" style="display: none">
                     <label for="">LandlineTelephone</label>
                     <input type="text" name="LandlineTelephone" id="LandlineTelephone" placeholder="LandlineTelephone" class="form-control" value="{{$data->LandlineTelephone}}">
                 </div>
@@ -104,17 +111,22 @@
                 </div>
 
                 
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label for="">DateOfBirth</label>
                     <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required value="{{$data->DateOfBirth}}">
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-6">
+                    <label for="">HouseNumberOrBuilding</label>
+                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{$data->HouseNumberOrBuilding}}">
+                </div>
+
+                <div class="col-md-4" style="display: none">
                     <label for="">Nationality</label>
                     <input type="text" name="Nationality" id="Nationality" placeholder="Nationality" class="form-control" value="{{$data->Nationality}}">
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4" style="display: none">
                     <label for="">Title</label>
                     <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="Test Title" value="{{$data->Title}}">
                 </div>
@@ -122,17 +134,14 @@
 
             <div class="row">
 
-                <div class="col-md-4">
-                    <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{$data->HouseNumberOrBuilding}}">
-                </div>
+                
 
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label for="">Address1</label>
                     <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{$data->Address1}}">
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label for="">Address2</label>
                     <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="{{$data->Address2}}">
                 </div>

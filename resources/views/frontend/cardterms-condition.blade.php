@@ -1,23 +1,177 @@
 @extends('frontend.layouts.master')
 
 @section('content')
+<style>
+
+
+ h1 { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: bold; text-decoration: none; font-size: 11pt; }
+ .p, p { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; margin:0pt; }
+ .s1 { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: underline; font-size: 11pt; }
+ .a, a { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ .s5 { color: black; font-family:Calibri, sans-serif; font-style: italic; font-weight: normal; text-decoration: underline; font-size: 11pt; }
+ .s6 { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: bold; text-decoration: none; font-size: 10pt; }
+ .s7 { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 10pt; }
+ .s8 { color: #00F; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: underline; font-size: 11pt; }
+ li {display: block; }
+ #l1 {padding-left: 0pt;counter-reset: c1 1; }
+ #l1> li>*:first-child:before {counter-increment: c1; content: counter(c1, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: bold; text-decoration: none; font-size: 11pt; }
+ #l1> li:first-child>*:first-child:before {counter-increment: c1 0;  }
+ #l2 {padding-left: 0pt;counter-reset: c2 1; }
+ #l2> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l2> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l3 {padding-left: 0pt;counter-reset: c2 1; }
+ #l3> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l3> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l4 {padding-left: 0pt;counter-reset: c3 1; }
+ #l4> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l4> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l5 {padding-left: 0pt;counter-reset: c3 1; }
+ #l5> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l5> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l6 {padding-left: 0pt;counter-reset: c4 1; }
+ #l6> li>*:first-child:before {counter-increment: c4; content: "("counter(c4, lower-latin)") "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l6> li:first-child>*:first-child:before {counter-increment: c4 0;  }
+ #l7 {padding-left: 0pt;counter-reset: c2 1; }
+ #l7> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l7> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l8 {padding-left: 0pt;counter-reset: c2 1; }
+ #l8> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l8> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l9 {padding-left: 0pt;counter-reset: c3 1; }
+ #l9> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l9> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l10 {padding-left: 0pt;counter-reset: c2 1; }
+ #l10> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l10> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l11 {padding-left: 0pt;counter-reset: c3 1; }
+ #l11> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l11> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l12 {padding-left: 0pt;counter-reset: c3 1; }
+ #l12> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l12> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l13 {padding-left: 0pt;counter-reset: d1 5; }
+ #l13> li>*:first-child:before {counter-increment: d1; content: counter(d1, decimal)" "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l13> li:first-child>*:first-child:before {counter-increment: d1 0;  }
+ #l14 {padding-left: 0pt;counter-reset: d2 2; }
+ #l14> li>*:first-child:before {counter-increment: d2; content: counter(d1, decimal)"."counter(d2, decimal)" "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l14> li:first-child>*:first-child:before {counter-increment: d2 0;  }
+ #l15 {padding-left: 0pt;counter-reset: d3 3; }
+ #l15> li>*:first-child:before {counter-increment: d3; content: counter(d1, decimal)"."counter(d2, decimal)"."counter(d3, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 10pt; }
+ #l15> li:first-child>*:first-child:before {counter-increment: d3 0;  }
+ #l16 {padding-left: 0pt;counter-reset: c2 1; }
+ #l16> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l16> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l17 {padding-left: 0pt;counter-reset: c3 1; }
+ #l17> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l17> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l18 {padding-left: 0pt;counter-reset: c2 1; }
+ #l18> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l18> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l19 {padding-left: 0pt;counter-reset: c3 1; }
+ #l19> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l19> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l20 {padding-left: 0pt;counter-reset: c2 1; }
+ #l20> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l20> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l21 {padding-left: 0pt;counter-reset: c3 1; }
+ #l21> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l21> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l22 {padding-left: 0pt;counter-reset: c4 1; }
+ #l22> li>*:first-child:before {counter-increment: c4; content: "("counter(c4, lower-latin)") "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l22> li:first-child>*:first-child:before {counter-increment: c4 0;  }
+ #l23 {padding-left: 0pt;counter-reset: c3 1; }
+ #l23> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l23> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l24 {padding-left: 0pt;counter-reset: c2 1; }
+ #l24> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l24> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l25 {padding-left: 0pt;counter-reset: c2 1; }
+ #l25> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l25> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l26 {padding-left: 0pt;counter-reset: c3 1; }
+ #l26> li>*:first-child:before {counter-increment: c3; content: counter(c1, decimal)"."counter(c2, decimal)"."counter(c3, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l26> li:first-child>*:first-child:before {counter-increment: c3 0;  }
+ #l27 {padding-left: 0pt;counter-reset: c2 1; }
+ #l27> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l27> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l28 {padding-left: 0pt;counter-reset: c2 1; }
+ #l28> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l28> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ #l29 {padding-left: 0pt;counter-reset: c2 1; }
+ #l29> li>*:first-child:before {counter-increment: c2; content: counter(c1, decimal)"."counter(c2, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l29> li:first-child>*:first-child:before {counter-increment: c2 0;  }
+ li {display: block; }
+ #l30 {padding-left: 0pt;counter-reset: e1 1; }
+ #l30> li>*:first-child:before {counter-increment: e1; content: counter(e1, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: bold; text-decoration: none; font-size: 11pt; }
+ #l30> li:first-child>*:first-child:before {counter-increment: e1 0;  }
+ #l31 {padding-left: 0pt;counter-reset: e2 1; }
+ #l31> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l31> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l32 {padding-left: 0pt;counter-reset: e2 1; }
+ #l32> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l32> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l33 {padding-left: 0pt;counter-reset: e2 1; }
+ #l33> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l33> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l34 {padding-left: 0pt;counter-reset: e2 1; }
+ #l34> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l34> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l35 {padding-left: 0pt;counter-reset: e2 1; }
+ #l35> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l35> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l36 {padding-left: 0pt;counter-reset: e2 1; }
+ #l36> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l36> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l37 {padding-left: 0pt;counter-reset: e2 1; }
+ #l37> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l37> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l38 {padding-left: 0pt;counter-reset: e2 1; }
+ #l38> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l38> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l39 {padding-left: 0pt;counter-reset: e2 1; }
+ #l39> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l39> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l40 {padding-left: 0pt;counter-reset: e2 1; }
+ #l40> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l40> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l41 {padding-left: 0pt;counter-reset: e3 1; }
+ #l41> li>*:first-child:before {counter-increment: e3; content: counter(e1, decimal)"."counter(e2, decimal)"."counter(e3, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l41> li:first-child>*:first-child:before {counter-increment: e3 0;  }
+ #l42 {padding-left: 0pt;counter-reset: e4 1; }
+ #l42> li>*:first-child:before {counter-increment: e4; content: counter(e1, decimal)"."counter(e2, decimal)"."counter(e3, decimal)"."counter(e4, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l42> li:first-child>*:first-child:before {counter-increment: e4 0;  }
+ #l43 {padding-left: 0pt;counter-reset: e3 1; }
+ #l43> li>*:first-child:before {counter-increment: e3; content: counter(e1, decimal)"."counter(e2, decimal)"."counter(e3, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l43> li:first-child>*:first-child:before {counter-increment: e3 0;  }
+ #l44 {padding-left: 0pt;counter-reset: e2 1; }
+ #l44> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l44> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l45 {padding-left: 0pt;counter-reset: e3 1; }
+ #l45> li>*:first-child:before {counter-increment: e3; content: counter(e1, decimal)"."counter(e2, decimal)"."counter(e3, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
+ #l45> li:first-child>*:first-child:before {counter-increment: e3 0;  }
+ #l46 {padding-left: 0pt;counter-reset: e2 1; }
+ #l46> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l46> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ #l47 {padding-left: 0pt;counter-reset: e2 1; }
+ #l47> li>*:first-child:before {counter-increment: e2; content: counter(e1, decimal)"."counter(e2, decimal)". "; color: black; font-style: normal; font-weight: normal; text-decoration: none; }
+ #l47> li:first-child>*:first-child:before {counter-increment: e2 0;  }
+ table, tbody {vertical-align: top; overflow: visible; }
+</style>
 <div class="container">
     <h1 style="padding-top: 1pt; padding-left: 6pt; text-indent: 0pt; text-align: left;">Tevini Prepaid Mastercard® Cardholder Terms 28/06/23</h1>
 <p style="text-indent: 0pt; text-align: left;"><br /></p>
 <ol id="l1">
-    <li data-list-text="1.">
-        <h1 style="padding-left: 24pt; text-indent: -18pt; text-align: left;">These terms</h1>
-        <p style="text-indent: 0pt; text-align: left;"><br /></p>
-        <ol id="l2">
-            <li data-list-text="1.1.">
-                <h1 style="padding-left: 45pt; text-indent: -21pt; text-align: justify;">
+    <li>
+        <h1>These terms</h1>
+        <ol>
+            <li>
+                <h1>
                     What these terms cover<span class="p">. These are the terms and conditions (the “</span>Terms<span class="p">”) which govern the use of the personal, non-transferable card scheme branded prepaid card (the “</span>Card
                     <span class="p">”) which you have been issued with or will be issued with.</span>
                 </h1>
-                <p style="text-indent: 0pt; text-align: left;"><br /></p>
             </li>
-            <li data-list-text="1.2.">
-                <h1 style="padding-left: 45pt; text-indent: -21pt; text-align: justify;">
+            <li>
+                <h1>
                     Why you should read them
                     <span class="p">
                         . Please read these Terms carefully before you use your Card. These Terms tell you who we are, who we work with, how you can use your Card and the steps you need to take to protect yourself from unauthorised use of

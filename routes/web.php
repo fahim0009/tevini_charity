@@ -62,7 +62,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction_search');
     Route::get('make-donation', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
     Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
-// standing donation 
+    // standing donation 
     Route::post('standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
     Route::post('active-standingdonation', [DonationController::class, 'activeStandinguser'])->name('user.standingstatus');
     Route::get('donation-record', [DonorController::class, 'userDonationrecod'])->name('user.donationrecord');
@@ -169,6 +169,7 @@ Route::get('/why-use-us', [App\Http\Controllers\AboutController::class, 'whyuseu
 Route::get('/team', [App\Http\Controllers\AboutController::class, 'team'])->name('team');
 Route::get('/blog', [App\Http\Controllers\AboutController::class, 'blog'])->name('blog');
 Route::get('/terms-&-condition', [App\Http\Controllers\AboutController::class, 'terms'])->name('terms');
+Route::get('/privacy-&-policy', [App\Http\Controllers\AboutController::class, 'privacy'])->name('privacy');
 Route::get('/card-terms-&-condition', [App\Http\Controllers\AboutController::class, 'cardterms'])->name('cardterms');
 Route::get('/how-it-works', [App\Http\Controllers\HomepageController::class, 'howitWorks'])->name('howitWorks');
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');

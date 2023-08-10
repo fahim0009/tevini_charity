@@ -7,7 +7,7 @@
                 <div class="footer-upper d-flex justify-content-center align-items-center flex-column">
                     (C) TEVINI LTD.
                     <div class="d-flex flex-column my-3">
-                        <a href="#" class="">Privacy Policy </a>
+                        <a href="{{ route('privacy') }}" class="">Privacy Policy </a>
                         <a href="{{ route('terms') }}" class="">Terms of Use</a>
                     </div>
                 </div>

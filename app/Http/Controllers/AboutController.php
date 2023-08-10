@@ -19,6 +19,11 @@ class AboutController extends Controller
         return view('frontend.terms-condition');
     }
 
+    public function privacy()
+    {
+        return view('frontend.privacy');
+    }
+
     public function cardterms()
     {
         return view('frontend.cardterms-condition');

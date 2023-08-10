@@ -692,10 +692,6 @@ class CardServiceController extends Controller
         $CardDisplayName = $request->CardDisplayName;
         $cardNumber = substr($PAN, -4);
 
-        // dd($cardNumber);
-
-
-
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/cardProxyId', [
@@ -707,6 +703,8 @@ class CardServiceController extends Controller
             // apply for product start
             $data = $response->json();
             $CardProxyId = $data['CardProxyId'];
+
+            
 
             // store card proxi id for showing transaction
             $updateproduct = CardProduct::where('user_id',Auth::user()->id)->first();
@@ -724,13 +722,12 @@ class CardServiceController extends Controller
                 'CardDisplayName' => $CardDisplayName,
                 
             ]);
-            // dd($productResponse);
 
             // Check the response status code to see if the update was successful
             if ($productResponse->ok()) {
                 return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
             } else {
-                return redirect()->back()->with('error', 'Unable to active card.');
+                return redirect()->back()->with('error', 'The card is already in use.');
             }
         } else {
             return redirect()->back()->with('error', 'Unable to active card.');

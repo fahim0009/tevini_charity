@@ -73,7 +73,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="">County</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{$CardHolderData->State}}" readonly>
+                    <input type="text" name="State" id="State" placeholder="County" class="form-control" value="{{$CardHolderData->State}}" readonly>
                 </div>
                 <div class="col-md-3">
                     <label for="">PostCode</label>

@@ -22,6 +22,11 @@
     #l4> li:first-child>*:first-child:before {counter-increment: c2 0;  }
    </style>
 
+
+<div class="container">
+
+
+
 <p class="s1" style="padding-top: 1pt; padding-left: 5pt; text-indent: 0pt; text-align: left;">Privacy Policy for Tevini Ltd Website</p>
 <p style="text-indent: 0pt; text-align: left;"><br /></p>
 <p style="padding-top: 12pt; padding-left: 5pt; text-indent: 0pt; text-align: left;">Effective Date: 10/08/2023</p>
@@ -160,7 +165,7 @@
 
 
 
-
+</div>
 
 
 

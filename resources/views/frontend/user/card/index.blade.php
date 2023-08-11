@@ -77,7 +77,7 @@
             @if ($CardHolderId)
             <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder </a>
             @if (isset($chkCardAvailable->cardNumber))
-                <a href="{{route('cardSetPin')}}" class="d-block btn-theme bg-primary">Set Pin</a>
+                <a href="{{route('cardSetPin')}}" class="d-block btn-theme bg-primary">Get Pin</a>
                 <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
             @else
                 

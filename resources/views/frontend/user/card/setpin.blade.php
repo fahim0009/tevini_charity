@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">
-                 Card Set Pin
+                 Card Get Pin
             </div>
             <h3>Your card pin: <span id="pinID">{{$pin}}</span><a id="showPIN"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a></h3> 
         </div>
@@ -70,7 +70,7 @@
         $("#showPIN").click(function(){
             $("#pinID").show(300);
             $("#showPIN").hide(300);
-
+            $("#pinID").delay(3200).fadeOut(300);
         });
 </script>
 

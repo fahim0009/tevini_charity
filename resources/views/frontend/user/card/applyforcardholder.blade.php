@@ -152,7 +152,7 @@
 
                 <div class="col-md-4">
                     <label for="">PostCode</label>
-                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="" required>
+                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="" maxlength="8" required>
                 </div>
 
                 <div class="col-md-4">

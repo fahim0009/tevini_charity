@@ -70,7 +70,7 @@
         $("#showPIN").click(function(){
             $("#pinID").show(300);
             $("#pinID").delay(3200).fadeOut(300);
-            $("#showPIN").hide(300);
+            // $("#showPIN").hide(300);
         });
 </script>
 

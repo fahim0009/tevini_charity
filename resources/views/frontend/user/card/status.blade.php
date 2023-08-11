@@ -36,11 +36,11 @@
                     <label for="Status">Status</label>
                     <select name="Status" id="Status" class="form-control">
                         <option value="">Select</option>
-                        <option value="NORMAL">NORMAL</option>
-                        <option value="STOLEN">STOLEN</option>
-                        <option value="LOST">LOST</option>
-                        <option value="SUSPEND">SUSPEND</option>
-                        {{-- <option value="BLOCK">BLOCK</option> --}}
+                        <option value="NORMAL">I have found my card - unfreeze</option>
+                        <option value="STOLEN">STOLEN (Permanent block)</option>
+                        <option value="LOST">LOST (Permanent block)</option>
+                        <option value="SUSPEND">Apply a temporary freeze my card.</option>
+                        
                     </select>
                 </div>
 

@@ -7,7 +7,7 @@
     .p, p { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; margin:0pt; }
     h1 { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: bold; text-decoration: none; font-size: 11pt; }
     
-    li {display: block; }
+    /* li {display: block; } */
     #l1 {padding-left: 0pt;counter-reset: c1 1; }
     #l1> li>*:first-child:before {counter-increment: c1; content: counter(c1, decimal)". "; color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 11pt; }
     #l1> li:first-child>*:first-child:before {counter-increment: c1 0;  }
@@ -157,7 +157,7 @@
 </ol>
 <p style="text-indent: 0pt; text-align: left;"><br /></p>
 <p style="padding-left: 5pt; text-indent: 0pt; line-height: 108%; text-align: left;">
-    <a href="mailto:info@tevini.co.uk" class="a" target="_blank">If you have any questions, concerns, or requests regarding this Privacy Policy or your personal information, please contact us at </a>
+    If you have any questions, concerns, or requests regarding this Privacy Policy or your personal information, please contact us at 
     <a href="mailto:info@tevini.co.uk" target="_blank">info@tevini.co.uk</a>
 </p>
 <p style="text-indent: 0pt; text-align: left;"><br /></p>

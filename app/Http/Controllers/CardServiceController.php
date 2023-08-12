@@ -563,7 +563,15 @@ class CardServiceController extends Controller
     public function orderCard()
     {
         $chkorder = CardOrder::where('user_id', Auth::user()->id)->first();
-        if (isset($chkorder)) {
+
+        $ldate = date('Y-m-d H:i:s');
+        $updated_at = $chkorder->created_at;
+        $updated_at->addDays(12); 
+
+
+        // dd($updated_at);
+
+        if ($ldate < $updated_at) {
             $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
             // dd($CardHolderData);
             $order = CardOrder::where('user_id', Auth::user()->id)->first();

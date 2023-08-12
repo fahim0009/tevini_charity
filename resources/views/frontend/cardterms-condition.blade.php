@@ -160,7 +160,9 @@
 <div class="container">
     <h1 style="padding-top: 1pt; padding-left: 6pt; text-indent: 0pt; text-align: left;">Tevini Prepaid Mastercard® Cardholder Terms 28/06/23</h1>
 <p style="text-indent: 0pt; text-align: left;"><br /></p>
-<ol id="l1">
+
+
+<ol>
     <li>
         <h1>These terms</h1>
         <ol>
@@ -182,11 +184,11 @@
             </li>
         </ol>
     </li>
-    <li data-list-text="2.">
+    <li>
         <h1 style="padding-left: 24pt; text-indent: -18pt; text-align: left;">Information about us and how to contact us</h1>
         <p style="text-indent: 0pt; text-align: left;"><br /></p>
-        <ol id="l3">
-            <li data-list-text="2.1.">
+        <ol>
+            <li>
                 <h1 style="padding-left: 45pt; text-indent: -21pt; text-align: justify;">
                     Who we are
                     <a href="mailto:support@payr.net" class="a" target="_blank">
@@ -197,13 +199,13 @@
                 </h1>
                 <p style="text-indent: 0pt; text-align: left;"><br /></p>
             </li>
-            <li data-list-text="2.2.">
+            <li>
                 <p style="padding-top: 2pt; padding-left: 45pt; text-indent: -21pt; text-align: justify;">
                     We are authorised by the Financial Conduct Authority under the Electronic Money Regulations 2011 (registration number 900594) for the issuing of electronic money (“<b>e-money</b>”).
                 </p>
                 <p style="text-indent: 0pt; text-align: left;"><br /></p>
             </li>
-            <li data-list-text="2.3.">
+            <li>
                 <h1 style="padding-left: 45pt; text-indent: -21pt; text-align: justify;">
                     Who we work with when providing you with services relating to the Card.
                     <span class="p">Although we are the sole issuer of the Card, we work with Tevini, who are a customer of QPay, trading as Quantum Card Services Ltd, 7 - 8 Church Street, Wimborne, Dorset, BH21 1JH (the “</span>Distributor
@@ -214,7 +216,7 @@
                 </h1>
                 <p style="text-indent: 0pt; text-align: left;"><br /></p>
             </li>
-            <li data-list-text="2.4.">
+            <li>
                 <p style="padding-left: 45pt; text-indent: -21pt; text-align: left;">The Distributor will be your first point of contact in relation to these Terms, for example if you:</p>
                 <ol id="l4">
                     <li data-list-text="2.4.1."><p style="padding-left: 67pt; text-indent: -25pt; text-align: left;">wish to cancel the Card or complain about the service you have been provided with pursuant to these Terms;</p></li>
@@ -225,26 +227,24 @@
                     </li>
                 </ol>
             </li>
-            <li data-list-text="2.5.">
+            <li>
                 <p style="padding-left: 45pt; text-indent: -21pt; text-align: justify;">
-                    <a href="http://www.tevini.co.uk/" class="a" target="_blank">
-                        The services provided by the Distributor are governed by a separate set of terms and conditions which are set out in in your donation agreement and on the website at https://
-                    </a>
+                        The services provided by the Distributor are governed by a separate set of terms and conditions which are set out in in your donation agreement and on the website at 
                     <a href="http://www.tevini.co.uk/" target="_blank">www.tevini.co.uk/</a>
                 </p>
             </li>
-            <li data-list-text="2.6.">
+            <li>
                 <p style="padding-left: 45pt; text-indent: -21pt; text-align: justify;">
                     Payrnet Limited (“<b>Payrnet</b>”) also provide you with the e-money account (the “<b>Account</b>”) where the funds, which can be spent using the Card, are held. The services provided by Payrnet are governed by a
                     separate set of terms and conditions between you and Payrnet which are set out below in Payrnet’s consumer terms<span style="color: #00aeee;">. </span>Please note that the funds in the Account will not earn any interest.
                 </p>
                 <p style="text-indent: 0pt; text-align: left;"><br /></p>
             </li>
-            <li data-list-text="2.7.">
+            <li>
                 <h1 style="padding-left: 45pt; text-indent: -21pt; text-align: left;">How to contact us<span class="p">. You can contact us by:</span></h1>
                 <ol id="l5">
                     <li data-list-text="2.7.1.">
-                        <p style="padding-left: 67pt; text-indent: -25pt; text-align: left;">telephoning us at 0203 976 1122 <i>Mon to Thu, 09:30-16:00)</i>;</p>
+                        <p style="padding-left: 67pt; text-indent: -25pt; text-align: left;">telephoning us at 0203 976 1122 <i>Mon to Thu, 09:30-16:00</i>;</p>
                     </li>
                     <li data-list-text="2.7.2.">
                         <p style="padding-top: 1pt; padding-left: 69pt; text-indent: -27pt; text-align: left;">

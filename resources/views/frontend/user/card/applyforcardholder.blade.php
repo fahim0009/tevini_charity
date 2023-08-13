@@ -85,7 +85,7 @@
                 
                 <div class="col-md-6">
                     <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="" required>
+                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{Auth::user()->houseno}}" required>
                 </div>
 
                 <div class="col-md-6" style="display: none">
@@ -134,7 +134,7 @@
 
                 <div class="col-md-6">
                     <label for="">Address1</label>
-                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="">
+                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{Auth::user()->street}}">
                 </div>
 
                 <div class="col-md-6">
@@ -147,17 +147,17 @@
 
                 <div class="col-md-4">
                     <label for="">City</label>
-                    <input type="text" name="City" id="City" placeholder="City" class="form-control"  value="" required>
+                    <input type="text" name="City" id="City" placeholder="City" class="form-control"  value="{{Auth::user()->town}}" required>
                 </div>
 
                 <div class="col-md-4">
                     <label for="">PostCode</label>
-                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="" maxlength="8" required>
+                    <input type="text" name="PostCode" id="PostCode" placeholder="PostCode" class="form-control" value="{{Auth::user()->postcode}}" maxlength="8" required>
                 </div>
 
                 <div class="col-md-4">
                     <label for="">County</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="" required>
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{Auth::user()->city}}" required>
                 </div>
             </div>
 

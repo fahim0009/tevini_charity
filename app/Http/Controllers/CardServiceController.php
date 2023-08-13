@@ -314,7 +314,7 @@ class CardServiceController extends Controller
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
         // $UserName = $request->input('UserName');
-        $UserName = "TEVINI2".Auth::user()->id;
+        $UserName = "TEVINI3".Auth::user()->id;
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
         $Password = "TEVINI@a123";
@@ -563,24 +563,37 @@ class CardServiceController extends Controller
     public function orderCard()
     {
         $chkorder = CardOrder::where('user_id', Auth::user()->id)->first();
+        if (isset($chkorder)) {
+            $ldate = date('Y-m-d H:i:s');
+            $updated_at = $chkorder->created_at;
+            $updated_at->addDays(12); 
 
-        $ldate = date('Y-m-d H:i:s');
-        $updated_at = $chkorder->created_at;
-        $updated_at->addDays(12); 
+
+            // dd($updated_at);
+
+            if ($ldate < $updated_at) {
+                $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                // dd($CardHolderData);
+                $order = CardOrder::where('user_id', Auth::user()->id)->first();
+                return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
+            } else {
+                $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                // dd($CardHolderData);
+                return view('frontend.user.card.ordercard', compact('CardHolderData'));
+            }
 
 
-        // dd($updated_at);
-
-        if ($ldate < $updated_at) {
-            $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-            // dd($CardHolderData);
-            $order = CardOrder::where('user_id', Auth::user()->id)->first();
-            return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
         } else {
             $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
             // dd($CardHolderData);
             return view('frontend.user.card.ordercard', compact('CardHolderData'));
         }
+        
+
+        
+
+
+        
         
     }
 

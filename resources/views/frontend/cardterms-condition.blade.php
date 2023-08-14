@@ -247,7 +247,8 @@
 
 </div>
 
-
+    <p>9. <span class="fw-bold">Blocking of the Card</span></p>
+    <p>We may block the Card, in which case you will not be able to execute any further Transactions, if we have reasonable concerns about the security of the Card or suspect the Card is being used in a fraudulent or unauthorised manner. We will notify you of any such blocking in advance, or immediately after if this is not possible, and of the reasons for the suspension unless to do so would compromise reasonable security measures or otherwise be unlawful. We will unblock the Card and, where appropriate, issue a new Card, PIN and other security features free of charge as soon as practicable once the reasons for the suspension cease to exist.</p>
 
 
 

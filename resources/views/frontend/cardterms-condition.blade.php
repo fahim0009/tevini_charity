@@ -429,8 +429,8 @@
         institution (as distributor is defined in the EMR 2011).</p>
 
 
-    <p>5. <span class="fw-bold">Your Rights</span></p>
-    <p>You have certain rights concerning your personal information, including the right to access, correct, and delete your data. You can also opt out of receiving marketing communications from us.</p>
+    {{-- <p>5. <span class="fw-bold">Your Rights</span></p>
+    <p>You have certain rights concerning your personal information, including the right to access, correct, and delete your data. You can also opt out of receiving marketing communications from us.</p> --}}
 
 
 

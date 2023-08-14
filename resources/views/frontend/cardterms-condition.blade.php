@@ -222,15 +222,28 @@
         <p>8.10.1 you will be liable for all losses incurred in respect of an unauthorised Transaction if you have acted fraudulently, or have intentionally or with gross negligence failed to: (a) look after and use the Card in accordance with these Terms; or (b) notify us of the problem in accordance with this section 8;</p>
 
         <p>8.10.2 except where you have acted fraudulently, you will not be liable for any losses:</p>
-            <div>
-                
+            <div style="padding-left: 30px">
+                <p>(a) incurred in respect of an unauthorised Transaction which arises after your notification to us of the loss, theft or misappropriation of the Card;</p>
+                <p>(b) arising where you have used the Card in a distance contract, for example, for an online purchase;</p>
+                <p>(c) arising where the loss, theft or misappropriation of the Card was not detectable by you before the unauthorised Transaction took place;</p>
+                <p>(d) where we have failed to provide you with the appropriate means of notification;</p>
+                <p>(e) arising where we are required by law (anticipated to apply from 14 September 2019) to apply Strong Customer Authentication (as defined in section 8.11) but fail to do so; </p>
+                <p>(f) the losses were caused by an act or omission of any employee, agent or branch of ours or any entity which carries out activities on our behalf.</p>
+            
             </div>
     </div>
 
 
-    <p>8.11 If for any reason you  </p> 
-    <p>8.12 If for any reason you  </p> 
-    <p>8.13 If for any reason you  </p> 
+    <p>8.11 “Strong Customer Authentication” means authentication based on the use of two or more elements that are independent, in that the breach of one element does not compromise the reliability of any other element, and designed in such a way as to protect the confidentiality of the authentication data, with the elements falling into two or more of the following categories: (a)something known only by you (“knowledge”), (b)something held only by you (“possession”); (c) something inherent to you (“inherence”). Strong Customer Authentication it is used to make Transactions more secure.</p> 
+
+    <p>8.12 We are required to provide Strong Customer Authentication when:</p> 
+        <div style="padding-left: 30px">
+            <p>8.12.1 you view the available balance on your Account either through the Distributor’s Website or the Distributor’s App and/or through an account information service provider (“AISP”);</p>
+            <p>8.12.2 when you initiate an electronic Transaction, directly [or when you initiate a remote electronic Transaction through a payment initiation service provider (“PISP”)]; or</p>
+            <p>8.12.3 when you carry out any action through a remote channel which may imply a risk of payment fraud or other abuses.</p>
+            
+        </div>
+    <p>8.13 If our investigationsshow that any disputed Transaction was authorised by you or you may have acted fraudulently or with gross negligence, we may reverse any refund made and you will be liable for all losses we suffer in connection with the Transaction including but not limited to the cost of any investigation carried out by us in relation to the Transaction. We will give you reasonable notice of any reverse refund.</p> 
 
 </div>
 

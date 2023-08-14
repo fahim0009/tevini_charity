@@ -46,7 +46,7 @@
 
                 <div class="col-md-12">
                     <p>Note* Status updated to LOST/STOLEN blocks the card permenantly.</p>
-                    <p>Note* Status updated BLOCK/SUSPENDED can be reversed back to normal.</p>
+                    {{-- <p>Note* Status updated BLOCK/SUSPENDED can be reversed back to normal.</p> --}}
                 </div>
             </div>
 

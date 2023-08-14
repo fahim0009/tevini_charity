@@ -251,11 +251,182 @@
     <p>We may block the Card, in which case you will not be able to execute any further Transactions, if we have reasonable concerns about the security of the Card or suspect the Card is being used in a fraudulent or unauthorised manner. We will notify you of any such blocking in advance, or immediately after if this is not possible, and of the reasons for the suspension unless to do so would compromise reasonable security measures or otherwise be unlawful. We will unblock the Card and, where appropriate, issue a new Card, PIN and other security features free of charge as soon as practicable once the reasons for the suspension cease to exist.</p>
 
 
+    <p>10. <span class="fw-bold">Data Protection</span></p>
+
+    <div style="padding-left: 30px">
+        
+        <p>10.1 You agree that we can use your personal data in accordance with these Terms and our privacy policy, which is set out on https://www.railsr.com/privacy-policy. This privacy policy includes details of the personal information that we collect, how it will be used, and who we pass it to. You can tell us if you do not want to receive any marketing materials from us. For the avoidance of doubt, we will share your personal data with the Distributor.</p>
+
+        <p>10.2  To comply with applicable know-your-client-rules and anti-money laundering regulations (such as the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017 and the Proceeds of Crime Act 2002, we and/or the Distributor and/or each of our banking providers and any other business partner (the “Partner”) shall be entitled to carry out all necessary verifications of your identity. The above mentioned Partner and the Distributor may use a recognised agency for this verification purposes (details of the agency used will be provided to you on request). Such verifications will not affect your credit score but may leave a ‘soft footprint’ on your credit history.</p>
+
+    </div>
+
+    <p>11. <span class="fw-bold">Fees and spending limits</span></p>
+
+    <div style="padding-left: 30px">
+        <p>11.1 You are liable for paying all fees arising from your use of the Card and subject to all spending limits placed on the Card by us.</p>
+
+        <p>11.2 The fees and spending limits on the Card are set out:</p>
+
+        <div style="padding-left: 30px">
+            <p>11.2.1 in the table set out in Annex A attached hereto;</p>
+            <p>11.2.2 on the secure area of the Distributor’s Website; and/or</p>
+            <p>11.2.3 on the Distributor’s App. </p>
+        </div>
+
+    </div>
+
+    <p>12. <span class="fw-bold">Complaints</span></p>
+
+    <div style="padding-left: 30px">
+        <p>12.1 If you would like to make a complaint relating to these Terms, please contact us using the contact details in section 2.7 so we can resolve the issue. We will promptly send you a complaint acknowledgement and a copy of our complaints procedure.</p>
+
+        <p>12.2 Please note that you may request a copy of our complaints procedure at any time. Details of our complaints procedure can also be found on our website. You agree to cooperate with us and provide the necessary information for us to investigate and resolve the complaint as quickly as possible.</p>
+
+        <p>12.3 We will endeavour to handle your complaint fairly and quickly, however, if you are not satisfied with the outcome, you may contact the Financial Ombudsman Service at Exchange Tower, London E14 9SR; telephone: 0800 023 4567 or 0300 123 9 123; website: <a href="http://www.financial-ombudsman.org.uk">http://www.financial-ombudsman.org.uk</a>  and e-mail: complaint.info@financialombudsman.org.uk.</p>
+
+        <p>12.4 We are a “trader” and “online trader” for the purposes of the Alternative Dispute Resolution for Consumer Disputes (Competent Authorities and Information) Regulations 2015 (“ADR Law”). The Financial Ombudsman Service is the only “ADR entity” we are legally obliged and committed to use in order to resolve disputes with consumers for the purposes of the ADR Law. We do not agree to resolve disputes with consumers using any other ADR entity or similar entity. </p>
+
+        <p>12.5 The European Commission’s online dispute resolution (“ODR”) platform can be found at <a href="https://ec.europa.eu/consumers/odr/main/?event=main.adr.show">https://ec.europa.eu/consumers/odr/main/?event=main.adr.show</a> . The ODR platform can be used to resolve disputes between us and consumers.</p>
+
+
+    </div>
+
+
+    <p>13. <span class="fw-bold">Third Party Payment Service Providers</span></p>
+
+    <div style="padding-left: 30px">
+        <p>13.1 This section 13 applies when you use the services of an AISP or a PISP</p>
+
+        <p>13.2 We may deny an AISP or PISP access to the Account for reasonably justified and duly evidenced reasons relating to unauthorised or fraudulent access to the Account by that AISP. If we do deny access in this way, we will notify you of the denial and the reason for the denial in advance if possible, or immediately after the denial of access, unless to do so would compromise reasonably justified security reasons or is unlawful. We will allow AISP [or PISP] access to the Account once the reasons for denying access no longer apply.</p>
 
 
 
+    </div>
+
+    <p>14. <span class="fw-bold">Other important terms</span></p>
+
+    <div style="padding-left: 30px">
+        <p>14.1 The Terms and all communications will be in English. You may request a copy of these Terms free of charge at any time during the contractual relationship. If we need to contact you in the event of suspected or actual fraud or security threats, we will first send you an SMS or email prompting you to contact our customer services team using the contact information we have been supplied with.</p>
+        <p>14.2 We may transfer this agreement to someone else. We may transfer our rights and obligations under these Terms to another organisation. We will always tell you in writing if this happens and we will ensure that the transfer will not affect your rights under the contract.</p>
+        <p>14.3 You need our consent to transfer your rightsto someone else. You may only transfer your rights or your obligations under these Terms to another person if we agree to this in writing.</p>
+        <p>14.4 Nobody else has any rights under this contract. This contract is between you and us. No other person shall have any rights to enforce any of its terms.</p>
+
+        <p>14.5 Changes to these Terms / Termination. We reserve the right to amend these Terms for any reason by giving you two-months’ notice by e-mail. You will be deemed to have accepted the changes if you raise no objection prior to the expiry of the period set out in the  notice. If you do not wish to accept the changes, you may terminate these Terms immediately and without charge by proving us with notice at any time prior to the expiry of the notice period. At all other times you may terminate these Terms at any time by giving us one months’ notice in accordance with section 2.7 and we may terminate these Terms by giving you two months’ notice in accordance with section 2.8.</p>
 
 
+        <p>14.6 If a court finds part of this contract illegal, the rest will continue in force. Each of the sections and sub-sections of these Terms operate separately. If any court or relevant authority decides that any of them are unlawful, the remaining paragraphs will remain in full force and effect.</p>
+
+        <p>14.7 Even if we delay in enforcing this contract, we can still enforce it later. If we do not insist immediately that you do anything you are required to do under these Terms, or if we delay in taking steps against you in respect of your breaking this contract, that will not mean that you do not have to do those things and it will not prevent us taking steps against you at a later date. For example, if you do not pay us on time and we do not chase you but we continue to provide the services, we can stillrequire you to make the payment at a later date. </p>
+
+        <p>14.8 Which laws apply to this contract and where you may bring legal proceedings. These Terms are governed by English law and you can bring legal proceedings in respect of these Terms in the English courts. If you live in Scotland you can bring legal proceedings in respect of these Terms in either the Scottish or the English courts. If you live in Northern Ireland you can bring legal proceedings in respect of these Terms in either the Northern Irish or the English courts.</p>
+    </div>
+
+
+
+    <p><u>Annex A – Fees Table </u></p>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th style="width:80%">Card Fees</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Card issue fee</td>
+                <td>No fee</td>
+            </tr>
+            <tr>
+                <td>Replacement card </td>
+                <td>No fee</td>
+            </tr>
+            <tr>
+                <td>Cancellation of card </td>
+                <td>No fee</td>
+            </tr>
+            <tr>
+                <td>Top-up fee </td>
+                <td>N/A, card can only be loaded by the Charity that gave you the Card</td>
+            </tr>
+            <tr>
+                <td> <b>Over 18’s and UK residents only.</b>  <br>
+                    No cash access. <br>
+                    Card can only be used to make donations at Charities accepting Mastercard
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><b>Expiry: </b><br>
+                    Card valid for 3 years</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><b>Transaction Fees</b></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Fee for purchases in the currency of the card </td>
+                <td>No fee</td>
+            </tr>
+            <tr>
+                <td>Fee for purchases not in currency of card (foreign exchange service
+                    charge) </td>
+                <td>Not permitted</td>
+            </tr>
+            <tr>
+                <td><b>Cash Withdrawal Fees</b></td>
+                <td>ATM not permitted</td>
+            </tr>
+            <tr>
+                <td><b>Card limits – Loading  </b></td>
+                <td>N/A </td>
+            </tr>
+            <tr>
+                <td><b>Transaction limits:</b><br>
+                    Your transactions are limited by the value loaded on the card. Above this the following limits apply:</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Minimum single card payment </td>
+                <td>£2.00 </td>
+            </tr>
+            <tr>
+                <td>Maximum single card payment </td>
+                <td>£10,000</td>
+            </tr>
+            <tr>
+                <td>Maximum daily card payment</td>
+                <td>£10,000</td>
+            </tr>
+            <tr>
+                <td>Maximum daily number of transactions </td>
+                <td>20 </td>
+            </tr>
+            <tr>
+                <td>Maximum cumulative spend over 4 days</td>
+                <td>£15,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <p><b>PAYRNET LIMITED TERMS AND CONDITIONS FOR CONSUMERS ELECTRONIC MONEY ACCOUNTS</b></p>
+    <p><b>BACKGROUND</b></p>
+
+
+    <p>This Agreement: This Agreement is with PayrNet Limited, a company incorporated in England and
+        Wales (company number: 09883437) with its registered office at "1 Snowden Street, London,
+        England, EC2A 2DQ" (hereinafter referred to in this Agreement as “Payrnet”, “we” “us”). We are an
+        Electronic Money Institution (“EMI”) and are authorised by the Financial Conduct Authority under
+        the Electronic Money Regulations 2011 (“EMR 2011”) (register reference 900594) for the issuing
+        of electronic money.
+        </p>
+    <p>Our relationship with Tevini: As an EMI, we have appointed QPAY (trading as Quantum Card
+        Services Ltd) as a distributor of our services who manage the program on behalf of Tevini. A
+        distributor means a person who distributes or redeems electronic money on behalf of an electronic
+        money institution but who does not provide payment services on behalf of the electronic money
+        institution (as distributor is defined in the EMR 2011).</p>
 
 
     <p>5. <span class="fw-bold">Your Rights</span></p>

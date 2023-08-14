@@ -47,14 +47,16 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label for="Address1">Address1</label>
-                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{$CardHolderData->Address1}}" readonly>
+                    <label for="Address2">Address1</label>
+                    <input type="text" name="Address2" id="Address2" placeholder="Address1" class="form-control" value="{{$CardHolderData->Address1}}">
                 </div>
 
                 <div class="col-md-6">
-                    <label for="Address2">Address2</label>
-                    <input type="text" name="Address2" id="Address2" placeholder="Address2" class="form-control" value="{{$CardHolderData->Address2}}" readonly>
+                    <label for="Address1">Address2</label>
+                    <input type="text" name="Address3" id="Address3" placeholder="Address2" class="form-control" value="{{$CardHolderData->Address2}}">
                 </div>
+
+                
 
                 {{-- <div class="col-md-12">
                     <label for="Address3">Address3</label>
@@ -63,10 +65,13 @@
             </div>
 
             <div class="row">
+                
                 <div class="col-md-3">
-                    <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{$CardHolderData->HouseNumberOrBuilding}}" readonly>
+                    <label for="Address1">HouseNumberOrBuilding</label>
+                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{$CardHolderData->HouseNumberOrBuilding}}" readonly>
                 </div>
+
+
                 <div class="col-md-3">
                     <label for="">City</label>
                     <input type="text" name="City" id="City" placeholder="City" class="form-control" value="{{$CardHolderData->City}}" readonly>

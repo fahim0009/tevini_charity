@@ -727,12 +727,3 @@ body::-webkit-scrollbar-thumb {
   height: 25px;
   width: 25px;
 }/*# sourceMappingURL=app.css.map */
-
-.pagetitle {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  color: #003057;
-  font-family: "DarkerGrotesque-Bold", sans-serif;
-  border-bottom: 3px solid #E1D8CE;
-}

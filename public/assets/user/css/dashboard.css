@@ -14,6 +14,16 @@
   background: #003057;
 }
 
+body::-webkit-scrollbar {
+  background-color: #fefefe;
+  width: 7px;
+}
+
+body::-webkit-scrollbar-thumb {
+  border-radius: 50px;
+  background: #18988B;
+}
+
 @font-face {
   font-family: "Roboto-Regular";
   src: url(../fonts/Roboto-Regular.ttf);
@@ -113,16 +123,6 @@ body {
   font-family: "DarkerGrotesque-regular", sans-serif;
 }
 
-body::-webkit-scrollbar {
-  background-color: #fefefe;
-  width: 7px;
-}
-
-body::-webkit-scrollbar-thumb {
-  border-radius: 50px;
-  background: #003057;
-}
-
 .fs-12 {
   font-size: 12px;
 }
@@ -159,21 +159,6 @@ body::-webkit-scrollbar-thumb {
   font-size: 37px;
 }
 
-.fw500 {
-  font-weight: 500;
-  font-family: "DarkerGrotesque-Regular", sans-serif;
-}
-
-.fw700 {
-  font-weight: 700;
-  font-family: "DarkerGrotesque-Regular", sans-serif;
-}
-
-.fw800 {
-  font-weight: 800;
-  font-family: "DarkerGrotesque-Regular", sans-serif;
-}
-
 .border-bottom {
   border-bottom: 1px solid #E1D8CE;
 }
@@ -181,8 +166,6 @@ body::-webkit-scrollbar-thumb {
 .txt-dash {
   font-size: 23px;
   font-weight: 700;
-  color: #003057;
-  font-family: "DarkerGrotesque-Regular", sans-serif;
 }
 
 .dashboard-wraper {
@@ -215,76 +198,9 @@ body::-webkit-scrollbar-thumb {
   justify-content: center;
 }
 .dashboard-wraper .sidebar .navigation {
-  margin-top: 35px;
+  margin-top: 55px;
   padding-left: 0;
   padding-right: 32px;
-  max-height: calc(88vh - 225px);
-  transition: all 0.4s ease;
-  overflow: hidden;
-}
-.dashboard-wraper .sidebar .navigation:hover {
-  transition: all 0.4s ease;
-  overflow: auto;
-}
-.dashboard-wraper .sidebar .navigation:hover::-webkit-scrollbar {
-  background-color: #fefefe;
-  width: 1px;
-}
-.dashboard-wraper .sidebar .navigation:hover::-webkit-scrollbar-thumb {
-  border-radius: 50px;
-  background: #18988B;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item {
-  background: transparent;
-  border: 0;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-button {
-  font-size: 19px;
-  color: #003057;
-  padding-left: 45px;
-  background-color: transparent;
-  border: 0;
-  outline: 0;
-  box-shadow: none;
-  padding-left: 3rem;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-button::after {
-  background-image: url("../images/arrow-primary.svg");
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-button.collapsed::after {
-  background-image: url("../images/arrow.svg");
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-body {
-  padding: 0rem 1.25rem;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-body a {
-  font-size: 19px;
-  font-family: "DarkerGrotesque-Light", sans-serif;
-  color: #003057;
-  padding-left: 28px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  position: relative;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-body a::before {
-  content: "";
-  background-image: url("../images/arrow.svg");
-  position: relative;
-  top: -5px;
-  width: 14px;
-  background-size: 100% 100%;
-  height: 14px;
-  left: 0;
-  transform: rotate(-92deg);
-  margin-right: 4px;
-  align-items: center;
-  display: inline-flex;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-body a:hover {
-  color: #18988B;
-}
-.dashboard-wraper .sidebar .navigation .accordion .accordion-item .accordion-body a:hover::before {
-  background-image: url("../images/arrow-primary.svg");
 }
 .dashboard-wraper .sidebar .navigation li {
   list-style: none;
@@ -325,14 +241,6 @@ body::-webkit-scrollbar-thumb {
   overflow-y: scroll;
   max-height: 100vh;
 }
-.dashboard-wraper .rightbar::-webkit-scrollbar {
-  background-color: #fefefe;
-  width: 7px;
-}
-.dashboard-wraper .rightbar::-webkit-scrollbar-thumb {
-  border-radius: 50px;
-  background: #18988B;
-}
 .dashboard-wraper .rightbar .content {
   padding: 0 25px;
   margin-top: 24px;
@@ -346,16 +254,10 @@ body::-webkit-scrollbar-thumb {
   border-bottom: 1px solid #E1D8CE;
 }
 .dashboard-wraper .rightbar .content .user {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: #003057;
   font-family: "DarkerGrotesque-Bold", sans-serif;
-}
-.dashboard-wraper .rightbar .content .btn-transaction {
-  background-color: #E8E1D9;
-  color: #003057;
-  font-size: 16px;
-  font-weight: 700;
 }
 .dashboard-wraper .rightbar .content .titleBar {
   font-size: 16px;
@@ -377,7 +279,6 @@ body::-webkit-scrollbar-thumb {
   font-size: 37px;
   font-weight: 700;
   color: #003057;
-  line-height: 26px;
   font-family: "DarkerGrotesque-Bold", sans-serif;
 }
 .dashboard-wraper .rightbar .topBar {

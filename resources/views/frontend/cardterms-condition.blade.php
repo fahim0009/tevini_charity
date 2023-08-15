@@ -428,6 +428,166 @@
         money institution but who does not provide payment services on behalf of the electronic money
         institution (as distributor is defined in the EMR 2011).</p>
 
+    <p><b>AGREED TERMS </b></p>
+
+
+    <p>1. <span class="fw-bold">OUR TERMS </span></p>
+
+    <div style="padding-left: 30px">
+        
+        <p>1.1 <span class="fw-bold"> Interpreting this Agreement.</span>. In order to easily understand the terms of this Agreement, please first refer to clause 3 which, amongst other things, sets out the meaning of capitalised terms used in this Agreement. </p>
+
+        <p>1.2 <span class="fw-bold">Why should you read it?</span> Please read this Agreement carefully before you agree to it, as its terms apply to the services provided by us. The Agreement explains many of your responsibilities to us and our responsibilities to you, how and when this Agreement can be terminated and the extent of our liability to you. If there are any terms that you do not understand or do not wish to agree to, please contact us. You should only activate your card and agree to the terms of this Agreement if you agree to be bound by this Agreement.</p>
+
+    </div>
+
+
+    <p>2. <span class="fw-bold">INFORMATION ABOUT US AND HOW TO CONTACT US </span></p>
+
+    <div style="padding-left: 30px">
+        <p>2.1 Who we are. We are PayrNet Limited, an EMI as described above. </p>
+        <p>2.2 Communications between us are to be in English. This Agreement is concluded in England and all communications between you and us shall be in English only</p>
+        <p>2.3 How to contact us. All queries should be directed towards Tevini. You can contact Tevini using details set out in 2.7 of the Consumer cardholder terms above. </p>
+        <p>2.4 How we may contact you. If we have to contact you we will do so as follows: in the first instance via Tevini except in urgent cases. If we have not been able to contact you through Tevini or if the matter is urgent, we will contact you by writing to you at the email address(es), you provided when agreeing to this Agreement or by using any other contact details you have provided to us or have used in communications with us or Tevini.</p>
+        <p>2.5 ‘Writing’ includes emails. When we use the words “writing” or “written” in this Agreement, this includes emails. </p>
+
+        <p>7.1.6 Some of the services we provide are subject to the Payment Services Regulations 2017. The Regulations regulate how payments must be transmitted and provide protection for the clients of authorised payment institutions and electronic money institutions.</p>
+        
+    </div>
+
+
+    <p>3. <span class="fw-bold">INTERPRETATION </span></p>
+
+    <div style="padding-left: 30px">
+        <p>3.1 The definitions set out in this clause apply in this Agreement as follows:
+        </p>
+        <div style="padding-left: 30px">
+            <p>“Agreement” means this agreement and the privacy policy. </p>
+            <p>“Consumer“ means an individual who, in entering into this Agreement, is acting for a purpose other than a trade, business or profession.</p>
+            <p>“Electronic Money” means electronically stored monetary value as represented by a claim against us.</p>
+            <p>“Regulations” means the Payment Services Regulations 2017 (SI 2017 No. 752). </p>
+            <p>“Safeguarded Account” means the bank account(s) belonging to us, which are separate to our own office bank accounts, into which we will receive money from you, or on your behalf, in return for the issuance of Electronic Money.</p>
+            <p>“Services” means the e-money account services.</p>
+            <p>“Website” means our website <a href="https://www.tevini.co.uk">https://www.tevini.co.uk</a> </p>
+        </div>
+
+        <p>3.2 Clause headings shall not affect the interpretation of this Agreement and references to clauses are to the clauses of this Agreement.</p>
+        <p>3.3 Any words following the terms including, include, in particular, for example or any similar expression shall be construed as illustrative and shall not limit the sense of the words, description, definition, phrase or term preceding those terms. </p>
+
+        <p>3.4 Unless the context otherwise requires, words in the singular shall include the plural and in the plural shall include the singular.</p>
+        <p>3.5 A reference to a statute or statutory provision is a reference to it as amended, extended or reenacted from time to time and reference to a statute or statutory provision shall include all subordinate legislation made from time to time. </p>
+        
+        
+    </div>
+
+    <p>4. <span class="fw-bold">TERM AND BECOMING A CLIENT</span></p>
+
+    <div style="padding-left: 30px">
+        <p>4.1 How can you agree to this Agreement? You can agree to this Agreement by checking the box online confirming that you agree to the terms and conditions during the card activation process.</p>
+        <p>4.2 When will you become a client of ours? You will be bound by this Agreement once you have agreed to it as set out above and this Agreement shall remain in force until terminated in accordance with its terms</p>        
+    </div>
+
+
+    <p>5. <span class="fw-bold">SERVICES</span></p>
+
+    <div style="padding-left: 30px">
+        <p>5.1 As part of the Services, we shall issue you with Electronic Money upon receipt of money from you or a third party on your behalf, store your Electronic Money and redeem Electronic Money both on your express instruction and in accordance with this Agreement and the agreement of the Tevini.</p>
+
+        <p>5.2 Our Services do not include the provision of advice. We do not offer advice under this Agreement on any matter including (without limit) the merits or otherwise of any currency transactions, on taxation, or markets.</p>        
+    </div>
+
+    <p>6. <span class="fw-bold">ISSUING ELECTRONIC MONEY TO YOU</span></p>
+
+    <div style="padding-left: 30px">
+        <p>6.1 Where we receive money from you or on your behalf, this money will be held by us in the relevant Safeguarded Account in exchange for the issuance by us to you of Electronic Money. Your funds will not be used by us for any other purpose and in the unlikely event that we become insolvent, your e-money is protected in an EEA-authorised credit institution or the Bank of England</p>
+        <p>6.2 When we issue you with Electronic Money, us holding the funds corresponding to the Electronic Money is not the same as a Bank holding your money in that (i) we cannot and will not use the funds to invest or lend to other persons or entities; (ii) the Electronic Money will not accrue interest and (iii) the Electronic Money is not a deposit and is therefore not covered by the Financial Services Compensation Scheme but it is held by us and protected in the relevant Safeguarded Account.</p> 
+
+        <p>6.3 You may hold Electronic Money and we may hold funds corresponding to your Electronic Money indefinitely. However, if we hold Electronic Money for you for more than two years without any activity on the account, we shall use reasonable endeavours to contact you to redeem the Electronic Money and return the corresponding funds to you. If we are unable to contact you, we may redeem the Electronic Money and send the corresponding funds, less any of our costs incurred, to the last known bank account we have on file for you.</p>  
+
+        <p>6.4 We accept no responsibility in the event that you send money to the incorrect account.</p>        
+        <p>6.5 We do not accept cash or cheques. We accept monies via a variety of methods of electronic funds transfer to our bank account, the details of which we shall provide to you upon request.</p>        
+             
+    </div>
+
+    <p>7. <span class="fw-bold">GENERAL LIMITATION OF LIABILITY</span></p>
+
+    <div style="padding-left: 30px">
+        <p>7.1 Where we and another person (such as a payment services provider) are liable to you in respect of the same matter or item, you agree that our liability to you will not be increased by any limitation of liability you have agreed with that other person or because of your inability to recover from that other person beyond what our liability would have been had no such limitation been agreed and/or if that other person had paid his or its share.</p>
+
+        <p>7.2 Where any loss, liability, cost or expense (a “Loss”) is suffered by you for which we would otherwise be jointly and severally or jointly liable with any third party or third parties, the extent to which such Loss shall be recoverable by you from us (as opposed to any third parties) shall be limited so as to be in proportion to the aggregate of our contribution to the overall fault for such Loss, as agreed between all of the relevant parties or, in the absence of agreement, as determined by a court of competent jurisdiction. For the purposes of assessing the contribution to the Loss in question of any third party for the purposes of this clause, no account shall be taken of any limit imposed or agreed on the amount of liability of such third party by any agreement (including any settlement agreement) made before or after such Loss occurred or was otherwise incurred. </p> 
+
+        <p>7.3 Nothing in this Agreement limits or excludes our liability for death or personal injury caused by our negligence or for any damage or liability incurred by you as a result of fraud or fraudulent misrepresentation by us or to the extent that the liability may not be excluded or limited by any applicable law</p>        
+             
+    </div>
+
+
+
+    <p>8. <span class="fw-bold">COMPLAINTS</span></p>
+
+    <div style="padding-left: 30px">
+        <p>8.1 If you feel that we have not met your expectations in the delivery of our Services, in the first instance contact Tevini using the contact email address for complaints set out in 2.7 of the Consumer cardholder terms above. If Tevini does not deal with your complaint adequately, please contact QPAY via email to contactus@qcs-uk.com. If your complaint it still not dealt with adequately please contact us at <a href="http://complaints@payr.net">complaints@payr.net</a> .</p>
+
+        <p>8.2 We have internal procedures for handling complaints fairly and promptly in accordance with the Financial Conduct Authority’s requirements. A copy of our complaints procedure is available upon request </p> 
+
+        <p>8.3 If you are an eligible complainant you may be able to take your complaint to the Financial Ombudsman Service should you not be satisfied with our final response. Eligibility criteria and information on the procedures involved are available from <a href="http://www.financialombudsman.org.uk">http://www.financialombudsman.org.uk</a> . In addition, please note that disputes may be submitted for online resolution to the European Commission Online Dispute Resolution platform.</p>        
+             
+    </div>
+
+
+    <p>9. <span class="fw-bold">ESTABLISHING YOUR IDENTITY</span></p>
+
+    <div style="padding-left: 30px">
+        <p>9.1 To comply with the requirements of the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017, the Proceeds of Crime Act 2002 and EU Wire Transfer Regulations (Regulation (EU) 2015/847) and related regulations, it may be necessary to obtain from you, and retain, evidence of your personal identity in our records from time to time. If satisfactory evidence is not promptly provided to us we cannot accept your instructions</p>
+
+        <p>9.2 We may keep records of the contents and results of any searches that we carry out on you in accordance with all current and applicable laws. You acknowledge that us carrying out an electronic verification check or, if required, a credit reference agency check will leave a soft footprint on your credit history.</p> 
+
+        <p>9.3 We are obliged to report any reasonable suspicions about activities on the electronic accounts to the regulatory authorities. This may affect our relationship with you so far as confidentiality is concerned. If we are required under legislation (including the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017 and the Proceeds of Crime Act 2002) to refrain from communicating with you and/or proceeding with your instructions, we can accept no liability for the consequences of being prevented from doing so.</p>  
+
+        <p>9.4 The personal information we have collected from you will be shared with fraud prevention agencies who will use it to prevent fraud and money-laundering and to verify your identity. If fraud is detected, you could be refused certain services, finance, or employment. Further details of how your information will be used by us and these fraud prevention agencies, and your data protection rights, can be found in our privacy policy.</p>  
+                  
+    </div>
+
+    <p>10. <span class="fw-bold">TERMINATION</span></p>
+    <p>10.1. <span class="fw-bold">When we may terminate or suspend this Agreement.</span></p>
+    <p>10.1.1. We can terminate this Agreement at any time:</p>
+    <p>10.1.1.1. If you breach this Agreement; and/or</p>
+    <p>10.1.1.2. if we suspect that you are using the Services for any illegal purposes.</p>
+    <p>10.1.2. We may suspend or terminate your access to the Services where we have reasonable grounds for concern relating to: (i) the security of your account(s), whether or not you have informed us of a security breach; and/or (ii) the suspected unauthorised or fraudulent use of your account(s).</p>
+    
+    <p>10.1.3. If Tevini notifies us that its agreement with you has terminated we can terminate this agreement with immediate effect.</p>
+    <p>10.1.4. If you terminate your agreement with Tevini, or that agreement is terminated, we can terminate this Agreement with immediate effect. </p>
+    <p>10.1.5. If our agreement with Tevini terminates, we will give you not less than two (2) month’s written notice to terminate this Agreement.</p>
+    <p>10.1.6. We may terminate this Agreement at any time and for any reason by giving you not less than two (2) month’s written notice.</p>
+
+
+
+    <p>10.2. When you may terminate this Agreement. You can terminate this Agreement at any time and for any reason by cancelling your agreement with Tevini. We may contact you to confirm your request.</p>
+    <p>10.3. Effect of Termination. Upon the effective date of termination:</p>
+    <p>10.3.1. you will no longer be able to avail yourself of the Services;</p>
+    <p>10.3.2. we shall redeem any Electronic Money we hold for you and send the equivalent funds to a bank account in your name, unless agreed by both parties, less any monies which are due and owing to us.</p>
+
+    <p>10.4. After termination, you may contact us using the contact details set out in clause 2.3 to redeem any Electronic Money you still hold with us.</p>
+    
+
+
+
+    <p>11. <span class="fw-bold">CONFIDENTIALITY</span></p>
+    <p>11.1. We undertake that we shall not at any time, disclose to any person any of your confidential information, except in the following circumstances:</p>
+    <p>11.1.1. to our employees, officers, representatives or advisers who need to know such information for the purposes of exercising our rights or carrying out our obligations under or in connection with this Agreement. We shall ensure that our employees, officers, representatives or advisers to whom we disclose your confidential information comply with this clause; and </p>
+    <p>11.1.2 as may be required by law, a court of competent jurisdiction or any governmental or regulatory authority.</p>
+
+
+
+
+    <p>12. <span class="fw-bold">HOW WE MAY USE YOUR PERSONAL INFORMATION</span></p>
+    <p>12.1. How we may use your personal information. We will only use your personal information as set out in our privacy policy which can be found <a href="https://railsr.com/payrnet">https://railsr.com/payrnet</a> . (Payrnet is a wholly owned subsidiary of Railsbank Technology Limited).</p>
+
+
+
+
+
+
+
 
     {{-- <p>5. <span class="fw-bold">Your Rights</span></p>
     <p>You have certain rights concerning your personal information, including the right to access, correct, and delete your data. You can also opt out of receiving marketing communications from us.</p> --}}

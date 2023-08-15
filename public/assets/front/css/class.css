@@ -11,7 +11,7 @@
 }
 
 .theme-txt-pink {
-  color: #d45273fd;
+  color: rgba(212, 82, 115, 0.9921568627);
 }
 
 .theme-txt-yellow {
@@ -31,7 +31,7 @@
 }
 
 .bg-pink {
-  background: #d45273fd;
+  background: rgba(212, 82, 115, 0.9921568627);
 }
 
 .bg-yellow {
@@ -43,6 +43,5 @@
 }
 
 .theme-yellow {
-  background: #ffb93b36 !important;
-}
-/*# sourceMappingURL=class.css.map */
+  background: rgba(255, 185, 59, 0.2117647059) !important;
+}/*# sourceMappingURL=class.css.map */

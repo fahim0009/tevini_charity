@@ -577,21 +577,27 @@
     <p>11.1.2 as may be required by law, a court of competent jurisdiction or any governmental or regulatory authority.</p>
 
 
-
-
     <p>12. <span class="fw-bold">HOW WE MAY USE YOUR PERSONAL INFORMATION</span></p>
     <p>12.1. How we may use your personal information. We will only use your personal information as set out in our privacy policy which can be found <a href="https://railsr.com/payrnet">https://railsr.com/payrnet</a> . (Payrnet is a wholly owned subsidiary of Railsbank Technology Limited).</p>
 
 
+    <p>13. <span class="fw-bold">GENERAL</span></p>
 
-
-
-
-
-
-    {{-- <p>5. <span class="fw-bold">Your Rights</span></p>
-    <p>You have certain rights concerning your personal information, including the right to access, correct, and delete your data. You can also opt out of receiving marketing communications from us.</p> --}}
-
+    <div style="padding-left: 30px">
+        <p>13.1 Recording of telephone conversations. We may record telephone conversations with or without use of a warning tone and we may use these recordings as evidence for a particular purpose or in relation to disputes as well as for our ongoing quality control and training programme. We may also maintain a record of all emails sent by or to us. All those recordings and records will be maintained at our absolute discretion and are our property and can be used by us in the case of a dispute. We do not guarantee that we will maintain such recordings or records or be able to make them available to you. You consent to the use and admissibility of any such recording as evidence in any dispute or anticipated dispute between the parties which relates to the dealings between the parties</p>
+        <p>13.2 Ensuring this Agreement is legally enforceable. For a contract to be legally enforceable, there needs to be an offer, acceptance, and consideration. This Agreement constitutes our offer to make the Services available to you and you agreeing to this Agreement constitutes your acceptance of this offer. In order to ensure that this Agreement is legally binding, upon you becoming a client, you promise to pay us the sum of onePound sterling, upon demand from us, as consideration.</p>
+        <p>13.3 Even if we delay in enforcing under this Agreement, we can still enforce it later. If we do not insist immediately that you do anything you are required to do under this Agreement, or if we delay in taking steps against you in respect of your breach of this Agreement, that will not mean that you do not have to do those things and it will not prevent us taking steps against you at a later date.</p>
+        <p>13.4 What if something unexpected happens? We shall have no liability to you under this Agreement or any Contract if we are prevented from or delayed in performing our obligations under this Agreement, or from carrying on our business, by acts, events, omissions or accidents beyond our reasonable control, including, without limitation, strikes, lockouts or other industrial disputes (whether involving us or any other party), failure of a utility service or transport or telecommunications network, act of God, war, riot, civil commotion, malicious damage, compliance with any law or governmental order, rule, regulation or direction, accident, breakdown of plant or machinery, fire, flood, storm or our default of subcontractors, provided that you are notified of such an event and its expected duration.</p>
+        <p>13.5 If a court finds part of this Agreement illegal, the rest will continue in force. Each of the subclauses, clauses and paragraphs of this Agreement operates separately. If any court or relevant authority decides that any of them are unlawful, the remaining subclauses, clauses and paragraphs  will remain in full force and effect. </p>
+        <p>13.6 We are not partners and neither of us may act as the other’s agent. Nothing in this Agreement is intended to or shall operate to create a partnership or joint venture between you and  us, or authorise either party to act as agent for the other, and neither party shall have the authority to act in the name or on behalf of or otherwise to bind the other in any way (including, but not limited to, the making of any representation or warranty, the assumption of any obligation or liability and the exercise of any right or power).</p>
+        <p>13.7 We can make amendments to this Agreement. We shall have the right to make such amendments to this Agreement, via Tevini, as are necessary to comply with any laws and regulations that are applicable to the performance of our obligations under this Agreement where such laws and regulations are implemented and/or amended after the date of this Agreement. Such amendments may be made at any time upon as much notice as possible to you and shall take effect following such notice, if any. If you object to the proposed amendments, you have the right to terminate this Agreement without charge before the date proposed by us for the entry into force of the changes. You will be deemed to have accepted the proposed amendments unless you notify us and terminate this Agreement before the date proposed by us for the entry into force of the changes. If we receive no objection from you, such amendments shall take effect from the date specified by us but may not affect any rights or obligations that have already arisen and will not be retrospective.</p>
+        <p>13.8 What happens if you are jointly a client of ours with another person? Where you comprise two or more people, each person will be jointly and severally liable to us in respect of all obligations contained in this Agreement.</p>
+        <p>13.9 Can you obtain a copy of this Agreement or additional information? You may request and we shall provide a copy of this Agreement and any information set out in Schedule 4 of the Regulations (if relevant) at any time prior to termination of this Agreement. </p>
+        <p>13.10 We may transfer this agreement to someone else. We may transfer our rights and obligations under this Agreement to another organisation without your consent. We will always tell you in writing if this happens and we will ensure that the transfer will not affect your rights under this Agreement. </p>
+        <p>13.11 You need our consent to transfer your rights to someone else (except that you can always transfer our guarantee). You may only transfer your rights or your obligations under this Agreement to another person if we agree to this in writing.</p>
+        <p>13.12 Nobody else has any rights under this Agreement. This contract is between you and us. No other person shall have any rights to enforce any of its terms. </p>
+        <p>13.13 Which laws apply to this Agreement and where you may bring legal proceedings. These terms are governed by English law and you can bring legal proceedings in respect of the products in the English courts. If you live in Scotland you can bring legal proceedings in respect of the Services in either the Scottish or the English courts. If you live in Northern Ireland you can bring legal proceedings in respect of the Services in either the Northern Irish or the English courts</p>
+    </div>
 
 
 

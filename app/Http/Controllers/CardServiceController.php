@@ -590,11 +590,6 @@ class CardServiceController extends Controller
         }
         
 
-        
-
-
-        
-        
     }
 
     public function orderCardStore(Request $request)
@@ -743,12 +738,19 @@ class CardServiceController extends Controller
                 'CardDisplayName' => $CardDisplayName,
                 
             ]);
-
+            $responseData = $productResponse->json();
             // Check the response status code to see if the update was successful
             if ($productResponse->ok()) {
                 return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
             } else {
-                return redirect()->back()->with('error', 'The card is already in use.');
+                if ($responseData['ErrorCodes'][0] == "30000026") {
+                    return redirect()->back()->with('error', 'Invalid Card Currency.');
+                } elseif ($responseData['ErrorCodes'][0] == "10000002") {
+                    return redirect()->back()->with('error', 'The card is already in use.');
+                }else {
+                    return redirect()->back()->with('error', 'Expectation Failed.');
+                }
+                
             }
         } else {
             return redirect()->back()->with('error', 'Unable to active card.');

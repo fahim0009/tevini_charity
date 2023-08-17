@@ -9,6 +9,7 @@
                     <div class="d-flex flex-column my-3">
                         <a href="{{ route('privacy') }}" class="">Privacy Policy </a>
                         <a href="{{ route('terms') }}" class="">Terms of Use</a>
+                        <a href="{{ route('cardterms') }}" class="">Card Terms & Conditions</a>
                     </div>
                 </div>
                 <div class="footer-link mt-4 pb-3">

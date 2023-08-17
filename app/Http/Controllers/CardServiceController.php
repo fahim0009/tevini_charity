@@ -314,7 +314,7 @@ class CardServiceController extends Controller
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
         // $UserName = $request->input('UserName');
-        $UserName = "TEVINI3".Auth::user()->id;
+        $UserName = "TEVINI4".Auth::user()->id;
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
         $Password = "TEVINI@a123";
@@ -426,7 +426,6 @@ class CardServiceController extends Controller
     public function updateCardHolder()
     {
         $data = CardHolder::where('user_id', Auth::user()->id)->first();
-        // dd($data);
         return view('frontend.user.card.updatecardholder', compact('data'));
     }
 
@@ -569,23 +568,19 @@ class CardServiceController extends Controller
             $updated_at->addDays(12); 
 
 
-            // dd($updated_at);
 
             if ($ldate < $updated_at) {
                 $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-                // dd($CardHolderData);
                 $order = CardOrder::where('user_id', Auth::user()->id)->first();
                 return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
             } else {
                 $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-                // dd($CardHolderData);
                 return view('frontend.user.card.ordercard', compact('CardHolderData'));
             }
 
 
         } else {
             $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-            // dd($CardHolderData);
             return view('frontend.user.card.ordercard', compact('CardHolderData'));
         }
         
@@ -619,7 +614,6 @@ class CardServiceController extends Controller
         $Dob = $request->Dob;
         $Language = "en-GB";
         
-        // dd($CardholderId);
         
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -651,7 +645,7 @@ class CardServiceController extends Controller
             // API request succeeded
             $responseData = $response->json();
             // Process the response data as needed
-
+            
             $order = new CardOrder;
             $order->user_id = Auth::user()->id;
             $order->FirstName = $FirstName;
@@ -695,7 +689,6 @@ class CardServiceController extends Controller
     {
         
         $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
-        // dd($CardHolderId);
         return view('frontend.user.card.cardactivation', compact('CardHolderId'));
     }
 
@@ -769,9 +762,7 @@ class CardServiceController extends Controller
                 
         $alldata = $response->json();
         $pin = $alldata['PIN'];
-        // dd($pin);
         $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
-        // dd($CardHolderId);
         return view('frontend.user.card.setpin', compact('CardHolderId','pin'));
     }
     
@@ -801,7 +792,6 @@ class CardServiceController extends Controller
                 'CardProxyId' => $CardProxyId,
                 
             ]);
-            // dd($productResponse);
 
             // Check the response status code to see if the update was successful
             if ($productResponse->ok()) {
@@ -855,7 +845,6 @@ class CardServiceController extends Controller
         $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
 
         $DateTime = now();
-            // dd($chkuser);
         $data = new Authorisation();
         if (isset($chkuser)) {
             $data->user_id = $chkuser->user_id;

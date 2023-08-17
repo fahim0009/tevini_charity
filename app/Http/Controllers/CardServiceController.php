@@ -336,7 +336,7 @@ class CardServiceController extends Controller
         $City = $request->input('City');
         $Language = "en-GB";
         $OnfidoId = 1;
-        $Country = "UK";
+        $Country = "GBP";
         $Gender = 1;
         
         // Send a POST request to the API with the updated finance fee value
@@ -363,7 +363,7 @@ class CardServiceController extends Controller
                 'PostCode' => $PostCode,
                 'City' => $City,
                 'State' => $State,
-                'Country' => "UK",
+                'Country' => "GBP",
                 'OnfidoId' => "1",
                 'Gender' => "1"
 
@@ -465,7 +465,7 @@ class CardServiceController extends Controller
             $City = $request->input('City');
             $Language = "en-GB";
             $OnfidoId = 1;
-            $Country = "UK";
+            $Country = "GBP";
             $Gender = 1;
 
             // Send a POST request to the API with the updated finance fee value
@@ -498,7 +498,7 @@ class CardServiceController extends Controller
                     'PostCode' => $PostCode,
                     'City' => $City,
                     'State' => $State,
-                    'Country' => "UK",
+                    'Country' => "GBP",
                     'OnfidoId' => "1",
                     'Gender' => "1"
 
@@ -720,15 +720,6 @@ class CardServiceController extends Controller
             $data = $response->json();
             $CardProxyId = $data['CardProxyId'];
 
-            
-
-            // store card proxi id for showing transaction
-            $updateproduct = CardProduct::where('user_id',Auth::user()->id)->first();
-            $upPid = CardProduct::find($updateproduct->id);
-            $upPid->CardProxyId =  $data['CardProxyId'];
-            $upPid->cardNumber =  $cardNumber;
-            $upPid->save();
-
             // Send a POST request to the API with the updated finance fee value
             $productResponse = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/card/activate', [
@@ -741,6 +732,14 @@ class CardServiceController extends Controller
             $responseData = $productResponse->json();
             // Check the response status code to see if the update was successful
             if ($productResponse->ok()) {
+
+                // store card proxi id for showing transaction
+                $updateproduct = CardProduct::where('user_id',Auth::user()->id)->first();
+                $upPid = CardProduct::find($updateproduct->id);
+                $upPid->CardProxyId =  $data['CardProxyId'];
+                $upPid->cardNumber =  $cardNumber;
+                $upPid->save();
+
                 return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
             } else {
                 if ($responseData['ErrorCodes'][0] == "30000026") {

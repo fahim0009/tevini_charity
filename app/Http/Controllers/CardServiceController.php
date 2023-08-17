@@ -314,7 +314,7 @@ class CardServiceController extends Controller
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
         // $UserName = $request->input('UserName');
-        $UserName = "TEVINI4".Auth::user()->id;
+        $UserName = "TEVINI".time().Auth::user()->id;
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
         $Password = "TEVINI@a123";
@@ -478,10 +478,8 @@ class CardServiceController extends Controller
                     'IsActive' => true,
                     'FirstName' => $FirstName,
                     'LastName' => $LastName,
-                    // 'UserName' => $UserName,
                     'SecondSurname' => $SecondSurname,
                     'Email' => $Email,
-                    // 'Password' => $Password,
                     'Mobile' => $Mobile,
                     'LandlineTelephone' => $LandlineTelephone,
                     'Language' => "en-GB",

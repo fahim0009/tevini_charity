@@ -6,6 +6,7 @@ use App\Models\Authorisation;
 use App\Models\CardHolder;
 use App\Models\CardOrder;
 use App\Models\CardProduct;
+use App\Models\CardStatus;
 use App\Models\Expired;
 use App\Models\PurchaseHistory;
 use App\Models\User;
@@ -815,7 +816,6 @@ class CardServiceController extends Controller
 
         $Status = $request->Status;
 
-
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/card/status', [
@@ -826,6 +826,13 @@ class CardServiceController extends Controller
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
             // apply for product start
+
+            $changests = new CardStatus();
+            $changests->user_id = Auth::user()->id;
+            $changests->CardProxyId = $CardProxyrId;
+            $changests->Status = $Status;
+            $changests->save();
+
 
             // Check the response status code to see if the update was successful
             return redirect()->route('userCardService')->with('successmsg', 'Card Status Change Successfully!');

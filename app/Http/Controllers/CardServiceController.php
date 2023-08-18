@@ -812,7 +812,8 @@ class CardServiceController extends Controller
 
     public function cardStatusChangeStore(Request $request)
     {
-        $CardProxyrId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
+        // $CardProxyrId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
+        $CardProxyrId = "1965238686755387";
 
         $Status = $request->Status;
 
@@ -822,7 +823,8 @@ class CardServiceController extends Controller
                 'CardProxyId' => $CardProxyrId,
                 'Status' => $Status,
             ]);
-    
+            $data = $response->json();
+            dd($data);
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
             // apply for product start

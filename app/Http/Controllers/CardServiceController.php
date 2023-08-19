@@ -8,6 +8,7 @@ use App\Models\CardOrder;
 use App\Models\CardProduct;
 use App\Models\CardStatus;
 use App\Models\Expired;
+use App\Models\MobileVerify;
 use App\Models\PurchaseHistory;
 use App\Models\User;
 use App\Models\Settlement;
@@ -16,6 +17,9 @@ use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Exception;
+use Twilio\Rest\Client;
+use Carbon\Carbon;
 
 class CardServiceController extends Controller
 {
@@ -768,7 +772,8 @@ class CardServiceController extends Controller
         $alldata = $response->json();
         $pin = $alldata['PIN'];
         $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
-        return view('frontend.user.card.setpin', compact('CardHolderId','pin'));
+        // return view('frontend.user.card.setpin', compact('CardHolderId','pin'));
+        return view('frontend.user.card.verify', compact('CardHolderId','pin'));
     }
     
     public function cardSetPinstore(Request $request)
@@ -846,6 +851,58 @@ class CardServiceController extends Controller
         } else {
             return redirect()->back()->with('error', 'Unable to change status.');
         }
+    }
+
+    public function mobileVerify(Request $request)
+    {
+
+
+        $cardholder = CardHolder::where('user_id', Auth::user()->id)->first();
+        
+        $length = 6;
+        $codeverify = substr(str_shuffle('123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),1,$length);
+        $message = 'Use: "'.$codeverify.'" for verification';
+        // dd($message);
+
+        $receiver_number = $cardholder->Mobile;
+        
+        try {
+            $account_sid = getenv("TWILIO_SID");
+            $auth_token = getenv("TWILIO_TOKEN");
+            $twilio_number = getenv("TWILIO_FROM");
+            $client = new Client($account_sid, $auth_token);
+            // dd($client);
+            $client->messages->create($receiver_number,[
+                'from' => $twilio_number, 
+                'body' => $message
+            ]);
+
+            $newDateTime = Carbon::now()->addMinute(5);
+             
+            $mobileverify = new MobileVerify();
+            $mobileverify->user_id = Auth::user()->id;
+            $mobileverify->otp = $codeverify;
+            $mobileverify->expire_at = $newDateTime;
+            $mobileverify->save();
+
+            return view('frontend.user.card.verify');
+
+
+        }catch (Exception $e) {
+
+            return redirect()->route('userCardService')->with('pinerrmsg', 'There is an error to get pin..!');
+            
+        }
+
+
+
+
+        
+    }
+
+    public function sendSMS(Request $request)
+    {
+        
     }
 
 

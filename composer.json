@@ -18,7 +18,8 @@
         "laravel/ui": "^3.2",
         "laravelcollective/html": "^6.2",
         "milon/barcode": "^9.0",
-        "stripe/stripe-php": "^10.12"
+        "stripe/stripe-php": "^10.12",
+        "twilio/sdk": "^7.7"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.7",

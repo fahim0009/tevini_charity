@@ -80,13 +80,20 @@
             </div>
         </section>
         @endif
+        @if(session()->has('pinerrmsg'))
+        <section class="px-4">
+            <div class="row my-3">
+                <div class="alert alert-warning" id="successMessage">{{ session()->get('pinerrmsg') }}</div>
+            </div>
+        </section>
+        @endif
         @if ($data)
             {{-- <a href="{{route('applyforcard')}}" class="d-block btn-theme bg-secondary mt-5">Apply for card</a> --}}
 
             @if ($CardHolderId)
             <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder </a>
             @if (isset($chkCardAvailable->cardNumber))
-                <a href="{{route('cardSetPin')}}" class="d-block btn-theme bg-primary">Get Pin</a>
+                <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
                 <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
             @else
                 

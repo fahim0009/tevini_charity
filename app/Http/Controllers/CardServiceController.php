@@ -315,7 +315,7 @@ class CardServiceController extends Controller
         $FirstName = $request->input('FirstName');
         $LastName = $request->input('LastName');
         // $UserName = $request->input('UserName');
-        $UserName = "TEVINI".time().Auth::user()->id;
+        $UserName = "T".time().Auth::user()->id;
         $SecondSurname = $request->input('SecondSurname');
         $Email = $request->input('Email');
         $Password = "TEVINI@a123";
@@ -732,6 +732,12 @@ class CardServiceController extends Controller
                 $upPid->cardNumber =  $cardNumber;
                 $upPid->save();
 
+                $changests = new CardStatus();
+                $changests->user_id = Auth::user()->id;
+                $changests->CardProxyId = $data['CardProxyId'];
+                $changests->Status = "NORMAL";
+                $changests->save();
+
                 return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
             } else {
                 if ($responseData['ErrorCodes'][0] == "30000026") {
@@ -812,7 +818,7 @@ class CardServiceController extends Controller
 
     public function cardStatusChangeStore(Request $request)
     {
-        $CardProxyrId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
+        $CardProxyId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
 
         $Status = $request->Status;
 
@@ -820,7 +826,7 @@ class CardServiceController extends Controller
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/card/status', [
-                'CardProxyId' => $CardProxyrId,
+                'CardProxyId' => $CardProxyId,
                 'Status' => $Status,
             ]);
     
@@ -830,7 +836,7 @@ class CardServiceController extends Controller
 
             $changests = new CardStatus();
             $changests->user_id = Auth::user()->id;
-            $changests->CardProxyId = $CardProxyrId;
+            $changests->CardProxyId = $CardProxyId;
             $changests->Status = $Status;
             $changests->save();
 

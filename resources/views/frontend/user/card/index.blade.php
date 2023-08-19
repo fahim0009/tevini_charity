@@ -5,6 +5,7 @@
 @php
     $chkCardAvailable = \App\Models\CardProduct::where('user_id', Auth::user()->id)->first();
     $chkcardorder = \App\Models\CardOrder::where('user_id', Auth::user()->id)->first();
+    $cardsts = \App\Models\CardStatus::where('user_id', Auth::user()->id)->first();
 @endphp
 
 <div class="row ">
@@ -52,6 +53,13 @@
             <div class="col">
                 <p><strong>Available Balance : </strong>{{$data['CreditProfile']['AvailableBalance']}}</p>
             </div>
+
+            @if (isset($cardsts))
+                
+                <div class="col">
+                    <p><strong>Card Status : </strong>{{$cardsts->Status}}</p>
+                </div>
+            @endif
         @else
             <form  action="{{ route('cardprofile.store') }}" method="POST" enctype="multipart/form-data" >
                 @csrf

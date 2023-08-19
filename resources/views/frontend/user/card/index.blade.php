@@ -5,7 +5,7 @@
 @php
     $chkCardAvailable = \App\Models\CardProduct::where('user_id', Auth::user()->id)->first();
     $chkcardorder = \App\Models\CardOrder::where('user_id', Auth::user()->id)->first();
-    $cardsts = \App\Models\CardStatus::where('user_id', Auth::user()->id)->first();
+    $cardsts = \App\Models\CardStatus::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
 @endphp
 
 <div class="row ">

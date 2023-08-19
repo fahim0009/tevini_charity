@@ -58,6 +58,7 @@
                 
                 <div class="col">
                     <p><strong>Card Status : </strong>{{$cardsts->Status}}</p>
+                    <p>Last Updated : {{$cardsts->created_at}}</p>
                 </div>
             @endif
         @else

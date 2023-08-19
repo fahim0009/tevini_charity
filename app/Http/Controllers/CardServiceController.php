@@ -812,10 +812,10 @@ class CardServiceController extends Controller
 
     public function cardStatusChangeStore(Request $request)
     {
-        // $CardProxyrId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
-        $CardProxyrId = "1965238686755387";
+        $CardProxyrId = CardProduct::where('user_id', Auth::user()->id)->first()->CardProxyId;
 
         $Status = $request->Status;
+
 
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -823,8 +823,7 @@ class CardServiceController extends Controller
                 'CardProxyId' => $CardProxyrId,
                 'Status' => $Status,
             ]);
-            $data = $response->json();
-            dd($data);
+    
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
             // apply for product start

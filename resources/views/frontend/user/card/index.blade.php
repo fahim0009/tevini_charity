@@ -59,6 +59,9 @@
                 <div class="col">
                     <p><strong>Card Status : </strong>{{$cardsts->Status}}</p>
                     <p>Last Updated : {{$cardsts->created_at}}</p>
+                    @if ($cardsts->Status == "SUSPEND" || $cardsts->Status == "LOST")
+                    <p style="color: red">Your card has been permanently blocked, you may order a replacement card, simply click on order card button and follow the instruction</p>
+                    @endif
                 </div>
             @endif
         @else
@@ -92,23 +95,29 @@
 
             @if ($CardHolderId)
             <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder </a>
-            @if (isset($chkCardAvailable->cardNumber))
-                <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
-                <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
-            @else
-                
 
-                @if (isset($chkcardorder))
-                    <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
-                    <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+                @if (isset($chkCardAvailable->cardNumber))
+                        @if ($cardsts->Status == "SUSPEND" || $cardsts->Status == "LOST")
+
+                            <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
+                        @elseif ($cardsts->Status == "REORDERED")
+                        
+                            <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
+                            <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+
+                        @else
+                            <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
+                            <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
+                        @endif
+
                 @else
-                
-                <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
-
+                    @if (isset($chkcardorder))
+                        <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
+                        <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+                    @else
+                        <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
+                    @endif
                 @endif
-
-
-            @endif
             
             @else
             <a href="{{route('applyforcardholder')}}" class="d-block btn-theme bg-primary">Apply for cardholder</a>

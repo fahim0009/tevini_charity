@@ -561,22 +561,31 @@ class CardServiceController extends Controller
 
     public function orderCard()
     {
+        $cardsts = CardStatus::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
         $chkorder = CardOrder::where('user_id', Auth::user()->id)->first();
+
         if (isset($chkorder)) {
             $ldate = date('Y-m-d H:i:s');
             $updated_at = $chkorder->created_at;
             $updated_at->addDays(12); 
 
 
-
-            if ($ldate < $updated_at) {
-                $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-                $order = CardOrder::where('user_id', Auth::user()->id)->first();
-                return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
+            if ($cardsts == "NORMAL" || empty($cardsts)) {
+                if ($ldate < $updated_at) {
+                    $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                    $order = CardOrder::where('user_id', Auth::user()->id)->first();
+                    return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
+                } else {
+                    $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                    return view('frontend.user.card.ordercard', compact('CardHolderData'));
+                }
             } else {
                 $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
                 return view('frontend.user.card.ordercard', compact('CardHolderData'));
             }
+            
+
+            
 
 
         } else {
@@ -589,6 +598,20 @@ class CardServiceController extends Controller
 
     public function orderCardStore(Request $request)
     {
+
+        $chkPrevOrder = CardOrder::where('user_id', Auth::user()->id)->first();
+        // dd($chkPrevOrder);
+
+        if ($chkPrevOrder) {
+            
+            $chngSts = new CardStatus;
+            $chngSts->Status = "REORDERED";
+            $chngSts->user_id = Auth::user()->id;
+            $chngSts->save();
+            
+        }
+
+
 
         $ProductCodeId = CardProduct::where('user_id', Auth::user()->id)->first()->ProductCode;
 
@@ -637,7 +660,6 @@ class CardServiceController extends Controller
                 'Address3' => $Address3,
                 'City' => $City,
                 'State' => $State,
-
             ]);
 
         // Check the API response

@@ -484,7 +484,7 @@ class CardServiceController extends Controller
                     'FirstName' => $FirstName,
                     'LastName' => $LastName,
                     'SecondSurname' => $SecondSurname,
-                    'Email' => $Email,
+                    'EmailAddress' => $Email,
                     'Mobile' => $Mobile,
                     'LandlineTelephone' => $LandlineTelephone,
                     'Language' => "en-GB",
@@ -511,16 +511,13 @@ class CardServiceController extends Controller
                 // API request succeeded
                 $responseData = $response->json();
                 // Process the response data as needed
-                
 
                 // return $responseData;
                 $cardholder = CardHolder::find($request->cardid);
                 $cardholder->FirstName = $FirstName;
                 $cardholder->LastName = $LastName;
-                // $cardholder->UserName = $UserName;
                 $cardholder->SecondSurname = $SecondSurname;
                 $cardholder->Email = $Email;
-                // $cardholder->Password = $Password;
                 $cardholder->Mobile = $Mobile;
                 $cardholder->LandlineTelephone = $LandlineTelephone;
                 $cardholder->DateOfBirth = $DateOfBirth;
@@ -864,35 +861,53 @@ class CardServiceController extends Controller
         $message = 'Use: "'.$codeverify.'" for verification';
         // dd($message);
 
-        $receiver_number = $cardholder->Mobile;
+        // $receiver_number = $cardholder->Mobile;
+        $receiver_number = "+447533498883";
         
-        try {
-            $account_sid = getenv("TWILIO_SID");
-            $auth_token = getenv("TWILIO_TOKEN");
-            $twilio_number = getenv("TWILIO_FROM");
-            $client = new Client($account_sid, $auth_token);
-            // dd($client);
-            $client->messages->create($receiver_number,[
-                'from' => $twilio_number, 
-                'body' => $message
-            ]);
 
-            $newDateTime = Carbon::now()->addMinute(5);
-             
-            $mobileverify = new MobileVerify();
-            $mobileverify->user_id = Auth::user()->id;
-            $mobileverify->otp = $codeverify;
-            $mobileverify->expire_at = $newDateTime;
-            $mobileverify->save();
+        $account_sid = getenv("TWILIO_SID");
+        $auth_token = getenv("TWILIO_TOKEN");
+        $twilio_number = getenv("TWILIO_FROM");
 
-            return view('frontend.user.card.verify');
+        
+        // $account_sid = "AC48aa2ddedd57230b7ff2c67f00046272";
+        // $auth_token = "0a1361081680f3ff353bd65346de1c23";
+        // $twilio_number = "+442030311199";
 
 
-        }catch (Exception $e) {
+        // $client = new Client($account_sid, $auth_token);
+        // $client->messages->create($receiver_number,[
+        //     'from' => $twilio_number, 
+        //     'body' => $message
+        // ]);
 
-            return redirect()->route('userCardService')->with('pinerrmsg', 'There is an error to get pin..!');
+        $sid = getenv("TWILIO_SID");
+        $token = getenv("TWILIO_TOKEN");
+        $twilio = new Client($sid, $token);
+
+        $service = $twilio->verify->v2->services->create($receiver_number,[
+            'from' => $twilio_number, 
+            'body' => $message
+        ]);
+
+        print($service->sid);
+
+        $newDateTime = Carbon::now()->addMinute(5);
             
-        }
+        $mobileverify = new MobileVerify();
+        $mobileverify->user_id = Auth::user()->id;
+        $mobileverify->otp = $codeverify;
+        $mobileverify->expire_at = $newDateTime;
+        $mobileverify->save();
+
+        return view('frontend.user.card.verify');
+
+
+
+        // try {
+        // }catch (Exception $e) {
+        //     return redirect()->route('userCardService')->with('pinerrmsg', 'There is an error to get pin..!');
+        // }
 
 
 

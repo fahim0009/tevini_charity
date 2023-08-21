@@ -46,6 +46,7 @@
                                 <tr>
                                     <th>AuthDate</th>
                                     <th>Amount</th>
+                                    <th>Item Type</th>
                                     <th>Currency</th>
                                 </tr>
                             </thead>
@@ -54,6 +55,7 @@
                                     <tr>
                                         <td>{{ $tran['AuthDate'] }}</td>
                                         <td>{{ $tran['Amount'] }}</td>
+                                        <td>{{ $tran['ItemType'] }}</td>
                                         <td>{{ $tran['Currency'] }}</td>
                                     </tr>
                                 @empty

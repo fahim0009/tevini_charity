@@ -884,50 +884,6 @@ class CardServiceController extends Controller
     {
 
 
-        $cardholder = CardHolder::where('user_id', Auth::user()->id)->first();
-        
-        $length = 6;
-        $codeverify = substr(str_shuffle('123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'),1,$length);
-        $message = 'Use: "'.$codeverify.'" for verification';
-        // dd($message);
-
-        // $receiver_number = $cardholder->Mobile;
-        $receiver_number = "+447533498883";
-        
-
-        $account_sid = getenv("TWILIO_SID");
-        $auth_token = getenv("TWILIO_TOKEN");
-        $twilio_number = getenv("TWILIO_FROM");
-
-        
-        // $account_sid = "AC48aa2ddedd57230b7ff2c67f00046272";
-        // $auth_token = "0a1361081680f3ff353bd65346de1c23";
-        // $twilio_number = "+442030311199";
-
-
-        // $client = new Client($account_sid, $auth_token);
-        // $client->messages->create($receiver_number,[
-        //     'from' => $twilio_number, 
-        //     'body' => $message
-        // ]);
-
-        $sid = getenv("TWILIO_SID");
-        $token = getenv("TWILIO_TOKEN");
-        $twilio = new Client($sid, $token);
-
-        $service = $twilio->verify->v2->services->create($receiver_number,[
-            'from' => $twilio_number, 
-            'body' => $message
-        ]);
-
-
-        $newDateTime = Carbon::now()->addMinute(5);
-            
-        $mobileverify = new MobileVerify();
-        $mobileverify->user_id = Auth::user()->id;
-        $mobileverify->otp = $codeverify;
-        $mobileverify->expire_at = $newDateTime;
-        $mobileverify->save();
 
         return view('frontend.user.card.verify');
 

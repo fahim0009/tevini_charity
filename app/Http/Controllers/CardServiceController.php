@@ -562,24 +562,27 @@ class CardServiceController extends Controller
     public function orderCard()
     {
         $cardsts = CardStatus::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
-        $chkorder = CardOrder::where('user_id', Auth::user()->id)->first();
+        $chkorder = CardOrder::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
 
         if (isset($chkorder)) {
             $ldate = date('Y-m-d H:i:s');
             $updated_at = $chkorder->created_at;
             $updated_at->addDays(12); 
+            // dd($cardsts);
 
 
-            if ($cardsts == "NORMAL" || empty($cardsts)) {
+            if ($cardsts->Status == "NORMAL" || $cardsts->Status == "REORDERED" || $cardsts->Status == "ORDERED") {
+                // dd('test2');
                 if ($ldate < $updated_at) {
                     $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-                    $order = CardOrder::where('user_id', Auth::user()->id)->first();
+                    $order = CardOrder::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
                     return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
                 } else {
                     $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
                     return view('frontend.user.card.ordercard', compact('CardHolderData'));
                 }
             } else {
+                // dd('test');
                 $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
                 return view('frontend.user.card.ordercard', compact('CardHolderData'));
             }
@@ -609,6 +612,11 @@ class CardServiceController extends Controller
             $chngSts->user_id = Auth::user()->id;
             $chngSts->save();
             
+        }else {
+            $chngSts = new CardStatus;
+            $chngSts->Status = "ORDERED";
+            $chngSts->user_id = Auth::user()->id;
+            $chngSts->save();
         }
 
 
@@ -945,7 +953,6 @@ class CardServiceController extends Controller
     // return url
     public function authorisation(Request $request)
     {
-        if ($request->txnType == "100") {
             
             $cardNumber = substr($request->PAN, -4);
             $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
@@ -1005,37 +1012,41 @@ class CardServiceController extends Controller
             $data->txnSubCode = $request->txnSubCode;
             if ($data->save()) {
 
-                if (isset($chkuser)) {
-                    $user = User::find($chkuser->user_id);
-                    $user->balance = $user->balance - $request->billAmt;
-                    $user->save();
-
-
-                    $utran = new Usertransaction;
-                    $utran->t_id =  time() . "-" . $chkuser->user_id;
-                    $utran->user_id = $chkuser->user_id;
-                    $utran->t_type = "Out";
-                    $utran->source = "Tevini Card";
-                    $utran->amount = $request->billAmt;
-                    $utran->crdAcptLoc = $request->crdAcptLoc;
-                    $utran->crdAcptID = $request->crdAcptID;
-                    $utran->title = "Tevini Card Payment";
-                    $utran->pending = 1;
-                    $utran->status = 1;
-                    $utran->save();
-
-                    $chtran = new Transaction();
-                    $chtran->t_id =  $utran->t_id;
-                    $chtran->user_id = $chkuser->user_id;
-                    $chtran->t_type = "Out";
-                    $chtran->name = "Tevini Card";
-                    $chtran->amount = $request->billAmt;
-                    $chtran->crdAcptLoc = $request->crdAcptLoc;
-                    $chtran->crdAcptID = $request->crdAcptID;
-                    $chtran->note = "Tevini Card Payment";
-                    $chtran->status = 1;
-                    $chtran->save();
+                if ($request->actionCode == "000") {
+                    if (isset($chkuser)) {
+                        $user = User::find($chkuser->user_id);
+                        $user->balance = $user->balance - $request->billAmt;
+                        $user->save();
+    
+    
+                        $utran = new Usertransaction;
+                        $utran->t_id =  time() . "-" . $chkuser->user_id;
+                        $utran->user_id = $chkuser->user_id;
+                        $utran->t_type = "Out";
+                        $utran->source = "Tevini Card";
+                        $utran->amount = $request->billAmt;
+                        $utran->crdAcptLoc = $request->crdAcptLoc;
+                        $utran->crdAcptID = $request->crdAcptID;
+                        $utran->title = "Tevini Card Payment";
+                        $utran->pending = 1;
+                        $utran->status = 1;
+                        $utran->save();
+    
+                        $chtran = new Transaction();
+                        $chtran->t_id =  $utran->t_id;
+                        $chtran->user_id = $chkuser->user_id;
+                        $chtran->t_type = "Out";
+                        $chtran->name = "Tevini Card";
+                        $chtran->amount = $request->billAmt;
+                        $chtran->crdAcptLoc = $request->crdAcptLoc;
+                        $chtran->crdAcptID = $request->crdAcptID;
+                        $chtran->note = "Tevini Card Payment";
+                        $chtran->status = 1;
+                        $chtran->save();
+                    }
                 }
+
+                
 
                 // Send a POST request to the API with the updated finance fee value
                 $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -1048,13 +1059,6 @@ class CardServiceController extends Controller
             } else {
                 return redirect()->back()->with('error', 'Authorization error.');
             }
-            
-        } else {
-            return redirect()->back()->with('error', 'Authorization error.');
-        }
-        
-
-        
     }
 
     public function settlement(Request $request)
@@ -1189,9 +1193,9 @@ class CardServiceController extends Controller
         if ($data->save()) {
 
             if (isset($chkuser)) {
-                $user = User::find($chkuser->user_id);
-                $user->balance = $user->balance + $request->billAmt;
-                $user->save();
+                // $user = User::find($chkuser->user_id);
+                // $user->balance = $user->balance + $request->billAmt;
+                // $user->save();
             }
 
             // Send a POST request to the API with the updated finance fee value

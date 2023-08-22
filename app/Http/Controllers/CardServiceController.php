@@ -1066,9 +1066,9 @@ class CardServiceController extends Controller
         if ($data->save()) {
 
             if (isset($chkuser)) {
-                $user = User::find($chkuser->user_id);
-                $user->balance = $user->balance - $request->billAmt;
-                $user->save();
+                // $user = User::find($chkuser->user_id);
+                // $user->balance = $user->balance - $request->billAmt;
+                // $user->save();
             }
 
 

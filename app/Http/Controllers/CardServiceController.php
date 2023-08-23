@@ -801,11 +801,8 @@ class CardServiceController extends Controller
             $pin = $alldata['PIN'];
             $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
             
-            $Mobile = CardHolder::where('user_id', Auth::user()->id)->first()->Mobile;
 
-            $MobileLstDgt = substr($Mobile, -4);
-
-            return view('frontend.user.card.setpin', compact('CardHolderId','pin','MobileLstDgt'));
+            return view('frontend.user.card.setpin', compact('CardHolderId','pin'));
         } else {
             
             return redirect()->route('userCardService');

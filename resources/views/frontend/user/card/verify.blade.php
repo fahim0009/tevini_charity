@@ -8,6 +8,7 @@
             <div class="pagetitle pb-2">
                 Mobile Verification
             </div>
+            <p style="color: red">Input the code we sent to +44XXXXXX{{$MobileLstDgt}} to Get and Change your PIN. </p>
         </div>
     </div>
 

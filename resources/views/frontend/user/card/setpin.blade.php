@@ -9,6 +9,8 @@
                  Card Get Pin
             </div>
             <h3>Your card pin: <span id="pinID">{{$pin}}</span><a id="showPIN"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a></h3> 
+
+            <p style="color: red">Input the code we sent to +44XXXXXX{{$MobileLstDgt}} to Get and Change your PIN. </p>
         </div>
     </div>
 
@@ -73,5 +75,19 @@
             // $("#showPIN").hide(300);
         });
 </script>
+<script type="text/javascript">
 
+    $(document).ready(function() {
+  
+        window.history.pushState(null, "", window.location.href);        
+  
+        window.onpopstate = function() {
+  
+            window.history.pushState(null, "", window.location.href);
+  
+        };
+  
+    });
+  
+  </script>
 @endsection

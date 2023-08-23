@@ -78,5 +78,6 @@ class Kernel extends HttpKernel
         'is_user' => \App\Http\Middleware\IsUser::class,
         'is_agent' => \App\Http\Middleware\IsAgent::class,
         'charity' => \App\Http\Middleware\Charity::class,
+        'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class,
     ];
 }

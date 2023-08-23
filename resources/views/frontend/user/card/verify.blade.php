@@ -45,8 +45,10 @@
 
             <div>
                 <div class="col-lg-12">
-                    <div class="form-group ">
+                    <div class="row">
+
                         <button class="d-block btn-theme bg-secondary">Submit</button>
+                        <a href="{{route('mobileVerify')}}" class="btn-theme bg-success">Re-send</a>
                     </div>
                 </div>
             </div>

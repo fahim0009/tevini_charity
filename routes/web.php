@@ -16,6 +16,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\CharityAuthController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\OTPController;
 use App\Http\Controllers\CardServiceController;
 use App\Http\Controllers\ProductFeeController;
 use App\Http\Controllers\Admin\AdminController;
@@ -142,7 +143,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
     // cardSetPin
     Route::get('/card-setpin', [CardServiceController::class, 'cardSetPin'])->name('cardSetPin');
-    Route::get('/mobile-verification', [CardServiceController::class, 'mobileVerify'])->name('mobileVerify');
+    Route::get('/mobile-verification', [OTPController::class, 'mobileVerify'])->name('mobileVerify');
     Route::post('/card-setpin', [CardServiceController::class, 'cardSetPinstore'])->name('cardSetPinstore');
     Route::post('/send-sms', [CardServiceController::class, 'sendSMS'])->name('send.sms');
     

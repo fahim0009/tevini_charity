@@ -97,18 +97,26 @@
             <a href="{{route('cardholderUpdate')}}" class="d-block btn-theme bg-primary">Update cardholder </a>
 
                 @if (isset($chkCardAvailable->cardNumber))
-                        @if ($cardsts->Status == "SUSPEND" || $cardsts->Status == "LOST")
+                        @if (isset($cardsts->Status))
+                            
+                            @if ($cardsts->Status == "SUSPEND" || $cardsts->Status == "LOST")
 
-                            <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Re-Order Card</a>
+                                <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Re-Order Card</a>
 
-                        @elseif ($cardsts->Status == "REORDERED")
-                        
-                            <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
-                            <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+                            @elseif ($cardsts->Status == "REORDERED")
+                            
+                                <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
+                                <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
 
+                            @else
+                                <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
+                                <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
+                            @endif
                         @else
+                            
                             <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
                             <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
+
                         @endif
 
                 @else

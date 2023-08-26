@@ -99,7 +99,7 @@
                 @if (isset($chkCardAvailable->cardNumber))
                         @if (isset($cardsts->Status))
                             
-                            @if ($cardsts->Status == "SUSPEND" || $cardsts->Status == "LOST")
+                            @if ($cardsts->Status == "STOLEN" || $cardsts->Status == "LOST")
 
                                 <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Re-Order Card</a>
 

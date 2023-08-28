@@ -59,7 +59,7 @@
                 <div class="col">
                     <p><strong>Card Status : </strong>{{$cardsts->Status}}</p>
                     <p>Last Updated : {{$cardsts->created_at}}</p>
-                    @if ($cardsts->Status == "SUSPEND" || $cardsts->Status == "LOST")
+                    @if ($cardsts->Status == "STOLEN" || $cardsts->Status == "LOST")
                     <p style="color: red">Your card has been permanently blocked, you may order a replacement card, simply click on order card button and follow the instruction</p>
                     @endif
                 </div>

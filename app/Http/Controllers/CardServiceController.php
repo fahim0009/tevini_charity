@@ -570,9 +570,7 @@ class CardServiceController extends Controller
             $updated_at->addDays(12); 
             // dd($cardsts);
 
-
-            if ($cardsts->Status == "NORMAL" || $cardsts->Status == "REORDERED" || $cardsts->Status == "ORDERED") {
-                // dd('test2');
+            if (empty($cardsts)) {
                 if ($ldate < $updated_at) {
                     $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
                     $order = CardOrder::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
@@ -582,15 +580,23 @@ class CardServiceController extends Controller
                     return view('frontend.user.card.ordercard', compact('CardHolderData'));
                 }
             } else {
-                // dd('test');
-                $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
-                return view('frontend.user.card.ordercard', compact('CardHolderData'));
+                if ($cardsts->Status == "NORMAL" || $cardsts->Status == "REORDERED" || $cardsts->Status == "ORDERED") {
+                    // dd('test2');
+                    if ($ldate < $updated_at) {
+                        $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                        $order = CardOrder::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
+                        return view('frontend.user.card.ordercardcomplete', compact('CardHolderData','order'));
+                    } else {
+                        $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                        return view('frontend.user.card.ordercard', compact('CardHolderData'));
+                    }
+                } else {
+                    // dd('test');
+                    $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
+                    return view('frontend.user.card.ordercard', compact('CardHolderData'));
+                }
             }
             
-
-            
-
-
         } else {
             $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
             return view('frontend.user.card.ordercard', compact('CardHolderData'));

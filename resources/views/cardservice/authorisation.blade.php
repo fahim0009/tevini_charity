@@ -44,6 +44,7 @@
                         <table class="table table-donor shadow-sm bg-white" id="example">
                             <thead>
                                 <tr>
+                                    <th>localDate</th>
                                     <th>Utid</th>
                                     <th>messageID</th>
                                     <th>instCode</th>
@@ -56,6 +57,7 @@
                             <tbody>
                                 @forelse ($data as $data)
                                     <tr>
+                                        <td>{{ $data->localDate }}</td>
                                         <td>{{ $data->Utid }}</td>
                                         <td>{{ $data->messageID }}</td>
                                         <td>{{ $data->instCode }}</td>

@@ -341,7 +341,7 @@ class CardServiceController extends Controller
         $City = $request->input('City');
         $Language = "en-GB";
         $OnfidoId = 1;
-        $Country = "GBP";
+        $Country = "GBR";
         $Gender = 1;
         
         // Send a POST request to the API with the updated finance fee value
@@ -368,7 +368,7 @@ class CardServiceController extends Controller
                 'PostCode' => $PostCode,
                 'City' => $City,
                 'State' => $State,
-                'Country' => "GBP",
+                'Country' => "GBR",
                 'OnfidoId' => "1",
                 'Gender' => "1"
 
@@ -469,7 +469,7 @@ class CardServiceController extends Controller
             $City = $request->input('City');
             $Language = "en-GB";
             $OnfidoId = 1;
-            $Country = "GBP";
+            $Country = "GBR";
             $Gender = 1;
 
             // Send a POST request to the API with the updated finance fee value
@@ -500,7 +500,7 @@ class CardServiceController extends Controller
                     'PostCode' => $PostCode,
                     'City' => $City,
                     'State' => $State,
-                    'Country' => "GBP",
+                    'Country' => "GBR",
                     'OnfidoId' => "1",
                     'Gender' => "1"
 

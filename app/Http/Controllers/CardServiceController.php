@@ -53,8 +53,10 @@ class CardServiceController extends Controller
     public function cardprofilestore(Request $request)
     {
         $ProfileName = Auth::user()->name;
-        $CreditLimit =  Auth::user()->balance;
+        $CreditLimit =  100000;
         $IsPrePaid = true;
+
+        $avlblBalnce = Auth::user()->balance - $CreditLimit;
 
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -71,8 +73,28 @@ class CardServiceController extends Controller
     
         // Check the response status code to see if the update was successful
         if ($response->ok()) {
-            // apply for product start
 
+            // update available balance 
+            // card balance update
+            if (isset($userupdate->CreditProfileId)) {
+                $CreditProfileId = $userupdate->CreditProfileId;
+                $CreditProfileName = $userupdate->name;
+                $AvailableBalance = $avlblBalnce;
+                $comment = "Balance store";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+
+
+
+
+            // apply for product start
             $spendProfile = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/product/spendProfile/1', [
                     'Accept' => 'application/json',
@@ -609,116 +631,153 @@ class CardServiceController extends Controller
 
     public function orderCardStore(Request $request)
     {
+        if (Auth::user()->balance > 5) {
+            $chkPrevOrder = CardOrder::where('user_id', Auth::user()->id)->first();
+            if ($chkPrevOrder) {
+                $chngSts = new CardStatus;
+                $chngSts->Status = "REORDERED";
+                $chngSts->user_id = Auth::user()->id;
+                $chngSts->save();
+                
+            }else {
+                $chngSts = new CardStatus;
+                $chngSts->Status = "ORDERED";
+                $chngSts->user_id = Auth::user()->id;
+                $chngSts->save();
+            }
 
-        $chkPrevOrder = CardOrder::where('user_id', Auth::user()->id)->first();
-        // dd($chkPrevOrder);
-
-        if ($chkPrevOrder) {
+            $ProductCodeId = CardProduct::where('user_id', Auth::user()->id)->first()->ProductCode;
+            $ProductCode = $ProductCodeId;
+            $FirstName = $request->input('FirstName');
+            $LastName = $request->input('LastName');
+            $SecondSurname = $request->input('SecondSurname');
+            $NameOnCard = $request->input('NameOnCard');
+            $CardDesign = "TEVINI";
+            $AdditionalCardEmbossData = $request->input('AdditionalCardEmbossData');
+            $Title = $request->input('Title');
+            $Address1 = $request->input('Address1');
+            $Address2 = $request->input('Address2');
+            $Address3 = $request->input('Address3');
+            $PostCode = $request->input('PostCode');
+            $CardholderId = $request->input('CardholderId');
+            $State = $request->input('State');
+            $City = $request->input('City');
+            $ISOCountryCode = "GBR";
+            $RecipientEmail = $request->input('RecipientEmail');
+            $HouseNumberOrBuilding = $request->input('HouseNumberOrBuilding');
+            $Dob = $request->Dob;
+            $Language = "en-GB";
             
-            $chngSts = new CardStatus;
-            $chngSts->Status = "REORDERED";
-            $chngSts->user_id = Auth::user()->id;
-            $chngSts->save();
-            
-        }else {
-            $chngSts = new CardStatus;
-            $chngSts->Status = "ORDERED";
-            $chngSts->user_id = Auth::user()->id;
-            $chngSts->save();
-        }
+            // Send a POST request to the API with the updated finance fee value
+            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/order', [
+                    'FirstName' => $FirstName,
+                    'LastName' => $LastName,
+                    'ProductCode' => $ProductCode,
+                    'SecondSurname' => $SecondSurname,
+                    'RecipientEmail' => $RecipientEmail,
+                    'NameOnCard' => $NameOnCard,
+                    'CardDesign' => $CardDesign,
+                    'AdditionalCardEmbossData' => $AdditionalCardEmbossData,
+                    'Language' => "en-GB",
+                    'ISOCountryCode' => $ISOCountryCode,
+                    'CardholderId' => $CardholderId,
+                    'Dob' => $Dob,
+                    'Title' => $Title,
+                    'Address1' => $Address1,
+                    'Address2' => $Address2,
+                    'PostCode' => $PostCode,
+                    'Address3' => $Address3,
+                    'City' => $City,
+                    'State' => $State,
+                ]);
 
+            // Check the API response
+            if ($response->successful()) {
+                // API request succeeded
+                $responseData = $response->json();
+                // Process the response data as needed
+                
+                $order = new CardOrder;
+                $order->user_id = Auth::user()->id;
+                $order->FirstName = $FirstName;
+                $order->LastName = $LastName;
+                $order->ProductCode = $ProductCode;
+                $order->SecondSurname = $SecondSurname;
+                $order->RecipientEmail = $RecipientEmail;
+                $order->NameOnCard = $NameOnCard;
+                $order->CardDesign = $CardDesign;
+                $order->AdditionalCardEmbossData = $AdditionalCardEmbossData;
+                $order->Language = "en-GB";
+                $order->ISOCountryCode = $ISOCountryCode;
+                $order->CardholderId = $CardholderId;
+                $order->Dob = $Dob;
+                $order->Title = $Title;
+                $order->Address1 = $Address1;
+                $order->Address2 = $Address2;
+                $order->Address3 = $Address3;
+                $order->PostCode = $PostCode;
+                $order->City = $City;
+                $order->State = $State;
+                $order->HouseNumberOrBuilding = $HouseNumberOrBuilding;
+                $order->save();
 
+                
+                $user = User::find(Auth::user()->id);
+                $user->balance = $user->balance - 5;
+                $user->save();
 
-        $ProductCodeId = CardProduct::where('user_id', Auth::user()->id)->first()->ProductCode;
+                $utran = new Usertransaction;
+                $utran->t_id =  time() . "-" . Auth::user()->id;
+                $utran->user_id = Auth::user()->id;
+                $utran->t_type = "Out";
+                $utran->source = "Tevini Card";
+                $utran->amount = "5.00";
+                $utran->title = "Tevini Card Order";
+                $utran->pending = 1;
+                $utran->status = 1;
+                $utran->save();
 
+                $chtran = new Transaction();
+                $chtran->t_id =  $utran->t_id;
+                $chtran->user_id = Auth::user()->id;
+                $chtran->t_type = "Out";
+                $chtran->name = "Tevini Card";
+                $chtran->amount = "5.00";
+                $chtran->note = "Tevini Card Order";
+                $chtran->status = 1;
+                $chtran->save();
 
-        $ProductCode = $ProductCodeId;
-        $FirstName = $request->input('FirstName');
-        $LastName = $request->input('LastName');
-        $SecondSurname = $request->input('SecondSurname');
-        $NameOnCard = $request->input('NameOnCard');
-        $CardDesign = "TEVINI";
-        $AdditionalCardEmbossData = $request->input('AdditionalCardEmbossData');
-        $Title = $request->input('Title');
-        $Address1 = $request->input('Address1');
-        $Address2 = $request->input('Address2');
-        $Address3 = $request->input('Address3');
-        $PostCode = $request->input('PostCode');
-        $CardholderId = $request->input('CardholderId');
-        $State = $request->input('State');
-        $City = $request->input('City');
-        $ISOCountryCode = "GBR";
-        $RecipientEmail = $request->input('RecipientEmail');
-        $HouseNumberOrBuilding = $request->input('HouseNumberOrBuilding');
-        $Dob = $request->Dob;
-        $Language = "en-GB";
+                // card balance update
+            if (isset(Auth::user()->CreditProfileId)) {
+                $CreditProfileId = Auth::user()->CreditProfileId;
+                $CreditProfileName = Auth::user()->name;
+                $AvailableBalance = 0 - 5;
+                $comment = "Card Order balance";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
         
-        
-        // Send a POST request to the API with the updated finance fee value
-        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/order', [
-                'FirstName' => $FirstName,
-                'LastName' => $LastName,
-                'ProductCode' => $ProductCode,
-                'SecondSurname' => $SecondSurname,
-                'RecipientEmail' => $RecipientEmail,
-                'NameOnCard' => $NameOnCard,
-                'CardDesign' => $CardDesign,
-                'AdditionalCardEmbossData' => $AdditionalCardEmbossData,
-                'Language' => "en-GB",
-                'ISOCountryCode' => $ISOCountryCode,
-                'CardholderId' => $CardholderId,
-                'Dob' => $Dob,
-                'Title' => $Title,
-                'Address1' => $Address1,
-                'Address2' => $Address2,
-                'PostCode' => $PostCode,
-                'Address3' => $Address3,
-                'City' => $City,
-                'State' => $State,
-            ]);
 
-        // Check the API response
-        if ($response->successful()) {
-            // API request succeeded
-            $responseData = $response->json();
-            // Process the response data as needed
-            
-            $order = new CardOrder;
-            $order->user_id = Auth::user()->id;
-            $order->FirstName = $FirstName;
-            $order->LastName = $LastName;
-            $order->ProductCode = $ProductCode;
-            $order->SecondSurname = $SecondSurname;
-            $order->RecipientEmail = $RecipientEmail;
-            $order->NameOnCard = $NameOnCard;
-            $order->CardDesign = $CardDesign;
-            $order->AdditionalCardEmbossData = $AdditionalCardEmbossData;
-            $order->Language = "en-GB";
-            $order->ISOCountryCode = $ISOCountryCode;
-            $order->CardholderId = $CardholderId;
-            $order->Dob = $Dob;
-            $order->Title = $Title;
-            $order->Address1 = $Address1;
-            $order->Address2 = $Address2;
-            $order->Address3 = $Address3;
-            $order->PostCode = $PostCode;
-            $order->City = $City;
-            $order->State = $State;
-            $order->HouseNumberOrBuilding = $HouseNumberOrBuilding;
-            $order->save();
-    
+                // Redirect back with success message and API response data
+                return redirect()->route('userCardService')->with('success', 'Card order request successful')->with('responseData', $responseData);
 
-            // Redirect back with success message and API response data
-            return redirect()->route('userCardService')->with('success', 'Card order request successful')->with('responseData', $responseData);
+            } else {
+                // API request failed
+                $errorResponse = $response->json();
+                // Handle the error response
+                // Redirect back with error message and error response data
+                return redirect()->back()->with('error', 'Card order request failed')->with('errorResponse', $errorResponse);
+            }
 
         } else {
-            // API request failed
-            $errorResponse = $response->json();
-            // Handle the error response
-            return $errorResponse;
-            // Redirect back with error message and error response data
-            return redirect()->back()->with('error', 'Card order request failed')->with('errorResponse', $errorResponse);
+            return redirect()->back()->with('error', 'Minimum £5 required to place a card order');
         }
     }
    

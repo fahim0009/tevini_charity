@@ -150,6 +150,7 @@
                                     <th>Account</th>
                                     <th>Balance</th>
                                     <th>Overdrawn</th>
+                                    <th>Pending Amount</th>
                                     <th>Action </th>
                                 </tr>
                             </thead>
@@ -158,6 +159,13 @@
                                 $n = 1;
                                 ?>
                                 @forelse ($users as $user)
+                                @php
+                                    $pending_transactions = \App\Models\Usertransaction::where([
+                                                                ['t_type','=', 'Out'],
+                                                                ['user_id','=', $user->id],
+                                                                ['pending','=', '0']
+                                                            ])->sum('amount');
+                                @endphp 
                                     <tr>
                                         <td><input class="form-check-input getDid" type="checkbox" name="donorIds[]" value="{{ $user->id }}"></td>
                                         {{-- <td>{{$n++}}</td> --}}
@@ -181,6 +189,7 @@
                                                 <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>
                                             </a>
                                         </td>
+                                        <td>£{{number_format($pending_transactions, 2)}}</td>
                                         <td>
                                         <a class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" href="{{ route('topup',[$user->id,0]) }}" target="blank">
                                          <small>Top Up</small> </a>

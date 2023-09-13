@@ -983,7 +983,7 @@ class CardServiceController extends Controller
     // return url
     public function authorisation(Request $request)
     {
-            
+        if ($request->msgType == 100) {
             $cardNumber = substr($request->PAN, -4);
             $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
 
@@ -1089,6 +1089,12 @@ class CardServiceController extends Controller
             } else {
                 return redirect()->back()->with('error', 'Authorization error.');
             }
+        } else {
+            return redirect()->back()->with('error', 'Authorization error.');
+        }
+        
+            
+            
     }
 
     public function settlement(Request $request)

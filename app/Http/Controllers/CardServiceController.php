@@ -749,20 +749,20 @@ class CardServiceController extends Controller
                 $chtran->save();
 
                 // card balance update
-            if (isset(Auth::user()->CreditProfileId)) {
-                $CreditProfileId = Auth::user()->CreditProfileId;
-                $CreditProfileName = Auth::user()->name;
-                $AvailableBalance = 0 - 5;
-                $comment = "Card Order balance";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
+                if (isset(Auth::user()->CreditProfileId)) {
+                    $CreditProfileId = Auth::user()->CreditProfileId;
+                    $CreditProfileName = Auth::user()->name;
+                    $AvailableBalance = 0 - 5;
+                    $comment = "Card Order balance";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+                // card balance update end
         
 
                 // Redirect back with success message and API response data
@@ -838,13 +838,15 @@ class CardServiceController extends Controller
 
                 return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
             } else {
-                if ($responseData['ErrorCodes'][0] == "30000026") {
-                    return redirect()->back()->with('error', 'Invalid Card Currency.');
-                } elseif ($responseData['ErrorCodes'][0] == "10000002") {
-                    return redirect()->back()->with('error', 'The card is already in use.');
-                }else {
-                    return redirect()->back()->with('error', 'Expectation Failed.');
-                }
+                // if ($responseData['ErrorCodes'][0] == "30000026") {
+                //     return redirect()->back()->with('error', 'Invalid Card Currency.');
+                // } elseif ($responseData['ErrorCodes'][0] == "10000002") {
+                //     return redirect()->back()->with('error', 'The card is already in use.');
+                // }else {
+                //     return redirect()->back()->with('error', 'Expectation Failed.');
+                // }
+
+                return redirect()->back()->with('error', $responseData['Message']);
                 
             }
         } else {

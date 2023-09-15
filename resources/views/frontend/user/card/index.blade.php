@@ -106,7 +106,7 @@
                             @elseif ($cardsts->Status == "REORDERED")
                             
                                 <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
-                                <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+                                <a href="{{route('activationVerify')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
 
                             @else
                                 <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
@@ -116,14 +116,14 @@
                         @else
                             
                             <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
-                            <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
+                            <a href="{{route('statusVerify')}}" class="d-block btn-theme bg-primary">Change Status</a>
 
                         @endif
 
                 @else
                     @if (isset($chkcardorder))
                         <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card Details</a>
-                        <a href="{{route('cardActivation')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
+                        <a href="{{route('activationVerify')}}" class="d-block btn-theme bg-secondary">Card Activation</a>
                     @else
                         <a href="{{route('orderCard')}}" class="d-block btn-theme bg-secondary">Order Card</a>
                     @endif

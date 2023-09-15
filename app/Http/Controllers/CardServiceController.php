@@ -782,11 +782,18 @@ class CardServiceController extends Controller
     }
    
 
-    public function cardActivation(Request $request)
+    public function cardActivation(Request $request, $id)
     {
-        
-        $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
-        return view('frontend.user.card.cardactivation', compact('CardHolderId'));
+
+        $chkid = decrypt($id);
+        if ($chkid == Auth::user()->id) {
+            $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
+            return view('frontend.user.card.cardactivation', compact('CardHolderId'));
+        } else {
+            
+            return redirect()->route('userCardService');
+        }
+
     }
 
 

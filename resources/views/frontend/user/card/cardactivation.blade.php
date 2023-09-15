@@ -3,6 +3,12 @@
 
 <!-- content area -->
 <div class="content">
+    <div class="row mb-3">
+        <div class="col-lg-6">
+            <a href="{{ route('userCardService')}}" class="btn-theme bg-primary">Back</a>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">
@@ -68,8 +74,15 @@
 @section('script')
 
 
-<script>
+<script type="text/javascript">
 
-</script>
+    $(document).ready(function() {
+        window.history.pushState(null, "", window.location.href);        
+        window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href);
+        };
+    });
+  
+  </script>
 
 @endsection

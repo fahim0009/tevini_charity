@@ -3,6 +3,13 @@
 
 <!-- content area -->
 <div class="content">
+    
+    <div class="row mb-5">
+        <div class="col-lg-6">
+            <a href="{{ route('userCardService')}}" class="btn-theme bg-primary">Back</a>
+        </div>
+    </div>
+    
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">

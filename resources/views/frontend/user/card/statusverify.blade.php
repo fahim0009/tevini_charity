@@ -3,18 +3,18 @@
 
 <!-- content area -->
 <div class="content">
-    
     <div class="row mb-5">
         <div class="col-lg-6">
             <a href="{{ route('userCardService')}}" class="btn-theme bg-primary">Back</a>
         </div>
     </div>
-    
+
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">
-                 Change card status
+                Mobile Verification
             </div>
+            <p style="color: red">Input the code we sent to +44XXXXXX{{$MobileLstDgt}} to Get and Change your PIN. </p>
         </div>
     </div>
 
@@ -35,33 +35,23 @@
     @endif
 
 
-    <form  action="{{route('cardStatusChangeStore')}}" method="POST" enctype="multipart/form-data">
+    <form  action="{{ route('status.sms') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="row mt-3">
             <div class="row">
                 <div class="col-md-6">
-                    <label for="Status">Status</label>
-                    <select name="Status" id="Status" class="form-control">
-                        <option value="">Select</option>
-                        <option value="NORMAL">I have found my card - unfreeze</option>
-                        <option value="STOLEN">STOLEN (Permanent block)</option>
-                        <option value="LOST">LOST (Permanent block)</option>
-                        <option value="SUSPEND">Apply a temporary freeze my card.</option>
-                        
-                    </select>
-                </div>
-
-                <div class="col-md-12">
-                    <p>Note* Status updated to LOST/STOLEN blocks the card permenantly.</p>
-                    {{-- <p>Note* Status updated BLOCK/SUSPENDED can be reversed back to normal.</p> --}}
+                    <label for="Code">Code</label>
+                    <input type="text" id="Code" name="Code" class="form-control">
                 </div>
             </div>
 
 
             <div>
                 <div class="col-lg-12">
-                    <div class="form-group ">
+                    <div class="row">
+
                         <button class="d-block btn-theme bg-secondary">Submit</button>
+                        <a href="{{route('statusVerify')}}" class="btn-theme bg-success">Re-send</a>
                     </div>
                 </div>
             </div>

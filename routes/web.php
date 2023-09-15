@@ -147,8 +147,11 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('/mobile-verification', [OTPController::class, 'mobileVerify'])->name('mobileVerify')->middleware('prevent-back-history');
     Route::post('/mobile-verification', [OTPController::class, 'OtpConfirmation'])->name('send.sms')->middleware('prevent-back-history');
     
+    Route::get('/status-verification', [OTPController::class, 'statusVerify'])->name('statusVerify')->middleware('prevent-back-history');
+    Route::post('/status-verification', [OTPController::class, 'statusOtpConfirmation'])->name('status.sms')->middleware('prevent-back-history');
+
     // cardSetPin
-    Route::get('/card-status-change', [CardServiceController::class, 'cardStatusChange'])->name('cardStatusChange');
+    Route::get('/card-status-change/{id}', [CardServiceController::class, 'cardStatusChange'])->name('cardStatusChange')->middleware('prevent-back-history');
     Route::post('/card-status-change', [CardServiceController::class, 'cardStatusChangeStore'])->name('cardStatusChangeStore');
     
     // // card service

@@ -865,12 +865,9 @@ class CardServiceController extends Controller
                     ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/card/pin/cardProxyId/'.$proxyid.'', [
                         'Accept' => 'application/json',
                     ]);
-                    
             $alldata = $response->json();
             $pin = $alldata['PIN'];
             $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
-            
-
             return view('frontend.user.card.setpin', compact('CardHolderId','pin'));
         } else {
             
@@ -917,10 +914,17 @@ class CardServiceController extends Controller
         }
     }
 
-    public function cardStatusChange(Request $request)
+    public function cardStatusChange(Request $request, $id)
     {
-        
-        return view('frontend.user.card.status');
+
+        $chkid = decrypt($id);
+        if ($chkid == Auth::user()->id) {
+            return view('frontend.user.card.status');
+        } else {
+            return redirect()->route('userCardService');
+        }
+
+
     }
 
 

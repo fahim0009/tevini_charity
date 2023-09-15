@@ -921,17 +921,10 @@ class CardServiceController extends Controller
         }
     }
 
-    public function cardStatusChange(Request $request, $id)
+    public function cardStatusChange(Request $request)
     {
-
-        $chkid = decrypt($id);
-        if ($chkid == Auth::user()->id) {
-            return view('frontend.user.card.status');
-        } else {
-            return redirect()->route('userCardService');
-        }
-
-
+        return view('frontend.user.card.status');
+        
     }
 
 

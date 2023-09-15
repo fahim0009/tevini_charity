@@ -110,13 +110,12 @@
 
                             @else
                                 <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
-                                <a href="{{route('statusVerify')}}" class="d-block btn-theme bg-primary">Change Status</a>
-                                {{-- <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a> --}}
+                                <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
                             @endif
                         @else
                             
                             <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
-                            <a href="{{route('statusVerify')}}" class="d-block btn-theme bg-primary">Change Status</a>
+                            <a href="{{route('cardStatusChange')}}" class="d-block btn-theme bg-primary">Change Status</a>
 
                         @endif
 

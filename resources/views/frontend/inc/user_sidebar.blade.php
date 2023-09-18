@@ -11,7 +11,7 @@
         <li><a href="{{ route('user.orderbook') }}" class="{{ (request()->is('user/order-voucher-book*')) ? 'nav-link current' : '' }}">Order voucher books</a></li>
         <li><a href="{{ route('user.orderhistory') }}" class="{{ (request()->is('user/order-history*')) ? 'nav-link current' : '' }}">Order Record</a></li>
         <li><a href="{{ route('user.process_voucher') }}" class="{{ (request()->is('user/process-voucher*')) ? 'nav-link current' : '' }}">Waiting vouchers</a></li>
-        <li><a href="{{ route('user.card')}}" class="{{ (request()->is('user/tevini-card*')) ? 'nav-link current' : '' }}">Tevini card</a></li>
+        <li><a href="{{ route('userCardService')}}" class="{{ (request()->is('user/card-service*')) ? 'nav-link current' : '' }}">Tevini card</a></li>
         <li><a href="{{ route('user.transaction') }}" class="{{ (request()->is('user/transaction-view*')) ? 'nav-link current' : '' }}">View transactions</a></li>
         <li><a href="{{ route('user.donationcal') }}" class="{{ (request()->is('user/donation-calculation*')) ? 'nav-link current' : '' }}">Maaser calculator</a></li>
         <li><a href="{{ route('user.contact') }}" class="{{ (request()->is('user/contact*')) ? 'nav-link current' : '' }}">Contact/Top-Up</a></li>

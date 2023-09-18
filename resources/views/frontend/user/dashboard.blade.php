@@ -51,7 +51,6 @@ use Illuminate\Support\Carbon;
         <div class="row my-2">
             <div class="col-lg-6 ">
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
-                <a href="#" class="d-block fs-14 txt-theme fw-bold">Order a card</a>
             </div>
 
             <div class="col-lg-6  pt-3 d-flex flex-column px-4">
@@ -59,6 +58,9 @@ use Illuminate\Support\Carbon;
                     donation</a>
                 <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
                 <a href="{{ route('stripeDonation')}}" class="btn-theme bg-ternary">Top up account</a>
+            </div>
+            <div class="col-lg-12">
+                <a href="{{ route('userCardService')}}" class="btn-theme bg-primary d-block fs-14 txt-theme fw-bold">Order a card</a>
             </div>
         </div>
         <div class="  p-4 py-5 mt-2" style="background-color: #D9D9D9;">

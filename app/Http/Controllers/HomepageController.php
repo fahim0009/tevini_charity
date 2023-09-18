@@ -118,7 +118,7 @@ class HomepageController extends Controller
                 $CreditProfileId = $user->CreditProfileId;
                 $CreditProfileName = $user->name;
                 $AvailableBalance = 0 - $request->amt;
-                $comment = "Make a donation or Standing order";
+                $comment = "third party donation by tevini";
                 $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                     ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
                         'CreditProfileId' => $CreditProfileId,

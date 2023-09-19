@@ -56,7 +56,7 @@ class CardServiceController extends Controller
         $CreditLimit =  100000;
         $IsPrePaid = true;
 
-        $avlblBalnce = Auth::user()->balance - $CreditLimit;
+        $avlblBalnce = Auth::user()->balance + Auth::user()->overdrawn_amount - $CreditLimit;
 
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -631,7 +631,8 @@ class CardServiceController extends Controller
 
     public function orderCardStore(Request $request)
     {
-        if (Auth::user()->balance > 5) {
+        $totalBalance = Auth::user()->balance + Auth::user()->overdrawn_amount;
+        if ($totalBalance > 5) {
             $chkPrevOrder = CardOrder::where('user_id', Auth::user()->id)->first();
             if ($chkPrevOrder) {
                 $chngSts = new CardStatus;

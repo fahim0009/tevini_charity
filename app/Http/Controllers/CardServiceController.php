@@ -434,7 +434,7 @@ class CardServiceController extends Controller
             $cardholder->save();
 
             // Redirect back with success message and API response data
-            return redirect()->route('userCardService')->with('success', 'Card holder information save successful')->with('responseData', $responseData);
+            return redirect()->route('userCardService')->with('success', 'Your information has been saved successfully')->with('responseData', $responseData);
 
         } else {
             // API request failed
@@ -563,7 +563,7 @@ class CardServiceController extends Controller
                 $cardholder->save();
 
                 // Redirect back with success message and API response data
-                return redirect()->route('userCardService')->with('success', 'Card request update successful')->with('responseData', $responseData);
+                return redirect()->route('userCardService')->with('success', 'Your information update successfully')->with('responseData', $responseData);
 
             } else {
                 // API request failed
@@ -767,7 +767,7 @@ class CardServiceController extends Controller
         
 
                 // Redirect back with success message and API response data
-                return redirect()->route('userCardService')->with('success', 'Card order request successful')->with('responseData', $responseData);
+                return redirect()->route('userCardService')->with('success', 'Your card is the way')->with('responseData', $responseData);
 
             } else {
                 // API request failed

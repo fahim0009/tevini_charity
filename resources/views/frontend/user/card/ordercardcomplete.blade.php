@@ -14,7 +14,7 @@
 
     <section class="px-4">
         <div class="row my-3">
-            <div class="alert alert-success" id="successMessage"> You have already ordered card {{$order->created_at}}. Here is details. Thank you.</div>
+            <div class="alert alert-success" id="successMessage">Your Tevini card order has been processed on {{$order->created_at}}. Please contact us if you need any further assistance. </div>
         </div>
     </section>
 

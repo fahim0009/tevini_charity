@@ -751,14 +751,32 @@ class DonorController extends Controller
     public function updateOverdrawnAmount(Request $request)
     {
 
+
         if(empty($request->overdrawnno)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Overdrawn field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
         $user = User::find($request->overdrawnid);
+        $oldoverdrownamnt = $user->overdrawn_amount;
         $user->overdrawn_amount = $request->overdrawnno;
         if($user->save()){
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = $request->overdrawnno - $oldoverdrownamnt;
+                $comment = "add overdrawn amount by admin";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
 
             $record = new OverdrawnRecord;
             $record->user_id = $request->overdrawnid;

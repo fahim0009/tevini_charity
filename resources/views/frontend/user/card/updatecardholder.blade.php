@@ -59,7 +59,7 @@
                 
                 <div class="col-md-6">
                     <label for="">Mobile (** start +44)</label>
-                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="{{$data->Mobile}}">
+                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="{{$data->Mobile}}" maxlength="13">
                 </div>
 
                 <div class="col-md-6" style="display: none">

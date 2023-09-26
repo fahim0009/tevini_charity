@@ -967,17 +967,6 @@ class CardServiceController extends Controller
 
 
         return view('frontend.user.card.verify');
-
-
-
-        // try {
-        // }catch (Exception $e) {
-        //     return redirect()->route('userCardService')->with('pinerrmsg', 'There is an error to get pin..!');
-        // }
-
-
-
-
         
     }
 

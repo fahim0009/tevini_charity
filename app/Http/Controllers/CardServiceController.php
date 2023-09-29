@@ -328,6 +328,18 @@ class CardServiceController extends Controller
     public function applyForCardHolderStore(Request $request)
     {
 
+        $rules = [
+            'FirstName' => 'required',
+            'LastName' => 'required',
+            'Email' => 'required|email',
+            'Mobile' => 'required|max:13',
+            'DateOfBirth' => 'required',
+        ];
+        $customMessages = [
+            'required' => 'The :attribute field is required.'
+        ];
+        $this->validate($request, $rules, $customMessages);
+
         $chknumber =  $request->input('Mobile');
         $num = substr($chknumber, 0, 3);
         if ($num == "+44") {

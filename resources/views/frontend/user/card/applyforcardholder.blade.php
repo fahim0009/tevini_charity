@@ -34,11 +34,21 @@
             <div class="row">
                 <div class="col-md-6">
                     <label for="">FirstName</label>
-                    <input type="text" name="FirstName" id="FirstName" placeholder="FirstName" class="form-control" value="{{Auth::user()->name}}">
+                    <input type="text" name="FirstName" id="FirstName" placeholder="FirstName" class="form-control @error('FirstName') is-invalid @enderror" value="{{Auth::user()->name}}">
+                    @error('FirstName')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
                 <div class="col-md-6">
                     <label for="">LastName</label>
-                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control" value="{{Auth::user()->surname}}">
+                    <input type="text" name="LastName" id="LastName" placeholder="LastName" class="form-control @error('LastName') is-invalid @enderror" value="{{Auth::user()->surname}}">
+                    @error('LastName')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
             </div>
 
@@ -47,19 +57,6 @@
                     <label for="">SecondSurname</label>
                     <input type="text" name="SecondSurname" id="SecondSurname" placeholder="SecondSurname" class="form-control">
                 </div>
-                <div class="col-md-6" style="display: none">
-                    <label for="">UserName (**Unique username)</label>
-                    <input type="text" name="UserName" id="UserName" placeholder="UserName" class="form-control">
-                </div>
-
-                
-                <div class="col-md-6" style="display: none">
-                    <label for="">Password (**
-                        Password must be at least 8 characters. Must have at least one uppercase ('A'-'Z'), one lowercase ('a'-'z') letter and number ('0'-'9'). No special characters allowed!)</label>
-                    <input type="password" name="Password" id="Password" placeholder="Password" class="form-control">
-                </div>
-
-
             </div>
 
         
@@ -69,23 +66,48 @@
                     
                     <label for="">Email (**unique email)</label>
                     <input type="text" name="Email" id="Email" placeholder="Email" class="form-control @error('Email') is-invalid @enderror" value="{{Auth::user()->email}}">
+                    @error('Email')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
+                @php
+                    $number = Auth::user()->phone;
+                    $num = substr($number, 0, 3);
+                    $num2 = substr($number, 3, 2);
+                @endphp
 
                 <div class="col-md-6">
                     <label for="">Mobile (** start +44)</label>
                     <small style="color: red">**Don't use 0 after +44</small>
-                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control" value="+44{{Auth::user()->phone}}" maxlength="13">
+                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control @error('Mobile') is-invalid @enderror" value="@if ($num != "+44")+44 @else{{$number}}@endif" maxlength="13">
+                    @error('Mobile')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
                 
                 <div class="col-md-6">
                     <label for="">DateOfBirth</label>
-                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control" required>
+                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control @error('DateOfBirth') is-invalid @enderror" value="{{ old('DateOfBirth') }}" required>
+                    @error('DateOfBirth')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
                 
                 <div class="col-md-6">
                     <label for="">HouseNumberOrBuilding</label>
-                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control" value="{{Auth::user()->houseno}}" required>
+                    <input type="text" name="HouseNumberOrBuilding" id="HouseNumberOrBuilding" placeholder="HouseNumberOrBuilding" class="form-control @error('HouseNumberOrBuilding') is-invalid @enderror" value="{{Auth::user()->houseno}}" required>
+                    @error('HouseNumberOrBuilding')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
                 <div class="col-md-6" style="display: none">
@@ -115,14 +137,10 @@
                     <label for="">TaxIdCardNumber</label>
                     <input type="text" name="TaxIdCardNumber" id="TaxIdCardNumber" placeholder="TaxIdCardNumber" class="form-control" value="">
                 </div>
-
-                
-
                 <div class="col-md-4"  style="display: none">
                     <label for="">Nationality</label>
                     <input type="text" name="Nationality" id="Nationality" placeholder="Nationality" class="form-control">
                 </div>
-
                 <div class="col-md-4" style="display: none">
                     <label for="">Title</label>
                     <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="">
@@ -134,7 +152,12 @@
 
                 <div class="col-md-6">
                     <label for="">Address1</label>
-                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control" value="{{Auth::user()->street}}">
+                    <input type="text" name="Address1" id="Address1" placeholder="Address1" class="form-control @error('Address1') is-invalid @enderror" value="{{Auth::user()->street}}">
+                    @error('Address1')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
@@ -157,7 +180,7 @@
 
                 <div class="col-md-4">
                     <label for="">County</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{Auth::user()->city}}" required>
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{ old('State') }}" required>
                 </div>
             </div>
 

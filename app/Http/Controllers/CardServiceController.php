@@ -334,6 +334,7 @@ class CardServiceController extends Controller
             'Email' => 'required|email',
             'Mobile' => 'required|max:13',
             'DateOfBirth' => 'required',
+            'State' => 'required',
         ];
         $customMessages = [
             'required' => 'The :attribute field is required.'

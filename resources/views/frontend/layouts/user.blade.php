@@ -29,6 +29,26 @@
     <link href="{{URL::to('/css/common.css')}}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/user/css/dashboard.css') }}">
     @yield('css')
+    <style>
+            /*loader css*/
+            #loading {
+            position: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0.7;
+            background-color: #fff;
+            z-index: 99;
+            }
+
+            #loading-image {
+            z-index: 100;
+            }
+    </style>
 </head>
 
 <body>

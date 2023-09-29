@@ -11,6 +11,11 @@
         </div>
     </div>
 
+        <!-- Image loader -->
+        <div id='loading' style='display:none ;'>
+            <img src="{{ asset('loader.gif') }}" id="loading-image" alt="Loading..." style="height: 225px;" />
+       </div>
+     <!-- Image loader -->
 
     @if(session()->has('success'))
     <section class="px-4">
@@ -91,7 +96,7 @@
                 
                 <div class="col-md-6">
                     <label for="">DateOfBirth</label>
-                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control @error('DateOfBirth') is-invalid @enderror" value="{{ old('DateOfBirth') }}" required>
+                    <input type="date" name="DateOfBirth" id="DateOfBirth" placeholder="DateOfBirth" class="form-control @error('DateOfBirth') is-invalid @enderror" value="{{ old('DateOfBirth') }}">
                     @error('DateOfBirth')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -180,7 +185,12 @@
 
                 <div class="col-md-4">
                     <label for="">County</label>
-                    <input type="text" name="State" id="State" placeholder="State" class="form-control" value="{{ old('State') }}" required>
+                    <input type="text" name="State" id="State" placeholder="State" class="form-control @error('State') is-invalid @enderror" value="{{ old('State') }}">
+                    @error('State')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
             </div>
 
@@ -191,7 +201,7 @@
             <div>
                 <div class="col-lg-12 mt-4">
                     <div class="form-group ">
-                        <button class="d-block btn-theme bg-secondary mt-5">Submit</button>
+                        <button class="d-block btn-theme bg-secondary mt-5 submitBtn">Submit</button>
                     </div>
                 </div>
             </div>
@@ -204,7 +214,15 @@
 @endsection
 
 @section('script')
+<script>
+    $(function() {
+      $('.submitBtn').click(function() {
+        
+        $("#loading").show();
 
+      })
+    })
+</script>
 
 <script>
 

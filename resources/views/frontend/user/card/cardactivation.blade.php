@@ -16,7 +16,11 @@
             </div>
         </div>
     </div>
-
+    <!-- Image loader -->
+    <div id='loading' style='display:none ;'>
+        <img src="{{ asset('loader.gif') }}" id="loading-image" alt="Loading..." style="height: 225px;" />
+    </div>
+    <!-- Image loader -->
 
     @if(session()->has('success'))
     <section class="px-4">
@@ -40,17 +44,32 @@
             <div class="row">
                 <div class="col-md-12">
                     <label for="CardDisplayName">Card Name</label>
-                    <input type="text" name="CardDisplayName" id="CardDisplayName" placeholder="CardDisplayName" class="form-control" required>
+                    <input type="text" name="CardDisplayName" id="CardDisplayName" placeholder="CardDisplayName" class="form-control @error('CardDisplayName') is-invalid @enderror">
+                    @error('CardDisplayName')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
                 
                 <div class="col-md-12">
                     <label for="PAN">Card Number</label>
-                    <input type="text" name="PAN" id="PAN" placeholder="PAN" class="form-control" required>
+                    <input type="text" name="PAN" id="PAN" placeholder="PAN" class="form-control @error('PAN') is-invalid @enderror" >
+                    @error('PAN')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
                 <div class="col-md-12">
-                    <input type="checkbox" class="me-2" required>I have read and accept the cardholder  <a href="{{route('cardterms')}}" style="text-decoration: none;color:#212529" target="blank"> Terms & Conditions. </a><br>
+                    <input type="checkbox" class="me-2 @error('terms') is-invalid @enderror" name="terms" value="1">I have read and accept the cardholder  <a href="{{route('cardterms')}}" style="text-decoration: none;color:#212529" target="blank"> Terms & Conditions. </a><br>
+                    @error('terms')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
             </div>
@@ -59,7 +78,7 @@
             <div>
                 <div class="col-lg-12 mt-4">
                     <div class="form-group ">
-                        <button class="d-block btn-theme bg-secondary mt-3">Submit</button>
+                        <button class="d-block btn-theme bg-secondary mt-3 submitBtn">Submit</button>
                     </div>
                 </div>
             </div>
@@ -82,7 +101,18 @@
             window.history.pushState(null, "", window.location.href);
         };
     });
+
+    
   
   </script>
 
+<script>
+    $(function() {
+      $('.submitBtn').click(function() {
+        
+        $("#loading").show();
+
+      })
+    })
+</script>
 @endsection

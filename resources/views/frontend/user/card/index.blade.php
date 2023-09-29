@@ -28,6 +28,11 @@
 </div>
 
 <div class="row ">
+    <!-- Image loader -->
+        <div id='loading' style='display:none ;'>
+            <img src="{{ asset('loader.gif') }}" id="loading-image" alt="Loading..." style="height: 225px;" />
+        </div>
+    <!-- Image loader -->
     <div class="col-lg-4">
         <div class="row my-2">
             <div class="col-lg-12 ">
@@ -67,7 +72,7 @@
         @else
             <form  action="{{ route('cardprofile.store') }}" method="POST" enctype="multipart/form-data" >
                 @csrf
-                <button class="d-block btn-theme bg-secondary mt-5">Create credit profile</button>
+                <button class="d-block btn-theme bg-secondary mt-5 creditProfileBtn">Create credit profile</button>
             </form>
         @endif
         
@@ -146,6 +151,12 @@
 
 @section('script')
 <script>
+$(function() {
+      $('.creditProfileBtn').click(function() {
+        
+        $("#loading").show();
 
+      })
+    })
 </script>
 @endsection

@@ -224,8 +224,4 @@
     })
 </script>
 
-<script>
-
-</script>
-
 @endsection

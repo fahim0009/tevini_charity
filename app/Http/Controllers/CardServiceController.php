@@ -813,6 +813,20 @@ class CardServiceController extends Controller
 
     public function cardActivationstore(Request $request)
     {
+
+        $rules = [
+            'CardDisplayName' => 'required',
+            'PAN' => 'required|max:13',
+            'terms' => 'required',
+        ];
+        $customMessages = [
+            'required' => 'The :attribute field is required.',
+            'terms.required' => 'Please, check terms and conditions.'
+        ];
+        $this->validate($request, $rules, $customMessages);
+
+
+
         $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
 
         $PAN = $request->PAN;

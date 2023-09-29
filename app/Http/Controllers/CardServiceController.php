@@ -644,6 +644,16 @@ class CardServiceController extends Controller
 
     public function orderCardStore(Request $request)
     {
+        $rules = [
+            'NameOnCard' => 'required',
+            'Address2' => 'required',
+        ];
+        $customMessages = [
+            'required' => 'The :attribute field is required.',
+            'Address2.required' => 'Address field is required.'
+        ];
+        $this->validate($request, $rules, $customMessages);
+
         $totalBalance = Auth::user()->balance + Auth::user()->overdrawn_amount;
         if ($totalBalance > 5) {
             $chkPrevOrder = CardOrder::where('user_id', Auth::user()->id)->first();
@@ -816,16 +826,16 @@ class CardServiceController extends Controller
 
         $rules = [
             'CardDisplayName' => 'required',
-            'PAN' => 'required|max:13',
+            'PAN' => 'required|integer|',
             'terms' => 'required',
         ];
         $customMessages = [
             'required' => 'The :attribute field is required.',
+            'PAN.required' => 'The PAN field is required.',
+            'PAN.integer' => 'The PAN number must be integer.',
             'terms.required' => 'Please, check terms and conditions.'
         ];
         $this->validate($request, $rules, $customMessages);
-
-
 
         $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first()->CardHolderId;
 
@@ -873,14 +883,6 @@ class CardServiceController extends Controller
 
                 return redirect()->route('userCardService')->with('successmsg', 'Card active Successfully!');
             } else {
-                // if ($responseData['ErrorCodes'][0] == "30000026") {
-                //     return redirect()->back()->with('error', 'Invalid Card Currency.');
-                // } elseif ($responseData['ErrorCodes'][0] == "10000002") {
-                //     return redirect()->back()->with('error', 'The card is already in use.');
-                // }else {
-                //     return redirect()->back()->with('error', 'Expectation Failed.');
-                // }
-
                 return redirect()->back()->with('error', $responseData['Message']);
                 
             }

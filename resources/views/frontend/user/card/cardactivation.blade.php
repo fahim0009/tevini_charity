@@ -55,7 +55,7 @@
                 
                 <div class="col-md-12">
                     <label for="PAN">Card Number</label>
-                    <input type="text" name="PAN" id="PAN" placeholder="PAN" class="form-control @error('PAN') is-invalid @enderror" >
+                    <input type="text" name="PAN" id="PAN" placeholder="PAN" class="form-control @error('PAN') is-invalid @enderror"  maxlength="16">
                     @error('PAN')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>

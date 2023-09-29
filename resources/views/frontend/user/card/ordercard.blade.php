@@ -11,6 +11,11 @@
         </div>
     </div>
 
+    <!-- Image loader -->
+    <div id='loading' style='display:none ;'>
+        <img src="{{ asset('loader.gif') }}" id="loading-image" alt="Loading..." style="height: 225px;" />
+    </div>
+    <!-- Image loader -->
 
     @if(session()->has('success'))
     <section class="px-4">
@@ -48,7 +53,12 @@
 
                 <div class="col-md-6">
                     <label for="Address2">Address1</label>
-                    <input type="text" name="Address2" id="Address2" placeholder="Address1" class="form-control" value="{{$CardHolderData->Address1}}">
+                    <input type="text" name="Address2" id="Address2" placeholder="Address1" class="form-control @error('Address1') is-invalid @enderror" value="{{$CardHolderData->Address1}}">
+                    @error('Address1')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
@@ -106,7 +116,12 @@
                 </div>
                 <div class="col-md-6">
                     <label for="NameOnCard">NameOnCard</label>
-                    <input type="text" name="NameOnCard" id="NameOnCard" placeholder="NameOnCard" class="form-control">
+                    <input type="text" name="NameOnCard" id="NameOnCard" placeholder="NameOnCard" class="form-control @error('NameOnCard') is-invalid @enderror">
+                    @error('NameOnCard')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
                 <div class="col-md-6" style="display: none">
                     <label for="AdditionalCardEmbossData">AdditionalCardEmbossData</label>
@@ -119,7 +134,7 @@
             <div>
                 <div class="col-lg-12 mt-4">
                     <div class="form-group ">
-                        <button class="d-block btn-theme bg-secondary mt-5">Submit</button>
+                        <button class="d-block btn-theme bg-secondary mt-5 submitBtn">Submit</button>
                     </div>
                 </div>
             </div>
@@ -133,9 +148,14 @@
 
 @section('script')
 
-
 <script>
+    $(function() {
+      $('.submitBtn').click(function() {
+        
+        $("#loading").show();
 
+      })
+    })
 </script>
 
 @endsection

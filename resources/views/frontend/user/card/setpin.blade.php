@@ -38,7 +38,7 @@
     @endif
 
 
-    <form  action="{{route('cardSetPinstore')}}" method="POST" enctype="multipart/form-data">
+    {{-- <form  action="#" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="row mt-3">
             <div class="row">
@@ -65,7 +65,7 @@
             </div>
             
         </div>
-    </form>
+    </form> --}}
 </div>
 
 

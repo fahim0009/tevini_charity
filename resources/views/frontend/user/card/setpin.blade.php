@@ -13,9 +13,9 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">
-                Get PIN and Change the PIN
+                Get PIN 
             </div>
-            <h3>Click Eye button to view the PIN. You may change the PIN. <span id="pinID">{{$pin}}</span><a id="showPIN"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a></h3> 
+            <h3>Click Eye button to view the PIN.<span id="pinID">{{$pin}}</span><a id="showPIN"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a></h3> 
 
             
         </div>

@@ -52,6 +52,14 @@ class CardServiceController extends Controller
 
     public function cardprofilestore(Request $request)
     {
+
+        $chkpCode = CardProduct::where('user_id',Auth::user()->id)->first();
+
+        if (isset($chkpCode)) {
+            return redirect()->back()->with('error', 'Already created a credit profile.');
+        } else {
+            
+
         $ProfileName = Auth::user()->name;
         $CreditLimit =  100000;
         $IsPrePaid = true;
@@ -204,6 +212,9 @@ class CardServiceController extends Controller
         } else {
             return redirect()->back()->with('error', 'Unable to update credit profile.');
         }
+
+            
+    }
     }
 
     // public function applyForCard()

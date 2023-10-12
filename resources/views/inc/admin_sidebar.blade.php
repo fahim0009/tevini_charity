@@ -304,6 +304,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/qpay-balance*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('qpaybalance') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Qpay Balance
+                </a>
+            </li>
+
             {{-- <li class="nav-item " id="admindashboard">
                 <a href="./utility.html">
                     <span class="iconify" data-icon="icomoon-free:profile"></span>

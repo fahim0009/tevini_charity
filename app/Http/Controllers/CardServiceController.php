@@ -10,6 +10,7 @@ use App\Models\CardStatus;
 use App\Models\Expired;
 use App\Models\MobileVerify;
 use App\Models\PurchaseHistory;
+use App\Models\QpayBalance;
 use App\Models\User;
 use App\Models\Settlement;
 use App\Models\Transaction;
@@ -1109,6 +1110,11 @@ class CardServiceController extends Controller
                         $chtran->note = "Tevini Card Payment";
                         $chtran->status = 1;
                         $chtran->save();
+
+                        $id = QpayBalance::where('id', 1)->first()->id;
+                        $qbalance = QpayBalance::findOrFail($id);
+                        $qbalance->balance = $qbalance->balance - $request->billAmt;
+                        $qbalance->save();
                     }
                 }
 
@@ -1268,6 +1274,11 @@ class CardServiceController extends Controller
                 $user = User::find($chkuser->user_id);
                 $user->balance = $user->balance + $request->billAmt;
                 $user->save();
+
+                $id = QpayBalance::where('id', 1)->first()->id;
+                $qbalance = QpayBalance::findOrFail($id);
+                $qbalance->balance = $qbalance->balance + $request->billAmt;
+                $qbalance->save();
             }
 
             // Send a POST request to the API with the updated finance fee value

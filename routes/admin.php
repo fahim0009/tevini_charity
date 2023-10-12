@@ -15,6 +15,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DonorController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\StripePaymentController;
+use App\Http\Controllers\QpayBalanceController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ProductFeeController;
 use App\Http\Controllers\Admin\CardProfileController;
@@ -252,6 +253,13 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     
     Route::get('/card-transaction', [ProductController::class, 'getCardTransaction'])->name('cardTransaction');
     Route::get('/user-card-transaction', [ProductController::class, 'getUserCardTransaction'])->name('cardservice.tran');
+
+    // qpay balance 
+    Route::get('/qpay-balance', [QpayBalanceController::class, 'index'])->name('qpaybalance');
+    Route::get('/qpay-balance/{id}', [QpayBalanceController::class, 'edit'])->name('qpaybalance.edit');
+    Route::post('/qpay-balance/{id}', [QpayBalanceController::class, 'update'])->name('qpaybalance.update');
+    Route::get('/qpay-add-balance', [QpayBalanceController::class, 'add'])->name('qpaybalance.add');
+    Route::post('/qpay-add-balance', [QpayBalanceController::class, 'store'])->name('qpaybalance.store');
 
     
 });

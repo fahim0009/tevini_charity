@@ -23,7 +23,7 @@
                             @csrf
                         <div class="col my-3">
                                 <label for="">Balance</label>
-                               <input type="number" name="balance" id="balance" class="form-control" value="">
+                               <input type="number" name="balance" id="balance" class="form-control" value="" step="any">
                         </div>
                         
                     </div>

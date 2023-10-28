@@ -1,8 +1,13 @@
 <?php
-
+if (App::environment('production')) {
+    URL::forceScheme('https');
+}
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CardServiceController;
+use App\Http\Controllers\Api\RegisterController;
+use App\Http\Controllers\Api\BaseController;
+use App\Http\Controllers\Api\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +20,11 @@ use App\Http\Controllers\CardServiceController;
 |
 */
 
+
+Route::post('signup', [RegisterController::class, 'register']);
+Route::post('login', [RegisterController::class, 'login']);
+
+
 Route::post('/authorisations', [CardServiceController::class, 'authorisation'])->name('authorisation');
 Route::post('/settlement', [CardServiceController::class, 'settlement'])->name('settlement');
 Route::post('/expired', [CardServiceController::class, 'expired'])->name('expired');
@@ -25,4 +35,8 @@ Route::group(['middleware' => ['auth:api']], function () {
     // return url from Qpay Card
 
 
+});
+
+Route::middleware('auth:api')->group( function () {
+    // Route::resource('products', ProductController::class);
 });

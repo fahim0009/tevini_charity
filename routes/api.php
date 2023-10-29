@@ -8,6 +8,9 @@ use App\Http\Controllers\CardServiceController;
 use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Controllers\Api\LoginController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CharityController;
+use App\Http\Controllers\Api\DonorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +34,9 @@ Route::post('/expired', [CardServiceController::class, 'expired'])->name('expire
 
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();
+    Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::get('get-all-charity', [CharityController::class, 'getAllCharity']);
+    Route::post('make-donation', [DonorController::class, 'userDonationStore']);
 
     // return url from Qpay Card
 

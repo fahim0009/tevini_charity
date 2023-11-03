@@ -129,7 +129,27 @@ class DonorController extends Controller
             $success['data'] = $data;
             return response()->json(['success'=>true,'response'=> $success], 200);
         }
+    }
 
 
+    public function userDonationrecod()
+    {
+        $data = Donation::where([
+            ['standing_order','=', 'false'],
+            ['user_id','=', auth()->user()->id]
+        ])->get();
+
+        $success['data'] = $data;
+        return response()->json(['success'=>true,'response'=> $success], 200);
+    }
+
+    public function userStandingrecod()
+    {
+        $data = StandingDonation::where([
+            ['user_id','=', auth()->user()->id]
+        ])->get();
+
+        $success['data'] = $data;
+        return response()->json(['success'=>true,'response'=> $success], 200);
     }
 }

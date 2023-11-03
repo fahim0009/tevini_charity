@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\CharityController;
 use App\Http\Controllers\Api\DonorController;
+use App\Http\Controllers\Api\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +39,11 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('get-all-charity', [CharityController::class, 'getAllCharity']);
     Route::post('make-donation', [DonorController::class, 'userDonationStore']);
 
-    // return url from Qpay Card
+    
+    Route::get('donation-record', [DonorController::class, 'userDonationrecod']);
+    Route::get('standing-order-record', [DonorController::class, 'userStandingrecod']);
+
+    Route::get('order-history', [OrderController::class, 'userOrderview']);
 
 
 });

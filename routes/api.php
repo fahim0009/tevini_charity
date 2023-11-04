@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\CharityController;
 use App\Http\Controllers\Api\DonorController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\VoucherController;
+use App\Http\Controllers\Api\TransactionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +47,10 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     Route::get('order-history', [OrderController::class, 'userOrderview']);
 
+    // waiting voucher 
+    Route::get('process-voucher', [VoucherController::class, 'processed_Voucher_show']);
+
+    Route::get('transaction-view', [TransactionController::class, 'userTransactionShow']);
 
 });
 

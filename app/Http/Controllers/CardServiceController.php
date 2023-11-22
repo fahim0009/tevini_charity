@@ -466,7 +466,7 @@ class CardServiceController extends Controller
             $errorResponse = $response->json();
             // Handle the error response
             // Redirect back with error message and error response data
-            return redirect()->back()->with('error', 'API request failed')->with('errorResponse', $errorResponse);
+            return redirect()->back()->with('error', 'Card Holder Create Request Failed')->with('errorResponse', $errorResponse);
         }
         } else {
 
@@ -484,7 +484,19 @@ class CardServiceController extends Controller
     // update cardholder
     public function updateCardHolderPost(Request $request)
     {
-        // dd($request->all());
+        $rules = [
+            'FirstName' => 'required|max:20',
+            'LastName' => 'required|max:20',
+            'Email' => 'required|email',
+            'Mobile' => 'required|max:13',
+            'DateOfBirth' => 'required',
+            'State' => 'required|max:20',
+        ];
+        $customMessages = [
+            'required' => 'The :attribute field is required.'
+        ];
+        $this->validate($request, $rules, $customMessages);
+
         $chknumber =  $request->input('Mobile');
         $num = substr($chknumber, 0, 3);
 

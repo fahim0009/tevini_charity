@@ -484,6 +484,7 @@ class CardServiceController extends Controller
     // update cardholder
     public function updateCardHolderPost(Request $request)
     {
+        // dd($request->all());
         $chknumber =  $request->input('Mobile');
         $num = substr($chknumber, 0, 3);
 

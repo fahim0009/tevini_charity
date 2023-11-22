@@ -128,7 +128,7 @@
 
                 <div class="col-md-4" style="display: none">
                     <label for="">Title</label>
-                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="Test Title" value="{{$data->Title}}">
+                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="">
                 </div>
             </div>
 

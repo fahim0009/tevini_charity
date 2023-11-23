@@ -1,4 +1,4 @@
-@component('mail::message')
+
 
 <h3>Dear,</h3>
 
@@ -8,4 +8,3 @@
 
 Thanks,<br>
 
-@endcomponent

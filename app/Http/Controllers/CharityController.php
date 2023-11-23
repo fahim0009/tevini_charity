@@ -253,10 +253,12 @@ class CharityController extends Controller
             $array['note'] = $request->note;
             $array['t_id'] = $t_id;
             $array['subjectsingle'] = 'Report Placed - '.$charity->name;
+
+            dd($array);
     
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new CharitypayReport($array));
+            // Mail::to($email)
+            // ->cc($contactmail)
+            // ->send(new CharitypayReport($array));
 
 
             $message ="Amount pay Successfully. Transaction id is: ". $t_id;

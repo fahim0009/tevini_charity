@@ -254,7 +254,7 @@ class CharityController extends Controller
             $array['t_id'] = $t_id;
             $array['subjectsingle'] = 'Report Placed - '.$charity->name;
 
-            dd($contactmail);
+            // dd($contactmail);
     
             Mail::to($email)
             ->cc($contactmail)
@@ -264,8 +264,6 @@ class CharityController extends Controller
             $message ="Amount pay Successfully. Transaction id is: ". $t_id;
             return back()->with('message', $message);
 
-
-        return back();
     }
 
 

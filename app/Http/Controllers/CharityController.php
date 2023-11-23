@@ -239,7 +239,7 @@ class CharityController extends Controller
             $transaction->amount = $request->balance;
             $transaction->note = $request->note;
             $transaction->status = "1";
-            $transaction->save();
+            // $transaction->save();
 
             $contactmail = ContactMail::where('id', 1)->first()->name;
     
@@ -254,11 +254,11 @@ class CharityController extends Controller
             $array['t_id'] = $t_id;
             $array['subjectsingle'] = 'Report Placed - '.$charity->name;
 
-            dd($array);
+            dd($contactmail);
     
-            // Mail::to($email)
-            // ->cc($contactmail)
-            // ->send(new CharitypayReport($array));
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new CharitypayReport($array));
 
 
             $message ="Amount pay Successfully. Transaction id is: ". $t_id;

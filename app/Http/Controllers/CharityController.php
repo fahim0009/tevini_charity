@@ -254,7 +254,6 @@ class CharityController extends Controller
             $array['t_id'] = $t_id;
             $array['subjectsingle'] = 'Report Placed - '.$charity->name;
 
-            // dd($contactmail);
     
             Mail::to($email)
             ->cc($contactmail)

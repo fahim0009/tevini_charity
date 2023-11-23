@@ -225,7 +225,7 @@ class CharityController extends Controller
     public function payStore(Request $request)
     {
         $charity_bal = Charity::find($request->topupid);
-        $charity_bal->decrement('balance',$request->balance);
+        // $charity_bal->decrement('balance',$request->balance);
         $t_id = time() . "-" . $request->topupid;
 
         $charity = Charity::where('id','=',$request->topupid)->first();

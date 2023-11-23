@@ -31,9 +31,9 @@ Route::post('signup', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
 
 
-Route::post('/authorisations', [CardServiceController::class, 'authorisation'])->name('authorisation');
-Route::post('/settlement', [CardServiceController::class, 'settlement'])->name('settlement');
-Route::post('/expired', [CardServiceController::class, 'expired'])->name('expired');
+Route::post('/authorisations', [CardServiceController::class, 'authorisation']);
+Route::post('/settlement', [CardServiceController::class, 'settlement']);
+Route::post('/expired', [CardServiceController::class, 'expired']);
 
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();

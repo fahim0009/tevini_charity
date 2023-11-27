@@ -39,7 +39,10 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "laravel/passport",
+                "danjdewhurst/laravel-passport-facebook-login"
+            ]
         }
     },
     "autoload": {

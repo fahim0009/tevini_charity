@@ -151,19 +151,19 @@ class DeductStandingDonation extends Command
                         $user->save();
 
                         // card balance update
-                        // if (isset($user->CreditProfileId)) {
-                        //     $CreditProfileId = $user->CreditProfileId;
-                        //     $CreditProfileName = $user->name;
-                        //     $AvailableBalance = 0 - $activestand_order->amount;
-                        //     $comment = "Make a donation or Standing order";
-                        //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                        //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        //             'CreditProfileId' => $CreditProfileId,
-                        //             'CreditProfileName' => $CreditProfileName,
-                        //             'AvailableBalance' => $AvailableBalance,
-                        //             'comment' => $comment,
-                        //         ]);
-                        // }
+                        if (isset($user->CreditProfileId)) {
+                            $CreditProfileId = $user->CreditProfileId;
+                            $CreditProfileName = $user->name;
+                            $AvailableBalance = 0 - $activestand_order->amount;
+                            $comment = "Make a donation or Standing order";
+                            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                    'CreditProfileId' => $CreditProfileId,
+                                    'CreditProfileName' => $CreditProfileName,
+                                    'AvailableBalance' => $AvailableBalance,
+                                    'comment' => $comment,
+                                ]);
+                        }
                         // card balance update end
 
                         $charity = Charity::find($activestand_order->charity_id);

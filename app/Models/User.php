@@ -24,7 +24,6 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'address',
-
         'title',
         'surname',
         'houseno',
@@ -34,7 +33,6 @@ class User extends Authenticatable
         'accountno',
         'balance',
         'passwordchk',
-
         'country',
         'city',
         'phone',

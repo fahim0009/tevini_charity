@@ -341,12 +341,12 @@ class CardServiceController extends Controller
     {
 
         $rules = [
-            'FirstName' => 'required',
-            'LastName' => 'required',
+            'FirstName' => 'required|max:20',
+            'LastName' => 'required|max:20',
             'Email' => 'required|email',
             'Mobile' => 'required|max:13',
             'DateOfBirth' => 'required',
-            'State' => 'required',
+            'State' => 'required|max:20',
         ];
         $customMessages = [
             'required' => 'The :attribute field is required.'

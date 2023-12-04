@@ -395,6 +395,8 @@ class CharityController extends Controller
 
         }
 
+        // dd($outtransactions);
+
         return view('frontend.charity.transaction')
         ->with('intransactions',$intransactions)
         ->with('outtransactions',$outtransactions)

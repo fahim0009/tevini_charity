@@ -139,6 +139,7 @@ use Illuminate\Support\Carbon;
                                             <th>Date</th>
                                             <th>Transaction Id</th>
                                             <th>Charity Name</th>
+                                            <th>Note</th>
                                             <th>Source</th>
                                             <th>Amount </th>
                                         </tr>
@@ -149,6 +150,7 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
+                                            <td>{{ $transaction->note }}</td>
                                             <td>{{ $transaction->name}}</td>
                                             <td>{{ $transaction->amount}}</td>
                                         </tr>
@@ -169,6 +171,7 @@ use Illuminate\Support\Carbon;
                           <thead>
                               <tr>
                                 <th>Date</th>
+                                <th>Donor</th>
                                 <th>Transaction Id</th>
                                 <th>Reference/Voucher No</th>
                                 <th>Amount</th>
@@ -179,6 +182,7 @@ use Illuminate\Support\Carbon;
 
                                     <tr>
                                         <td>{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{ $transaction->user->name }}</td>
                                         <td>{{ $transaction->t_id }}</td>
                                         <td>
                                             @if ($transaction->title == "Voucher")

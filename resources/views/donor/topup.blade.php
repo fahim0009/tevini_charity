@@ -127,6 +127,14 @@
                                               GIFT
                                             </label>
                                         </div>
+                                    </div>  
+                                    <div class="form-group my-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value id="cleargift">
+                                            <label class="form-check-label" for="cleargift">
+                                            CLEAR EXPECTED GIFT AID
+                                            </label>
+                                        </div>
                                     </div>    
                                 <div class="form-group my-2">
                                     <button type="button" id="topBal" class="my-2 btn btn-sm btn-info text-white">Save</button>
@@ -236,13 +244,14 @@ $("#topBal").click(function(){
     var donationBy = $("#donationBy").val();
     var receipt = $("#receipt").prop('checked');
     var gift = $("#gift").prop('checked');
+    var cleargift = $("#cleargift").prop('checked');
 
     console.log(gift);
 
         $.ajax({
             url: url,
             method: "POST",
-            data: {topupid,balance,commission,source,gbalance,note,receipt,donationBy,gift},
+            data: {topupid,balance,commission,source,gbalance,note,receipt,donationBy,gift,cleargift},
 
             success: function (d) {
                 if (d.status == 303) {

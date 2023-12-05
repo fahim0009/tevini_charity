@@ -39,7 +39,7 @@
             <div class="row">
                 <div class="col-md-12" style="display: none">
                     <label for="">Title</label>
-                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="Test Title" readonly value="{{$CardHolderData->Title}}">
+                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" readonly value="{{$CardHolderData->Title}}">
                     <input type="hidden" name="CardholderId" id="CardholderId" value="{{$CardHolderData->CardHolderId}}" readonly>
                 </div>
                 <div class="col-md-6">

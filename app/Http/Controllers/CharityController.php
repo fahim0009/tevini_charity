@@ -490,5 +490,27 @@ class CharityController extends Controller
     }
 
 
+    public function urgentRequest(Request $request)
+    {
+
+        
+        $contactmail = ContactMail::where('id', 1)->first()->name;
+
+        $array['name'] = $request->charityname;
+        $array['subject'] = 'Urgent request';
+        $array['from'] = 'info@tevini.co.uk';
+        $array['cc'] = $contactmail;
+        $email = auth('charity')->user()->email;
+
+        Mail::send('mail.urgentrequest', compact('array'), function($message)use($array,$email) {
+            $message->from($array['from'], 'Tevini.co.uk');
+            $message->to($email)->cc($array['cc'])->subject($array['subject']);
+        });
+        
+        $message ="Email send successfully";
+        return back()->with('message', $message);
+
+    }
+
 
 }

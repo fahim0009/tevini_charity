@@ -214,6 +214,8 @@ Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
     Route::post('/profile', [CharityController::class, 'updateCharity_profile'])->name('charity_profileUpdate');
 
     
+    Route::post('/urgent-request', [CharityController::class, 'urgentRequest'])->name('charity.urgent_request');
+    
     Route::get('/create-a-link', [CharityController::class, 'charityLink'])->name('charity_link');
     Route::post('/create-a-link', [CharityController::class, 'charityLinkStore']);
 });

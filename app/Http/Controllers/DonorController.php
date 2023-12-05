@@ -20,6 +20,7 @@ use App\Mail\DonationReport;
 use App\Mail\DonationstandingReport;
 use App\Mail\DonerReport;
 use App\Mail\DonationreportCharity;
+use App\Models\ExpectedGiftAid;
 use PDF;
 use Hash;
 use Auth;
@@ -177,19 +178,19 @@ class DonorController extends Controller
         if($user->save()){
 
             // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 + $request->balance;
-                $comment = "Donor Topup";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
+            // if (isset($user->CreditProfileId)) {
+            //     $CreditProfileId = $user->CreditProfileId;
+            //     $CreditProfileName = $user->name;
+            //     $AvailableBalance = 0 + $request->balance;
+            //     $comment = "Donor Topup";
+            //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+            //             'CreditProfileId' => $CreditProfileId,
+            //             'CreditProfileName' => $CreditProfileName,
+            //             'AvailableBalance' => $AvailableBalance,
+            //             'comment' => $comment,
+            //         ]);
+            // }
             // card balance update end
 
 
@@ -224,6 +225,27 @@ class DonorController extends Controller
             $utransaction->title = 'Credit';
             $utransaction->status =  1;
             $utransaction->save();
+
+            if($request->gift == "true"){
+                $expgiftaidamnt = $request->balance * 25/100;
+                $donorgiftaid = User::find($request->topupid);
+                $donorgiftaid->expected_gift_aid = $donorgiftaid->expected_gift_aid + $expgiftaidamnt;
+                $donorgiftaid->save();
+
+                $expgiftaidtran = new ExpectedGiftAid();
+                $expgiftaidtran->user_id = $request->topupid;
+                $expgiftaidtran->transaction_id = $transaction->id;
+                $expgiftaidtran->usertransaction_id = $utransaction->id;
+                $expgiftaidtran->amount = $request->balance;
+                $expgiftaidtran->gift_amount = $expgiftaidamnt;
+                $expgiftaidtran->save();
+            }
+
+            if($request->cleargift == "true"){
+                $cleargiftaid = User::find($request->topupid);
+                $cleargiftaid->expected_gift_aid = $cleargiftaid->expected_gift_aid - $request->balance;
+                $cleargiftaid->save();
+                }
 
             if($request->receipt == 'true'){
                 $user = User::where('id',$request->topupid)->first();

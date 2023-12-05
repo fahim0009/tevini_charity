@@ -66,6 +66,7 @@ use Illuminate\Support\Carbon;
         <div class="  p-4 py-5 mt-2" style="background-color: #D9D9D9;">
             <div>
                 <div class="txt-secondary fs-32 fw-bold  text-center">GIFT AID DONATIONS</div>  <br>
+                <div class="txt-secondary fs-20"> Expected gift aid : £{{ Auth::user()->expected_gift_aid }}</div>
                 <div class="txt-secondary fs-20"> Gift Aid donations for this Tax Year : £{{ $currentyramount }}</div>
                 <div class="txt-secondary fs-20"> Gift Aid donations for last Tax Year : £{{ $totalamount }}</div>
             </div>

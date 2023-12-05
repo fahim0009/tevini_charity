@@ -70,6 +70,10 @@
                                     <td>Balance</td>
                                     <td>{{ $topup->balance }}</td>
                                 </tr>
+                                <tr>
+                                    <td>Expected gift aid</td>
+                                    <td>{{ $topup->expected_gift_aid }}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

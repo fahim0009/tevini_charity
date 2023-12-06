@@ -11,6 +11,7 @@ use App\Models\Voucher;
 use App\Models\Charity;
 use App\Mail\WaitingVComplete;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 
 class VoucherController extends Controller
 {

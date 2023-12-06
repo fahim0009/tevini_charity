@@ -532,7 +532,8 @@ class OrderController extends Controller
 
     public function completeVoucher()
     {
-        $cvouchers = Provoucher::where('status','=', '1')->orderBy('id','DESC')->get();
+        $cvouchers = Provoucher::where('status','=', '1')->orderBy('id','DESC')->limit(100)->get();
+        // $cvouchers = Provoucher::where('status','=', '1')->orderBy('id','DESC')->get();
         return view('voucher.completevoucher')
         ->with('cvouchers',$cvouchers);
 

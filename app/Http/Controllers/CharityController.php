@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\CharitypayReport;
 use App\Mail\CharitylinkRequest;
 use App\Mail\DonationReport;
+use App\Mail\UrgentRequest;
 use App\Models\CharityLink;
 
 class CharityController extends Controller
@@ -502,10 +503,9 @@ class CharityController extends Controller
         $array['cc'] = $contactmail;
         $email = auth('charity')->user()->email;
 
-        Mail::send('mail.urgentrequest', compact('array'), function($message)use($array,$email) {
-            $message->from($array['from'], 'Tevini.co.uk');
-            $message->to($email)->cc($array['cc'])->subject($array['subject']);
-        });
+        Mail::to($email)
+                ->cc($contactmail)
+                ->send(new UrgentRequest($array));
         
         $message ="Email send successfully";
         return back()->with('message', $message);

@@ -1,6 +1,9 @@
-<div class="container">
-  
- <h3>You have received a urgent request from {{$array['name']}}</h3>
+@component('mail::message')
 
+<h2>Dear,</h2>
 
-</div>
+<p>You have received a urgent request from Mr {{$array['name']}}</p>
+
+Thank You,<br>
+{{ config('app.name') }}
+@endcomponent

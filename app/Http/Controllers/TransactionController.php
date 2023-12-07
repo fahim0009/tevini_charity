@@ -190,6 +190,7 @@ class TransactionController extends Controller
 
         }
 
+
         return view('frontend.user.transaction')
         ->with('alltransactions',$alltransactions)
         ->with('intransactions',$intransactions)

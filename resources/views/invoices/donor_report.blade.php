@@ -198,11 +198,7 @@ use app\Models\Provoucher;
                         <td></td>
                         <td style="width:30%">Pending Amount: £{{ number_format($pending, 2) }}</td>
                     </tr>
-                    <tr>
-                        <td colspan="4" style="width:60%"></td>
-                        <td></td>
-                        <td style="width:30%">Your account balance is: £{{$user->balance}}</td>
-                    </tr>
+                    
                 </tbody>
             </table>
 

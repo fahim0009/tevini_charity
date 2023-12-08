@@ -198,6 +198,11 @@ use app\Models\Provoucher;
                         <td></td>
                         <td style="width:30%">Pending Amount: £{{ number_format($pending, 2) }}</td>
                     </tr>
+                    <tr>
+                        <td colspan="4" style="width:60%"></td>
+                        <td></td>
+                        <td style="width:30%">Your account balance is: £{{$user->balance}}</td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -249,7 +254,7 @@ use app\Models\Provoucher;
                         <td>{{$data->t_id}} </td>
                         <td>{{$data->title}} </td>
                         <td>{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
-                        <td>@if($data->charity_id){{ $data->charity->name}}@endif
+                        <td style="width: 15%">@if($data->charity_id){{ $data->charity->name}}@endif
                             @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif</td>
                         <td>@if($data->pending == "0") Pending @endif</td>
 

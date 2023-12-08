@@ -254,7 +254,7 @@ use app\Models\Provoucher;
                         <td>{{$data->t_id}} </td>
                         <td>{{$data->title}} </td>
                         <td>{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
-                        <td style="width: 15%">@if($data->charity_id){{ $data->charity->name}}@endif
+                        <td style="width: 10%">@if($data->charity_id){{ $data->charity->name}}@endif
                             @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif</td>
                         <td>@if($data->pending == "0") Pending @endif</td>
 

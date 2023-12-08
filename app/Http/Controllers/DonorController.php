@@ -359,6 +359,7 @@ class DonorController extends Controller
             $output = $pdf->output();
             file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
             $array['name'] = $user->name;
+            $array['userbalance'] = $user->balance;
             $array['view'] = 'mail.donorreport';
             $array['subject'] = 'Monthly statement';
             $array['from'] = 'info@tevini.co.uk';

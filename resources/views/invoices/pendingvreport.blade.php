@@ -131,6 +131,7 @@ use app\Models\Provoucher;
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Donor</th>
                         <th>Description</th>
                         <th>Voucher number</th>
                         <th>Amount</th>
@@ -143,6 +144,7 @@ use app\Models\Provoucher;
                 @foreach($remittances as $remittance)
                     <tr>
                     <td>{{ $remittance->created_at->format('d/m/Y')}} </td>
+                    <td>{{ $remittance->user->name}} </td>
                     <td>Vouchers </td>
                     <td>{{$remittance->cheque_no}}</td>
                     <td> £{{ number_format($remittance->amount, 2) }}</td>

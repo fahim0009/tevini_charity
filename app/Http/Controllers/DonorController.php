@@ -434,6 +434,7 @@ class DonorController extends Controller
             $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
             $output = $pdf->output();
             file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
+            $array['userbalance'] = $user->balance;
             $array['name'] = $user->name;
             $array['view'] = 'mail.donorreport';
             $array['subject'] = 'Donor Report';

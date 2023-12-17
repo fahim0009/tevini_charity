@@ -174,7 +174,7 @@ class DeductStandingDonation extends Command
                         $standing_order->increment('payment_made',1);
                         $standing_order->save();
 
-                 }
+                    }
 
 
                 }

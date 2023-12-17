@@ -31,30 +31,41 @@ class DonorController extends Controller
 {
     public function userDonationStore(Request $request)
     {
-        
 
-        request()->validate([
-            'charity_id' => ['required', 'string', 'max:255'],
-            'amount' => ['required', 'string', 'max:255']
-        ],
-        [
-            'charity_id.required' => 'You have to choose charity field!',
-            'amount.required' => 'You have to fill amount field!'
-        ]);
-        
+        // request()->validate([
+        //     'charity_id' => ['required'],
+        //     'amount' => ['required'],
+        //     'c_donation' => ['required']
+        // ],
+        // [
+        //     'charity_id.required' => 'Please select beneficiary field.',
+        //     'amount.required' => 'Please fill amount field.',
+        //     'c_donation.required' => 'Please accept condition.'
+        // ]);
+
+        if ((empty($request->charity_id))) {
+            $success['message'] = 'Please select beneficiary field..';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+        }
+
+        if ((empty($request->amount))) {
+            $success['message'] = 'Please fill amount field..';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+        }
+
+        if ((empty($request->c_donation))) {
+            $success['message'] = 'Please accept condition..';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+        }
 
         
 
         if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
+            
+            $success['message'] = 'You have to fill number of payment field!.';
+            return response()->json(['success'=>false,'response'=> $success], 202);
         }
-        if($request->c_donation == "false"){
-            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
+        
 
         $data = new Donation;
         $data->user_id = Auth::user()->id;
@@ -125,7 +136,7 @@ class DonorController extends Controller
             // ->cc($contactmail)
             // ->send(new DonationReport($array));
 
-            $success['message'] = 'Invoice Updated successfully';
+            $success['message'] = 'Donation submited Successfully.';
             $success['data'] = $data;
             return response()->json(['success'=>true,'response'=> $success], 200);
         }

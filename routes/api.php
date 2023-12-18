@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\DonorController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\StandingDonationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,8 +50,10 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     // waiting voucher 
     Route::get('process-voucher', [VoucherController::class, 'processed_Voucher_show']);
-
     Route::get('transaction-view', [TransactionController::class, 'userTransactionShow']);
+
+    // standing donation 
+    Route::post('standing-donation', [StandingDonationController::class, 'standingDonationStore']);
 
 });
 

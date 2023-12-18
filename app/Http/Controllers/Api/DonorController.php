@@ -32,16 +32,6 @@ class DonorController extends Controller
     public function userDonationStore(Request $request)
     {
 
-        // request()->validate([
-        //     'charity_id' => ['required'],
-        //     'amount' => ['required'],
-        //     'c_donation' => ['required']
-        // ],
-        // [
-        //     'charity_id.required' => 'Please select beneficiary field.',
-        //     'amount.required' => 'Please fill amount field.',
-        //     'c_donation.required' => 'Please accept condition.'
-        // ]);
 
         if ((empty($request->charity_id))) {
             $success['message'] = 'Please select beneficiary field..';
@@ -53,7 +43,7 @@ class DonorController extends Controller
             return response()->json(['success'=>false,'response'=> $success], 202);
         }
 
-        if ((empty($request->c_donation))) {
+        if ($request->c_donation == "false") {
             $success['message'] = 'Please accept condition..';
             return response()->json(['success'=>false,'response'=> $success], 202);
         }

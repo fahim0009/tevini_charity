@@ -126,7 +126,7 @@ class DonorController extends Controller
             // ->cc($contactmail)
             // ->send(new DonationReport($array));
 
-            $success['message'] = 'Donation submited Successfully.';
+            $success['message'] = 'Donation create Successfully.';
             $success['data'] = $data;
             return response()->json(['success'=>true,'response'=> $success], 200);
         }

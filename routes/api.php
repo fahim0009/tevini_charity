@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\StandingDonationController;
+use App\Http\Controllers\Api\VoucherBookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,9 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     // standing donation 
     Route::post('standing-donation', [StandingDonationController::class, 'standingDonationStore']);
+
+    
+    Route::get('order-voucher-book', [VoucherBookController::class, 'userOrderVoucherBook']);
 
 });
 

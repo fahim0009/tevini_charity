@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\VoucherController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\StandingDonationController;
 use App\Http\Controllers\Api\VoucherBookController;
+use App\Http\Controllers\Api\MaaserController;
+use App\Http\Controllers\Api\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +60,19 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     
     Route::get('order-voucher-book', [VoucherBookController::class, 'userOrderVoucherBook']);
+    Route::post('/voucher-store', [VoucherBookController::class, 'storeVoucher']);
+
+    
+    Route::get('donation-calculation', [MaaserController::class, 'donationCal']);
+    Route::post('one-off-donation', [MaaserController::class, 'oneoffDonation']);
+    Route::post('other-donation-store', [MaaserController::class, 'otherDonationStore']);
+
+     // regular income
+     Route::post('donation-calculator', [MaaserController::class, 'store']);
+     Route::post('donation-calculator-update', [MaaserController::class, 'DcalUpdate']);
+
+     
+    Route::post('/contact-submit', [ContactController::class, 'visitorContact']);
 
 });
 

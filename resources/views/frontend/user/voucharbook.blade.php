@@ -143,18 +143,24 @@ body {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
         //
 
-        var url = "{{URL::to('/user/addvoucher')}}";
+         var url = "{{URL::to('/user/addvoucher')}}";
 
 
         $("#addvoucher").click(function(){
 
-            $("#loading").show();
+            // $("#loading").show();
 
             var voucherIds = $("input[name='v_ids[]']")
               .map(function(){return $(this).val();}).get();
 
+
+
             var qtys = $("input[name='qty[]']")
               .map(function(){return $(this).val();}).get();
+
+              
+              console.log(voucherIds);
+              console.log(qtys);
 
             var did = $("#donner_id").val();
             var delivery = $('#delivery').prop('checked');

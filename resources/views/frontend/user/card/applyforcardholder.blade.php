@@ -81,12 +81,13 @@
                     $number = Auth::user()->phone;
                     $num = substr($number, 0, 3);
                     $num2 = substr($number, 3, 2);
+                    $num3 = substr($number, 1, 10);
                 @endphp
 
                 <div class="col-md-6">
                     <label for="">Mobile (** start +44)</label>
                     <small style="color: red">**Don't use 0 after +44</small>
-                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control @error('Mobile') is-invalid @enderror" value="@if ($num != "+44")+44 @else{{$number}}@endif" maxlength="13">
+                    <input type="text" name="Mobile" id="Mobile" placeholder="Mobile" class="form-control @error('Mobile') is-invalid @enderror" value="@if ($num != "+44")+44{{$num3}} @else{{$number}}@endif" maxlength="13">
                     @error('Mobile')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>

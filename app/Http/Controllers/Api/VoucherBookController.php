@@ -42,22 +42,26 @@ class VoucherBookController extends Controller
 
     public function storeVoucher(Request $request)
     {
-        $voucher_ids= $request->voucherIds;
-        $qtys = $request->qtys;
+
+        
+        $vouchers = json_decode($request->vouchers, true); 
+
         $prepaid_amount= 0;
         $order_amount= 0;
         $all_zero = true;
 
-            foreach($qtys as $key => $qty){
-                if($qty > Voucher::where('id',$voucher_ids[$key])->first()->stock){
+            foreach ($vouchers as $item){
+
+                if($item['qtys'] > Voucher::where('id',$item['voucherIds'])->first()->stock){
                     $success['message'] = 'One or some vouchers stock limit exceeded..';
                     return response()->json(['success'=>false,'response'=> $success], 202);
                     exit();
                 }
+
             }
 
-            foreach($qtys as $qty){
-                if($qty != '0')
+            foreach ($vouchers as $chkqty){
+                if($chkqty['qtys'] != '0')
                     {
                         $all_zero = false;
                         break;
@@ -87,12 +91,13 @@ class VoucherBookController extends Controller
             }
 
             foreach($voucher_ids as $key => $id){
-                $order_amount+= Voucher::where('id',$id)->first()->amount*$qtys[$key];
+            foreach ($vouchers as $voucher){
+                $order_amount+= Voucher::where('id',$voucher['voucherIds'])->first()->amount*$voucher['qtys'];
 
-                $p_amount =  Voucher::where('id',$id)->first()->amount;
+                $p_amount =  Voucher::where('id',$voucher['voucherIds'])->first()->amount;
 
-                if(Voucher::where('id',$id)->first()->type == "Prepaid"){
-                    $prepaid_amount += $p_amount*$qtys[$key];
+                if(Voucher::where('id',$voucher['voucherIds'])->first()->type == "Prepaid"){
+                    $prepaid_amount += $p_amount*$voucher['qtys'];
                     }
             }
 

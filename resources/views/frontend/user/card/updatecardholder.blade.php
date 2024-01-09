@@ -93,12 +93,12 @@
 
                 <div class="col-md-4" style="display: none">
                     <label for="">SocialSecurityNumber</label>
-                    <input type="number" name="SocialSecurityNumber" id="SocialSecurityNumber" placeholder="SocialSecurityNumber" class="form-control" value="12345678">
+                    <input type="number" name="SocialSecurityNumber" id="SocialSecurityNumber" placeholder="SocialSecurityNumber" class="form-control">
                 </div>
 
                 <div class="col-md-4" style="display: none">
                     <label for="">IdCardNumber</label>
-                    <input type="number" name="IdCardNumber" id="IdCardNumber" placeholder="IdCardNumber" class="form-control" value="001">
+                    <input type="number" name="IdCardNumber" id="IdCardNumber" placeholder="IdCardNumber" class="form-control">
                 </div>
             </div>
 
@@ -107,7 +107,7 @@
 
                 <div class="col-md-4" style="display: none">
                     <label for="">TaxIdCardNumber</label>
-                    <input type="text" name="TaxIdCardNumber" id="TaxIdCardNumber" placeholder="TaxIdCardNumber" class="form-control" value="0002">
+                    <input type="text" name="TaxIdCardNumber" id="TaxIdCardNumber" placeholder="TaxIdCardNumber" class="form-control">
                 </div>
 
                 
@@ -128,7 +128,7 @@
 
                 <div class="col-md-4" style="display: none">
                     <label for="">Title</label>
-                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control" value="">
+                    <input type="text" name="Title" id="Title" placeholder="Title" class="form-control">
                 </div>
             </div>
 

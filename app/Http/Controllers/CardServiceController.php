@@ -536,11 +536,11 @@ class CardServiceController extends Controller
             // Send a POST request to the API with the updated finance fee value
             $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/user/cardHolderId/'.$CardHolderId.'', [
-                    'AcceptedTAndCs' => true,
-                    'ShownAutoCommsOptIn' => true,
-                    'PassedSanctions' => true,
-                    'PassedPeps' => true,
-                    'PassedKyc' => true,
+                    'AcceptedTAndCs' => false,
+                    'ShownAutoCommsOptIn' => false,
+                    'PassedSanctions' => null,
+                    'PassedPeps' => null,
+                    'PassedKyc' => null,
                     'IsActive' => true,
                     'FirstName' => $FirstName,
                     'LastName' => $LastName,

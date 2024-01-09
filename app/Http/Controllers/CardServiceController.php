@@ -484,7 +484,6 @@ class CardServiceController extends Controller
     // update cardholder
     public function updateCardHolderPost(Request $request)
     {
-        // dd($request->all());
         $rules = [
             'FirstName' => 'required|max:20',
             'LastName' => 'required|max:20',
@@ -551,7 +550,11 @@ class CardServiceController extends Controller
                     'LandlineTelephone' => $LandlineTelephone,
                     'Language' => "en-GB",
                     'DateOfBirth' => $DateOfBirth,
+                    'SocialSecurityNumber' => $SocialSecurityNumber,
+                    'IdCardNumber' => $IdCardNumber,
                     'Nationality' => $Nationality,
+                    'Title' => $Title,
+                    'TaxIdCardNumber' => $TaxIdCardNumber,
                     'HouseNumberOrBuilding' => $HouseNumberOrBuilding,
                     'Address1' => $Address1,
                     'Address2' => $Address2,

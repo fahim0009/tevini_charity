@@ -484,7 +484,7 @@ class CardServiceController extends Controller
     // update cardholder
     public function updateCardHolderPost(Request $request)
     {
-        dd($request->all());
+        // dd($request->all());
         $rules = [
             'FirstName' => 'required|max:20',
             'LastName' => 'required|max:20',

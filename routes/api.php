@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\StandingDonationController;
 use App\Http\Controllers\Api\VoucherBookController;
 use App\Http\Controllers\Api\MaaserController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,8 +43,10 @@ Route::post('/expired', [CardServiceController::class, 'expired']);
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();
     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::get('get-user-details', [RegisterController::class, 'userDetails']);
     Route::get('get-all-charity', [CharityController::class, 'getAllCharity']);
     Route::post('make-donation', [DonorController::class, 'userDonationStore']);
+    Route::post('profile', [UserController::class, 'updateprofile']);
 
     
     Route::get('donation-record', [DonorController::class, 'userDonationrecod']);

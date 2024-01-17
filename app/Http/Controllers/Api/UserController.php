@@ -16,15 +16,15 @@ class UserController extends Controller
         $chkemail = User::where('email','=', $request->email)->whereNotIn('id', [Auth::id()])->count();
 
         if( $chkemail > 0){
-            $message ="This email has already exists.";
-            return redirect()->route('user.profile')->with(['status'=> 303,'error'=> $message]);
+            $success['message'] = 'This email has already exists.';
+            return response()->json(['success'=>false,'response'=> $success], 202);
 
         }
 
         if ($request->password) {
             if ($request->password != $request->cpassword) {
-                $message ="Password doesn't match!!";
-                return redirect()->route('user.profile')->with(['status'=> 303,'error'=> $message]);
+                $success['message'] = "Password doesn't match!!";
+                return response()->json(['success'=>false,'response'=> $success], 202);
             }
         }
 
@@ -58,13 +58,15 @@ class UserController extends Controller
         }
 
         if ($userdata->save()) {
-            
-            $message ="Profile Update Successfully";
 
-        return redirect()->route('user.profile')->with(['status'=> 303,'message'=> $message]);
+            $success['message'] = 'Profile Update Successfully';
+            $success['data'] = $userdata;
+            return response()->json(['success'=>true,'response'=> $success], 200);
         }
         else{
-            return back()->with(['status'=> 303,'message'=>'Server Error!!']);
+            
+            $success['message'] = 'Server Error!!';
+            return response()->json(['success'=>false,'response'=> $success], 204);
         }
 
     }

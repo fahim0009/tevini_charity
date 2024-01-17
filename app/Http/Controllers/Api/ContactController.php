@@ -68,7 +68,7 @@ class ContactController extends Controller
         
                 if ($a)
                 {
-                    $success['message'] = 'Data updated successfully.';
+                    $success['message'] = 'Message send successfully.';
                     return response()->json(['success'=>true,'response'=> $success], 200);
 
                 } else {

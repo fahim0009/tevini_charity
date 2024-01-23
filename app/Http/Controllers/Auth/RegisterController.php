@@ -82,6 +82,7 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
         $user =  User::create([
+            'prefix_name' => $data['prefix_name'],
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
@@ -109,6 +110,7 @@ class RegisterController extends Controller
 
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
+            $array['prefix_name'] = $data['prefix_name'];
             $array['name'] = $data['name'];
             $array['subject'] = 'Welcome to Tevini';
             $array['from'] = 'info@tevini.co.uk';

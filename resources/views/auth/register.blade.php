@@ -44,8 +44,12 @@
                         <form method="POST" class="form-custom" action="{{ route('register') }}">
                                 @csrf
 
-
-
+                            <div class="form-group">
+                                <select name="prefix_name" id="prefix_name"  class="form-control @error('prefix_name') is-invalid @enderror" required>
+                                    <option value="Mr">Mr</option>
+                                    <option value="Mrs">Mrs</option>
+                                </select>
+                            </div>
 
                             <div class="form-group">
                                 <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}"  placeholder="Name" required autocomplete="name" autofocus>

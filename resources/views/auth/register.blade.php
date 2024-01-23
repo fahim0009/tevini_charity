@@ -63,6 +63,8 @@
                             <div class="form-group">
                                 <input id="phone" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}"  placeholder="Contact Number" required autocomplete="phone" maxlength="13" autofocus> 
                                 {{-- <small>*Example:+440123456789</small> --}}
+                                
+                                <span>Example: 441234567890</span>
                                 @error('phone')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -103,8 +105,6 @@
                             <div class="form-group">
                 
                                 <input id="password" type="password" placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
-                
-                
                                 @error('password')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>

@@ -54,7 +54,7 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'regex:/^((44)|(45)|(46))[0-9]{10}/','min:12'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'houseno' => ['required', 'string', 'max:255'],
             'streetname' => ['required', 'string', 'max:255'],
@@ -81,12 +81,26 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        $num = $data['phone'];
+        $chkctr = substr($num, 0, 2);
+        $lastdigit = substr($num,-10);
+
+        if ($chkctr == "44") {
+            $prefix = "+44";
+            $phone = $prefix.$lastdigit;
+        }else{
+            $phone = "+".$num;
+        }
+
+        
+
         $user =  User::create([
             'prefix_name' => $data['prefix_name'],
             'name' => $data['name'],
+            'surname' => $data['surname'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'phone' => $data['phone'],
+            'phone' => $phone,
             'houseno' => $data['houseno'],
             'street' => $data['streetname'],
             'town' => $data['town'],

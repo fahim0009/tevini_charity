@@ -54,8 +54,20 @@
                             <div class="form-group">
                                 <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}"  placeholder="Name" required autocomplete="name" autofocus>
                             </div>
+
                             <div class="form-group">
-                                <input id="phone" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}"  placeholder="Contact Number" required autocomplete="phone" autofocus> 
+                                <input id="surname" type="text" class="form-control @error('surname') is-invalid @enderror" name="surname" value="{{ old('surname') }}"  placeholder="Surname" required autocomplete="surname" autofocus>
+                            </div>
+
+
+                            <div class="form-group">
+                                <input id="phone" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}"  placeholder="Contact Number" required autocomplete="phone" maxlength="13" autofocus> 
+                                {{-- <small>*Example:+440123456789</small> --}}
+                                @error('phone')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="form-group">
                                 <input id="houseno" type="text" class="form-control @error('houseno') is-invalid @enderror" name="houseno" value="{{ old('houseno') }}"  placeholder="House Number" required autocomplete="houseno" autofocus>
@@ -79,6 +91,12 @@
                             
                             <div class="form-group">
                                 <input id="email" type="email"  placeholder="Email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
+
+                                @error('email')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                 
                 
                             </div>

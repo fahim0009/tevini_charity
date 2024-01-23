@@ -115,12 +115,25 @@
                                     <th>Post Code</th>
                                     <th>Charity Number</th>
                                     <th>Balance</th>
+                                    <th>Pending</th>
                                     <th>Status</th>
                                     <th>Action </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($users as $user)
+
+
+                                @php
+                                    $pending_transactions = \App\Models\Usertransaction::where([
+                                            ['t_type','=', 'Out'],
+                                            ['charity_id','=', $user->id],
+                                            ['pending','=', '0']
+                                        ])->sum('amount');
+                                @endphp
+
+
+
                                     <tr>
                                         <td>{{$user->name}}</td>
                                         <td>{{$user->email}}</td>
@@ -130,6 +143,7 @@
                                         <td>{{$user->post_code}}</td>
                                         <td>{{$user->acc_no}}</td>
                                         <td>£{{$user->balance}}</td>
+                                        <td>£{{number_format($pending_transactions, 2)}}</td>
                                         <td style="text-align: center">
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input campaignstatus" type="checkbox" role="switch"  data-id="{{$user->id}}" id="campaignstatus" @if ($user->status == 1) checked @endif >

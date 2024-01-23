@@ -23,7 +23,7 @@
                     <div class="text-start text-muted mb-4 px-2">
                         <p class="mb-1">Name: {{$user->name}}</p>
                         <p class="mb-1">Email: {{$user->email}}</p>
-                        <p class="mb-1">Address: {{$user->address}}</p>
+                        <p class="mb-1">Address: {{$user->houseno}}, {{$user->street}} {{$user->town}} {{$user->postcode}}    </p>
                         <br>
                         <p class="mb-1">Delivery Option: {{$order->delivery_option}}</p>
                     </div>

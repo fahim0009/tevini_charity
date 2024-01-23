@@ -65,6 +65,7 @@ use Illuminate\Support\Carbon;
                                             <th>transaction type</th>
                                             <th>Voucher Number</th>
                                             <th>Charity Name</th>
+                                            <th>Note</th>
                                             <th>Status</th>
                                             <th>Credit</th>
                                             <th>Debit</th>
@@ -113,6 +114,7 @@ use Illuminate\Support\Carbon;
                                             <td></td>
                                             <td></td>
                                             <td></td>
+                                            <td></td>
                                             <td>-£{{$data->commission}}</td>
                                             <td>£{{ number_format($tbalance, 2) }}</td>
                                             @php
@@ -128,6 +130,7 @@ use Illuminate\Support\Carbon;
                                             <td>@if($data->charity_id){{ $data->charity->name}}@endif
                                                 @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
                                             </td>
+                                            <td>{{$data->note}}</td>
                                             <td>@if($data->pending == "0") Pending @endif</td>
 
                                                 @if($data->t_type == "In")
@@ -154,6 +157,7 @@ use Illuminate\Support\Carbon;
                                         </tr>
                                     @endforeach
                                      <tr>
+                                        <td></td>
                                         <td></td>
                                         <td></td>
                                         <td></td>
@@ -213,6 +217,7 @@ use Illuminate\Support\Carbon;
                                             <th>Date</th>
                                             <th>Transaction Id</th>
                                             <th>Source</th>
+                                            <th>Note</th>
                                             <th>Commission</th>
                                             <th>Amount </th>
                                         </tr>
@@ -223,6 +228,7 @@ use Illuminate\Support\Carbon;
                                                 <td><span style="display:none;">{{ $transaction->id }}</span>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->source}}</td>
+                                                <td>{{ $transaction->note}}</td>
                                                 <td>£{{$transaction->commission}}</td>
                                                 <td>£{{ $transaction->amount}}</td>
                                         </tr>

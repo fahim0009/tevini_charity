@@ -23,7 +23,7 @@ use App\Models\ProvouchersImages;
 use App\Mail\InstantReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingvoucherReport;
-use Auth;
+use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use PDF;
 
@@ -43,6 +43,7 @@ class VoucherBookController extends Controller
     public function storeVoucher(Request $request)
     {
 
+        // dd('Controller');
         
         $vouchers = json_decode($request->vouchers, true); 
 
@@ -90,7 +91,6 @@ class VoucherBookController extends Controller
                 $delivery_opt = null;
             }
 
-            foreach($voucher_ids as $key => $id){
             foreach ($vouchers as $voucher){
                 $order_amount+= Voucher::where('id',$voucher['voucherIds'])->first()->amount*$voucher['qtys'];
 
@@ -119,21 +119,18 @@ class VoucherBookController extends Controller
         $order->status = 0;
         if($order->save()){
 
-
-
-            foreach($voucher_ids as $key => $voucher_id)
+            foreach($vouchers as $vdata)
             {
-                if($qtys[$key] != "0"){
+                if($vdata['qtys'] != "0"){
+                if($vdata['qtys'] > "1"){
 
-                if($qtys[$key] > "1"){
-
-                    for($x = 0; $x < $qtys[$key]; $x++)
+                    for($x = 0; $x < $vdata['qtys']; $x++)
                     {
                     $unique = time().rand(1,100);
                     //order history
-                    $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                    $amount =  Voucher::where('id',$vdata['voucherIds'])->first()->amount;
                     $input['order_id'] = $order->id;
-                    $input['voucher_id'] = $voucher_id;
+                    $input['voucher_id'] = $vdata['voucherIds'];
                     $input['number_voucher'] = 1;
                     $input['amount'] = $amount;
                     $input['o_unq'] = $unique;
@@ -146,27 +143,27 @@ class VoucherBookController extends Controller
                 $unique = time().rand(1,100);
 
                 //order history
-                $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                $amount =  Voucher::where('id',$vdata['voucherIds'])->first()->amount;
                 $input['order_id'] = $order->id;
-                $input['voucher_id'] = $voucher_id;
-                $input['number_voucher'] = $qtys[$key];
-                $input['amount'] = $qtys[$key]*$amount;
+                $input['voucher_id'] = $vdata['voucherIds'];
+                $input['number_voucher'] = $vdata['qtys'];
+                $input['amount'] = $vdata['qtys']*$amount;
                 $input['o_unq'] = $unique;
                 $input['status'] = "0";
                 OrderHistory::create($input);
                 }
                 //voucher stock decrement
-                $v = Voucher::find($voucher_id);
-                $v->decrement('stock',$qtys[$key]);
+                $v = Voucher::find($vdata['voucherIds']);
+                $v->decrement('stock',$vdata['qtys']);
                 $v->save();
 
                 //user transaction out if voucher is/are prepaid
-                if(Voucher::where('id',$voucher_id)->first()->type == "Prepaid"){
+                if(Voucher::where('id',$vdata['voucherIds'])->first()->type == "Prepaid"){
                     $utransaction = new Usertransaction();
                     $utransaction->t_id = time() . "-" . Auth::user()->id;
                     $utransaction->user_id = Auth::user()->id;
                     $utransaction->t_type = "Out";
-                    $utransaction->amount =  $qtys[$key]*$amount;
+                    $utransaction->amount =  $vdata['qtys']*$amount;
                     $utransaction->t_unq = $unique;
                     $utransaction->order_id = $order->id;
                     $utransaction->title ="Prepaid Voucher Book";
@@ -213,10 +210,10 @@ class VoucherBookController extends Controller
             $array['delivery_option'] = $delivery_opt;
 
 
-            Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
-             $message->from($array['from'], 'Tevini.co.uk');
-             $message->to($email)->cc($array['cc'])->subject($array['subject']);
-            });
+            // Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
+            //  $message->from($array['from'], 'Tevini.co.uk');
+            //  $message->to($email)->cc($array['cc'])->subject($array['subject']);
+            // });
 
 
             $success['message'] = 'Voucher order place successfully.';

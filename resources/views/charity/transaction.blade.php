@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
                   <button class="nav-link active" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Transaction In</button>
                   <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-transcationIn" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Transcation Out</button>
 
+                  <button class="nav-link" id="nav-report-tab" data-bs-toggle="tab" data-bs-target="#nav-reportTab" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Report</button>
+
                 </div>
               </nav>
               <div class="tab-content" id="nav-tabContent">
@@ -143,6 +145,30 @@ use Illuminate\Support\Carbon;
                                             <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="tab-pane fade" id="nav-reportTab" role="tabpanel" aria-labelledby="nav-report-tab">
+                    <div class="row my-2">
+                        
+                        <div class="col-md-12 mt-2 text-center">
+                            <div class="overflow">
+                                <table class="table table-custom shadow-sm bg-white" id="exampleIn">
+                                    <thead>
+                                        <tr>
+                                            <th>SL</th>
+                                            <th>Date</th>
+                                            <th>Report </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        
+                                        
                                     </tbody>
                                 </table>
                             </div>

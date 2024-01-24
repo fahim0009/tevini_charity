@@ -148,7 +148,7 @@ body {
 
         $("#addvoucher").click(function(){
 
-            // $("#loading").show();
+            $("#loading").show();
 
             var voucherIds = $("input[name='v_ids[]']")
               .map(function(){return $(this).val();}).get();

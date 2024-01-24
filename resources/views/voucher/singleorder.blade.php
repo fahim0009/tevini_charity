@@ -31,7 +31,7 @@
                         <p class="mb-1">Order date: {{$order->created_at}}</p>
                         <p class="mb-1 d-flex align-items-center">Status:
                             <select name="" id="" class="ms-2 form-control" @if($order->status == "3") disabled @endif>
-                                <option value="0" @if($order->status == "0") selected @endif>Peding</option>
+                                <option value="0" @if($order->status == "0") selected @endif>Pending</option>
                                 <option value="1" @if($order->status == "1") selected @endif>Complete</option>
                                 <option value="3" @if($order->status == "3") selected @endif>Cancel</option>
                             </select>

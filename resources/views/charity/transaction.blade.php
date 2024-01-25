@@ -158,7 +158,7 @@ use Illuminate\Support\Carbon;
                         
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="exampleIn">
+                                <table class="table table-custom shadow-sm bg-white">
                                     <thead>
                                         <tr>
                                             <th>SL</th>
@@ -167,6 +167,16 @@ use Illuminate\Support\Carbon;
                                         </tr>
                                     </thead>
                                     <tbody>
+
+                                        @foreach ($reports as $key => $report)
+
+                                        <tr>
+                                            <td>{{ $key + 1 }}</td>
+                                            <td>{{ $report->created_at }}</td>
+                                            <td><a class="text-white btn-theme ml-1" href="{{route('instreport', $report->id)}}" style="text-decoration: none">Report</a></td>
+                                        </tr>
+                                            
+                                        @endforeach
                                         
                                         
                                     </tbody>
@@ -181,4 +191,60 @@ use Illuminate\Support\Carbon;
     </div>
   </section>
 </div>
+@endsection
+@section('script')
+<script>
+    $(document).ready(function() {
+
+        var title = 'Report: ';
+        var data = 'Data: ';
+
+
+        // datatable common
+        $('#reportDT').DataTable({
+            pageLength: 25,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            responsive: true,
+            columnDefs: [ { type: 'date', 'targets': [0] } ],
+            order: [[ 0, 'desc' ]],
+            dom: '<"html5buttons"B>lTfgitp',
+            buttons: [
+                {extend: 'copy'},
+                {extend: 'excel', title: title},
+                // {extend: 'pdfHtml5',
+                // title: 'Report',
+                // orientation : 'portrait',
+                //     header:true,
+                //     customize: function ( doc ) {
+                //         doc.content.splice(0, 1, {
+                //                 text: [
+
+                //                            { text: data+'\n',bold:true,fontSize:12 },
+                //                            { text: title+'\n',bold:true,fontSize:15 }
+
+                //                 ],
+                //                 margin: [0, 0, 0, 12],
+                //                 alignment: 'center'
+                //             });
+                //         doc.defaultStyle.alignment = 'center'
+                //     }
+                // },
+                {extend: 'print',
+                exportOptions: {
+                stripHtml: false
+            },
+                title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
+                header:true,
+                    customize: function (win){
+                    $(win.document.body).addClass('white-bg');
+                    $(win.document.body).css('font-size', '10px');
+                    $(win.document.body).find('table')
+                    .addClass('compact')
+                    .css('font-size', 'inherit');
+                }
+                }
+            ]
+        });
+    });
+</script>
 @endsection

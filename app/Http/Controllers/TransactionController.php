@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Batchprov;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Provoucher;
@@ -310,6 +311,12 @@ class TransactionController extends Controller
                 ['status','=', '1']
             ])->orderBy('id','DESC')->get();
 
+            $reports = Batchprov::where([
+                ['created_at', '>=', $fromDate],
+                ['created_at', '<=', $toDate.' 23:59:59'],
+                ['charity_id','=', $id]
+            ])->orderby('id','DESC')->get();
+
         }else{
 
             $intransactions = Usertransaction::where([
@@ -324,6 +331,8 @@ class TransactionController extends Controller
                 ['status','=', '1']
             ])->orderBy('id','DESC')->get();
 
+            $reports = Batchprov::where('charity_id','=', $id)->orderby('id','DESC')->get();
+
         }
 
 
@@ -331,6 +340,7 @@ class TransactionController extends Controller
         return view('charity.transaction')
         ->with('intransactions',$intransactions)
         ->with('id',$id)
+        ->with('reports',$reports)
         ->with('outtransactions',$outtransactions);
     }
 

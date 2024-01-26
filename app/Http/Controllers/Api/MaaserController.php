@@ -315,4 +315,49 @@ class MaaserController extends Controller
 
 
     }
+
+
+    public function onOffdonationDetails()
+    {
+        $donation = DonationDetail::where([
+            ['donor_id','=', Auth::user()->id],
+            ['income_slot','=', '0']
+        ])->orderBy('id','DESC')->get();
+        
+        $success['data'] = $donation;
+        return response()->json(['success'=>true,'response'=> $success], 200);
+    }
+
+    public function donationDetails($id)
+    {
+        $donation = DonationDetail::where('donation_cal_id','=', $id)->orderBy('id','DESC')->get();
+        
+        $success['data'] = $donation;
+        return response()->json(['success'=>true,'response'=> $success], 200);
+    }
+
+
+    public function donationActive(Request $request)
+    {
+        $data = DonationCalculator::find($request->id);
+        $data->status = $request->status;
+        $data->save();
+
+        if($request->status==1){
+            $data = DonationCalculator::find($request->id);
+            $data->status = $request->status;
+            $data->save();
+            $success['message'] = 'Active Successfully.';
+            $success['data'] = $data;
+            return response()->json(['success'=>true,'response'=> $success], 200);
+        }else{
+            $data = DonationCalculator::find($request->id);
+            $data->status = $request->status;
+            $data->save();
+            $success['message'] = 'Inactive Successfully.';
+            $success['data'] = $data;
+            return response()->json(['success'=>true,'response'=> $success], 200);
+        }
+
+    }
 }

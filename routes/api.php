@@ -51,8 +51,9 @@ Route::group(['middleware' => ['auth:api']], function () {
     
     Route::get('donation-record', [DonorController::class, 'userDonationrecod']);
     Route::get('standing-order-record', [DonorController::class, 'userStandingrecod']);
-    
     Route::get('standing-order-record/{id}', [DonorController::class, 'usersingleStanding']);
+    
+    Route::post('active-standingdonation', [DonorController::class, 'activeStandinguser']);
 
 
     Route::get('order-history', [OrderController::class, 'userOrderview']);
@@ -73,9 +74,18 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('one-off-donation', [MaaserController::class, 'oneoffDonation']);
     Route::post('other-donation-store', [MaaserController::class, 'otherDonationStore']);
 
+    
+    Route::get('on-off-donation-details', [MaaserController::class, 'onOffdonationDetails']);
+
      // regular income
      Route::post('donation-calculator', [MaaserController::class, 'store']);
      Route::post('donation-calculator-update', [MaaserController::class, 'DcalUpdate']);
+
+     
+    Route::post('active-donation-details', [MaaserController::class, 'donationActive']);
+
+     
+    Route::get('donation-details/{id}', [MaaserController::class, 'donationDetails']);
 
      
     Route::post('/contact-submit', [ContactController::class, 'visitorContact']);

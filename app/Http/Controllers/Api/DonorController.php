@@ -166,4 +166,35 @@ class DonorController extends Controller
         return response()->json(['success'=>true,'response'=> $success], 200);
 
     }
+
+
+    public function activeStandinguser(Request $request)
+    {
+
+        if($request->status==1){
+            $active = StandingDonation::where([
+                ['id','=', $request->id],
+                ['user_id','=', Auth::user()->id],
+            ])->first();
+            $active->status = $request->status;
+            $active->save();
+
+            $success['message'] = 'Active Successfully.';
+            $success['data'] = $active;
+            return response()->json(['success'=>true,'response'=> $success], 200);
+
+        }else{
+            $deactive = StandingDonation::where([
+                ['id','=', $request->id],
+                ['user_id','=', Auth::user()->id],
+            ])->first();
+            $deactive->status = $request->status;
+            $deactive->save();
+            
+            $success['message'] = 'Inactive Successfully.';
+            $success['data'] = $deactive;
+            return response()->json(['success'=>true,'response'=> $success], 200);
+        }
+
+    }
 }

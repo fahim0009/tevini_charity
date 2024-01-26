@@ -138,7 +138,7 @@ class DonorController extends Controller
         $data = Donation::where([
             ['standing_order','=', 'false'],
             ['user_id','=', auth()->user()->id]
-        ])->get();
+        ])->orderBy('id','DESC')->get();
 
         $success['data'] = $data;
         return response()->json(['success'=>true,'response'=> $success], 200);
@@ -148,9 +148,22 @@ class DonorController extends Controller
     {
         $data = StandingDonation::where([
             ['user_id','=', auth()->user()->id]
-        ])->get();
+        ])->orderBy('id','DESC')->get();
 
         $success['data'] = $data;
         return response()->json(['success'=>true,'response'=> $success], 200);
+    }
+
+    public function usersingleStanding($id)
+    {
+
+        $singleStddonation = StandingdonationDetail::where([
+            ['id','=', $id],
+            ['user_id','=', auth()->user()->id]
+        ])->orderBy('id','DESC')->get();
+
+        $success['data'] = $singleStddonation;
+        return response()->json(['success'=>true,'response'=> $success], 200);
+
     }
 }

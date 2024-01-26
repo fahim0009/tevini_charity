@@ -51,6 +51,9 @@ Route::group(['middleware' => ['auth:api']], function () {
     
     Route::get('donation-record', [DonorController::class, 'userDonationrecod']);
     Route::get('standing-order-record', [DonorController::class, 'userStandingrecod']);
+    
+    Route::get('standing-order-record/{id}', [DonorController::class, 'usersingleStanding']);
+
 
     Route::get('order-history', [OrderController::class, 'userOrderview']);
 

@@ -63,15 +63,48 @@ class DashboardController extends Controller
             ['user_id','=', auth()->user()->id],
             ['pending','=', '1']
             ])->orderBy('id','DESC')->get();
-
+            
         $alltransactions = Usertransaction::where([
                 ['user_id','=', auth()->user()->id],
                 ['status','=', '1']
             ])->orwhere([
                 ['user_id','=', auth()->user()->id],
                 ['pending','=', '1']
-                ])->orderBy('id','DESC')->limit(5)->get();
+            ])->orderBy('id','DESC')->limit(5)->get();
 
+            // previous balance calculation
+        $preamntIn = Usertransaction::where([
+                ['t_type','=', 'In'],
+                ['user_id','=', auth()->user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['t_type','=', 'In'],
+                ['user_id','=', auth()->user()->id],
+                ['pending','=', '1']
+            ])->orderBy('id','DESC')->sum('amount');
+
+        $precommission = Usertransaction::where([
+                ['t_type','=', 'In'],
+                ['user_id','=', auth()->user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['t_type','=', 'In'],
+                ['user_id','=', auth()->user()->id],
+                ['pending','=', '1']
+            ])->orderBy('id','DESC')->sum('commission');
+
+        $preamntOut = Usertransaction::where([
+                ['t_type','=', 'Out'],
+                ['user_id','=', auth()->user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['t_type','=', 'Out'],
+                ['user_id','=', auth()->user()->id],
+                ['pending','=', '1']
+            ])->orderBy('id','DESC')->sum('amount');
+
+        $prebalance = $preamntIn + $precommission - $preamntOut;
+            // previous balance calculation
 
         $responseArray = [
             'status'=>'ok',
@@ -79,6 +112,10 @@ class DashboardController extends Controller
             'currentyramount'=>$currentyramount,
             'totalamount'=>$totalamount,
             'tamount'=>$tamount,
+            'prebalance'=>$prebalance,
+            'preamntIn'=>$preamntIn,
+            'precommission'=>$precommission,
+            'preamntOut'=>$preamntOut,
             'alltransactions'=>$alltransactions
         ]; 
         return response()->json($responseArray,200);

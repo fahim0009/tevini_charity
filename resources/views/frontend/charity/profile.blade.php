@@ -96,6 +96,35 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                
+                                <div class="col-lg-12">
+                                    <div class="form-group mb-3">
+                                        <label for="">Account Name</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" id="account_name" name="account_name" placeholder="Enter account name" value="{{ auth('charity')->user()->account_name }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="form-group mb-3">
+                                        <label for="">Account Number</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" id="account_number" name="account_number" placeholder="Enter account number" value="{{ auth('charity')->user()->account_number }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="form-group mb-3">
+                                        <label for="">Account Sortcode</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" id="account_sortcode" name="account_sortcode" placeholder="Enter account sortcode" value="{{ auth('charity')->user()->account_sortcode }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-lg-6">
                                     <div class="form-group mb-3">
                                         <label for="">Password</label>
@@ -163,6 +192,9 @@
             // $("#email").attr("readonly", false);
             $("#password").attr("readonly", false);
             $("#cpassword").attr("readonly", false);
+            $("#account_name").attr("readonly", false);
+            $("#account_number").attr("readonly", false);
+            $("#account_sortcode").attr("readonly", false);
             $("#editBtn").hide();
             $("#updateBtn").show();
         });

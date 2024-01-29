@@ -312,6 +312,9 @@ class CharityController extends Controller
         $charity->address = $request->address;
         $charity->town = $request->town;
         $charity->post_code = $request->postcode;
+        $charity->account_name = $request->account_name;
+        $charity->account_number = $request->account_number;
+        $charity->account_sortcode = $request->account_sortcode;
 
    
 

@@ -37,6 +37,17 @@
                             <input type="text" name="post_code" id="post_code" placeholder="" class="form-control @error('address') is-invalid @enderror" value="{{ $users->post_code }}">
                          </div>
 
+                         <div class="col my-3">
+                            <label for="">Account name</label>
+                           <input type="text" name="account_name" id="account_name" placeholder="" class="form-control @error('account_name') is-invalid @enderror" value="{{ $users->account_name }}">
+                        </div>
+
+                        
+                        <div class="col my-3">
+                            <label for="">Account number</label>
+                           <input type="text" name="account_number" id="account_number" placeholder="" class="form-control @error('account_number') is-invalid @enderror" value="{{ $users->account_number }}">
+                        </div>
+
 
                     </div>
                     <div class="col-md-6  my-4  bg-white">
@@ -54,6 +65,12 @@
                             <label for="">Charity Number</label>
                            <input type="text" name="acc_no" id="acc_no" placeholder="Account no" class="form-control @error('address') is-invalid @enderror"  value="{{ $users->acc_no }}">
                         </div>
+
+                        <div class="col my-3">
+                            <label for="">Account sortcode</label>
+                           <input type="text" name="account_sortcode" id="account_sortcode" placeholder="" class="form-control @error('account_sortcode') is-invalid @enderror"  value="{{ $users->account_sortcode }}">
+                        </div>
+
                         <div class="col my-3">
                             <label for="password">Password</label>
                            <input type="password" name="password" id="password" placeholder="Password" class="form-control">

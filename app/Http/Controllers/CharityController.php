@@ -70,6 +70,9 @@ class CharityController extends Controller
         $user->address = $request->address;
         $user->town = $request->town;
         $user->post_code = $request->post_code;
+        $user->account_name = $request->account_name;
+        $user->account_number = $request->account_number;
+        $user->account_sortcode = $request->account_sortcode;
         $user->acc_no = $request->acc;
         if($request->balance == "") {
             $user->balance =0;
@@ -147,6 +150,9 @@ class CharityController extends Controller
         $user->town = $request->town;
         $user->post_code = $request->post_code;
         $user->acc_no = $request->acc_no;
+        $user->account_name = $request->account_name;
+        $user->account_number = $request->account_number;
+        $user->account_sortcode = $request->account_sortcode;
         if ($request->password) {
             $user->password= Hash::make($request->password);
         }

@@ -40,7 +40,7 @@
 
 
         <section class="px-4"  id="addThisFormContainer">
-            <div class="row my-3">
+            <div class="row justify-content-md-center my-3">
 
                     <div class="col-md-6  my-4 bg-white">
                         <form action="{{ route('charity.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
@@ -61,11 +61,20 @@
                              <label for="">Post Code</label>
                             <input type="text" name="post_code" id="post_code" placeholder="" class="form-control @error('address') is-invalid @enderror">
                          </div>
+
+                         
+                        <div class="col my-3">
+                            <label for="">Account name</label>
+                           <input type="text" name="account_name" id="account_name" placeholder="" class="form-control @error('account_name') is-invalid @enderror">
+                        </div>
+
+                        
+                        <div class="col my-3">
+                            <label for="">Account number</label>
+                           <input type="text" name="account_number" id="account_number" placeholder="" class="form-control @error('account_number') is-invalid @enderror">
+                        </div>
     
                     </div>
-
-
-
 
                     <div class="col-md-6  my-4  bg-white">
 
@@ -86,6 +95,12 @@
                         <div class="col my-3">
                             <label for="">Balance</label>
                            <input type="text" name="balance" id="balance" placeholder="balance" class="form-control">
+                        </div>
+
+                        
+                        <div class="col my-3">
+                            <label for="">Account sortcode</label>
+                           <input type="text" name="account_sortcode" id="account_sortcode" placeholder="" class="form-control @error('account_sortcode') is-invalid @enderror">
                         </div>
 
                     </div>

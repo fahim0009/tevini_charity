@@ -63,6 +63,18 @@
                                     <td>Balance:</td>
                                     <td>{{ $topup->balance }}</td>
                                 </tr>
+                                <tr>
+                                    <td>Account Name:</td>
+                                    <td>{{ $topup->account_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Account Number:</td>
+                                    <td>{{ $topup->account_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Account Sortcode:</td>
+                                    <td>{{ $topup->account_sortcode }}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

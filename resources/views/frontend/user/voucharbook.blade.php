@@ -83,6 +83,7 @@ body {
                                 <span class="bottom-data"> 1-2 working days</span>
                             </div>
                         </div>
+                        
                     </div>
                     <div class="col-lg-6">
                         <div class="inner">
@@ -96,6 +97,13 @@ body {
                                 <span class="bottom-data">100 fairholt Rd London N16 5HN <br> Mon - Thu:
                                     10:00 - 17:00 Fri: 10:00 - 13:00</span>
                             </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="dmsg" id="dmsg">
+
+                            <div class='alert alert-danger'><b>Charge £3.50 on Prepaid voucher orders less than £200. </b></div>
+
                         </div>
                     </div>
                 </div>
@@ -133,6 +141,7 @@ body {
 <script>
     $(document).ready(function () {
 
+        $("#dmsg").hide();
         $('[type="checkbox"]').change(function(){
             if(this.checked){
                 $('[type="checkbox"]').not(this).prop('checked', false);
@@ -203,6 +212,32 @@ body {
 		var qty = row.find('.qty').val();
             if (type == "Prepaid") {
             var total = amount * qty;
+
+            var delivery = $('#delivery').prop('checked');
+                console.log(total, delivery);
+                if (total<200) {
+
+
+                    if (delivery == 'true') {
+                        $("#dmsg").show();
+                        var tamnt = total+3.50;
+                        $('#net_total').val(tamnt.toFixed(2));
+                        $('[type="checkbox"]').prop('checked', false);
+                    } else {
+                        $("#dmsg").hide();
+                        $('#net_total').val(total.toFixed(2));
+                        $('[type="checkbox"]').prop('checked', false);
+                    }
+
+
+                } else {
+                    $("#dmsg").hide();
+                    $('#net_total').val(total.toFixed(2));
+                    $('[type="checkbox"]').prop('checked', false);
+                }
+            
+
+
             } else { 
             var total = parseInt('00');
             }
@@ -218,9 +253,62 @@ body {
 		$('.total').each(function(){
 			total += ($(this).val()-0);
 		})
-		$('#net_total').val(total.toFixed(2));
+        
+        var delivery = $('#delivery').prop('checked');
+        if (delivery == 'true') {
+            if (total<200) {
+                $("#dmsg").show();
+                var tamnt = total+3.50;
+                $('#net_total').val(tamnt.toFixed(2));
+            } else {
+                $("#dmsg").hide();
+                $('#net_total').val(total.toFixed(2));
+            }
+        } else {
+                $("#dmsg").hide();
+            $('#net_total').val(total.toFixed(2));
+        }
+		
 
 	}
+
+    $("#delivery").click(function() {
+
+        var total = 0;
+		$('.total').each(function(){
+			total += ($(this).val()-0);
+		})
+
+        if($(this).is(":checked")) {
+            
+            if (total<200) {
+                var tamnt = total+3.50;
+                $("#dmsg").show();
+                $('#net_total').val(tamnt.toFixed(2));
+            } else {
+                $("#dmsg").hide();
+                $('#net_total').val(total.toFixed(2));
+            }
+
+        } else {
+                $("#dmsg").hide();
+            $('#net_total').val(total.toFixed(2));
+        }
+    });
+
+    $("#collection").click(function() {
+
+        var total = 0;
+        $('.total').each(function(){
+            total += ($(this).val()-0);
+        })
+
+        if($(this).is(":checked")) {
+            
+            $("#dmsg").hide();
+            $('#net_total').val(total.toFixed(2));
+        }
+    });
 
 
     });

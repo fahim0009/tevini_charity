@@ -216,12 +216,9 @@ body {
             var delivery = $('#delivery').prop('checked');
                 console.log(total, delivery);
                 if (total<200) {
-
-
                     if (delivery == 'true') {
                         $("#dmsg").show();
-                        var tamnt = total+3.50;
-                        $('#net_total').val(tamnt.toFixed(2));
+                        $('#net_total').val(total.toFixed(2));
                         $('[type="checkbox"]').prop('checked', false);
                     } else {
                         $("#dmsg").hide();
@@ -258,8 +255,7 @@ body {
         if (delivery == 'true') {
             if (total<200) {
                 $("#dmsg").show();
-                var tamnt = total+3.50;
-                $('#net_total').val(tamnt.toFixed(2));
+                $('#net_total').val(total.toFixed(2));
             } else {
                 $("#dmsg").hide();
                 $('#net_total').val(total.toFixed(2));
@@ -282,9 +278,8 @@ body {
         if($(this).is(":checked")) {
             
             if (total<200) {
-                var tamnt = total+3.50;
                 $("#dmsg").show();
-                $('#net_total').val(tamnt.toFixed(2));
+                $('#net_total').val(total.toFixed(2));
             } else {
                 $("#dmsg").hide();
                 $('#net_total').val(total.toFixed(2));

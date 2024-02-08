@@ -173,7 +173,11 @@ class OrderController extends Controller
                 $utransaction->t_id = time() . "-" . $request->did;
                 $utransaction->user_id = $request->did;
                 $utransaction->t_type = "Out";
-                $utransaction->amount =  $qtys[$key]*$amount;
+                if ($key == 0) {
+                    $utransaction->amount =  $qtys[$key]*$amount + $request->delivery_charge;
+                } else {
+                    $utransaction->amount =  $qtys[$key]*$amount;
+                }
                 $utransaction->t_unq = $unique;
                 $utransaction->order_id = $order->id;
                 $utransaction->title ="Prepaid Voucher Book";
@@ -186,14 +190,14 @@ class OrderController extends Controller
 
             if($prepaid_amount !=0){
                 $user = User::find($request->did);
-                $user->decrement('balance',$prepaid_amount);
+                $user->decrement('balance',$order->amount);
                 $user->save();
 
                 // card balance update
                 if (isset($user->CreditProfileId)) {
                     $CreditProfileId = $user->CreditProfileId;
                     $CreditProfileName = $user->name;
-                    $AvailableBalance = 0 - $prepaid_amount;
+                    $AvailableBalance = 0 - $prepaid_amount - $request->delivery_charge;
                     $comment = "Voucher Store";
                     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [

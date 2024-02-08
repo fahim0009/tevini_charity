@@ -101,7 +101,7 @@ class OrderController extends Controller
 
                 if(Voucher::where('id',$id)->first()->type == "Prepaid"){
                     $prepaid_amount += $p_amount*$qtys[$key];
-                    }
+                }
             }
 
             $u_bal = User::where('id',$request->did)->first()->balance;
@@ -117,7 +117,10 @@ class OrderController extends Controller
         $order = new Order();
         $order->user_id = $request->did;
         $order->order_id = time() . "-" . $request->did;
-        $order->amount = $prepaid_amount;
+
+        $order->amount = $prepaid_amount + $request->delivery_charge;
+        $order->delivery_charge = $request->delivery_charge;
+
         $order->delivery_option = $delivery_opt;
         $order->notification = 1;
         $order->status = 0;

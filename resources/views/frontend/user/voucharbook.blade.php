@@ -168,17 +168,30 @@ body {
               .map(function(){return $(this).val();}).get();
 
               
-              console.log(voucherIds);
-              console.log(qtys);
+            //   console.log(voucherIds);
+            //   console.log(qtys);
 
             var did = $("#donner_id").val();
+            var net_total = $("#net_total").val();
             var delivery = $('#delivery').prop('checked');
             var collection = $('#collection').prop('checked');
+                console.log(delivery);
+            if (delivery = 'true') {
+                if (net_total < 200) {
+                var delivery_charge = 3.50;
+                } else {
+                var delivery_charge = 0;
+                }
+            } else {
+                var delivery_charge = 0;
+                
+            }
 
+            console.log(delivery_charge);
                 $.ajax({
                     url: url,
                     method: "POST",
-                    data: {voucherIds,qtys,did,delivery,collection},
+                    data: {voucherIds,qtys,did,delivery,collection,delivery_charge},
 
                     success: function (d) {
                         if (d.status == 303) {
@@ -213,12 +226,14 @@ body {
             if (type == "Prepaid") {
             var total = amount * qty;
 
+            var net_total = total + 3.50;
+
             var delivery = $('#delivery').prop('checked');
-                console.log(total, delivery);
+                // console.log(total, delivery);
                 if (total<200) {
                     if (delivery == 'true') {
                         $("#dmsg").show();
-                        $('#net_total').val(total.toFixed(2));
+                        $('#net_total').val(net_total.toFixed(2));
                         $('[type="checkbox"]').prop('checked', false);
                     } else {
                         $("#dmsg").hide();
@@ -251,11 +266,12 @@ body {
 			total += ($(this).val()-0);
 		})
         
+        var net_total = total + 3.50;
         var delivery = $('#delivery').prop('checked');
         if (delivery == 'true') {
             if (total<200) {
                 $("#dmsg").show();
-                $('#net_total').val(total.toFixed(2));
+                $('#net_total').val(net_total.toFixed(2));
             } else {
                 $("#dmsg").hide();
                 $('#net_total').val(total.toFixed(2));
@@ -275,11 +291,12 @@ body {
 			total += ($(this).val()-0);
 		})
 
+        var net_total = total + 3.50;
         if($(this).is(":checked")) {
             
             if (total<200) {
                 $("#dmsg").show();
-                $('#net_total').val(total.toFixed(2));
+                $('#net_total').val(net_total.toFixed(2));
             } else {
                 $("#dmsg").hide();
                 $('#net_total').val(total.toFixed(2));

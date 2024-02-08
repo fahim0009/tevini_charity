@@ -282,6 +282,15 @@ class DonorController extends Controller
         }
 
     }
+    public function userTopReportShowinAdmin($id)
+    {
+        $transaction = Usertransaction::where('id', $id)->first();
+        $user = User::where('id',$transaction->user_id)->first();
+        
+        $balance = $transaction->amount;
+        $source = $transaction->source;
+        return view('donor.topupreportshow', compact('balance','source','user'));
+    }
 
 
     // donor report in admin
@@ -317,6 +326,45 @@ class DonorController extends Controller
          }
 
          return view('donor.report',compact('report','fromDate','toDate','donor_id','user','tamount'));
+
+    }
+
+    public function userTopReportinAdmin(Request $request, $id)
+    {
+        $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
+        $user = User::find($id);
+        $donor_id = $user->id;
+        if(!empty($request->fromdate) && !empty($request->todate)){
+             $fromDate = $request->fromdate;
+             $toDate   = $request->todate;
+             $report = Usertransaction::where([
+                 ['user_id','=', $id],
+                 ['created_at', '>=', $fromDate],
+                 ['created_at', '<=', $toDate.' 23:59:59'],
+                 ['t_type','=', 'In'],
+                 ['status','=', '1']
+             ])->orwhere([
+                 ['user_id','=', $id],
+                 ['created_at', '>=', $fromDate],
+                 ['created_at', '<=', $toDate.' 23:59:59'],
+                 ['t_type','=', 'In'],
+                 ['pending','=', '0']
+                 ])->orderBy('id','DESC')->get();
+         }else{
+             $report = Usertransaction::where([
+                 ['user_id','=', $id],
+                 ['t_type','=', 'In'],
+                 ['status','=', '1']
+                 ])->orwhere([
+                ['user_id','=', $id],
+                ['t_type','=', 'In'],
+                ['pending','=', '0']
+                ])->orderBy('id','DESC')->get();
+             $fromDate = "";
+             $toDate   = "";
+         }
+
+         return view('donor.topupreport',compact('report','fromDate','toDate','donor_id','user','tamount'));
 
     }
 

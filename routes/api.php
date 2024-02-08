@@ -83,11 +83,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
      
     Route::post('active-donation-details', [MaaserController::class, 'donationActive']);
-
-     
     Route::get('donation-details/{id}', [MaaserController::class, 'donationDetails']);
-
-     
     Route::post('/contact-submit', [ContactController::class, 'visitorContact']);
 
 });

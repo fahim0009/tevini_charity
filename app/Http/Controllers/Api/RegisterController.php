@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
    
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
+use App\Models\Charity;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -101,6 +102,7 @@ class RegisterController extends BaseController
         if ($chksts) {
             if ($chksts->status == 1) {
                 if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
+
                     $user = Auth::user(); 
                     $data = User::where('id', Auth::user()->id)->first(); 
                     $success['token'] =  $user->createToken('MyApp')->accessToken; 
@@ -118,6 +120,59 @@ class RegisterController extends BaseController
         }else {
             return $this->sendError('Credential Error. You are not authenticate user..', ['error'=>'Credential Error. You are not authenticate user.']);
         }
+
+    }
+
+    public function charity_login(Request $request)
+    {
+
+        $this->validate($request, [
+            'login' => 'required|string',
+            'password' => 'required',
+        ]);
+
+        $input = $request->all();
+
+        $chksts = Charity::where('email', $input['login'])->orwhere('acc_no',$input['login'])->first();
+        
+        if ($chksts) {
+            if ($chksts->status == 1) {
+                
+                $fieldType = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'acc_no';
+                
+                $loginData = [
+                    $fieldType => $request->input('login'),
+                    'password' => $request->input('password')
+                ];
+            
+                if(auth()->guard('charity')->attempt($loginData)){
+
+
+                    $user = auth('charity')->user(); 
+                    $data = Charity::where('id', auth('charity')->user()->id)->first(); 
+                    $success['token'] =  $user->createToken('MyApp')->accessToken; 
+                    $success['name'] =  $user->name;
+                    $success['data'] =  $data;
+                    $success['message'] =  'User login successfully.';
+                    return response()->json($success,200);
+
+                }else {
+                    
+                    return $this->sendError('Whoops! invalid email/account no and password.!!.', ['error'=>'Whoops! invalid email/account no and password.!!']);
+                }
+
+            }else{
+
+                
+                return $this->sendError('Your Account is deactive..', ['error'=>'Your Account is deactive.']);
+
+            }
+        }else {
+            return $this->sendError('Credential Error. You are not authenticate user..', ['error'=>'Credential Error. You are not authenticate user.']);
+        }
+        
+    
+        
 
     }
 

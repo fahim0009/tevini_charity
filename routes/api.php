@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\UserController;
 
 Route::post('signup', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
+Route::post('charity_login', [RegisterController::class, 'charity_login']);
 
 
 Route::post('/authorisations', [CardServiceController::class, 'authorisation']);

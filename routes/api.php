@@ -93,15 +93,24 @@ Route::group(['middleware' => ['auth:api']], function () {
 
 });
 
-// Route::middleware('auth:api')->group( function () {
-//     // Route::resource('products', ProductController::class);
-// });
+
+
+
+Route::get('charity-dashboard/{id}', [DashboardController::class, 'charity_dashboard']);
+Route::get('/charity-profile/{id}', [CharityController::class, 'profileShow']);
+
+Route::get('/charity-transaction/{id}', [CharityController::class, 'charityTransaction']);
+
+
+
+Route::post('/charity-profile-update', [CharityController::class, 'updateCharity_profile']);
+Route::post('/create-a-link', [CharityController::class, 'charityLinkStore']);
+Route::post('/urgent-request', [CharityController::class, 'urgentRequest']);
 
 Route::middleware(['auth:sanctum,charity', 'verified']);
 // charity part start
 Route::group(['middleware' => ['charity']], function(){
     
-    Route::get('charity-dashboard', [DashboardController::class, 'charity_dashboard']);
 
 
 

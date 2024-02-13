@@ -125,17 +125,24 @@ class DashboardController extends Controller
     
     
 
-    public function charity_dashboard()
+    public function charity_dashboard($id)
     {
         
-        $data = Charity::where('id', auth('charity')->user())->first(); 
+        $data = Charity::where('id', $id)->first(); 
         // dd($data);
+        $pending_transactions = Usertransaction::where([
+            ['t_type','=', 'Out'],
+            ['charity_id','=', $id],
+            ['pending','=', '0']
+        ])->sum('amount');
+
         if($data == null){
             $data = 'Data Not Found';
         }
         $responseArray = [
             'status'=>'ok',
-            'data'=>$data
+            'data'=>$data,
+            'pending_transactions'=>$pending_transactions
         ]; 
         return response()->json($responseArray,200);
     }

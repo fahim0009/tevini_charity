@@ -41,6 +41,8 @@ Route::post('/authorisations', [CardServiceController::class, 'authorisation']);
 Route::post('/settlement', [CardServiceController::class, 'settlement']);
 Route::post('/expired', [CardServiceController::class, 'expired']);
 
+
+
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();
     Route::get('dashboard', [DashboardController::class, 'index']);
@@ -87,8 +89,30 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('donation-details/{id}', [MaaserController::class, 'donationDetails']);
     Route::post('/contact-submit', [ContactController::class, 'visitorContact']);
 
+    
+
 });
 
-Route::middleware('auth:api')->group( function () {
-    // Route::resource('products', ProductController::class);
+// Route::middleware('auth:api')->group( function () {
+//     // Route::resource('products', ProductController::class);
+// });
+
+Route::middleware(['auth:sanctum,charity', 'verified']);
+// charity part start
+Route::group(['middleware' => ['charity']], function(){
+    
+    Route::get('charity-dashboard', [DashboardController::class, 'charity_dashboard']);
+
+
+
+    // Route::get('/profile', [CharityController::class, 'profileShow'])->name('charity.profile');
+    // Route::get('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard');
+    // Route::post('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard_search');
+    // Route::post('/profile', [CharityController::class, 'updateCharity_profile'])->name('charity_profileUpdate');
+
+    
+    // Route::post('/urgent-request', [CharityController::class, 'urgentRequest'])->name('charity.urgent_request');
+    
+    // Route::get('/create-a-link', [CharityController::class, 'charityLink'])->name('charity_link');
+    // Route::post('/create-a-link', [CharityController::class, 'charityLinkStore']);
 });

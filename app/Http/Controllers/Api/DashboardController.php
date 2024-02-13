@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Charity;
 use Illuminate\Http\Request;
 use App\Models\Usertransaction;
 use App\Models\User;
@@ -117,6 +118,24 @@ class DashboardController extends Controller
             'precommission'=>$precommission,
             'preamntOut'=>$preamntOut,
             'alltransactions'=>$alltransactions
+        ]; 
+        return response()->json($responseArray,200);
+    }
+
+    
+    
+
+    public function charity_dashboard()
+    {
+        
+        $data = Charity::where('id', auth('charity')->user())->first(); 
+        // dd($data);
+        if($data == null){
+            $data = 'Data Not Found';
+        }
+        $responseArray = [
+            'status'=>'ok',
+            'data'=>$data
         ]; 
         return response()->json($responseArray,200);
     }

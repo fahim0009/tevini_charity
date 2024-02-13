@@ -97,11 +97,12 @@
               .map(function(){return $(this).val();}).get();
 
             var did = $("#donner_id").val();
+            var delivery_charge = 0;
 
                 $.ajax({
                     url: url,
                     method: "POST",
-                    data: {voucherIds:voucherIds,qtys:qtys,did:did},
+                    data: {voucherIds:voucherIds,qtys:qtys,did:did,delivery_charge:delivery_charge},
 
                     success: function (d) {
                         console.log(d);

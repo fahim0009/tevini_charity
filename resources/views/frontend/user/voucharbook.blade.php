@@ -248,8 +248,6 @@ body {
                     $('[type="checkbox"]').prop('checked', false);
                 }
             
-
-
             } else { 
             var total = parseInt('00');
             }
@@ -280,12 +278,9 @@ body {
                 $("#dmsg").hide();
             $('#net_total').val(total.toFixed(2));
         }
-		
-
 	}
 
     $("#delivery").click(function() {
-
         var total = 0;
 		$('.total').each(function(){
 			total += ($(this).val()-0);
@@ -309,14 +304,12 @@ body {
     });
 
     $("#collection").click(function() {
-
         var total = 0;
         $('.total').each(function(){
             total += ($(this).val()-0);
         })
 
         if($(this).is(":checked")) {
-            
             $("#dmsg").hide();
             $('#net_total').val(total.toFixed(2));
         }

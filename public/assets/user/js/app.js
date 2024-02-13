@@ -40,6 +40,7 @@
     let val = document.getElementById('cartValue'+id).value--;
     let aval = document.getElementById('cartValue'+id).value;
     $("#amt"+id).html("<div class='items'>£"+amt*aval+"</div>");
+    $("#vamnt"+id).val(amt*aval);
     if (val <= 1) {
         document.getElementById('dec'+id).disabled = true;
     }
@@ -50,6 +51,7 @@
     let val = document.getElementById('cartValue'+id).value++;
     let aval = document.getElementById('cartValue'+id).value;
     $("#amt"+id).html("<div class='items'>£"+amt*aval+"</div>");
+    $("#vamnt"+id).val(amt*aval);
     if (val >= 1) {
         document.getElementById('dec'+id).disabled = false;
     }

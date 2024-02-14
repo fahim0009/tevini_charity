@@ -120,7 +120,6 @@ class OrderController extends Controller
 
         $order->amount = $prepaid_amount + $request->delivery_charge;
         $order->delivery_charge = $request->delivery_charge;
-
         $order->delivery_option = $delivery_opt;
         $order->notification = 1;
         $order->status = 0;

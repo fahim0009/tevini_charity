@@ -113,7 +113,15 @@ class VoucherBookController extends Controller
         $order = new Order();
         $order->user_id = Auth::user()->id;
         $order->order_id = time() . "-" . Auth::user()->id;
-        $order->amount = $prepaid_amount;
+
+        if ($prepaid_amount < 200) {
+            $order->amount = $prepaid_amount + 3.50;
+            $order->delivery_charge = '3.50';
+        } else {
+            $order->amount = $prepaid_amount;
+            $order->delivery_charge = '0';
+        }
+        
         $order->delivery_option = $delivery_opt;
         $order->notification = 1;
         $order->status = 0;

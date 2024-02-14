@@ -107,7 +107,7 @@ class RegisterController extends Controller
             'postcode' => $data['postcode'],
             'passwordchk' => 1,
             'notification' => 1,
-            'status' => 0,
+            'status' => 1,
 
         ]);
 

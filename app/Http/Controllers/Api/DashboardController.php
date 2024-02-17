@@ -151,7 +151,7 @@ class DashboardController extends Controller
     public function get_all_donor()
     {
         
-        $data = User::where('is_type', 'user')->get(); 
+        $data = User::where('is_type', 'user')->select('id','name', 'email')->get(); 
         
 
         if($data == null){

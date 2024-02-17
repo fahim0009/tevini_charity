@@ -146,4 +146,21 @@ class DashboardController extends Controller
         ]; 
         return response()->json($responseArray,200);
     }
+
+
+    public function get_all_donor()
+    {
+        
+        $data = User::where('is_type', 'user')->get(); 
+        
+
+        if($data == null){
+            $data = 'Data Not Found';
+        }
+        $responseArray = [
+            'status'=>'ok',
+            'data'=>$data
+        ]; 
+        return response()->json($responseArray,200);
+    }
 }

@@ -96,6 +96,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
 
 
+Route::get('all-donor', [DashboardController::class, 'get_all_donor']);
 Route::get('charity-dashboard/{id}', [DashboardController::class, 'charity_dashboard']);
 Route::get('/charity-profile/{id}', [CharityController::class, 'profileShow']);
 

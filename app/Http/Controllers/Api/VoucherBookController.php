@@ -115,8 +115,15 @@ class VoucherBookController extends Controller
         $order->order_id = time() . "-" . Auth::user()->id;
 
         if ($prepaid_amount < 200) {
-            $order->amount = $prepaid_amount + 3.50;
-            $order->delivery_charge = '3.50';
+
+            if ($delivery_opt = "Delivery") {
+                $order->amount = $prepaid_amount + 3.50;
+                $order->delivery_charge = '3.50';
+            } else {
+                $order->amount = $prepaid_amount;
+                $order->delivery_charge = '0';
+            }
+            
         } else {
             $order->amount = $prepaid_amount;
             $order->delivery_charge = '0';
@@ -182,9 +189,25 @@ class VoucherBookController extends Controller
                 }
             }
 
+            if($request->delivery == "true"){
+                if ($prepaid_amount < 200) {
+                    $udtransaction = new Usertransaction();
+                    $udtransaction->t_id = time() . "-" . $request->did;
+                    $udtransaction->user_id = $request->did;
+                    $udtransaction->t_type = "Out";
+                    $udtransaction->amount =  3.50;
+                    $udtransaction->t_unq = time().rand(1,100);
+                    $udtransaction->order_id = $order->id;
+                    $udtransaction->title ="Delivery Charge";
+                    $udtransaction->status =  1;
+                    $udtransaction->save();
+                }
+                
+            }
+
             if($prepaid_amount !=0){
                 $user = User::find(Auth::user()->id);
-                $user->decrement('balance',$prepaid_amount);
+                $user->decrement('balance',$order->amount);
                 $user->save();
 
                 // card balance update

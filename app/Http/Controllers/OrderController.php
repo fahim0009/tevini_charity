@@ -104,6 +104,9 @@ class OrderController extends Controller
                 }
             }
 
+            
+
+
             $u_bal = User::where('id',$request->did)->first()->balance;
             $overdrawn = (User::where('id',$request->did)->first()->overdrawn_amount);
             $limitChk = $u_bal + $overdrawn;
@@ -138,66 +141,72 @@ class OrderController extends Controller
             {
                 if($qtys[$key] != "0"){
 
-                if($qtys[$key] > "1"){
+                    if($qtys[$key] > "1"){
 
-                    for($x = 0; $x < $qtys[$key]; $x++)
-                    {
-                    $unique = time().rand(1,100);
-                    //order history
-                    $amount =  Voucher::where('id',$voucher_id)->first()->amount;
-                    $input['order_id'] = $order->id;
-                    $input['voucher_id'] = $voucher_id;
-                    $input['number_voucher'] = 1;
-                    $input['amount'] = $amount;
-                    $input['o_unq'] = $unique;
-                    $input['status'] = "0";
-                    OrderHistory::create($input);
-                    }
-
-                }else{
-
-                $unique = time().rand(1,100);
-
-                //order history
-                $amount =  Voucher::where('id',$voucher_id)->first()->amount;
-                $input['order_id'] = $order->id;
-                $input['voucher_id'] = $voucher_id;
-                $input['number_voucher'] = $qtys[$key];
-                $input['amount'] = $qtys[$key]*$amount;
-                $input['o_unq'] = $unique;
-                $input['status'] = "0";
-                OrderHistory::create($input);
-                }
-                //voucher stock decrement
-                $v = Voucher::find($voucher_id);
-                $v->decrement('stock',$qtys[$key]);
-                $v->save();
-
-                //user transaction out if voucher is/are prepaid
-                if(Voucher::where('id',$voucher_id)->first()->type == "Prepaid"){
-                    $utransaction = new Usertransaction();
-                    $utransaction->t_id = time() . "-" . $request->did;
-                    $utransaction->user_id = $request->did;
-                    $utransaction->t_type = "Out";
-                    if ($key == 0) {
-
-                        if ($delivery_opt = "Delivery") {
-                            $utransaction->amount =  $qtys[$key]*$amount + $request->delivery_charge;
-                        } else {
-                            $utransaction->amount =  $qtys[$key]*$amount;
+                        for($x = 0; $x < $qtys[$key]; $x++)
+                        {
+                        $unique = time().rand(1,100);
+                        //order history
+                        $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $input['order_id'] = $order->id;
+                        $input['voucher_id'] = $voucher_id;
+                        $input['number_voucher'] = 1;
+                        $input['amount'] = $amount;
+                        $input['o_unq'] = $unique;
+                        $input['status'] = "0";
+                        OrderHistory::create($input);
                         }
 
-                    } else {
-                        $utransaction->amount =  $qtys[$key]*$amount;
+                    }else{
+
+                        $unique = time().rand(1,100);
+
+                        //order history
+                        $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $input['order_id'] = $order->id;
+                        $input['voucher_id'] = $voucher_id;
+                        $input['number_voucher'] = $qtys[$key];
+                        $input['amount'] = $qtys[$key]*$amount;
+                        $input['o_unq'] = $unique;
+                        $input['status'] = "0";
+                        OrderHistory::create($input);
                     }
-                    $utransaction->t_unq = $unique;
-                    $utransaction->order_id = $order->id;
-                    $utransaction->title ="Prepaid Voucher Book";
-                    $utransaction->status =  1;
-                    $utransaction->save();
+                    //voucher stock decrement
+                    $v = Voucher::find($voucher_id);
+                    $v->decrement('stock',$qtys[$key]);
+                    $v->save();
+
+                    //user transaction out if voucher is/are prepaid
+                    if(Voucher::where('id',$voucher_id)->first()->type == "Prepaid"){
+                        $utransaction = new Usertransaction();
+                        $utransaction->t_id = time() . "-" . $request->did;
+                        $utransaction->user_id = $request->did;
+                        $utransaction->t_type = "Out";
+                        $utransaction->amount =  $qtys[$key]*$amount;
+                        $utransaction->t_unq = $unique;
+                        $utransaction->order_id = $order->id;
+                        $utransaction->title ="Prepaid Voucher Book";
+                        $utransaction->status =  1;
+                        $utransaction->save();
                     }
 
-                 }
+                }
+            }
+
+            if($request->delivery == "true"){
+                if ($prepaid_amount < 200) {
+                    $udtransaction = new Usertransaction();
+                    $udtransaction->t_id = time() . "-" . $request->did;
+                    $udtransaction->user_id = $request->did;
+                    $udtransaction->t_type = "Out";
+                    $udtransaction->amount =  3.50;
+                    $udtransaction->t_unq = time().rand(1,100);
+                    $udtransaction->order_id = $order->id;
+                    $udtransaction->title ="Delivery Charge";
+                    $udtransaction->status =  1;
+                    $udtransaction->save();
+                }
+                
             }
 
             if($prepaid_amount !=0){

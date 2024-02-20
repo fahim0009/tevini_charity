@@ -32,7 +32,7 @@ body {
                             <div class="left text-center">
                                 <input type="hidden" value="{{$voucher->id}}" name="v_ids[]">
                                 <input type="hidden" class="total" value="">
-                                <input type="text" class="box-input qty" v_amount="{{ $voucher->amount }}" v_type="{{ $voucher->type }}" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
+                                <input type="text" class="box-input qty" v_amount="{{ $voucher->amount }}" v_type="{{ $voucher->type }}" data-type="{{ $voucher->type }}" name="qty[]" id="cartValue{{$voucher->id}}" value="0">
                                 <label>Qty</label>
                             </div>
                             <div class="right">
@@ -162,8 +162,6 @@ body {
             var voucherIds = $("input[name='v_ids[]']")
               .map(function(){return $(this).val();}).get();
 
-
-
             var qtys = $("input[name='qty[]']")
               .map(function(){return $(this).val();}).get();
 
@@ -187,10 +185,8 @@ body {
                 }
             } else {
                 var delivery_charge = 0;
-                
             }
 
-            console.log(delivery_charge);
 
                 $.ajax({
                     url: url,
@@ -233,9 +229,11 @@ body {
             var net_total = total + 3.50;
 
             var delivery = $('#delivery').prop('checked');
+            var del = document.getElementById("delivery");
+            var col = document.getElementById("collection");
                 // console.log(total, delivery);
                 if (total<200) {
-                    if (delivery == 'true') {
+                    if (del.checked) {
                         $("#dmsg").show();
                         $('#net_total').val(net_total.toFixed(2));
                         $('[type="checkbox"]').prop('checked', false);
@@ -254,6 +252,7 @@ body {
             
             } else { 
             var total = parseInt('00');
+            $('[type="checkbox"]').prop('checked', false);
             }
             // var total = amount * qty;
         row.find('.total').val(total.toFixed(2));
@@ -270,7 +269,9 @@ body {
         
         var net_total = total + 3.50;
         var delivery = $('#delivery').prop('checked');
-        if (delivery == 'true') {
+        var del = document.getElementById("delivery");
+        var col = document.getElementById("collection");
+        if (del.checked) {
             if (total<200) {
                 $("#dmsg").show();
                 $('#net_total').val(net_total.toFixed(2));
@@ -290,21 +291,43 @@ body {
 			total += ($(this).val()-0);
 		})
 
-        var net_total = total + 3.50;
-        if($(this).is(":checked")) {
-            
-            if (total<200) {
-                $("#dmsg").show();
-                $('#net_total').val(net_total.toFixed(2));
-            } else {
-                $("#dmsg").hide();
-                $('#net_total').val(total.toFixed(2));
-            }
 
-        } else {
-                $("#dmsg").hide();
-            $('#net_total').val(total.toFixed(2));
-        }
+        var del = document.getElementById("delivery");
+
+            $( '.qty' ).each( function() {
+                var type = $( this ).data('type');
+                var value = $( this ).val();
+                
+                if (type == "Prepaid") {
+                    if (value > 0) {
+
+                        var net_total = total + 3.50;
+                        if(del.checked) {
+                            
+                            if (total<200) {
+                                $("#dmsg").show();
+                                $('#net_total').val(net_total.toFixed(2));
+                            } else {
+                                $("#dmsg").hide();
+                                $('#net_total').val(total.toFixed(2));
+                            }
+
+                        } else {
+                                $("#dmsg").hide();
+                            $('#net_total').val(total.toFixed(2));
+                        }
+                    
+                    }  
+                }
+                
+            });
+
+
+
+
+
+
+        
     });
 
     $("#collection").click(function() {

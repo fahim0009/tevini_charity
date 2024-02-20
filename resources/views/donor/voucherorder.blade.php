@@ -220,7 +220,7 @@
             var net_total = $("#net_total").val();
             
             
-            if (delivery = 'true') {
+            if (del.checked) {
                 if (net_total < 200) {
                 var delivery_charge = 3.50;
                 } else {
@@ -230,6 +230,8 @@
                 var delivery_charge = 0;
                 
             }
+
+            console.log(delivery_charge);
 
 
                 $.ajax({
@@ -275,7 +277,7 @@
                 var net_total = total + 3.50;
 
                 var delivery = $('#delivery').prop('checked');
-                    console.log(total, delivery);
+                
                     if (total<200) {
                         if (delivery == 'true') {
                             $("#dmsg").show();

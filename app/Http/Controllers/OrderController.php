@@ -118,8 +118,15 @@ class OrderController extends Controller
         $order->user_id = $request->did;
         $order->order_id = time() . "-" . $request->did;
 
-        $order->amount = $prepaid_amount + $request->delivery_charge;
-        $order->delivery_charge = $request->delivery_charge;
+        if ($delivery_opt = "Delivery") {
+            $order->amount = $prepaid_amount + $request->delivery_charge;
+            $order->delivery_charge = $request->delivery_charge;
+        } else {
+            $order->amount = $prepaid_amount;
+            $order->delivery_charge = 0;
+        }
+        
+
         $order->delivery_option = $delivery_opt;
         $order->notification = 1;
         $order->status = 0;
@@ -168,21 +175,27 @@ class OrderController extends Controller
 
                 //user transaction out if voucher is/are prepaid
                 if(Voucher::where('id',$voucher_id)->first()->type == "Prepaid"){
-                $utransaction = new Usertransaction();
-                $utransaction->t_id = time() . "-" . $request->did;
-                $utransaction->user_id = $request->did;
-                $utransaction->t_type = "Out";
-                if ($key == 0) {
-                    $utransaction->amount =  $qtys[$key]*$amount + $request->delivery_charge;
-                } else {
-                    $utransaction->amount =  $qtys[$key]*$amount;
-                }
-                $utransaction->t_unq = $unique;
-                $utransaction->order_id = $order->id;
-                $utransaction->title ="Prepaid Voucher Book";
-                $utransaction->status =  1;
-                $utransaction->save();
-                }
+                    $utransaction = new Usertransaction();
+                    $utransaction->t_id = time() . "-" . $request->did;
+                    $utransaction->user_id = $request->did;
+                    $utransaction->t_type = "Out";
+                    if ($key == 0) {
+
+                        if ($delivery_opt = "Delivery") {
+                            $utransaction->amount =  $qtys[$key]*$amount + $request->delivery_charge;
+                        } else {
+                            $utransaction->amount =  $qtys[$key]*$amount;
+                        }
+
+                    } else {
+                        $utransaction->amount =  $qtys[$key]*$amount;
+                    }
+                    $utransaction->t_unq = $unique;
+                    $utransaction->order_id = $order->id;
+                    $utransaction->title ="Prepaid Voucher Book";
+                    $utransaction->status =  1;
+                    $utransaction->save();
+                    }
 
                  }
             }

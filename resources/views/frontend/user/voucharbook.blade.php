@@ -175,8 +175,11 @@ body {
             var net_total = $("#net_total").val();
             var delivery = $('#delivery').prop('checked');
             var collection = $('#collection').prop('checked');
-                console.log(delivery);
-            if (delivery = 'true') {
+            
+            var del = document.getElementById("delivery");
+            var col = document.getElementById("collection");
+
+            if (del.checked) {
                 if (net_total < 200) {
                 var delivery_charge = 3.50;
                 } else {
@@ -188,6 +191,7 @@ body {
             }
 
             console.log(delivery_charge);
+
                 $.ajax({
                     url: url,
                     method: "POST",
@@ -253,12 +257,12 @@ body {
             }
             // var total = amount * qty;
         row.find('.total').val(total.toFixed(2));
-        net_total();
+        net_total_value();
 
 	})
 
     // net total
-    function net_total(){
+    function net_total_value(){
 		var total = 0;
 		$('.total').each(function(){
 			total += ($(this).val()-0);

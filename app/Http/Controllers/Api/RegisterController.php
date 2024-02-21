@@ -100,7 +100,7 @@ class RegisterController extends BaseController
 
         $chksts = User::where('email', $request->email)->first();
         if ($chksts) {
-            if ($chksts->status == 1) {
+            
                 if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
 
                     $user = Auth::user(); 
@@ -114,9 +114,8 @@ class RegisterController extends BaseController
                 else{ 
                     return $this->sendError('Wrong Password!!.', ['error'=>'Wrong Password!!']);
                 }
-            }else{
-                return $this->sendError('Your Account is deactive..', ['error'=>'Your Account is deactive.']);
-            }
+            
+                
         }else {
             return $this->sendError('Credential Error. You are not authenticate user..', ['error'=>'Credential Error. You are not authenticate user.']);
         }

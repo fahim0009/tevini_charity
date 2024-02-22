@@ -50,6 +50,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('get-all-charity', [CharityController::class, 'getAllCharity']);
     Route::post('make-donation', [DonorController::class, 'userDonationStore']);
     Route::post('profile', [UserController::class, 'updateprofile']);
+    Route::post('profile-image', [UserController::class, 'updateprofileImage']);
 
     
     Route::get('donation-record', [DonorController::class, 'userDonationrecod']);

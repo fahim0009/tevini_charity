@@ -111,11 +111,14 @@ class OrderController extends Controller
             $overdrawn = (User::where('id',$request->did)->first()->overdrawn_amount);
             $limitChk = $u_bal + $overdrawn;
 
-            if($limitChk < $prepaid_amount ){
-                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Overdrawn limit exceed.</b></div>";
-                return response()->json(['status'=> 303,'message'=>$message]);
-                exit();
+            if ($prepaid_amount > 0) {
+                if($limitChk < $prepaid_amount ){
+                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Overdrawn limit exceed.</b></div>";
+                    return response()->json(['status'=> 303,'message'=>$message]);
+                    exit();
+                }
             }
+            
 
         $order = new Order();
         $order->user_id = $request->did;

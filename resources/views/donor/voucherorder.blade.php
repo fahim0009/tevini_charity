@@ -343,23 +343,26 @@
             })
 
             var net_total = total + 3.50;
-            if($(this).is(":checked")) {
+            if (total > 0) {
+                if($(this).is(":checked")) {
                 
-                if (total<200) {
-                    $("#dmsg").show();
-                    $('#net_total').val(net_total.toFixed(2));
-                    $('#d_charge').val('3.50');
-                } else {
-                    $("#dmsg").hide();
-                    $('#net_total').val(total.toFixed(2));
-                    $('#d_charge').val('');
-                }
+                    if (total<200) {
+                        $("#dmsg").show();
+                        $('#net_total').val(net_total.toFixed(2));
+                        $('#d_charge').val('3.50');
+                    } else {
+                        $("#dmsg").hide();
+                        $('#net_total').val(total.toFixed(2));
+                        $('#d_charge').val('');
+                    }
 
-            } else {
-                    $("#dmsg").hide();
-                $('#net_total').val(total.toFixed(2));
-                    $('#d_charge').val('');
+                } else {
+                        $("#dmsg").hide();
+                    $('#net_total').val(total.toFixed(2));
+                        $('#d_charge').val('');
+                }
             }
+            
         });
 
         $("#collection").click(function() {

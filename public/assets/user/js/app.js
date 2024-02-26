@@ -44,6 +44,10 @@
     if (val <= 1) {
         document.getElementById('dec'+id).disabled = true;
     }
+    $("#dmsg").hide();
+    $('[type="checkbox"]').prop('checked', false);
+    $('#net_total').val('');
+    $('#d_charge').val('');
   }
 
 
@@ -55,4 +59,8 @@
     if (val >= 1) {
         document.getElementById('dec'+id).disabled = false;
     }
+    $("#dmsg").hide();
+    $('[type="checkbox"]').prop('checked', false);
+    $('#net_total').val('');
+    $('#d_charge').val('');
   }

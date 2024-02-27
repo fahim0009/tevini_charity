@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Authorisation;
+use App\Models\AuthReversal;
 use App\Models\CardHolder;
 use App\Models\CardOrder;
 use App\Models\CardProduct;
@@ -1095,7 +1096,6 @@ class CardServiceController extends Controller
                         $user->balance = $user->balance - $request->billAmt;
                         $user->save();
     
-    
                         $utran = new Usertransaction;
                         $utran->t_id =  time() . "-" . $chkuser->user_id;
                         $utran->user_id = $chkuser->user_id;
@@ -1127,9 +1127,6 @@ class CardServiceController extends Controller
                         $qbalance->save();
                     }
                 }
-
-                
-
                 // Send a POST request to the API with the updated finance fee value
                 $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
@@ -1141,11 +1138,190 @@ class CardServiceController extends Controller
             } else {
                 return redirect()->back()->with('error', 'Authorization error.');
             }
+        
+        } elseif ($request->msgType == 420) {
+
+            $cardNumber = substr($request->PAN, -4);
+            $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+
+            $DateTime = now();
+            $data = new AuthReversal();
+            if (isset($chkuser)) {
+                $data->user_id = $chkuser->user_id;
+            }
+
+            $data->Utid = $request->Utid;
+            $data->messageID = $request->messageID;
+            $data->instCode = $request->instCode;
+            $data->txnType = $request->txnType;
+            $data->msgType = $request->msgType;
+            $data->tlogId = $request->tlogId;
+            $data->orgTlogID = $request->orgTlogID;
+            $data->timeout = $request->timeout;
+            $data->repeat = $request->repeat;
+            $data->PAN = $request->PAN;
+            $data->cardID = $request->cardID;
+            $data->accNo = $request->accNo;
+            $data->curBill = $request->curBill;
+            $data->avlBal = $request->avlBal;
+            $data->blkAmt = $request->blkAmt;
+            $data->localDate = $request->localDate;
+            $data->localTime = $request->localTime;
+            $data->amtTxn = $request->amtTxn;
+            $data->curTxn = $request->curTxn;
+            $data->billAmt = $request->billAmt;
+            $data->billConvRate = $request->billConvRate;
+            $data->amtCom = $request->amtCom;
+            $data->amtPad = $request->amtPad;
+            $data->txnCode = $request->txnCode;
+            $data->termCode = $request->termCode;
+            $data->crdAcptID = $request->crdAcptID;
+            $data->crdAcptLoc = $request->crdAcptLoc;
+            $data->MCC = $request->MCC;
+            $data->poschp = $request->poschp;
+            $data->poscdim = $request->poscdim;
+            $data->poscham = $request->poscham;
+            $data->poscp = $request->poscp;
+            $data->approvalCode = $request->approvalCode;
+            $data->sysDate = $request->sysDate;
+            $data->rev = $request->rev;
+            $data->orgItemId = $request->orgItemId;
+            $data->itemSrc = $request->itemSrc;
+            $data->amtFee = $request->amtFee;
+            $data->crdproduct = $request->crdproduct;
+            $data->ctxLocalDate = $request->ctxLocalDate;
+            $data->ctxLocalTime = $request->ctxLocalTime;
+            $data->aVSChkRs = $request->aVSChkRs;
+            $data->threeDSecChkRs = $request->threeDSecChkRs;
+            $data->actionCode = $request->actionCode;
+            $data->amtCashback = $request->amtCashback;
+            $data->trn = $request->trn;
+            $data->txnSubCode = $request->txnSubCode;
+            if ($data->save()) {
+
+                if ($request->actionCode == "000") {
+                    if (isset($chkuser)) {
+                        $user = User::find($chkuser->user_id);
+                        $user->balance = $user->balance - $request->billAmt;
+                        $user->save();
+    
+                        $utran = new Usertransaction;
+                        $utran->t_id =  time() . "-" . $chkuser->user_id;
+                        $utran->user_id = $chkuser->user_id;
+                        $utran->t_type = "In";
+                        $utran->source = "Tevini Card";
+                        $utran->amount = $request->billAmt;
+                        $utran->crdAcptLoc = $request->crdAcptLoc;
+                        $utran->crdAcptID = $request->crdAcptID;
+                        $utran->title = "Tevini Card Reversal";
+                        $utran->pending = 1;
+                        $utran->status = 1;
+                        $utran->save();
+    
+                        $chtran = new Transaction();
+                        $chtran->t_id =  $utran->t_id;
+                        $chtran->user_id = $chkuser->user_id;
+                        $chtran->t_type = "In";
+                        $chtran->name = "Tevini Card";
+                        $chtran->amount = $request->billAmt;
+                        $chtran->crdAcptLoc = $request->crdAcptLoc;
+                        $chtran->crdAcptID = $request->crdAcptID;
+                        $chtran->note = "Tevini Card Reversal";
+                        $chtran->status = 1;
+                        $chtran->save();
+
+                        $id = QpayBalance::where('id', 1)->first()->id;
+                        $qbalance = QpayBalance::findOrFail($id);
+                        $qbalance->balance = $qbalance->balance + $request->billAmt;
+                        $qbalance->save();
+                    }
+                }
+                // Send a POST request to the API with the updated finance fee value
+                $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                    
+                    'Type' => "AUTH",
+                    'DateTime' => $DateTime,
+                    
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Authorization error.');
+            }
+        
+        } elseif ($request->msgType == 120) {
+
+            $cardNumber = substr($request->PAN, -4);
+            $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+
+            $DateTime = now();
+            $data = new AuthReversal();
+            if (isset($chkuser)) {
+                $data->user_id = $chkuser->user_id;
+            }
+
+            $data->Utid = $request->Utid;
+            $data->messageID = $request->messageID;
+            $data->instCode = $request->instCode;
+            $data->txnType = $request->txnType;
+            $data->msgType = $request->msgType;
+            $data->tlogId = $request->tlogId;
+            $data->orgTlogID = $request->orgTlogID;
+            $data->timeout = $request->timeout;
+            $data->repeat = $request->repeat;
+            $data->PAN = $request->PAN;
+            $data->cardID = $request->cardID;
+            $data->accNo = $request->accNo;
+            $data->curBill = $request->curBill;
+            $data->avlBal = $request->avlBal;
+            $data->blkAmt = $request->blkAmt;
+            $data->localDate = $request->localDate;
+            $data->localTime = $request->localTime;
+            $data->amtTxn = $request->amtTxn;
+            $data->curTxn = $request->curTxn;
+            $data->billAmt = $request->billAmt;
+            $data->billConvRate = $request->billConvRate;
+            $data->amtCom = $request->amtCom;
+            $data->amtPad = $request->amtPad;
+            $data->txnCode = $request->txnCode;
+            $data->termCode = $request->termCode;
+            $data->crdAcptID = $request->crdAcptID;
+            $data->crdAcptLoc = $request->crdAcptLoc;
+            $data->MCC = $request->MCC;
+            $data->poschp = $request->poschp;
+            $data->poscdim = $request->poscdim;
+            $data->poscham = $request->poscham;
+            $data->poscp = $request->poscp;
+            $data->approvalCode = $request->approvalCode;
+            $data->sysDate = $request->sysDate;
+            $data->rev = $request->rev;
+            $data->orgItemId = $request->orgItemId;
+            $data->itemSrc = $request->itemSrc;
+            $data->amtFee = $request->amtFee;
+            $data->crdproduct = $request->crdproduct;
+            $data->ctxLocalDate = $request->ctxLocalDate;
+            $data->ctxLocalTime = $request->ctxLocalTime;
+            $data->aVSChkRs = $request->aVSChkRs;
+            $data->threeDSecChkRs = $request->threeDSecChkRs;
+            $data->actionCode = $request->actionCode;
+            $data->amtCashback = $request->amtCashback;
+            $data->trn = $request->trn;
+            $data->txnSubCode = $request->txnSubCode;
+            if ($data->save()) {
+                // Send a POST request to the API with the updated finance fee value
+                $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                    
+                    'Type' => "AUTH",
+                    'DateTime' => $DateTime,
+                    
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Authorization error.');
+            }
+        
         } else {
             return redirect()->back()->with('error', 'Authorization error.');
         }
-        
-            
             
     }
 
@@ -1197,10 +1373,13 @@ class CardServiceController extends Controller
         $data->Utid = $request->Utid;
         if ($data->save()) {
 
-            if (isset($chkuser)) {
-                // $user = User::find($chkuser->user_id);
-                // $user->balance = $user->balance - $request->billAmt;
-                // $user->save();
+            $authorization = Authorisation::where('Utid', $request->Utid)->first();
+
+            if (isset($authorization)) {
+                $diffamnt = $authorization->billAmt - $request->billAmt;
+                $user = User::find($chkuser->user_id);
+                $user->balance = $user->balance - $diffamnt;
+                $user->save();
             }
 
 

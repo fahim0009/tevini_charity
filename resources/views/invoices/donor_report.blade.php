@@ -215,7 +215,6 @@ use app\Models\Provoucher;
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Transaction Id</th>
                         <th>transaction type</th>
                         <th>Voucher Number</th>
                         <th>Charity Name</th>
@@ -232,7 +231,6 @@ use app\Models\Provoucher;
                     @if($data->commission != 0)
                     <tr>
                         <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
-                        <td>{{$data->t_id}} </td>
                         <td>Commission</td>
                         <td></td>
                         <td></td>
@@ -247,7 +245,6 @@ use app\Models\Provoucher;
                     @endif
                     <tr>
                         <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                        <td>{{$data->t_id}} </td>
                         <td>{{$data->title}} </td>
                         <td>{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
                         <td style="width: 10%">@if($data->charity_id){{ $data->charity->name}}@endif
@@ -278,7 +275,6 @@ use app\Models\Provoucher;
                     </tr>
                 @endforeach
                     <tr>
-                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>

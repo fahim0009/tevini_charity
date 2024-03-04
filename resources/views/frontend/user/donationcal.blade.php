@@ -8,6 +8,7 @@
             <div class="pagetitle pb-2">
                 Maaser calculator
             </div>
+            <p>To activate your calculator please insert a one-off income of any amount.</p>
         </div>
     </div>
 

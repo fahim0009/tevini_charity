@@ -292,6 +292,22 @@ class MaaserController extends Controller
             $data->updated_by = Auth::user()->id;
             $data->save();
 
+            
+
+            }elseif($item['donorcal_id'] == ""){
+
+                $data = new DonationCalculator;
+                $data->start_date = $item['start_date'];
+                $data->income_amount = $item['income_amount'];
+                $data->income_title = $item['income_title'];
+                $data->income_slot = $item['income_slot'];
+                $data->donation_percentage = $item['donation_percentage'];
+                $data->status = 1;
+                $data->donor_id = Auth::user()->id;
+                $data->created_by = Auth::user()->id;
+                $data->save();
+
+
             }else{
 
             $data = new DonationCalculator;

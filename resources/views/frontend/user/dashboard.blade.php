@@ -49,12 +49,22 @@ use Illuminate\Support\Carbon;
         <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
         <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
         <div class="row my-2">
-            <div class="col-lg-6 ">
+            <div class="col-lg-6 pt-3 d-flex flex-column px-4">
+                <div class="tdfermsg"></div>
+                <div class="" id="tdfDiv">
+                    <p>Converted Amount: ${{auth()->user()->balance}}</p>
+                    <form action="" method="POST">
+                        @csrf
+                        <input type="number" id="tdfamount" name="tdfamount" class="form-control">
+                        <button type="submit" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
+                    </form>
+                </div>
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
             </div>
             @if (Auth::user()->accountno)
             <div class="col-lg-6  pt-3 d-flex flex-column px-4">
                 
+                <button  class="btn-theme bg-secondary" id="tdfButton">Transfer to TDF</button>
                 <a href="{{ route('user.makedonation') }}" class="btn-theme bg-primary">Make a
                     donation</a>
                 <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
@@ -247,6 +257,37 @@ use Illuminate\Support\Carbon;
 
         });
         // send mail end =
+
+        $("#tdfDiv").hide();
+        $("#tdfButton").click(function() {
+            $("#tdfButton").hide();
+            $("#tdfDiv").show();
+        });
+
+
+
+        var tdfurl = "{{URL::to('/user/transfer-to-tdf')}}";
+        $("#tdfsubmit").click(function(){
+            var tdfamount = $("#tdfamount").val();
+            $.ajax({
+                url: tdfurl,
+                method: "POST",
+                data: {tdfamount},
+                success: function (d) {
+                    if (d.status == 303) {
+                        $(".tdfermsg").html(d.message);
+                    }else if(d.status == 300){
+                        $(".tdfermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+            });                
+
+        });
+
     });
 </script>
 

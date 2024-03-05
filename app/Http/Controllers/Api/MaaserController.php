@@ -126,9 +126,9 @@ class MaaserController extends Controller
         $responseArray = [
             'status'=>'ok',
             'donor_cals'=>$donor_cals,
-            'tevini_donation'=>$tevini_donation,
-            'otherdonation'=>$otherdonation,
-            'availabledonation'=>$availabledonation
+            'tevini_donation'=>strval($tevini_donation),
+            'otherdonation'=>strval($otherdonation),
+            'availabledonation'=>strval($availabledonation)
         ]; 
         return response()->json($responseArray,200);
 

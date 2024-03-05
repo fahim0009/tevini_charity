@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Usertransaction;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\TdfTransaction;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -267,4 +268,33 @@ class UserController extends Controller
                 return response()->json(['status'=> 303,'message'=>'Server Error!!']);
             }
         }
+
+    public function transferToTDF(Request $request)
+    {
+
+        if($request->tdfamount  > auth()->user()->balance){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        
+        $data = new TdfTransaction();
+        $data->issue_date = date('Y-m-d');
+        $data->user_id = auth()->user()->id;
+        $data->tdf_amount = $request->tdfamount;
+        $data->current_dollar_amount = $request->tdfamount;
+        if ($data->save()) {
+
+            $user = User::find(auth()->user()->id);
+            $user->balance = $user->balance - $request->tdfamount;
+            $user->save();
+
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        } else {
+            return response()->json(['status'=> 303,'message'=>'Server error!!']);
+        }
+        
+    }
 }

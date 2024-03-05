@@ -56,7 +56,7 @@ use Illuminate\Support\Carbon;
                     <form action="" method="POST">
                         @csrf
                         <input type="number" id="tdfamount" name="tdfamount" class="form-control">
-                        <button type="submit" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
+                        <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
                     </form>
                 </div>
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
@@ -269,6 +269,7 @@ use Illuminate\Support\Carbon;
         var tdfurl = "{{URL::to('/user/transfer-to-tdf')}}";
         $("#tdfsubmit").click(function(){
             var tdfamount = $("#tdfamount").val();
+            console.log(tdfamount);
             $.ajax({
                 url: tdfurl,
                 method: "POST",

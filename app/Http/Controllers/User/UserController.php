@@ -274,6 +274,12 @@ class UserController extends Controller
     public function transferToTDF(Request $request)
     {
 
+        if(empty($request->tdfamount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
         if($request->tdfamount  > (auth()->user()->balance + auth()->user()->overdrawn_amount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -292,7 +298,7 @@ class UserController extends Controller
             $user->save();
 
             
-            $udtransaction = new Transaction();
+            $udtransaction = new Usertransaction();
             $udtransaction->t_id = time()."-".auth()->user()->id;
             $udtransaction->user_id = auth()->user()->id;
             $udtransaction->t_type = "Out";
@@ -301,6 +307,15 @@ class UserController extends Controller
             $udtransaction->title ="Transfer to TDF";
             $udtransaction->status =  1;
             $udtransaction->save();
+
+            $transaction = new Transaction();
+            $transaction->t_id = time()."-".auth()->user()->id;
+            $transaction->user_id = auth()->user()->id;
+            $transaction->t_type = "Out";
+            $transaction->amount =  $request->tdfamount;
+            $transaction->note ="Transfer to TDF";
+            $transaction->status =  1;
+            $transaction->save();
 
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";

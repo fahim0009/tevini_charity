@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ProductFeeController;
 use App\Http\Controllers\Admin\CardProfileController;
 use App\Http\Controllers\Admin\SpendProfileController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
 
@@ -263,5 +264,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/qpay-add-balance', [QpayBalanceController::class, 'add'])->name('qpaybalance.add');
     Route::post('/qpay-add-balance', [QpayBalanceController::class, 'store'])->name('qpaybalance.store');
 
+    // tdf transaction
+    Route::get('/tdf-transaction', [TDFTransactionController::class, 'getTDFTransaction'])->name('tdfTransaction');
     
 });

@@ -311,6 +311,14 @@
                 </a>
             </li>
 
+            
+            <li class="nav-item {{ (request()->is('admin/tdf-transaction*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('tdfTransaction') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    TDF Transaction
+                </a>
+            </li>
+
             {{-- <li class="nav-item " id="admindashboard">
                 <a href="./utility.html">
                     <span class="iconify" data-icon="icomoon-free:profile"></span>

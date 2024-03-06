@@ -14,6 +14,7 @@ use Carbon\CarbonPeriod;
 use AmrShawky\LaravelCurrency\Facade\Currency;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 class UserController extends Controller
 {
@@ -296,6 +297,22 @@ class UserController extends Controller
             $user = User::find(auth()->user()->id);
             $user->balance = $user->balance - $request->tdfamount;
             $user->save();
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = 0 - $request->tdfamount;
+                $comment = "Transfer to TDF";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
 
             
             $udtransaction = new Usertransaction();

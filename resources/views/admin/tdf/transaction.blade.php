@@ -52,6 +52,7 @@
                                     <th>Current dollar amount</th>
                                     <th>Payment dollar amount</th>
                                     <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,37 +74,37 @@
                                             Cancel
                                             @endif
                                         </td>
-                                        {{-- <td>
+                                        <td>
                                             <button type="button" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal{{$data->id}}">
                                                 View
                                             </button>
-                                        </td> --}}
+                                        </td>
                                     </tr>
 
                                       <!-- Modal -->
-                                    {{-- <div class="modal fade" id="exampleModal{{$data->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="exampleModal{{$data->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                            <h5 class="modal-title" id="exampleModalLabel">Transaction Date</h5>
+                                            <h5 class="modal-title" id="exampleModalLabel">Transaction</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="ermsg"></div>
-                                                <form action="{{route('cardservice.tran')}}">
+                                                <form action="{{route('tdfTransaction.update')}}" method="POST">
                                                 @csrf
 
                                                     <div class="row">
 
                                                         <div class="mb-3">
-                                                            <label for="fromDate" class="form-label">From Date</label>
-                                                            <input type="date" class="form-control" id="fromDate" name="fromDate" required>
-                                                            <input type="hidden" class="form-control" value="{{$data->CardProxyId}}" id="CardProxyId" name="CardProxyId">
+                                                            <label for="amount" class="form-label">USD Amount</label>
+                                                            <input type="number" class="form-control" id="amount" name="amount" required>
+                                                            <input type="hidden" class="form-control" value="{{$data->id}}" id="tdfid" name="tdfid">
                                                         </div>
                                                         
                                                         <div class="mb-3">
-                                                            <label for="endDate" class="form-label">End Date</label>
-                                                            <input type="date" class="form-control" id="endDate" name="endDate" required>
+                                                            <label for="tdfamount" class="form-label">TDF Amount</label>
+                                                            <input type="number" class="form-control" value="{{$data->tdf_amount}}" id="tdfamount" name="tdfamount" readonly>
                                                         </div>
                                                     </div>
                                             </div>
@@ -114,7 +115,7 @@
                                         </form>
                                         </div>
                                         </div>
-                                    </div> --}}
+                                    </div>
                                     <!-- Modal End -->
 
                                 @empty

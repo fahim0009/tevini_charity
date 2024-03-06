@@ -266,5 +266,6 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // tdf transaction
     Route::get('/tdf-transaction', [TDFTransactionController::class, 'getTDFTransaction'])->name('tdfTransaction');
+    Route::post('/tdf-transaction', [TDFTransactionController::class, 'tdfBlanceStore'])->name('tdfTransaction.update');
     
 });

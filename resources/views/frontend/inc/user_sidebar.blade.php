@@ -17,6 +17,8 @@
             <li><a href="{{ route('user.transaction') }}" class="{{ (request()->is('user/transaction-view*')) ? 'nav-link current' : '' }}">View transactions</a></li>
             <li><a href="{{ route('user.donationcal') }}" class="{{ (request()->is('user/donation-calculation*')) ? 'nav-link current' : '' }}">Maaser calculator</a></li>
             <li><a href="{{ route('user.contact') }}" class="{{ (request()->is('user/contact*')) ? 'nav-link current' : '' }}">Contact/Top-Up</a></li>
+            
+            <li><a href="{{ route('user.transfertdf') }}" class="{{ (request()->is('user/transfer-to-tdf*')) ? 'nav-link current' : '' }}">Transfer to TDF</a></li>
         @endif
         
         

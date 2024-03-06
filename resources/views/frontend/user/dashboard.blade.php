@@ -52,12 +52,9 @@ use Illuminate\Support\Carbon;
             <div class="col-lg-6 pt-3 d-flex flex-column px-4">
                 <div class="tdfermsg"></div>
                 <div class="" id="tdfDiv">
-                    <p>Converted Amount: ${{auth()->user()->balance}}</p>
-                    <form action="" method="POST">
-                        @csrf
+                    <p>Converted Amount:</p>
                         <input type="number" id="tdfamount" name="tdfamount" class="form-control">
                         <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
-                    </form>
                 </div>
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
             </div>
@@ -288,6 +285,41 @@ use Illuminate\Support\Carbon;
             });                
 
         });
+
+        //currencyurl start 
+        var currencyurl = "{{URL::to('/user/check-currency-amount')}}";
+        $("#tdfamount").keyup(function(){
+            var length =  $(this).val().length;
+
+            var tdfamount = $("#tdfamount").val();
+            var currency_from = "GBP";
+            var currency_to = "USD";
+            
+            if (length > 0) {
+                $.ajax({
+                    url: currencyurl,
+                    method: "POST",
+                    data: {tdfamount,currency_from,currency_to},
+
+                    success: function (d) {
+                        console.log(d);
+                        if (d.status == 303) {
+                            $(".perrmsg").html(d.message);
+                        }else if(d.status == 300){
+                            $(".perrmsg").html(d.message);
+                        }
+                    },
+                    error: function (d) {
+                        console.log(d);
+                    }
+                }); 
+            }else{
+                $(".perrmsg").html("");
+            }
+
+            
+        });
+        //currencyurl end 
 
     });
 </script>

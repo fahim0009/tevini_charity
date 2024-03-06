@@ -11,6 +11,8 @@ use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use AmrShawky\LaravelCurrency\Facade\Currency;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -272,7 +274,7 @@ class UserController extends Controller
     public function transferToTDF(Request $request)
     {
 
-        if($request->tdfamount  > auth()->user()->balance){
+        if($request->tdfamount  > (auth()->user()->balance + auth()->user()->overdrawn_amount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
@@ -289,6 +291,17 @@ class UserController extends Controller
             $user->balance = $user->balance - $request->tdfamount;
             $user->save();
 
+            
+            $udtransaction = new Transaction();
+            $udtransaction->t_id = time()."-".auth()->user()->id;
+            $udtransaction->user_id = auth()->user()->id;
+            $udtransaction->t_type = "Out";
+            $udtransaction->amount =  $request->tdfamount;
+            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->title ="Transfer to TDF";
+            $udtransaction->status =  1;
+            $udtransaction->save();
+
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
@@ -296,5 +309,37 @@ class UserController extends Controller
             return response()->json(['status'=> 303,'message'=>'Server error!!']);
         }
         
+    }
+
+
+    public function checkCurrencyAmount(Request $request)
+    {
+
+
+        $convertedObj = Currency::convert()
+                        ->from('GBP')
+                        ->to('USD')
+                        ->date(date('Y-m-d'))
+                        ->amount(50)
+                        ->round(2)
+                        ->get();
+        $converted = "";
+
+        if (isset($convertedObj) ) {
+            $message ="<b style='color: green'>Available</b>";
+            return response()->json(['status'=> 300,'data'=>$converted,'message'=>$convertedObj]);
+        } else {
+            $message ="<b style='color: red'>This location is out of our service.</b>";
+            return response()->json(['status'=> 303,'data'=>$converted,'message'=>$convertedObj,'currency_from'=>$request->currency_from]);
+        }
+        
+
+    }
+
+    public function gettransferToTDF()
+    {
+        $data = TdfTransaction::where('user_id', Auth::user()->id)->orderBy('id','DESC')->get();
+        return view('frontend.user.transfertotdf')->with('data',$data);
+
     }
 }

@@ -116,6 +116,10 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     // charity donation link close request 
     Route::post('/close-a-link', [CharityController::class, 'closecharityLink']);
     Route::post('/transfer-to-tdf', [UserController::class, 'transferToTDF']);
+    Route::post('/check-currency-amount', [UserController::class, 'checkCurrencyAmount']);
+
+    
+    Route::get('/transfer-to-tdf', [UserController::class, 'gettransferToTDF'])->name('user.transfertdf');
 
     // card service
     Route::get('card-service', [CardServiceController::class, 'index'])->name('userCardService');

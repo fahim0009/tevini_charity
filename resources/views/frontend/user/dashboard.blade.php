@@ -53,8 +53,11 @@ use Illuminate\Support\Carbon;
                 <div class="tdfermsg"></div>
                 <div class="" id="tdfDiv">
                     <p>Converted Amount:</p>
-                        <input type="number" id="tdfamount" name="tdfamount" class="form-control">
-                        <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
+                    <label for="">TDF Account Number</label>
+                    <input type="text" id="tdfaccount" name="tdfaccount" class="form-control">
+                    <label for="">Amount to Transfer</label>
+                    <input type="text" id="tdfamount" min="0" name="tdfamount" class="form-control">
+                    <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
                 </div>
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
             </div>
@@ -227,6 +230,13 @@ use Illuminate\Support\Carbon;
 
 
 <script>
+
+    // JavaScript to allow only numeric input
+    document.getElementById('tdfamount').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, ''); // Allow only digits
+        });
+
+
     $(document).ready(function () {
         //header for csrf-token is must in laravel
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
@@ -266,11 +276,12 @@ use Illuminate\Support\Carbon;
         var tdfurl = "{{URL::to('/user/transfer-to-tdf')}}";
         $("#tdfsubmit").click(function(){
             var tdfamount = $("#tdfamount").val();
+            var tdfaccount = $("#tdfaccount").val();
             console.log(tdfamount);
             $.ajax({
                 url: tdfurl,
                 method: "POST",
-                data: {tdfamount},
+                data: {tdfamount,tdfaccount},
                 success: function (d) {
                     if (d.status == 303) {
                         $(".tdfermsg").html(d.message);

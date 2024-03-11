@@ -24,11 +24,9 @@ use Illuminate\Support\Carbon;
                                 <table class="table table-custom shadow-sm bg-white" id="example">
                                     <thead>
                                         <tr>
-                                            <th>Issue Date</th>
-                                            <th>Payment Date</th>
+                                            <th>Date</th>
+                                            <th>TDF Account</th>
                                             <th>Amount</th>
-                                            <th>Current dollar amount</th>
-                                            <th>Payment dollar amount</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -37,11 +35,9 @@ use Illuminate\Support\Carbon;
                                         @forelse ($data as $data)
 
                                         <tr>
-                                            <td>{{ Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
-                                            <td>{{ $data->payment_date}} </td>
+                                            <td>{{ $data->issue_date}} </td>
+                                            <td>{{ $data->tdfaccount}}</td>
                                             <td>£{{ $data->tdf_amount}}</td>
-                                            <td>£{{ $data->current_dollar_amount}}</td>
-                                            <td>£{{ $data->payment_dollar_amount}}</td>
                                             <td>@if($data->status =="0")
                                                 Pending
                                                 @elseif($data->status =="1")

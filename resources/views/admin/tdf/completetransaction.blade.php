@@ -50,7 +50,6 @@
                                     <th>User Email</th>
                                     <th>Amount</th>
                                     <th>Status</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -71,13 +70,6 @@
                                             @endif
                                         </td>
 
-                                        <td>
-                                            <select name="" id="" class="form-control">
-                                                <option value="0|{{$data->id}}" @if($data->status == "0")Selected @endif>Pending</option> 
-                                                <option value="1|{{$data->id}}" @if($data->status == "1")Selected @endif>Complete</option> 
-                                                <option value="3|{{$data->id}}" @if($data->status == "3")Selected @endif>Cancel</option> 
-                                            </select> 
-                                        </td>
                                         {{-- <td>
                                             <button type="button" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal{{$data->id}}">
                                                 View

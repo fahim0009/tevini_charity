@@ -266,6 +266,9 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // tdf transaction
     Route::get('/tdf-transaction', [TDFTransactionController::class, 'getTDFTransaction'])->name('tdfTransaction');
+    Route::get('/tdf-transaction-complete', [TDFTransactionController::class, 'getTDFTransactionComplete'])->name('tdfTransactionComplete');
+    Route::get('/tdf-transaction-cancel', [TDFTransactionController::class, 'getTDFTransactionCancel'])->name('tdfTransactionCancel');
     Route::post('/tdf-transaction', [TDFTransactionController::class, 'tdfBlanceStore'])->name('tdfTransaction.update');
+    Route::post('/tdf-transaction-status', [TDFTransactionController::class, 'changeStatus']);
     
 });

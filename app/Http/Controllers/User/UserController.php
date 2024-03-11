@@ -275,6 +275,18 @@ class UserController extends Controller
     public function transferToTDF(Request $request)
     {
 
+        if(empty($request->tdfaccount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Account Field Required.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if($request->tdfamount < 1){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
         if(empty($request->tdfamount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -290,6 +302,7 @@ class UserController extends Controller
         $data = new TdfTransaction();
         $data->issue_date = date('Y-m-d');
         $data->user_id = auth()->user()->id;
+        $data->tdfaccount = $request->tdfaccount;
         $data->tdf_amount = $request->tdfamount;
         $data->current_dollar_amount = $request->tdfamount;
         if ($data->save()) {

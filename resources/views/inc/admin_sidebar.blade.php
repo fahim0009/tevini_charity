@@ -311,12 +311,32 @@
                 </a>
             </li>
 
-            
-            <li class="nav-item {{ (request()->is('admin/tdf-transaction*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('tdfTransaction') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+
+            <li class="nav-item {{ (request()->is('admin/tdf-transaction*')) ? 'active' : '' }}">
+                <a href="#">
+                    <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                     TDF Transaction
                 </a>
+                <ul class="sub-item">
+                    <li>
+                        <a href="{{ route('tdfTransaction') }}">
+                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                            New TDF Transaction
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('tdfTransactionComplete') }}">
+                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                            TDF Transaction Complete
+                        </a>
+                    </li>
+                    <li class="nav-item {{ (request()->is('admin/tdf-transaction-cancel')) ? 'active' : '' }}">
+                        <a href="{{ route('tdfTransactionCancel') }}">
+                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                            TDF Transaction Cancel
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             {{-- <li class="nav-item " id="admindashboard">

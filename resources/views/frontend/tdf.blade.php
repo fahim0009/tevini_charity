@@ -275,7 +275,7 @@
       </div>
 
       <div style="display: flex; justify-content: center; align-items: center; height: 100px;" >
-        <a href="#" class="btn-theme bg-primary btn-line" style="margin: auto">I want to make my life easier</a>
+        <a href="{{route('register')}}" class="btn-theme bg-primary btn-line" style="margin: auto">I want to make my life easier</a>
       </div>
     </div>
   </section>
@@ -353,7 +353,7 @@
           </div>
         </div>
         <div class="w-100 d-flex align-items-center justify-content-center">
-          <a href="#" class="mx-auto mt-5 btn-theme bg-primary btn-line"
+          <a href="{{route('contact')}}" class="mx-auto mt-5 btn-theme bg-primary btn-line"
             >Ask another question</a
           >
         </div>
@@ -368,7 +368,7 @@
           Join over 1,000 satisfied <br />
           clients.
         </div>
-        <a href="#" class="mx-auto btn-theme bg-primary d-inline my-5">
+        <a href="{{route('register')}}" class="mx-auto btn-theme bg-primary d-inline my-5">
           Join Tevini
         </a>
       </div>

@@ -281,11 +281,12 @@ class UserController extends Controller
             exit();
         }
 
-        if($request->tdfamount < 1){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
+        if($request->tdfamount < 18){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please make sure transfer amount greater then or equal £18.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+
 
         if(empty($request->tdfamount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";

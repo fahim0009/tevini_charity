@@ -185,6 +185,7 @@ Route::get('/terms-&-condition', [App\Http\Controllers\AboutController::class, '
 Route::get('/privacy-&-policy', [App\Http\Controllers\AboutController::class, 'privacy'])->name('privacy');
 Route::get('/card-terms-&-condition', [App\Http\Controllers\AboutController::class, 'cardterms'])->name('cardterms');
 Route::get('/how-it-works', [App\Http\Controllers\HomepageController::class, 'howitWorks'])->name('howitWorks');
+Route::get('/tdf', [App\Http\Controllers\HomepageController::class, 'tdf'])->name('tdf');
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
 

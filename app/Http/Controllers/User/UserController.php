@@ -364,17 +364,13 @@ class UserController extends Controller
         $convertedObj = Currency::convert()
                         ->from('GBP')
                         ->to('USD')
-                        ->date(date('Y-m-d'))
                         ->amount(50)
-                        ->round(2)
                         ->get();
         $converted = "";
 
         if (isset($convertedObj) ) {
-            $message ="<b style='color: green'>Available</b>";
             return response()->json(['status'=> 300,'data'=>$converted,'message'=>$convertedObj]);
         } else {
-            $message ="<b style='color: red'>This location is out of our service.</b>";
             return response()->json(['status'=> 303,'data'=>$converted,'message'=>$convertedObj,'currency_from'=>$request->currency_from]);
         }
         

@@ -51,6 +51,11 @@ class HomepageController extends Controller
         return view('setting.index');
     }
 
+    public function tdf()
+    {
+        return view('frontend.tdf');
+    }
+
     public function howitWorks()
     {
         return view('frontend.how-it-works');

@@ -52,7 +52,11 @@ use Illuminate\Support\Carbon;
             <div class="col-lg-6 pt-3 d-flex flex-column px-4">
                 <div class="tdfermsg"></div>
                 <div class="" id="tdfDiv">
-                    <p>Converted Amount:</p>
+                    <p>
+                        <iframe title="fx" src="https://wise.com/gb/currency-converter/fx-widget/converter?sourceCurrency=GBP&targetCurrency=USD&amount=1" height=210 width=260 frameBorder="0" allowtransparency="true" ></iframe>
+                    </p>
+
+
                     <label for="">TDF Account Number</label>
                     <input type="text" id="tdfaccount" name="tdfaccount" class="form-control">
                     <label for="">Amount to Transfer</label>
@@ -330,6 +334,39 @@ use Illuminate\Support\Carbon;
 
             
         });
+
+
+        // $("#tdfamount").keyup(function(){
+            
+        //     var tdfamount = $("#tdfamount").val();
+        //     // set endpoint and your access key
+        //     endpoint = 'live'
+        //     access_key = 'YOUR_ACCESS_KEY';
+
+        //     // get the most recent exchange rates via the "live" endpoint:
+        //     $.ajax({
+        //         url: 'https://api.exchangerate.host/' + endpoint + '?access_key=' + access_key,   
+        //         dataType: 'jsonp',
+        //         success: function(json) {
+
+        //             // exchange rata data is stored in json.quotes
+        //             alert(json.quotes.USDGBP);
+
+        //             // source currency is stored in json.source
+        //             alert(json.source);
+
+        //             // timestamp can be accessed in json.timestamp
+        //             alert(json.timestamp);
+
+        //         }
+        //     });
+            
+
+            
+        // });
+
+
+
         //currencyurl end 
 
     });

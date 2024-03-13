@@ -46,6 +46,18 @@
 
 
                             <div class="row mt-4">
+                                <div class="col-lg-12">
+                                    <div class="form-group mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <select name="prefix_name" id="prefix_name"  class="form-control" readonly="readonly">
+                                                <option value="">Please Select</option>
+                                                <option value="Mr" @if (Auth::user()->prefix_name == "Mr") selected @endif>Mr</option>
+                                                <option value="Mrs" @if (Auth::user()->prefix_name == "Mrs") selected @endif>Mrs</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-lg-6  ">
                                     <div class="form-group mb-3">
                                         <label for="">Name</label>
@@ -174,6 +186,7 @@
 
         $("body").delegate(".editBtn","click",function(event){
             event.preventDefault();
+            $("#prefix_name").attr("readonly", false);
             $("#name").attr("readonly", false);
             $("#surname").attr("readonly", false);
             $("#phone").attr("readonly", false);

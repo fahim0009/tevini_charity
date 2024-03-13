@@ -57,6 +57,7 @@ class DonorController extends Controller
         ]);
 
         $user = new User;
+        $user->prefix_name = $request->prefix_name;
         $user->name = $request->fname;
         $user->surname = $request->surname;
         $user->email = $request->email;
@@ -117,6 +118,7 @@ class DonorController extends Controller
 
 
         $user = User::findOrFail($id);
+        $user->prefix_name = $request->prefix_name;
         $user->name = $request->fname;
         $user->surname = $request->surname;
         $user->email = $request->email;

@@ -158,6 +158,7 @@ class UserController extends Controller
 
 
         $userdata= Auth::user();
+        $userdata->prefix_name = $request->prefix_name;
         $userdata->name= $request->name;
         $userdata->surname= $request->surname;
         $userdata->email= $request->email;

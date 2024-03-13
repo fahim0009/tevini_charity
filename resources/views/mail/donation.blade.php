@@ -1,6 +1,6 @@
 @component('mail::message')
 
-<h3>Dear Mr {{$array['name']}},</h3> 
+<h3>Dear {{$array['name']}},</h3> 
      
 <p>This message is to confirm that you have made the request below via the Tevini website. It will be dealt with in due course.</p>
 

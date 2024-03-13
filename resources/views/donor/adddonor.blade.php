@@ -40,67 +40,91 @@
 
 
         <section class="px-4"  id="addThisFormContainer">
-            <div class="row my-3">
 
-                    <div class="col-md-6  my-4 bg-white">
-                        <form action="{{ route('donor.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
-                            @csrf
-                        <div class="col my-3">
-                                <label for="">Title</label>
-                               <input type="text" name="title" id="title" placeholder="Title" class="form-control @error('title') is-invalid @enderror">
-                         </div>
-                         <div class="col my-3">
-                            <label for=""> Name</label>
-                           <input type="text" name="fname" id="fname" placeholder="Name" class="form-control @error('fname') is-invalid @enderror">
-                        </div>
-                         <div class="col my-3">
-                             <label for="">Surname</label>
-                            <input type="text" name="surname" id="surname" placeholder="Surname" class="form-control @error('surname') is-invalid @enderror">
-                         </div>
+            
+            <div class="row justify-content-md-center bg-white">
+                <div class="col-md-8">
 
-                         <div class="col my-3">
-                             <label for="">Postcode</label>
-                            <input type="text" name="postcode" id="postcode" placeholder="Postcode" class="form-control @error('postcode') is-invalid @enderror">
-                         </div>
-                         <div class="col my-3">
-                             <label for="">Phone</label>
-                            <input type="text" name="phone" id="phone" placeholder="Phone" class="form-control @error('phone') is-invalid @enderror">
-                         </div>
-                    </div>
-                    <div class="col-md-6  my-4  bg-white">
-                        <div class="col my-3">
-                            <label for="">Street</label>
-                           <input type="text" name="street" id="street" placeholder="Street" class="form-control @error('street') is-invalid @enderror">
+                    <form action="{{ route('donor.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
+                        @csrf
+                        <div class="row my-3">
+                            <div class="col-lg-12">
+                                <div class="col my-3">
+                                    <select name="prefix_name" id="prefix_name"  class="form-control">
+                                        <option value="">Please Select</option>
+                                        <option value="Mr">Mr</option>
+                                        <option value="Mrs">Mrs</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 bg-white">
+                                <div class="col my-3">
+                                        <label for="">Title</label>
+                                       <input type="text" name="title" id="title" placeholder="Title" class="form-control @error('title') is-invalid @enderror">
+                                 </div>
+                                 <div class="col my-3">
+                                    <label for=""> Name</label>
+                                   <input type="text" name="fname" id="fname" placeholder="Name" class="form-control @error('fname') is-invalid @enderror">
+                                </div>
+                                 <div class="col my-3">
+                                     <label for="">Surname</label>
+                                    <input type="text" name="surname" id="surname" placeholder="Surname" class="form-control @error('surname') is-invalid @enderror">
+                                 </div>
+        
+                                 <div class="col my-3">
+                                     <label for="">Postcode</label>
+                                    <input type="text" name="postcode" id="postcode" placeholder="Postcode" class="form-control @error('postcode') is-invalid @enderror">
+                                 </div>
+                                 <div class="col my-3">
+                                     <label for="">Phone</label>
+                                    <input type="text" name="phone" id="phone" placeholder="Phone" class="form-control @error('phone') is-invalid @enderror">
+                                 </div>
+                            </div>
+        
+                            
+                            <div class="col-md-6  bg-white">
+                                <div class="col my-3">
+                                    <label for="">Street</label>
+                                   <input type="text" name="street" id="street" placeholder="Street" class="form-control @error('street') is-invalid @enderror">
+                                </div>
+                                <div class="col my-3">
+                                    <label for="">House no</label>
+                                   <input type="text" name="houseno" id="houseno" placeholder="House no" class="form-control @error('houseno') is-invalid @enderror ">
+                                </div>
+                                <div class="col my-3">
+                                    <label for="">Town</label>
+                                   <input type="text" name="town" id="town" placeholder="Town" class="form-control @error('town') is-invalid @enderror">
+                                </div>
+                                <input type="hidden" name="donorid" id="donorid" class="form-control">
+        
+                                <div class="col my-3">
+                                    <label for="">Email</label>
+                                   <input type="email" name="email" id="email" placeholder="Email" class="form-control @error('email') is-invalid @enderror">
+                                </div>
+                                <div class="col my-3">
+                                    <label for="">Balance</label>
+                                   <input type="text" name="balance" id="balance" placeholder="balance" class="form-control">
+                                </div>
+                                <div class="col my-3">
+                                    <label for="">Account No</label>
+                                   <input type="text" name="accno" id="accno" placeholder="Account No" class="form-control">
+                                </div>
+                            </div>
+        
+        
+                            <div class="col-md-6">
+                                <button class="btn btn-theme mt-2 text-white">Create</button>
+                                <a class="btn btn-warning mt-2 text-white" id="FormCloseBtn">close</a>
+                            </div>
                         </div>
-                        <div class="col my-3">
-                            <label for="">House no</label>
-                           <input type="text" name="houseno" id="houseno" placeholder="House no" class="form-control @error('houseno') is-invalid @enderror ">
-                        </div>
-                        <div class="col my-3">
-                            <label for="">Town</label>
-                           <input type="text" name="town" id="town" placeholder="Town" class="form-control @error('town') is-invalid @enderror">
-                        </div>
-                        <input type="hidden" name="donorid" id="donorid" class="form-control">
-
-                        <div class="col my-3">
-                            <label for="">Email</label>
-                           <input type="email" name="email" id="email" placeholder="Email" class="form-control @error('email') is-invalid @enderror">
-                        </div>
-                        <div class="col my-3">
-                            <label for="">Balance</label>
-                           <input type="text" name="balance" id="balance" placeholder="balance" class="form-control">
-                        </div>
-                        <div class="col my-3">
-                            <label for="">Account No</label>
-                           <input type="text" name="accno" id="accno" placeholder="Account No" class="form-control">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <button class="btn btn-theme mt-2 text-white">Create</button>
-                        <a class="btn btn-warning mt-2 text-white" id="FormCloseBtn">close</a>
-                    </div>
                     </form>
+
+                </div>
             </div>
+
+            
+
+
         </section>
 
         <section class="px-4"  id="contentContainer">

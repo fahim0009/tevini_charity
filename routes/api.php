@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\VoucherBookController;
 use App\Http\Controllers\Api\MaaserController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TDFTransactionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +91,9 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('donation-details/{id}', [MaaserController::class, 'donationDetails']);
     Route::post('/contact-submit', [ContactController::class, 'visitorContact']);
 
+    // tdf transaction
+    Route::get('/tdf-transaction', [TDFTransactionController::class, 'getTDFtransaction']);
+    Route::post('/transfer-to-tdf', [TDFTransactionController::class, 'transferToTDF']);
     
 
 });

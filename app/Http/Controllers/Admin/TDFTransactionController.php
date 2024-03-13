@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMail;
 use App\Models\TdfTransaction;
 use App\Models\User;
+use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -58,6 +59,16 @@ class TDFTransactionController extends Controller
         $user = User::find($user_id);
         $user->increment('balance',$tdf_amount);
         $user->save();
+
+        $udtransaction = new Usertransaction();
+        $udtransaction->t_id = time()."-".$user_id;
+        $udtransaction->user_id = $user_id;
+        $udtransaction->t_type = "In";
+        $udtransaction->amount =  $tdf_amount;
+        $udtransaction->t_unq = time().rand(1,100);
+        $udtransaction->title ="Return from TDF";
+        $udtransaction->status =  1;
+        $udtransaction->save();
 
         // card balance update
         // if (isset($user->CreditProfileId)) {

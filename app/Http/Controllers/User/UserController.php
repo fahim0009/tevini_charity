@@ -283,7 +283,7 @@ class UserController extends Controller
         }
 
         if($request->tdfamount < 18){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please make sure transfer amount greater then or equal £18.</b></div>";
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Minimum transfer is £18.00.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }

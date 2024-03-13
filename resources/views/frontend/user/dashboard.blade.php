@@ -49,11 +49,12 @@ use Illuminate\Support\Carbon;
         <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
         <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
         <div class="row my-2">
-            <div class="col-lg-6 pt-3 d-flex flex-column px-4">
+            <div class="col-lg-12" id="tdfDiv">
                 <div class="tdfermsg"></div>
-                <div class="" id="tdfDiv">
+                <div class="">
+                    <small>Calculator is for your information only actual transfer is subject to change in the exchange rate market.</small>
                     <p>
-                        <iframe title="fx" src="https://wise.com/gb/currency-converter/fx-widget/converter?sourceCurrency=GBP&targetCurrency=USD&amount=1" height=210 width=260 frameBorder="0" allowtransparency="true" ></iframe>
+                        <iframe title="fx" src="https://wise.com/gb/currency-converter/fx-widget/converter?sourceCurrency=GBP&targetCurrency=USD&amount=1" height=210 width=500 frameBorder="0" allowtransparency="true" ></iframe>
                     </p>
 
 
@@ -63,6 +64,9 @@ use Illuminate\Support\Carbon;
                     <input type="text" id="tdfamount" min="0" name="tdfamount" class="form-control">
                     <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
                 </div>
+            </div>
+            <div class="col-lg-6 pt-3 d-flex flex-column px-4">
+                
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
             </div>
             @if (Auth::user()->accountno)

@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\MaaserController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TDFTransactionController;
+use App\Http\Controllers\StripePaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -95,6 +96,9 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/tdf-transaction', [TDFTransactionController::class, 'getTDFtransaction']);
     Route::post('/transfer-to-tdf', [TDFTransactionController::class, 'transferToTDF']);
     
+
+    
+    Route::post('stripe-top-up', [StripePaymentController::class, 'stripetopUpPost']);
 
 });
 

@@ -102,7 +102,8 @@
 
 <script>
     // Create a Stripe instance with your publishable key
-    var stripe = Stripe('pk_live_51KsS4xAynpveFrWHr7GiZOV2fLG1cYEkAlnm1SVeI93ENsDH6HQi8CoXNklvhbWP9Z9TNIzzfTR8gIi6205E2ejZ00uwYYwNpz');
+    var stripe = Stripe('pk_test_51N5D0QHyRsekXzKiScNvPKU4rCAVKTJOQm8VoSLk7Mm4AqPPsXwd6NDhbdZGyY4tkqWYBoDJyD0eHLFBqQBfLUBA00tj1hNg3q');
+    // var stripe = Stripe('pk_live_51KsS4xAynpveFrWHr7GiZOV2fLG1cYEkAlnm1SVeI93ENsDH6HQi8CoXNklvhbWP9Z9TNIzzfTR8gIi6205E2ejZ00uwYYwNpz');
   
     // Create a card element and mount it to the card-element div
     var cardElement = stripe.elements().create('card');

@@ -131,9 +131,16 @@ class OrderController extends Controller
             $order->amount = $prepaid_amount;
             $order->delivery_charge = 0;
         }
-        
 
-        $order->delivery_option = $delivery_opt;
+        if($request->delivery == "true"){
+            $order->delivery_option = "Delivery";
+        }elseif($request->collection == "true"){
+            $order->delivery_option = "Collection";
+        }else{
+            $order->delivery_option = null;
+        }
+
+
         $order->notification = 1;
         $order->status = 0;
         if($order->save()){
@@ -606,7 +613,7 @@ class OrderController extends Controller
         $user = User::where('id','=', $user_id)->first();
 
         $orderDtls = OrderHistory::where('order_id',  $id)->get();
-
+        
         return view('voucher.singleorder')
         ->with('user',$user)
         ->with('order',$order)

@@ -83,9 +83,9 @@ class VoucherBookController extends Controller
 
             }
 
-            if($request->delivery == "true"){
+            if($request->delivery == true){
                 $delivery_opt = "Delivery";
-            }elseif($request->collection == "true"){
+            }elseif($request->collection == true){
                 $delivery_opt = "Collection";
             }else{
                 $delivery_opt = null;
@@ -211,19 +211,19 @@ class VoucherBookController extends Controller
                 $user->save();
 
                 // card balance update
-                // if (isset($user->CreditProfileId)) {
-                //     $CreditProfileId = $user->CreditProfileId;
-                //     $CreditProfileName = $user->name;
-                //     $AvailableBalance = 0 - $prepaid_amount;
-                //     $comment = "Voucher Store";
-                //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                //             'CreditProfileId' => $CreditProfileId,
-                //             'CreditProfileName' => $CreditProfileName,
-                //             'AvailableBalance' => $AvailableBalance,
-                //             'comment' => $comment,
-                //         ]);
-                // }
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 - $prepaid_amount;
+                    $comment = "Voucher Store";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
                 // card balance update end
             }
 

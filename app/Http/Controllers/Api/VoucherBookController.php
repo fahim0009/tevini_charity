@@ -83,9 +83,9 @@ class VoucherBookController extends Controller
 
             }
 
-            if($request->delivery == true){
+            if($request->delivery != "false"){
                 $delivery_opt = "Delivery";
-            }elseif($request->collection == true){
+            }elseif($request->collection != "false"){
                 $delivery_opt = "Collection";
             }else{
                 $delivery_opt = null;
@@ -116,7 +116,7 @@ class VoucherBookController extends Controller
 
         if ($prepaid_amount < 200) {
 
-            if ($delivery_opt = "Delivery") {
+            if ($delivery_opt == "Delivery") {
                 $order->amount = $prepaid_amount + 3.50;
                 $order->delivery_charge = '3.50';
             } else {
@@ -211,19 +211,19 @@ class VoucherBookController extends Controller
                 $user->save();
 
                 // card balance update
-                if (isset($user->CreditProfileId)) {
-                    $CreditProfileId = $user->CreditProfileId;
-                    $CreditProfileName = $user->name;
-                    $AvailableBalance = 0 - $prepaid_amount;
-                    $comment = "Voucher Store";
-                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                            'CreditProfileId' => $CreditProfileId,
-                            'CreditProfileName' => $CreditProfileName,
-                            'AvailableBalance' => $AvailableBalance,
-                            'comment' => $comment,
-                        ]);
-                }
+                // if (isset($user->CreditProfileId)) {
+                //     $CreditProfileId = $user->CreditProfileId;
+                //     $CreditProfileName = $user->name;
+                //     $AvailableBalance = 0 - $prepaid_amount;
+                //     $comment = "Voucher Store";
+                //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                //             'CreditProfileId' => $CreditProfileId,
+                //             'CreditProfileName' => $CreditProfileName,
+                //             'AvailableBalance' => $AvailableBalance,
+                //             'comment' => $comment,
+                //         ]);
+                // }
                 // card balance update end
             }
 
@@ -249,6 +249,8 @@ class VoucherBookController extends Controller
 
             $success['message'] = 'Voucher order place successfully.';
             $success['data'] = $order;
+            $success['delivery'] = $delivery_opt;
+            $success['prepaid_amount'] = $prepaid_amount;
             return response()->json(['success'=>true,'response'=> $success], 200);
 
         }

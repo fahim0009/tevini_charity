@@ -76,6 +76,10 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/voucher-store', [VoucherBookController::class, 'storeVoucher']);
 
     
+    Route::post('waiting-completeBydonor', [VoucherBookController::class, 'waiting_CompleteBydonor']);
+    Route::post('waiting-cancelBydonor', [VoucherBookController::class, 'waiting_CancelBydonor']);
+
+    
     Route::get('donation-calculation', [MaaserController::class, 'donationCal']);
     Route::post('one-off-donation', [MaaserController::class, 'oneoffDonation']);
     Route::post('other-donation-store', [MaaserController::class, 'otherDonationStore']);

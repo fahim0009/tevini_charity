@@ -20,6 +20,7 @@ use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use App\Models\ProvouchersImages;
 
+use App\Mail\WaitingVComplete;
 use App\Mail\InstantReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingvoucherReport;
@@ -211,19 +212,19 @@ class VoucherBookController extends Controller
                 $user->save();
 
                 // card balance update
-                // if (isset($user->CreditProfileId)) {
-                //     $CreditProfileId = $user->CreditProfileId;
-                //     $CreditProfileName = $user->name;
-                //     $AvailableBalance = 0 - $prepaid_amount;
-                //     $comment = "Voucher Store";
-                //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                //             'CreditProfileId' => $CreditProfileId,
-                //             'CreditProfileName' => $CreditProfileName,
-                //             'AvailableBalance' => $AvailableBalance,
-                //             'comment' => $comment,
-                //         ]);
-                // }
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 - $prepaid_amount;
+                    $comment = "Voucher Store";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
                 // card balance update end
             }
 
@@ -241,10 +242,10 @@ class VoucherBookController extends Controller
             $array['delivery_option'] = $delivery_opt;
 
 
-            // Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
-            //  $message->from($array['from'], 'Tevini.co.uk');
-            //  $message->to($email)->cc($array['cc'])->subject($array['subject']);
-            // });
+            Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
+             $message->from($array['from'], 'Tevini.co.uk');
+             $message->to($email)->cc($array['cc'])->subject($array['subject']);
+            });
 
 
             $success['message'] = 'Voucher order place successfully.';
@@ -257,4 +258,120 @@ class VoucherBookController extends Controller
 
 
     }
+
+
+
+    public function waiting_CompleteBydonor(Request $request)
+    {
+        if(empty($request->voucher_id)){
+            $success['message'] = 'Voucher id not define.';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+            exit();
+        }
+
+        $charity_id = $request->charity_id;
+        $voucher_id = $request->voucher_id;
+
+
+        $voucher = Provoucher::where('id',$voucher_id)->first();
+        
+        $u_bal = User::where('id',$voucher->user_id)->first()->balance;
+        $overdrawn = (User::where('id',$voucher->user_id)->first()->overdrawn_amount);
+        $limitChk = $u_bal + $overdrawn;
+
+        if($limitChk >= $voucher->amount){
+
+            $utransaction = Usertransaction::find($voucher->tran_id);
+            $utransaction->status = '1';
+            $utransaction->pending = '1';
+            $utransaction->save();
+
+            $charity = Charity::find($voucher->charity_id);
+            $charity->increment('balance',$voucher->amount);
+            $charity->save();
+
+            $donor = User::find($voucher->user_id);
+            $donor->decrement('balance',$voucher->amount);
+            $donor->save();
+
+            // card balance update
+            if (isset($donor->CreditProfileId)) {
+                $CreditProfileId = $donor->CreditProfileId;
+                $CreditProfileName = $donor->name;
+                $AvailableBalance = 0 - $voucher->amount;
+                $comment = "Waiting voucher complete by donor";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+
+            $pstatus = Provoucher::find($voucher_id);
+            $pstatus->waiting = "No";
+            $pstatus->status = 1;
+            $pstatus->save();
+
+            }else {
+            $pstatus = Provoucher::find($voucher_id);
+            $pstatus->waiting = "No";
+            $pstatus->save();
+        
+        }   
+            
+        $contactmail = ContactMail::where('id', 1)->first()->name;
+
+        $array['subject'] = 'Waiting Voucher Report';
+        $array['from'] = 'info@tevini.co.uk';
+        $array['cc'] = $contactmail;
+        $array['name'] = $charity->name;
+        $email = $charity->email;
+        $array['charity'] = $charity;
+        $array['amount'] = $voucher->amount;
+        $array['voucher_number'] = $voucher->cheque_no;
+
+        $m = Mail::to($email)
+            ->cc($contactmail)
+            ->send(new WaitingVComplete($array));
+        
+            $success['message'] = 'Waiting voucher complete successfully.';
+            return response()->json(['success'=>true,'response'=> $success], 200);
+            
+    
+    }
+
+
+    public function waiting_CancelBydonor(Request $request)
+    {
+        if(empty($request->voucher_id)){
+            $success['message'] = 'Voucher id not define.';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+            exit();
+        }
+
+        $charity_id = $request->charity_id;
+        $voucher_id = $request->voucher_id;
+
+
+        $voucher = Provoucher::where('id',$voucher_id)->first();
+
+        Usertransaction::where('id', $voucher->tran_id)->delete();
+
+        $pstatus = Provoucher::find($voucher_id);
+        $pstatus->status = 3;
+        $pstatus->waiting = "Cancel";
+        $pstatus->save();
+
+        $success['message'] = 'Waiting voucher cancel successfully.';
+        return response()->json(['success'=>true,'response'=> $success], 200);
+            
+
+    }
+
+
+
+
 }

@@ -57,7 +57,6 @@ class RegisterController extends Controller
             'phone' => ['required', 'regex:/^((44)|(45)|(46))[0-9]{10}/','min:12'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'houseno' => ['required', 'string', 'max:255'],
-            'streetname' => ['required', 'string', 'max:255'],
             'town' => ['required', 'string', 'max:255'],
             'postcode' => ['required', 'string', 'max:255'],
             'password' => [
@@ -103,6 +102,7 @@ class RegisterController extends Controller
             'phone' => $phone,
             'houseno' => $data['houseno'],
             'street' => $data['streetname'],
+            'address_third_line' => $data['address_third_line'],
             'town' => $data['town'],
             'postcode' => $data['postcode'],
             'passwordchk' => 1,

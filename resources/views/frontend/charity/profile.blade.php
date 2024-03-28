@@ -61,7 +61,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-lg-6">
+                                <div class="col-lg-12">
                                     <div class="form-group mb-3">
                                         <label for="">Email</label>
                                         <div class="d-flex align-items-center">
@@ -72,14 +72,35 @@
 
                                                              
                                 
-                                <div class="col-lg-6">
+                                <div class="col-lg-4">
                                     <div class="form-group mb-3">
-                                        <label for="">House Number</label>
+                                        <label for="">Address First Line</label>
                                         <div class="d-flex align-items-center">
                                             <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ auth('charity')->user()->address }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
+
+
+                                <div class="col-lg-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Address Second Line</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="Address Second Line" name="address_second_line" id="address_second_line" value="{{ auth('charity')->user()->address_second_line }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-lg-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Address Third Line</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="Address Third Line" name="address_third_line" id="address_third_line" value="{{ auth('charity')->user()->address_third_line }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
                                  <div class="col-lg-6">
                                     <div class="form-group mb-3">
                                         <label for="">Town</label>
@@ -164,6 +185,22 @@
   @endsection
 @section('script')
 
+<script src="https://cdn.jsdelivr.net/npm/@ideal-postcodes/address-finder-bundled@4"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        IdealPostcodes.AddressFinder.watch({
+            apiKey: "ak_lt4ocv0eHLLo4meBRGHWK4HU0SBxa",
+            outputFields: {
+            line_1: "#houseno",
+            line_2: "#address_second_line",
+            line_3: "#address_third_line",
+            post_town: "#town",
+            postcode: "#postcode"
+        }
+    });
+});
+</script>
 
 <script type="text/javascript">
   $(document).ready(function() {

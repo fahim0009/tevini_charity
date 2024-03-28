@@ -315,7 +315,9 @@ class CharityController extends Controller
         $charity = Charity::findOrFail(auth('charity')->user()->id);
         $charity->name = $request->name;
         $charity->number = $request->phone;
-        $charity->address = $request->address;
+        $charity->address = $request->houseno;
+        $charity->address_second_line = $request->address_second_line;
+        $charity->address_third_line = $request->address_third_line;
         $charity->town = $request->town;
         $charity->post_code = $request->postcode;
         $charity->account_name = $request->account_name;

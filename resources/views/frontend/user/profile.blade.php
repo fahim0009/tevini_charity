@@ -93,21 +93,31 @@
                                     </div>
                                 </div>
 
-                               
+                                                             
                                 
-                                <div class="col-lg-6">
+                                <div class="col-lg-4">
                                     <div class="form-group mb-3">
-                                        <label for="">House Number</label>
+                                        <label for="">Address First Line</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ Auth::user()->houseno }}" readonly="readonly">
+                                            <input type="text" class="form-control" placeholder="Address First Line" name="houseno" id="addfline" value="{{ Auth::user()->houseno }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-lg-4">
                                     <div class="form-group mb-3">
-                                        <label for="">Street</label>
+                                        <label for="">Address Second Line</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="Street number" name="street" id="street" value="{{ Auth::user()->street }}" readonly="readonly">
+                                            <input type="text" class="form-control" placeholder="Address Second Line" name="street" id="street" value="{{ Auth::user()->street }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <div class="col-lg-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Address Third Line</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="Address Third Line" name="address_third_line" id="address_third_line" value="{{ Auth::user()->address_third_line }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +138,61 @@
                                         </div>
                                     </div>
                                 </div>
+
+
+
+
+
+                                {{-- <div class="col-lg-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Address First Line</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ Auth::user()->address }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-lg-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Address Second Line</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="Address Second Line" name="address_second_line" id="address_second_line" value="{{ Auth::user()->address_second_line }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-lg-4">
+                                    <div class="form-group mb-3">
+                                        <label for="">Address Third Line</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="Address Third Line" name="address_third_line" id="address_third_line" value="{{ Auth::user()->address_third_line }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <div class="col-lg-6">
+                                    <div class="form-group mb-3">
+                                        <label for="">Town</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" placeholder="enter town" name="town" id="town" value="{{ Auth::user()->town }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group mb-3">
+                                        <label for="">Postcode</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="text" class="form-control" id="postcode" name="postcode" placeholder="Enter postcode" value="{{ Auth::user()->post_code }}" readonly="readonly">
+                                        </div>
+                                    </div>
+                                </div> --}}
+
+
+
+
+
                                 <div class="col-lg-6">
                                     <div class="form-group mb-3">
                                         <label for="">Password</label>
@@ -164,9 +229,25 @@
 
 
 
-  @endsection
+@endsection
 @section('script')
 
+<script src="https://cdn.jsdelivr.net/npm/@ideal-postcodes/address-finder-bundled@4"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        IdealPostcodes.AddressFinder.watch({
+            apiKey: "ak_lt4ocv0eHLLo4meBRGHWK4HU0SBxa",
+            outputFields: {
+            line_1: "#houseno",
+            line_2: "#streetname",
+            line_3: "#address_third_line",
+            post_town: "#town",
+            postcode: "#postcode"
+        }
+    });
+});
+</script>
 
 <script type="text/javascript">
   $(document).ready(function() {
@@ -190,10 +271,10 @@
             $("#name").attr("readonly", false);
             $("#surname").attr("readonly", false);
             $("#phone").attr("readonly", false);
-            $("#houseno").attr("readonly", false);
-            $("#street").attr("readonly", false);
-            $("#town").attr("readonly", false);
-            $("#postcode").attr("readonly", false);
+            $("#addfline").attr("readonly", false);
+            // $("#street").attr("readonly", false);
+            // $("#town").attr("readonly", false);
+            // $("#postcode").attr("readonly", false);
             $("#email").attr("readonly", false);
             $("#password").attr("readonly", false);
             $("#cpassword").attr("readonly", false);
@@ -204,4 +285,7 @@
 })
 
 </script>
+
+
+
 @endsection

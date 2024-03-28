@@ -72,28 +72,22 @@
                                 @enderror
                             </div>
                             <div class="form-group">
-                                <input id="houseno" type="text" class="form-control @error('houseno') is-invalid @enderror" name="houseno" value="{{ old('houseno') }}"  placeholder="Address Line 1" required autocomplete="houseno" autofocus>
+                                <input id="houseno" type="text" class="form-control @error('houseno') is-invalid @enderror" name="houseno" value="{{ old('houseno') }}"  placeholder="House Number" required autocomplete="houseno" autofocus>
                             </div>
-
                             <div class="form-group">
-                                <input id="streetname" type="text" class="form-control @error('streetname') is-invalid @enderror" name="streetname" value="{{ old('streetname') }}"  placeholder="Address Line 2" required autocomplete="streetname" autofocus readonly>
-                            </div>
-
-                            
-                            <div class="form-group">
-                                <input id="address_third_line" type="text" class="form-control @error('address_third_line') is-invalid @enderror" name="address_third_line" value="{{ old('address_third_line') }}"  placeholder="Address Line 3" required autocomplete="address_third_line" autofocus readonly>
+                                <input id="streetname" type="text" class="form-control @error('streetname') is-invalid @enderror" name="streetname" value="{{ old('streetname') }}"  placeholder="Street name" required autocomplete="streetname" autofocus>
                             </div>
 
 
                             <div class="form-group">
 
-                                <input id="town" type="text" class="form-control @error('town') is-invalid @enderror" name="town" value="{{ old('town') }}"  placeholder="Town" required autocomplete="town" autofocus readonly>
+                                <input id="town" type="text" class="form-control @error('town') is-invalid @enderror" name="town" value="{{ old('town') }}"  placeholder="Town" required autocomplete="town" autofocus>
                 
                             </div>
                             
                             <div class="form-group">
                 
-                                <input id="postcode" type="text" class="form-control @error('postcode') is-invalid @enderror" name="postcode" value="{{ old('postcode') }}"  placeholder="Post Code" required autocomplete="postcode" autofocus readonly>
+                                <input id="postcode" type="text" class="form-control @error('postcode') is-invalid @enderror" name="postcode" value="{{ old('postcode') }}"  placeholder="Post Code" required autocomplete="postcode" autofocus>
                 
                             </div>
                             
@@ -159,23 +153,4 @@
 
 
 
-@endsection
-
-@section('script')
-<script src="https://cdn.jsdelivr.net/npm/@ideal-postcodes/address-finder-bundled@4"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        IdealPostcodes.AddressFinder.watch({
-            apiKey: "ak_lt4ocv0eHLLo4meBRGHWK4HU0SBxa",
-            outputFields: {
-            line_1: "#houseno",
-            line_2: "#streetname",
-            line_3: "#address_third_line",
-            post_town: "#town",
-            postcode: "#postcode"
-        }
-    });
-});
-</script>
 @endsection

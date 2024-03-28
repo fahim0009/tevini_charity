@@ -111,6 +111,8 @@ class CharityAuthController extends Controller
         $data->name = $request->name;
         $data->email = $request->email;
         $data->address = $request->address;
+        $data->address_second_line = $request->address_second_line;
+        $data->address_third_line = $request->address_third_line;
         $data->town = $request->town;
         $data->number = $request->phone;
         $data->post_code = $request->postcode;

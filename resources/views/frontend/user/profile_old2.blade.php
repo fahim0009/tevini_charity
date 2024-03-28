@@ -35,7 +35,8 @@
                     <img class="img-fluid mt-3 mb-2" width="150px" src="@if(Auth::user()->photo){{asset('images/'.Auth::user()->photo)}} @else https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg @endif">
                      
                     {{-- <a href="#" class="txt-theme txt-secondary fs-14 my-2">Update profile picture</a> --}}
-                    
+                    <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data" >
+                        @csrf
                     <input type="file" id="image" name="image" class="txt-theme txt-secondary fs-14 my-2">
                 </div>
 
@@ -48,7 +49,7 @@
                                 <div class="col-lg-12">
                                     <div class="form-group mb-3">
                                         <div class="d-flex align-items-center">
-                                            <select name="prefix_name" id="prefix_name"  class="form-control" >
+                                            <select name="prefix_name" id="prefix_name"  class="form-control" readonly="readonly">
                                                 <option value="">Please Select</option>
                                                 <option value="Mr" @if (Auth::user()->prefix_name == "Mr") selected @endif>Mr</option>
                                                 <option value="Mrs" @if (Auth::user()->prefix_name == "Mrs") selected @endif>Mrs</option>
@@ -61,7 +62,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Name</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="first name" name="name" id="name" value="{{ Auth::user()->name }}" >
+                                            <input type="text" class="form-control" placeholder="first name" name="name" id="name" value="{{ Auth::user()->name }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -69,7 +70,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Surname</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" name="surname" id="surname" value="{{ Auth::user()->surname }}" placeholder="surname" >
+                                            <input type="text" class="form-control" name="surname" id="surname" value="{{ Auth::user()->surname }}" placeholder="surname" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -78,7 +79,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Phone</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="enter phone number" id="phone" name="phone" value="{{ Auth::user()->phone }}" >
+                                            <input type="text" class="form-control" placeholder="enter phone number" id="phone" name="phone" value="{{ Auth::user()->phone }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -87,7 +88,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Email</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ Auth::user()->email }}" >
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ Auth::user()->email }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -98,7 +99,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Address First Line</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="Address First Line" name="houseno" id="houseno" value="{{ Auth::user()->houseno }}">
+                                            <input type="text" class="form-control" placeholder="Address First Line" name="houseno" id="houseno" value="{{ Auth::user()->houseno }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -106,7 +107,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Address Second Line</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="Address Second Line" name="street" id="street" value="{{ Auth::user()->street }}">
+                                            <input type="text" class="form-control" placeholder="Address Second Line" name="street" id="street" value="{{ Auth::user()->street }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -116,7 +117,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Address Third Line</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="Address Third Line" name="address_third_line" id="address_third_line" value="{{ Auth::user()->address_third_line }}" >
+                                            <input type="text" class="form-control" placeholder="Address Third Line" name="address_third_line" id="address_third_line" value="{{ Auth::user()->address_third_line }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -125,7 +126,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Town</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="enter town" name="town" id="town" value="{{ Auth::user()->town }}" >
+                                            <input type="text" class="form-control" placeholder="enter town" name="town" id="town" value="{{ Auth::user()->town }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -133,7 +134,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Postcode</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" id="postcode" name="postcode" placeholder="enter postcode" value="{{ Auth::user()->postcode }}">
+                                            <input type="text" class="form-control" id="postcode" name="postcode" placeholder="enter postcode" value="{{ Auth::user()->postcode }}" readonly="readonly">
                                         </div>
                                     </div>
                                 </div>
@@ -239,7 +240,7 @@
             apiKey: "ak_lt4ocv0eHLLo4meBRGHWK4HU0SBxa",
             outputFields: {
             line_1: "#houseno",
-            line_2: "#street",
+            line_2: "#streetname",
             line_3: "#address_third_line",
             post_town: "#town",
             postcode: "#postcode"

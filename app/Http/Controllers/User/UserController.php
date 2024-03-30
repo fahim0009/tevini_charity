@@ -159,14 +159,15 @@ class UserController extends Controller
 
         $userdata= Auth::user();
         $userdata->prefix_name = $request->prefix_name;
-        $userdata->name= $request->name;
-        $userdata->surname= $request->surname;
-        $userdata->email= $request->email;
-        $userdata->phone= $request->phone;
-        $userdata->houseno= $request->houseno;
-        $userdata->street= $request->street;
-        $userdata->town= $request->town;
-        $userdata->postcode= $request->postcode;
+        $userdata->name = $request->name;
+        $userdata->surname = $request->surname;
+        $userdata->email = $request->email;
+        $userdata->phone = $request->phone;
+        $userdata->houseno = $request->houseno;
+        $userdata->street = $request->street;
+        $userdata->address_third_line = $request->address_third_line;
+        $userdata->town = $request->town;
+        $userdata->postcode = $request->postcode;
 
             if ($request->image) {
 

@@ -38,6 +38,7 @@ class UserController extends Controller
         $userdata->phone= $request->phone;
         $userdata->houseno= $request->houseno;
         $userdata->street= $request->street;
+        $userdata->address_third_line = $request->address_third_line;
         $userdata->town= $request->town;
         $userdata->postcode= $request->postcode;
 

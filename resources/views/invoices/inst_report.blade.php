@@ -194,7 +194,7 @@ use app\Models\Provoucher;
                         @if($data->status == 1)
                         Complete
                         @elseif($data->status == 0 && $data->waiting == "Yes")
-                        Awaiting
+                        Pending confirmation
                         @elseif($data->status == 0 && $data->waiting == "No")
                         Pending
                         @elseif($data->status == 3)
@@ -228,7 +228,7 @@ use app\Models\Provoucher;
                 @if($data->status == 1)
                 Complete
                 @elseif($data->status == 0 && $data->waiting == "Yes")
-                Awaiting
+                Pending confirmation
                 @elseif($data->status == 0 && $data->waiting == "No")
                 Pending
                 @elseif($data->status == 3)

@@ -48,7 +48,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Name</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="first name" name="name" id="name" value="{{ auth('charity')->user()->name }}" readonly="readonly">
+                                            <input type="text" class="form-control" placeholder="first name" name="name" id="name" value="{{ auth('charity')->user()->name }}">
                                         </div>
                                     </div>
                                 </div>
@@ -56,7 +56,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Phone</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="enter phone number" id="phone" name="phone" value="{{ auth('charity')->user()->number }}" readonly="readonly">
+                                            <input type="text" class="form-control" placeholder="enter phone number" id="phone" name="phone" value="{{ auth('charity')->user()->number }}">
                                         </div>
                                     </div>
                                 </div>
@@ -65,7 +65,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Email</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ auth('charity')->user()->email }}" readonly="readonly">
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ auth('charity')->user()->email }}" >
                                         </div>
                                     </div>
                                 </div>
@@ -76,7 +76,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Address First Line</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ auth('charity')->user()->address }}" readonly="readonly">
+                                            <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ auth('charity')->user()->address }}">
                                         </div>
                                     </div>
                                 </div>
@@ -123,7 +123,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Account Name</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" id="account_name" name="account_name" placeholder="Enter account name" value="{{ auth('charity')->user()->account_name }}" readonly="readonly">
+                                            <input type="text" class="form-control" id="account_name" name="account_name" placeholder="Enter account name" value="{{ auth('charity')->user()->account_name }}">
                                         </div>
                                     </div>
                                 </div>
@@ -132,7 +132,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Account Number</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" id="account_number" name="account_number" placeholder="Enter account number" value="{{ auth('charity')->user()->account_number }}" readonly="readonly">
+                                            <input type="text" class="form-control" id="account_number" name="account_number" placeholder="Enter account number" value="{{ auth('charity')->user()->account_number }}">
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@
                                 <div class="col-lg-12">
                                     <div class="form-group mt-4">
                                         <button class="btn-theme bg-primary updateBtn" id="updateBtn" type="submit">Update profile</button>
-                                        <button class="btn-theme bg-primary editBtn" id="editBtn">Edit profile</button>
+                                        {{-- <button class="btn-theme bg-primary editBtn" id="editBtn">Edit profile</button> --}}
 
                                     </div>
                                 </div>
@@ -213,30 +213,6 @@
 
 <script type="text/javascript">
 
-    $(document).ready(function () {
-
-        $(".updateBtn").hide();
-
-
-        $("body").delegate(".editBtn","click",function(event){
-            event.preventDefault();
-            // $("#name").attr("readonly", false);
-            $("#phone").attr("readonly", false);
-            $("#houseno").attr("readonly", false);
-            $("#street").attr("readonly", false);
-            $("#town").attr("readonly", false);
-            $("#postcode").attr("readonly", false);
-            // $("#email").attr("readonly", false);
-            $("#password").attr("readonly", false);
-            $("#cpassword").attr("readonly", false);
-            $("#account_name").attr("readonly", false);
-            $("#account_number").attr("readonly", false);
-            $("#account_sortcode").attr("readonly", false);
-            $("#editBtn").hide();
-            $("#updateBtn").show();
-        });
-
-})
 
 </script>
 @endsection

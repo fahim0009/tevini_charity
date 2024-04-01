@@ -65,7 +65,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Email</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ auth('charity')->user()->email }}" >
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ auth('charity')->user()->email }}" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -141,7 +141,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Account Sortcode</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="text" class="form-control" id="account_sortcode" name="account_sortcode" placeholder="Enter account sortcode" value="{{ auth('charity')->user()->account_sortcode }}" readonly="readonly">
+                                            <input type="text" class="form-control" id="account_sortcode" name="account_sortcode" placeholder="Enter account sortcode" value="{{ auth('charity')->user()->account_sortcode }}">
                                         </div>
                                     </div>
                                 </div>
@@ -150,7 +150,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Password</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="password" id="password" name="password" class="form-control" placeholder="password" readonly="readonly">
+                                            <input type="password" id="password" name="password" class="form-control" placeholder="password">
                                         </div>
                                     </div>
                                 </div>
@@ -158,7 +158,7 @@
                                     <div class="form-group mb-3">
                                         <label for="">Confirm password</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="password" id="cpassword" name="cpassword" class="form-control" placeholder="Confirm password" readonly="readonly">
+                                            <input type="password" id="cpassword" name="cpassword" class="form-control" placeholder="Confirm password">
                                         </div>
                                     </div>
                                 </div>

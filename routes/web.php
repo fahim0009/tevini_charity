@@ -183,6 +183,7 @@ Route::get('/team', [App\Http\Controllers\AboutController::class, 'team'])->name
 Route::get('/blog', [App\Http\Controllers\AboutController::class, 'blog'])->name('blog');
 Route::get('/terms-&-condition', [App\Http\Controllers\AboutController::class, 'terms'])->name('terms');
 Route::get('/privacy-&-policy', [App\Http\Controllers\AboutController::class, 'privacy'])->name('privacy');
+Route::get('/data-declaration-right', [App\Http\Controllers\AboutController::class, 'declaration'])->name('declaration');
 Route::get('/card-terms-&-condition', [App\Http\Controllers\AboutController::class, 'cardterms'])->name('cardterms');
 Route::get('/how-it-works', [App\Http\Controllers\HomepageController::class, 'howitWorks'])->name('howitWorks');
 Route::get('/tdf', [App\Http\Controllers\HomepageController::class, 'tdf'])->name('tdf');

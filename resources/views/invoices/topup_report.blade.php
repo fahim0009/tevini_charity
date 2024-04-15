@@ -88,7 +88,7 @@
 
         <div class="heading">
             <div class="title">
-                Donation receipt
+                {{$title}}
             </div>
             <div class="subHead">
                 <div class="left">

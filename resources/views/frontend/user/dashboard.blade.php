@@ -29,6 +29,11 @@
 
 use Illuminate\Support\Carbon;
 @endphp
+<!-- Image loader -->
+<div id='loading' style='display:none ;'>
+    <img src="{{ asset('loader.gif') }}" id="loading-image" alt="Loading..." style="height: 225px;" />
+</div>
+<!-- Image loader -->
 
 
 <div class="row ">
@@ -283,6 +288,8 @@ use Illuminate\Support\Carbon;
 
         var tdfurl = "{{URL::to('/user/transfer-to-tdf')}}";
         $("#tdfsubmit").click(function(){
+            
+                $("#loading").show();
             var tdfamount = $("#tdfamount").val();
             var tdfaccount = $("#tdfaccount").val();
             console.log(tdfamount);
@@ -291,6 +298,8 @@ use Illuminate\Support\Carbon;
                 method: "POST",
                 data: {tdfamount,tdfaccount},
                 success: function (d) {
+                    
+                    $("#loading").hide();
                     if (d.status == 303) {
                         $(".tdfermsg").html(d.message);
                     }else if(d.status == 300){

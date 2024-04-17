@@ -15,6 +15,9 @@ use AmrShawky\LaravelCurrency\Facade\Currency;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TDFTransfer;
+use App\Models\ContactMail;
 
 class UserController extends Controller
 {
@@ -349,6 +352,18 @@ class UserController extends Controller
             $transaction->note ="Transfer to TDF";
             $transaction->status =  1;
             $transaction->save();
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['name'] = auth()->user()->name;
+            $array['subject'] = 'Urgent request';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $email = auth()->user()->email;
+
+            Mail::to($email)
+                    ->cc($contactmail)
+                    ->send(new TDFTransfer($array));
 
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";

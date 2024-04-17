@@ -2,7 +2,6 @@
 @section('content')
 
 
-
 <section class="auth py-4">
     <div class="container">
         <div class="row">

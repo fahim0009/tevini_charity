@@ -354,7 +354,6 @@ class UserController extends Controller
             $transaction->save();
 
             $contactmail = ContactMail::where('id', 1)->first()->name;
-
             $array['name'] = auth()->user()->name;
             $array['subject'] = 'Urgent request';
             $array['from'] = 'info@tevini.co.uk';

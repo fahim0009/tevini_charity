@@ -51,7 +51,15 @@ class MaaserController extends Controller
         if($donor_cals->isEmpty()){
 
             $msg = "Fill this form for donation calculation";
-            return view('frontend.user.donationcal',compact('tevini_donation','otherdonation','availabledonation','donor_cals','msg'));
+            $responseArray = [
+                'status'=>'ok',
+                'msg'=>$msg,
+                'donor_cals'=>$donor_cals,
+                'tevini_donation'=>strval($tevini_donation),
+                'otherdonation'=>strval($otherdonation),
+                'availabledonation'=>strval($availabledonation)
+            ]; 
+            return response()->json($responseArray,200);
 
 
         }else{

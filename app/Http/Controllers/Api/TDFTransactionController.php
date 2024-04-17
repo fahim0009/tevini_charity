@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContactMail;
 use Illuminate\Http\Request;
 use App\Models\TdfTransaction;
 use App\Models\User;
 use App\Models\Usertransaction;
 use App\Models\Transaction;
+use App\Mail\TDFTransfer;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use Illuminate\support\Facades\Auth;
 
 class TDFTransactionController extends Controller
 {
@@ -103,9 +107,22 @@ class TDFTransactionController extends Controller
             $transaction->status =  1;
             $transaction->save();
 
+            
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $array['name'] = auth()->user()->name;
+            $array['subject'] = 'Urgent request';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $email = auth()->user()->email;
+
+            Mail::to($email)
+                    ->cc($contactmail)
+                    ->send(new TDFTransfer($array));
+
 
             $success['message'] = 'TDF transferred successfully.';
             $success['data'] = $data;
+            $success['balance'] = Auth::user()->balance;
             return response()->json(['success'=>true,'response'=> $success], 200);
         } else {
             return response()->json(['status'=> 303,'message'=>'Server error!!']);

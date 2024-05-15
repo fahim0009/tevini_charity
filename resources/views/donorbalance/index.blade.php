@@ -1,0 +1,64 @@
+@extends('layouts.admin')
+
+@section('content')
+@php
+use Illuminate\Support\Carbon;
+@endphp
+<div class="dashboard-content">
+    <section class="profile purchase-status">
+        <div class="title-section">
+            <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">View All Transactions</div>
+        </div>
+    </section>
+  <section class="">
+    <div class="row  my-3 mx-0 ">
+        <div class="col-md-12 ">
+            
+                <div class="row my-2">
+                    <div class="col-md-12 mt-2 text-center">
+                        <div class="overflow">
+                            <table class="table table-custom shadow-sm bg-white" id="exampleall">
+                                <thead>
+                                    <tr>
+                                        <th>UID</th>
+                                        <th>Donor Name</th>
+                                        <th>Email</th>
+                                        <th>Account No</th>
+                                        <th>Account Balance </th>
+                                        <th>Transaction Table Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($data as $data)
+                                    @if (isset($data->user_id))
+                                    @php
+                                        $user = \App\Models\User::where('id', $data->user_id)->first();
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $data->user_id }}</td>
+                                        <td>{{ $user->name}}</td>
+                                        <td>{{ $user->email}}</td>
+                                        <td>{{ $user->accountno}}</td>
+                                        <td>£{{ number_format($user->balance, 2) }}</td>
+                                        <td> 
+                                            @if ($user->balance == $data->total_balance)
+                                            <span class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1 d-block text-center">£{{ number_format($data->total_balance, 2) }}</span>
+                                            @else
+                                            <span class="text-decoration-none bg-danger text-white py-1 px-3 rounded mb-1 d-block text-center">£{{ number_format($data->total_balance, 2) }}</span>
+                                            @endif
+                                            
+                                        </td>
+                                    </tr>
+                                    @endif
+                                        
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+  </section>
+</div>
+@endsection

@@ -339,6 +339,15 @@
                 </ul>
             </li>
 
+
+            
+            <li class="nav-item {{ (request()->is('admin/get-donor-balance*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('donorBalance') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Donor Balance
+                </a>
+            </li>
+
             {{-- <li class="nav-item " id="admindashboard">
                 <a href="./utility.html">
                     <span class="iconify" data-icon="icomoon-free:profile"></span>

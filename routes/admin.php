@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\CardProfileController;
 use App\Http\Controllers\Admin\SpendProfileController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TDFTransactionController;
+use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
 
@@ -271,4 +272,13 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/tdf-transaction', [TDFTransactionController::class, 'tdfBlanceStore'])->name('tdfTransaction.update');
     Route::post('/tdf-transaction-status', [TDFTransactionController::class, 'changeStatus']);
     
+
+    // donor balance check
+    
+    Route::get('/get-donor-balance', [DonorBalanceController::class, 'index'])->name('donorBalance');
+    Route::post('/get-donor-balance', [DonorBalanceController::class, 'index'])->name('donorBalanceSearch');
+
+
+
+
 });

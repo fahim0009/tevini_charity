@@ -96,7 +96,7 @@
                                     </tr>
                                     @endif
                                     @empty
-                                    <tr class="item-row">
+                                    <tr class="item-row " id="firstRow">
                                         <td width="230px">
                                             <select name="charity" id="charity_list" style="min-width: 100px;" class="form-control">
                                             <option value>Select</option>
@@ -372,7 +372,7 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                         if (d.status == 303) {
 
                         }else if(d.status == 300){
-
+                            $("#firstRow").addClass("d-none");
                             var markup =
                             '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value="'+d.donorid+'"  class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
                         $("table #inner ").append(markup);

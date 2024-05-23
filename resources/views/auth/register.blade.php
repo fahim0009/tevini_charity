@@ -45,6 +45,13 @@
                                 @csrf
 
                             <div class="form-group">
+                                <select name="profile_type" id="profile_type"  class="form-control @error('profile_type') is-invalid @enderror" required>
+                                    <option value="Personal">Personal</option>
+                                    <option value="Company">Company</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
                                 <select name="prefix_name" id="prefix_name"  class="form-control @error('prefix_name') is-invalid @enderror" required>
                                     <option value="Mr">Mr</option>
                                     <option value="Mrs">Mrs</option>

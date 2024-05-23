@@ -46,8 +46,23 @@
 
                         
                         <div class="row mt-4">
-                            <div class="col-lg-12">
+
+                            <div class="col-lg-6">
                                 <div class="form-group mb-3">
+                                    <label for="">Personal/Company</label>
+                                    <div class="d-flex align-items-center">
+                                        <select name="profile_type" id="profile_type"  class="form-control">
+                                            <option value="">Please Select</option>
+                                            <option value="Personal" @if (Auth::user()->profile_type == "Personal") selected @endif>Personal</option>
+                                            <option value="Company" @if (Auth::user()->profile_type == "Company") selected @endif>Company</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="form-group mb-3">
+                                    <label for="">Mr/Mrs</label>
                                     <div class="d-flex align-items-center">
                                         <select name="prefix_name" id="prefix_name"  class="form-control">
                                             <option value="">Please Select</option>

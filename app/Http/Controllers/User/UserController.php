@@ -161,6 +161,7 @@ class UserController extends Controller
 
 
         $userdata= Auth::user();
+        $userdata->profile_type = $request->profile_type;
         $userdata->prefix_name = $request->prefix_name;
         $userdata->name = $request->name;
         $userdata->surname = $request->surname;

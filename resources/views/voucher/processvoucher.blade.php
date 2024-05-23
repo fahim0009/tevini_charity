@@ -339,6 +339,8 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                 });
 
                 });
+
+                
         // foucs when click anywhere
         $(document).on("mousedown", function(e) {
             clicked = $(e.target);

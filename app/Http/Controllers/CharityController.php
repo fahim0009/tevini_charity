@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Models\Charity;
 use App\Models\ContactMail;
 use App\Models\Usertransaction;
+use App\Models\Provoucher;
+use App\Models\Batchprov;
+use App\Models\Draft;
 
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
@@ -15,12 +18,14 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 
 use App\Mail\CharitypayReport;
 use App\Mail\CharitylinkRequest;
 use App\Mail\DonationReport;
 use App\Mail\UrgentRequest;
 use App\Models\CharityLink;
+
 
 class CharityController extends Controller
 {
@@ -520,6 +525,151 @@ class CharityController extends Controller
         
         $message ="Email send successfully";
         return back()->with('message', $message);
+
+    }
+
+    public function processVoucher()
+    {
+        $charities = Charity::all();
+        $donors = User::where([
+            ['is_type', '=', 'user'],
+            ['status', '=', '1']
+        ])->get();
+
+        return view('frontend.charity.processvoucher')
+        ->with('charities',$charities)
+        ->with('donors',$donors);
+    }
+
+    public function pvoucherStore(Request $request)
+    {
+        $charity_id= auth('charity')->user()->id;
+        $donor_ids = $request->donorIds;
+        $donor_accs = $request->donorAccs;
+        $chqs = $request->chqNos;
+        $amounts = $request->amts;
+        $notes = $request->notes;
+        $waitings = $request->waitings;
+
+
+        $check_chqs = Provoucher::all();
+
+        if(empty($charity_id)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select a charity first.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        foreach( array_count_values($chqs) as $key => $val ) {
+            if ( $val > 1 ){
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher ".$key." is more than one entry. </b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+        }
+
+        foreach($chqs as $chq){
+            foreach($check_chqs as $check_chq){
+            if($chq == $check_chq->cheque_no){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher number ".$chq." is already proccesed. </b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+
+
+                }
+            }
+        }
+
+        foreach($donor_ids as $key => $donor_id){
+            if($donor_id == "" || $donor_accs[$key] == "" || $chqs[$key] == "" || $amounts[$key] == ""){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill all field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+            }
+        }
+
+
+        // new code
+        $batch = new Batchprov();
+        $batch->charity_id = $charity_id;
+        $batch->status = 0;
+
+        if($batch->save()){
+
+            foreach($donor_ids as $key => $donor_id)
+            {
+                $u_bal = User::where('id',$donor_id)->first()->balance;
+                $overdrawn = (User::where('id',$donor_id)->first()->overdrawn_amount);
+                $limitChk = $u_bal + $overdrawn;
+
+                $utransaction = new Usertransaction();
+                $utransaction->t_id = time() . "-" . $donor_id;
+                $utransaction->user_id = $donor_id;
+                $utransaction->charity_id = $charity_id;
+                $utransaction->t_type = "Out";
+                $utransaction->amount =  $amounts[$key];
+                $utransaction->cheque_no =  $chqs[$key];
+                $utransaction->title =  "Voucher";
+                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
+                $utransaction->pending = 0; //transaction pending e ase
+                $utransaction->status =  0; //status pending
+                }else{
+                $utransaction->pending = 1; //transaction complete
+                $utransaction->status =  1; //status complete  
+                }
+                $utransaction->save();
+
+                $pvsr =  new Provoucher();
+                $pvsr->charity_id = $charity_id;
+                $pvsr->user_id = $donor_id;
+                $pvsr->batch_id = $batch->id;
+                $pvsr->donor_acc = $donor_accs[$key];
+                $pvsr->cheque_no = $chqs[$key];
+                $pvsr->amount = $amounts[$key];
+                $pvsr->note = $notes[$key];
+                $pvsr->waiting = $waitings[$key];
+                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
+                    $pvsr->status = 0;  //process voucher pending
+                }else{
+                    $pvsr->status = 1;  //process voucher complete
+                }
+                $pvsr->tran_id =  $utransaction->id;
+                $pvsr->save();
+
+                if($limitChk >= $amounts[$key] && $waitings[$key] =="No"){
+                $ch = Charity::find($charity_id);
+                $ch->increment('balance',$amounts[$key]);
+                $ch->save();
+                $user = User::find($donor_id);
+                $user->decrement('balance',$amounts[$key]);
+                $user->save();
+
+                // card balance update
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 - $amounts[$key];
+                    $comment = "Pending Voucher Balance update";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+                // card balance update end
+
+
+                }
+
+                
+
+            }
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher Process successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message, 'charity_id'=>$charity_id, 'batch_id'=>$batch->id, ]);
+        }
 
     }
 

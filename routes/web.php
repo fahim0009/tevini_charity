@@ -225,4 +225,14 @@ Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
     
     Route::get('/create-a-link', [CharityController::class, 'charityLink'])->name('charity_link');
     Route::post('/create-a-link', [CharityController::class, 'charityLinkStore']);
+
+
+
+    
+    Route::get('/process-voucher', [CharityController::class, 'processVoucher'])->name('charity.processvoucher');
+    Route::post('/pvoucher-store', [CharityController::class, 'pvoucherStore'])->name('charity.pvoucher.store');
+    Route::get('/process-voucher/{id}', [CharityController::class, 'instReport'])->name('charity.instreport');
+
+
+
 });

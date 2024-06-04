@@ -85,7 +85,23 @@
         $("#usercontact").addClass('active');
     });
 </script>
+<script type="text/javascript">
+    $(function() {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+    function net_total(){
+            var total = 0;
+            $('.amount').each(function(){
+                total += ($(this).val()-0);
+            })
+            $('#total').val(total.toFixed(2));
+        }
 
+    function removeRow(event) {
+            event.target.parentElement.parentElement.remove();
+                            net_total();
+    }
+</script>
 <script>
     $(document).ready(function () {
         //header for csrf-token is must in laravel
@@ -181,7 +197,7 @@
 
                             }else if(d.status == 300){
                                 var markup =
-                                '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..." readonly></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" value><input type="hidden" readonly name="donor[]" value="'+d.donorid+'"  class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check"  readonly></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" readonly value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" readonly value></td></tr>';
+                                '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..." readonly></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" ><input type="hidden" readonly name="donor[]" value="'+d.donorid+'"  class="donorid" ></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check"  readonly></td> <td width="20px"><input style="min-width:30px" name="amount[]" style="front-size:13px" type="text" value="'+d.amount+'" class="amount form-control" readonly ></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" readonly value></td></tr>';
                             $("table #inner ").append(markup);
 
                             $("#barcode").val("");

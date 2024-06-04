@@ -20,6 +20,7 @@ use App\Models\ContactMail;
 use App\Models\ProvouchersImages;
 
 use App\Mail\InstantReport;
+use App\Mail\PendingvCancelReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingvoucherReport;
 use Auth;
@@ -886,7 +887,7 @@ class OrderController extends Controller
 
         Mail::to($email)
         ->cc($contactmail)
-        ->send(new PendingvReport($array));
+        ->send(new PendingvCancelReport($array));
     }
 
     $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";

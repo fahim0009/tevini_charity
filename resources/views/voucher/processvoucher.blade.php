@@ -106,24 +106,24 @@
                                             </select>
                                         </td>
                                         <td width="200px">
-                                            <input style="min-width: 100px;" class="form-control donor" type="number" name="donor_acc[]"  placeholder="Type Acc no...">
+                                            <input style="min-width: 100px;" class="form-control donor" type="number" name="donor_acc[]" id="donor_acc_num"  placeholder="Type Acc no...">
                                         </td>
                                         <td width="250px">
-                                            <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value>
-                                            <input type="hidden" name="donor[]"  class="donorid" value>
+                                            <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" id="donor_acc_name" value>
+                                            <input type="hidden" name="donor[]" id="donorid"  class="donorid" value>
                                         </td>
                                         <td width="250px">
-                                            <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value>
+                                            <input style="min-width: 100px;" name="check[]" id="donor_check" type="text" class="form-control check" value>
                                         </td>
 
                                         <td width="250px">
-                                            <input style="min-width: 100px;" name="amount[]" type="text" class="form-control amount" value>
+                                            <input style="min-width: 100px;" name="amount[]" type="text" class="form-control amount" id="d_amnt" value>
                                         </td>
                                         <td width="250px">
-                                            <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value>
+                                            <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" id="d_note" value>
                                         </td>
                                         <td width="150px">
-                                            <select name="waiting[]" class="form-control">
+                                            <select name="waiting[]" class="form-control" id="d_waiting">
                                                 <option value="No">No</option>
                                                 <option value="Yes">Yes</option>
                                             </select>
@@ -364,6 +364,7 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
             $("#barcode").change(function(){
 		            event.preventDefault();
                     var barcode = $(this).val();
+                    console.log(barcode);
                     $.ajax({
                     url: urlbr,
                     method: "POST",
@@ -374,9 +375,27 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                         if (d.status == 303) {
 
                         }else if(d.status == 300){
-                            var markup =
-                            '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value="'+d.donorid+'"  class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
-                        $("table #inner ").append(markup);
+
+                            // new code update
+                            if ($('#donorid').val() === '') {
+                                $('#donorid').val(d.donorid); // Set default value for empty donorid field
+                                $('#donor_acc_num').val(d.donoracc);
+                                $('#donor_acc_name').val(d.donorname);
+                                $('#donor_check').val(barcode);
+                                $('#d_amnt').val(d.amount);
+                            
+                            }else{
+                                    var markup =
+                                '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value="'+d.donorid+'"  class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
+                            $("table #inner ").append(markup);
+                            }
+                            // new code update
+
+
+
+
+
+                            
 
                         $("#barcode").val("");
                         net_total();

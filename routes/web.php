@@ -208,6 +208,7 @@ Route::post('charity_login', [CharityAuthController::class, 'login'])->name('cha
 Route::get('charity-registration', [CharityAuthController::class, 'charityRegistraion'])->name('charity.register');
 Route::post('charity-registration', [CharityAuthController::class, 'charityRegistraionStore'])->name('charity.registration');
 
+Route::post('/barcode', [OrderController::class, 'getbarCode']);
 
 
 

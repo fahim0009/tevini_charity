@@ -23,94 +23,17 @@
                         <table class="table shadow-sm">
                             <thead>
                                 <tr>
+                                    <th>Action</th>
                                     <th>Donor</th>
                                     <th>Donor Name</th>
                                     <th>Check No</th>
                                     <th>Amount</th>
                                     <th>Note</th>
-                                    <th>Waiting</th>
                                 </tr>
                             </thead>
                             <tbody id="inner">
-                                @forelse (App\Models\Draft::all() as $index => $voucher)
-                                @if($index == 0)
-                                <tr class="item-row">
-                                    <td width="200px">
-                                        <input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="{{$voucher->donor_acc}}"  placeholder="Type Acc no...">
-                                    </td>
-                                    <td width="200px">
-                                        <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="{{$voucher->donor_name}}">
-                                        <input type="hidden" name="donor[]"  class="donorid" value="{{$voucher->donor_id}}">
-                                    </td>
-                                    <td width="100px">
-                                        <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value="{{$voucher->voucher_number}}">
-                                    </td>
-
-                                    <td width="40px">
-                                        <input style="min-width: 30px;" name="amount[]" type="text" class="amount form-control" value="{{$voucher->amount}}">
-                                    </td>
-                                    <td width="250px">
-                                        <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value="{{$voucher->note}}">
-                                    </td>                
-                                    <td width="150px">
-                                        <select name="waiting[]" class="form-control">
-                                            <option value="No"  @if(isset($voucher->waiting) && $voucher->waiting == "No") selected @endif>No</option>
-                                            <option value="Yes" @if(isset($voucher->waiting) && $voucher->waiting == "Yes") selected @endif>Yes</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                @else
-                                <tr class="item-row" style="position:realative;">
-                                    <td width="200px">
-                                        <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value="{{$voucher->donor_name}}">
-                                        <input type="hidden" name="donor[]"  class="donorid" value="{{$voucher->donor_id}}">
-                                    </td>
-                                    <td width="100px">
-                                        <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value="{{$voucher->voucher_number}}">
-                                    </td>
-
-                                    <td width="40px">
-                                        <input style="min-width: 30px;" name="amount[]" type="text" class="amount form-control" value="{{$voucher->amount}}">
-                                    </td>
-                                    <td width="250px">
-                                        <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value="{{$voucher->note}}">
-                                    </td>
-                                    <td width="150px">
-                                        <select name="waiting[]" class="form-control">
-                                            <option value="No"  @if(isset($voucher->waiting) && $voucher->waiting == "No") selected @endif>No</option>
-                                            <option value="Yes" @if(isset($voucher->waiting) && $voucher->waiting == "Yes") selected @endif>Yes</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                @endif
-                                @empty
-                                <tr class="item-row " id="firstRow">
-                                    <td width="200px">
-                                        <input style="min-width: 100px;" class="form-control donor" type="number" name="donor_acc[]"  placeholder="Type Acc no...">
-                                    </td>
-                                    <td width="250px">
-                                        <input style="min-width: 100px;"  type="text" name="donor_name[]" readonly class="form-control donorAcc" value>
-                                        <input type="hidden" name="donor[]"  class="donorid" value>
-                                    </td>
-                                    <td width="250px">
-                                        <input style="min-width: 100px;" name="check[]" type="text" class="form-control check" value>
-                                    </td>
-
-                                    <td width="250px">
-                                        <input style="min-width: 100px;" name="amount[]" type="text" class="form-control amount" value>
-                                    </td>
-                                    <td width="250px">
-                                        <input style="min-width: 200px;" name="note[]" type="text" class="form-control note" value>
-                                    </td>
-                                    <td width="150px">
-                                        <select name="waiting[]" class="form-control">
-                                            <option value="No">No</option>
-                                            <option value="Yes">Yes</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                @endforelse
-
+                                
+                                
                             </tbody>
                             <tr>
                                 <td colspan="2">
@@ -242,7 +165,7 @@
         //focus onload
         $("#barcode").focus();
         // get barcode data
-        var urlbr = "{{URL::to('/admin/barcode')}}";
+        var urlbr = "{{URL::to('/barcode')}}";
 
                 $("#barcode").change(function(){
 		            event.preventDefault();
@@ -258,7 +181,7 @@
 
                             }else if(d.status == 300){
                                 var markup =
-                                '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value="'+d.donorid+'"  class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
+                                '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..." readonly></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" value><input type="hidden" readonly name="donor[]" value="'+d.donorid+'"  class="donorid" value></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check"  readonly></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" readonly value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" readonly value></td></tr>';
                             $("table #inner ").append(markup);
 
                             $("#barcode").val("");

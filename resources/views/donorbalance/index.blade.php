@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
   <section class="">
     <div class="row  my-3 mx-0 ">
         <div class="col-md-12 ">
+            <div class="stsermsg"></div>
             
                 <div class="row my-2">
                     <div class="col-md-12 mt-2 text-center">
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
                                         <th>Account No</th>
                                         <th>Account Balance </th>
                                         <th>Transaction Table Balance</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -48,6 +50,11 @@ use Illuminate\Support\Carbon;
                                             @endif
                                             
                                         </td>
+                                        <td>
+                                            @if ($user->balance != $data->total_balance)
+                                                <button type="button"  data-id="{{$user->id}}" data-balance="{{$data->total_balance}}" class=" text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 equalBtn">Make Equal </button>
+                                            @endif
+                                        </td>
                                     </tr>
                                     @endif
                                         
@@ -61,4 +68,42 @@ use Illuminate\Support\Carbon;
     </div>
   </section>
 </div>
+@endsection
+
+@section('script')
+<script>
+    $(function() {
+      $('.equalBtn').click(function() {
+        $.ajaxSetup({
+                headers: {'X-CSRF-Token': '{{csrf_token()}}'}
+            });
+            
+        var url = "{{URL::to('/admin/get-donor-balance')}}";
+          var id = $(this).data('id');
+          var balance = $(this).data('balance');
+           console.log(id, balance);
+          $.ajax({
+              type: "POST",
+              dataType: "json",
+              url: url,
+              data: {'balance': balance, 'id': id},
+              success: function(d){
+                // console.log(data.success)
+                if (d.status == 303) {
+                        pagetop();
+                        $(".stsermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }else if(d.status == 300){
+                        pagetop();
+                        $(".stsermsg").html(d.message);
+                        window.setTimeout(function(){location.reload()},2000)
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+          });
+      })
+    })
+</script>
 @endsection

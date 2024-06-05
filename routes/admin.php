@@ -276,7 +276,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // donor balance check
     
     Route::get('/get-donor-balance', [DonorBalanceController::class, 'index'])->name('donorBalance');
-    Route::post('/get-donor-balance', [DonorBalanceController::class, 'index'])->name('donorBalanceSearch');
+    Route::post('/get-donor-balance', [DonorBalanceController::class, 'balanceUpdate']);
 
 
 

@@ -27,4 +27,16 @@ class DonorBalanceController extends Controller
         return view('donorbalance.index')
         ->with('data',$data);
     }
+
+    public function balanceUpdate(Request $request)
+    {
+        
+            $active = User::find($request->id);
+            $active->balance = $request->balance;
+            $active->save();
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Balance Updated Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        
+
+    }
 }

@@ -43,7 +43,7 @@ use Illuminate\Support\Carbon;
                                         <td>{{ $user->accountno}}</td>
                                         <td>£{{ number_format($user->balance, 2) }}</td>
                                         <td> 
-                                            @if ($user->balance == $data->total_balance)
+                                            @if (number_format($user->balance, 2) == number_format($data->total_balance, 2) )
                                             <span class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1 d-block text-center">£{{ number_format($data->total_balance, 2) }}</span>
                                             @else
                                             <span class="text-decoration-none bg-danger text-white py-1 px-3 rounded mb-1 d-block text-center">£{{ number_format($data->total_balance, 2) }}</span>
@@ -51,7 +51,7 @@ use Illuminate\Support\Carbon;
                                             
                                         </td>
                                         <td>
-                                            @if ($user->balance != $data->total_balance)
+                                            @if (number_format($user->balance, 2) != number_format($data->total_balance, 2) )
                                                 <button type="button"  data-id="{{$user->id}}" data-balance="{{$data->total_balance}}" class=" text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 equalBtn">Make Equal </button>
                                             @endif
                                         </td>

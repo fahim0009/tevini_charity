@@ -9,6 +9,8 @@
 
         
         <li><a href="{{ route('charity.processvoucher') }}" class="{{ (request()->is('charity/process-voucher*')) ? 'nav-link current' : '' }}">Process Voucher</a></li>
+        
+        <li><a href="{{ route('charity.pendingvoucher') }}" class="{{ (request()->is('charity/pending-voucher*')) ? 'nav-link current' : '' }}">Pending Voucher</a></li>
 
 
     </ul>

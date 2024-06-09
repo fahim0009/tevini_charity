@@ -675,4 +675,19 @@ class CharityController extends Controller
     }
 
 
+    public function pendingVoucher()
+    {
+        
+        $charity_id = auth('charity')->user()->id;
+        $cvouchers = Provoucher::where([
+            ['charity_id', '=', $charity_id],
+            ['waiting', '=', 'No'],
+            ['status', '=', '0']
+        ])->orderBy('id','DESC')->get();
+
+        return view('frontend.charity.pendingvoucher')
+        ->with('cvouchers',$cvouchers);
+
+    }
+
 }

@@ -628,14 +628,12 @@ class CharityController extends Controller
                 $pvsr->cheque_no = $chqs[$key];
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
-                // $pvsr->waiting = $waitings[$key];
-                $pvsr->waiting = "Yes";
-                $pvsr->status = 0; 
-                // if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
-                //     $pvsr->status = 0;  //process voucher pending
-                // }else{
-                //     $pvsr->status = 1;  //process voucher complete
-                // }
+                $pvsr->waiting = $waitings[$key];
+                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
+                    $pvsr->status = 0;  //process voucher pending
+                }else{
+                    $pvsr->status = 1;  //process voucher complete
+                }
                 $pvsr->tran_id =  $utransaction->id;
                 $pvsr->save();
 

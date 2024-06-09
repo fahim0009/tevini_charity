@@ -12,6 +12,7 @@ use App\Models\Provoucher;
 use App\Models\Batchprov;
 use App\Models\Draft;
 
+use PDF;
 use Illuminate\Http\Request;
 use Illuminate\support\Facades\Auth;
 use Carbon\Carbon;
@@ -575,8 +576,6 @@ class CharityController extends Controller
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher number ".$chq." is already proccesed. </b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
-
-
                 }
             }
         }
@@ -588,6 +587,17 @@ class CharityController extends Controller
             exit();
             }
         }
+
+        // foreach($donor_ids as $key => $donor_id){
+        //     $u_bal = User::where('id',$donor_id)->first()->balance;
+        //     $overdrawn = (User::where('id',$donor_id)->first()->overdrawn_amount);
+        //     $limitChk = $u_bal + $overdrawn;
+        //     if($limitChk <= $amounts[$key]){
+        //     $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This donor didn't have sufficient balance.</b></div>";
+        //     return response()->json(['status'=> 303,'message'=>$message]);
+        //     exit();
+        //     }
+        // }
 
 
         // new code
@@ -612,13 +622,8 @@ class CharityController extends Controller
                 $utransaction->amount =  $amounts[$key];
                 $utransaction->cheque_no =  $chqs[$key];
                 $utransaction->title =  "Voucher";
-                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
-                $utransaction->pending = 0; //transaction pending e ase
-                $utransaction->status =  0; //status pending
-                }else{
                 $utransaction->pending = 1; //transaction complete
                 $utransaction->status =  1; //status complete  
-                }
                 $utransaction->save();
 
                 $pvsr =  new Provoucher();
@@ -629,22 +634,16 @@ class CharityController extends Controller
                 $pvsr->cheque_no = $chqs[$key];
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
-                $pvsr->waiting = $waitings[$key];
-                if($limitChk < $amounts[$key] || $waitings[$key] =="Yes"){
-                    $pvsr->status = 0;  //process voucher pending
-                }else{
-                    $pvsr->status = 1;  //process voucher complete
-                }
+                $pvsr->waiting = "No";
+                $pvsr->status = 1;  //process voucher complete
                 $pvsr->tran_id =  $utransaction->id;
-                $pvsr->save();
-
-                if($limitChk >= $amounts[$key] && $waitings[$key] =="No"){
-                $ch = Charity::find($charity_id);
-                $ch->increment('balance',$amounts[$key]);
-                $ch->save();
-                $user = User::find($donor_id);
-                $user->decrement('balance',$amounts[$key]);
-                $user->save();
+                if($pvsr->save()){
+                    $ch = Charity::find($charity_id);
+                    $ch->increment('balance',$amounts[$key]);
+                    $ch->save();
+                    $user = User::find($donor_id);
+                    $user->decrement('balance',$amounts[$key]);
+                    $user->save();
 
                 // card balance update
                 if (isset($user->CreditProfileId)) {
@@ -685,7 +684,7 @@ class CharityController extends Controller
             ['batch_id','=', $id],
             ['status', '=', '1']
             ])->sum('amount');
-        return view('voucher.instreport',compact('remittance','total','charity','batch_id'));
+        return view('frontend.charity.instreport',compact('remittance','total','charity','batch_id'));
     }
 
     public function instReportmail(Request $request)

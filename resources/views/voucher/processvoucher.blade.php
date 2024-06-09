@@ -364,6 +364,23 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
             $("#barcode").change(function(){
 		            event.preventDefault();
                     var barcode = $(this).val();
+
+                    // check duplicate barcode 
+                    var check = $("input[name='check[]']")
+                        .map(function(){return $(this).val();}).get();
+                        
+                    check.push(barcode);
+                    seen = check.filter((s => v => s.has(v) || !s.add(v))(new Set));
+
+                    if (Array.isArray(seen) && seen.length) {
+                        $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This check number has already added.</b></div>");
+                        return;
+                    }
+                    // check duplicate barcode 
+
+
+
+
                     console.log(barcode);
                     $.ajax({
                     url: urlbr,

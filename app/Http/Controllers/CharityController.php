@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Http;
 use App\Mail\CharitypayReport;
 use App\Mail\CharitylinkRequest;
 use App\Mail\DonationReport;
+use App\Mail\InstantReport;
 use App\Mail\UrgentRequest;
 use App\Models\CharityLink;
 
@@ -671,6 +672,65 @@ class CharityController extends Controller
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher Process successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message, 'charity_id'=>$charity_id, 'batch_id'=>$batch->id, ]);
         }
+
+    }
+
+    public function instReport($id)
+    {
+        $batch_id = $id;
+        $charityid = Provoucher::where('batch_id','=', $id)->first()->charity_id;
+        $charity = Charity::where('id','=',$charityid)->first();
+        $remittance = Provoucher::where('batch_id','=', $id)->get();
+        $total = Provoucher::where([
+            ['batch_id','=', $id],
+            ['status', '=', '1']
+            ])->sum('amount');
+        return view('voucher.instreport',compact('remittance','total','charity','batch_id'));
+    }
+
+    public function instReportmail(Request $request)
+    {
+        $charityid = Provoucher::where('batch_id','=', $request->batch_id)->first()->charity_id;
+        $charity = Charity::where('id','=',$charityid)->first();
+        $remittance = Provoucher::where('batch_id','=', $request->batch_id)->orderBy('id','ASC')->get();
+        $total = Provoucher::where([
+            ['batch_id','=', $request->batch_id],
+            ['status', '=', '1']
+            ])->sum('amount');
+
+        $user = User::where('id',$request->did)->first();
+
+        $previous_pending = Provoucher::where([
+            ['charity_id','=', $charityid],
+            ['status', '=', '0']
+            ])->sum('amount');
+
+        $pdf = PDF::loadView('invoices.inst_report', compact('total','remittance','charity','previous_pending'));
+        $output = $pdf->output();
+        file_put_contents(public_path().'/invoices/'.'voucherReport#'.$charityid.'.pdf', $output);
+
+        $contactmail = ContactMail::where('id', 1)->first()->name;
+
+        $array['subject'] = 'Remittance Report';
+        $array['from'] = 'info@tevini.co.uk';
+        $array['cc'] = $contactmail;
+        $array['name'] = $charity->name;
+        $email = $request->mail;
+        $array['charity'] = $charity;
+        $array['remittance'] = $remittance;
+        $array['total'] = $total;
+        $array['file'] = public_path().'/invoices/voucherReport#'.$charityid.'.pdf';
+        $array['file_name'] = 'voucherReport#'.$charityid.'.pdf';
+        $array['subjectsingle'] = 'Report Placed - '.$charityid;
+
+        Mail::to($email)
+        ->cc($contactmail)
+        ->send(new InstantReport($array));
+
+
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
+
 
     }
 

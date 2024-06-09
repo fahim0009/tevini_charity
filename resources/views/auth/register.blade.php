@@ -45,26 +45,39 @@
                                 @csrf
 
                             <div class="form-group">
+                                <label for="">Account registration for:</label>
                                 <select name="profile_type" id="profile_type"  class="form-control @error('profile_type') is-invalid @enderror" required>
-                                    <option value="Personal">Personal</option>
                                     <option value="Company">Company</option>
+                                    <option value="Personal">Personal</option>
                                 </select>
                             </div>
 
-                            <div class="form-group">
-                                <select name="prefix_name" id="prefix_name"  class="form-control @error('prefix_name') is-invalid @enderror" required>
-                                    <option value="Mr">Mr</option>
-                                    <option value="Mrs">Mrs</option>
-                                </select>
+
+                            <div id="companyDiv">
+                                <div class="form-group">
+                                    <input id="company_name" type="text" class="form-control @error('company_name') is-invalid @enderror" name="company_name" value="{{ old('company_name') }}"  placeholder="Company First Name" autocomplete="company_name" autofocus>
+                                </div>
+                                <div class="form-group">
+                                    <input id="company_last_name" type="text" class="form-control @error('company_last_name') is-invalid @enderror" name="company_last_name" value="{{ old('company_last_name') }}"  placeholder="Company Last Name" autocomplete="company_last_name" autofocus>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}"  placeholder="Name" required autocomplete="name" autofocus>
+                            <div id="personalDiv">
+                                <div class="form-group">
+                                    <select name="prefix_name" id="prefix_name"  class="form-control @error('prefix_name') is-invalid @enderror">
+                                        <option value="Mr">Mr</option>
+                                        <option value="Mrs">Mrs</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}"  placeholder="Name" autocomplete="name" autofocus>
+                                </div>
+                                <div class="form-group">
+                                    <input id="surname" type="text" class="form-control @error('surname') is-invalid @enderror" name="surname" value="{{ old('surname') }}"  placeholder="Surname" autocomplete="surname" autofocus>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <input id="surname" type="text" class="form-control @error('surname') is-invalid @enderror" name="surname" value="{{ old('surname') }}"  placeholder="Surname" required autocomplete="surname" autofocus>
-                            </div>
+                            
 
 
                             <div class="form-group">
@@ -182,6 +195,19 @@
             post_town: "#town",
             postcode: "#postcode"
         }
+    });
+});
+
+$(function() {
+    $('#personalDiv').hide(); 
+    $('#profile_type').change(function(){
+        if($('#profile_type').val() == 'Personal') {
+            $('#personalDiv').show(); 
+            $('#companyDiv').hide(); 
+        } else {
+            $('#personalDiv').hide(); 
+            $('#companyDiv').show(); 
+        } 
     });
 });
 </script>

@@ -53,7 +53,8 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required_if:profile_type,Personal', 'nullable', 'max:255'],
+            'company_name' => ['required_if:profile_type,Company', 'nullable', 'max:255'],
             'phone' => ['required', 'regex:/^((44)|(45)|(46))[0-9]{10}/','min:12'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'houseno' => ['required', 'string', 'max:255'],
@@ -80,6 +81,7 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        
         $num = $data['phone'];
         $chkctr = substr($num, 0, 2);
         $lastdigit = substr($num,-10);
@@ -90,14 +92,22 @@ class RegisterController extends Controller
         }else{
             $phone = "+".$num;
         }
+        if ($data['profile_type'] == "Company") {
+            $name = $data['company_name'];
+            $surname = $data['company_last_name'];
+        } else {
+            $name = $data['name'];
+            $surname = $data['surname'];
+        }
+        
 
         
 
         $user =  User::create([
             'profile_type' => $data['profile_type'],
             'prefix_name' => $data['prefix_name'],
-            'name' => $data['name'],
-            'surname' => $data['surname'],
+            'name' => $name,
+            'surname' => $surname,
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'phone' => $phone,
@@ -126,7 +136,7 @@ class RegisterController extends Controller
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
             $array['prefix_name'] = $data['prefix_name'];
-            $array['name'] = $data['name'];
+            $array['name'] = $name;
             $array['subject'] = 'Welcome to Tevini';
             $array['from'] = 'info@tevini.co.uk';
             $array['cc'] = $contactmail;

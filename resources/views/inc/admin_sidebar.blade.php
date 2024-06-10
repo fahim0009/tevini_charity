@@ -142,28 +142,35 @@
                 </ul>
             </li> --}}
 
-            <li class="nav-item {{ (request()->is('admin/donationlist*')) ? 'active' : '' }}">
+            <li class="nav-item {{ (request()->is('admin/donation/list*')) ? 'active' : '' }}{{ (request()->is('admin/donation/pending-list*')) ? 'active' : '' }}{{ (request()->is('admin/donation/record*')) ? 'active' : '' }}{{ (request()->is('admin/donation/standing*')) ? 'active' : '' }}">
                 <a href="#">
                     <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                     Online Donation
                 </a>
                 <ul class="sub-item">
-                    <li>
+                    <li class="nav-item {{ (request()->is('admin/list')) ? 'active' : '' }}">
                         <a href="{{ route('donationlist') }}">
                             <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                             New Donation
                         </a>
                     </li>
-                    <li>
+                    <li class="nav-item {{ (request()->is('admin/standing')) ? 'active' : '' }}">
                         <a href="{{ route('donationstanding') }}">
                             <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                             Standing order
                         </a>
                     </li>
-                    <li>
+                    <li class="nav-item {{ (request()->is('admin/record')) ? 'active' : '' }}">
                         <a href="{{ route('donationrecord') }}">
                             <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                             Donation record
+                        </a>
+                    </li>
+
+                    <li class="nav-item {{ (request()->is('admin/pending-list')) ? 'active' : '' }}">
+                        <a href="{{ route('pendingdonationlist') }}">
+                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                            Pending Donation
                         </a>
                     </li>
                 </ul>

@@ -187,6 +187,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // donation
     Route::get('/donation/list', [DonorController::class, 'donationlist'])->name('donationlist');
+    Route::get('/donation/pending-list', [DonorController::class, 'pendingdonationlist'])->name('pendingdonationlist');
     Route::get('/donation/record', [DonorController::class, 'donationRecord'])->name('donationrecord');
     Route::post('/donation-status', [DonorController::class, 'donationStatus']);
 

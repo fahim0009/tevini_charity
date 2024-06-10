@@ -957,6 +957,14 @@ class DonorController extends Controller
         return view('donor.donationlist',compact('donation'));
     }
 
+    public function pendingdonationlist()
+    {
+        $donation = Donation::where([
+            ['status','=','0']
+        ])->get();
+        return view('donor.donationlist',compact('donation'));
+    }
+
     public function donationRecord()
     {
         $donation = Donation::where([

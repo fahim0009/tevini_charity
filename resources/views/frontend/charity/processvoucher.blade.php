@@ -201,7 +201,7 @@
                     seen = check.filter((s => v => s.has(v) || !s.add(v))(new Set));
 
                     if (Array.isArray(seen) && seen.length) {
-                        $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This check number has already added.</b></div>");
+                        $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
                         return;
                     }
                     // check duplicate barcode 

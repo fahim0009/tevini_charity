@@ -55,10 +55,10 @@
 
                             <div id="companyDiv">
                                 <div class="form-group">
-                                    <input id="company_name" type="text" class="form-control @error('company_name') is-invalid @enderror" name="company_name" value="{{ old('company_name') }}"  placeholder="Company First Name" autocomplete="company_name" autofocus>
+                                    <input id="company_name" type="text" class="form-control @error('company_name') is-invalid @enderror" name="company_name" value="{{ old('company_name') }}"  placeholder="Company Name" autocomplete="company_name" autofocus>
                                 </div>
                                 <div class="form-group">
-                                    <input id="company_last_name" type="text" class="form-control @error('company_last_name') is-invalid @enderror" name="company_last_name" value="{{ old('company_last_name') }}"  placeholder="Company Last Name" autocomplete="company_last_name" autofocus>
+                                    <input id="company_last_name" type="text" class="form-control @error('company_last_name') is-invalid @enderror" name="company_last_name" value="{{ old('company_last_name') }}"  placeholder="Your Name" autocomplete="company_last_name" autofocus>
                                 </div>
                             </div>
 

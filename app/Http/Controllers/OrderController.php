@@ -727,6 +727,19 @@ class OrderController extends Controller
         //get data using barcode
         public function getbarCode(Request $request)
         {
+            $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
+
+            if(empty($orderDtl)){
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>No data found.</b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }else{
+                return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount ]);
+            }
+        }
+
+        public function getCharitybarCode(Request $request)
+        {
 
             $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
 

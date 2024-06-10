@@ -186,7 +186,7 @@
         //focus onload
         $("#barcode").focus();
         // get barcode data
-        var urlbr = "{{URL::to('/barcode')}}";
+        var urlbr = "{{URL::to('/charity-barcode')}}";
 
                 $("#barcode").change(function(){
 		            event.preventDefault();

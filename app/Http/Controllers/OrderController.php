@@ -731,13 +731,24 @@ class OrderController extends Controller
             $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
 
             if(empty($orderDtl)){
-
-                return response()->json(['status'=> 303,'message'=>"No data found"]);
-
+                
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>No data found.</b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+                
             }else{
 
-                return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount ]);
+                $orderHistory = OrderHistory::where('id', $orderDtl->orderhistory_id)->first();
+                $voucher = Voucher::where('id', $orderHistory->voucher_id)->first();
 
+                if ($voucher->type == "Blank") {
+                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This is blank voucher.</b></div>";
+                    return response()->json(['status'=> 303,'message'=>$message, 'vouchertype'=>$voucher->type]);
+                    exit();
+                } else {
+                    return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount, 'vouchertype'=>$voucher->type ]);
+                }
+                
             }
 
         }

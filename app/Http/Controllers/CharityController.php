@@ -622,8 +622,13 @@ class CharityController extends Controller
                 $utransaction->amount =  $amounts[$key];
                 $utransaction->cheque_no =  $chqs[$key];
                 $utransaction->title =  "Voucher";
+                if($limitChk < $amounts[$key]){
+                $utransaction->pending = 0; //transaction pending e ase
+                $utransaction->status =  0; //status pending
+                }else{
                 $utransaction->pending = 1; //transaction complete
                 $utransaction->status =  1; //status complete  
+                }
                 $utransaction->save();
 
                 $pvsr =  new Provoucher();
@@ -634,10 +639,17 @@ class CharityController extends Controller
                 $pvsr->cheque_no = $chqs[$key];
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
-                $pvsr->waiting = "No";
-                $pvsr->status = 1;  //process voucher complete
+                $pvsr->waiting = $waitings[$key];
+                if($limitChk < $amounts[$key]){
+                    $pvsr->status = 0;  //process voucher pending
+                }else{
+                    $pvsr->status = 1;  //process voucher complete
+                }
                 $pvsr->tran_id =  $utransaction->id;
-                if($pvsr->save()){
+                $pvsr->save();
+
+
+                if($limitChk >= $amounts[$key]){
                     $ch = Charity::find($charity_id);
                     $ch->increment('balance',$amounts[$key]);
                     $ch->save();
@@ -645,21 +657,21 @@ class CharityController extends Controller
                     $user->decrement('balance',$amounts[$key]);
                     $user->save();
 
-                // card balance update
-                if (isset($user->CreditProfileId)) {
-                    $CreditProfileId = $user->CreditProfileId;
-                    $CreditProfileName = $user->name;
-                    $AvailableBalance = 0 - $amounts[$key];
-                    $comment = "Pending Voucher Balance update";
-                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                            'CreditProfileId' => $CreditProfileId,
-                            'CreditProfileName' => $CreditProfileName,
-                            'AvailableBalance' => $AvailableBalance,
-                            'comment' => $comment,
-                        ]);
-                }
-                // card balance update end
+                    // card balance update
+                    if (isset($user->CreditProfileId)) {
+                        $CreditProfileId = $user->CreditProfileId;
+                        $CreditProfileName = $user->name;
+                        $AvailableBalance = 0 - $amounts[$key];
+                        $comment = "Pending Voucher Balance update";
+                        $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                'CreditProfileId' => $CreditProfileId,
+                                'CreditProfileName' => $CreditProfileName,
+                                'AvailableBalance' => $AvailableBalance,
+                                'comment' => $comment,
+                            ]);
+                    }
+                    // card balance update end
 
 
                 }

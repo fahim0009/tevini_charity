@@ -639,7 +639,7 @@ class CharityController extends Controller
                 $pvsr->cheque_no = $chqs[$key];
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
-                $pvsr->waiting = $waitings[$key];
+                $pvsr->waiting = "No";
                 if($limitChk < $amounts[$key]){
                     $pvsr->status = 0;  //process voucher pending
                 }else{

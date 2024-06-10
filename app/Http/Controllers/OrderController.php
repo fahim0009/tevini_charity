@@ -742,7 +742,7 @@ class OrderController extends Controller
                 $voucher = Voucher::where('id', $orderHistory->voucher_id)->first();
 
                 if ($voucher->type == "Blank") {
-                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This is blank voucher.</b></div>";
+                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This is blank voucher.You can't process.</b></div>";
                     return response()->json(['status'=> 303,'message'=>$message, 'vouchertype'=>$voucher->type]);
                     exit();
                 } else {

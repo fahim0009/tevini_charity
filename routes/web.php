@@ -195,6 +195,10 @@ Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation
 Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
 Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 
+
+Route::post('/card-enrol-fingerprint', [App\Http\Controllers\HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
+
+
 // change password
 
 Route::get('/change-user-password', [App\Http\Controllers\HomeController::class, 'changePassword'])->name('user.chkpassword');

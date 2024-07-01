@@ -16,8 +16,10 @@ class VerifyCsrfToken extends Middleware
         'https://www.tevini.co.uk/api/transaction-store',
         'https://www.tevini.co.uk/transaction-store',
 
-        'http://127.0.0.1:8000/card-enrol-fingerprint',
-        'http://127.0.0.1:8000/card-fingerprint-donation',
+        'https://www.tevini.co.uk/card-enrol-fingerprint',
+        'https://www.tevini.co.uk/card-fingerprint-donation',
+        'https://www.tevini.co.uk/card-is-fingerprint-user-enrolled',
+        'https://www.tevini.co.uk/card-deregister-fingerprint',
 
         'http://127.0.0.1:8000/transaction-store',
         'http://127.0.0.1:8000/api/transaction-store'

@@ -250,8 +250,6 @@ class HomepageController extends Controller
             exit();
         }
 
-
-        
         if($chkuser->fingerprint == $fingerprint)
         {
 
@@ -266,8 +264,6 @@ class HomepageController extends Controller
                 return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
                 exit();
             }
-
-
 
             $utransaction = new Usertransaction();
             $utransaction->t_id = time() . "-" . $donor_id;
@@ -318,5 +314,78 @@ class HomepageController extends Controller
             exit();
         }
     }
+
+
+    public function cardIsFingerprintUserEnrolled(Request $request)
+    {
+        
+        $chkaccount = User::where('accountno',$request->account)->first();
+
+        if(empty($chkaccount)){
+            $reason ='User account not found';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+
+        if(auth()->attempt(array('accountno' => $request->account, 'password' => $request->pwd)))
+        {
+
+            $user = User::where('accountno', $request->account)->first();
+
+            if (($user->hid) && ($user->fingerprint)) {
+                $reason ='Enrolment details provided';
+                return response()->json(['status'=> 'success','http code'=> 200,'enrolled'=>true,'reason'=>$reason]);
+                exit();
+            } else {
+                $reason ='Enrolment details not provided';
+                return response()->json(['status'=> 'success','http code'=> 400,'enrolled'=>false,'reason'=>$reason]);
+                exit();
+            }
+            
+            
+        }else {
+            
+            $reason ='User not authenticated';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+    }
+
+    public function cardDeregisterFingerprint(Request $request)
+    {
+        
+        $chkaccount = User::where('accountno',$request->account)->first();
+
+        if(empty($chkaccount)){
+            $reason ='User account not found';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+
+        if(auth()->attempt(array('accountno' => $request->account, 'password' => $request->pwd)))
+        {
+
+            $user = User::find($chkaccount->id);
+            $user->fingerprint = null;
+            $user->hid = null;
+            if ($user->save()) {
+                $reason ='Fingerprint has been deregistered';
+                return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason]);
+                exit();
+            } else {
+                $reason ='Deregister failed';
+                return response()->json(['status'=> 'success','http code'=> 400,'reason'=>$reason]);
+                exit();
+            }
+            
+            
+        }else {
+            
+            $reason ='User not authenticated';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+    }
+
 
 }

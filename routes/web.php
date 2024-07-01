@@ -197,6 +197,7 @@ Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'ch
 
 
 Route::post('/card-enrol-fingerprint', [App\Http\Controllers\HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
+Route::post('/card-fingerprint-donation', [App\Http\Controllers\HomepageController::class, 'cardFingerprintDonation'])->name('cardFingerprintDonation');
 
 
 // change password

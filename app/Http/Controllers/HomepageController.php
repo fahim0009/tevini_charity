@@ -163,6 +163,29 @@ class HomepageController extends Controller
         }
     }
 
+    protected function generateUniqueCode()
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $unique = false;
+        $code = '';
+
+        while (!$unique) {
+            $code = '';
+            for ($i = 0; $i < 16; $i++) {
+                $code .= $characters[rand(0, strlen($characters) - 1)];
+            }
+            
+            // Check if the code already exists in the database
+            $existingCode = User::where('hid', $code)->first();
+            
+            if (!$existingCode) {
+                $unique = true;
+            }
+        }
+
+        return $code;
+    }
+
 
     public function cardEnrolFingerprint(Request $request)
     {
@@ -171,27 +194,76 @@ class HomepageController extends Controller
 
         if(empty($chkaccount)){
             $reason ='User account not found';
-            return response()->json(['status'=> 400,'reason'=>$reason]);
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
             exit();
         }
 
-        dd($chkaccount);
+        if(auth()->attempt(array('accountno' => $request->account, 'password' => $request->pwd)))
+        {
+            $code = $this->generateUniqueCode();
+            
+            $data = User::find($chkaccount->id);
+            $data->fingerprint = $request->fingerprint;
+            $data->hid = $code;
+            $data->save();
 
-        $campaign_dtls =Campaign::where('id',$request->tevini_campaignid)->first();
-        $return_url = Gateway::where('id', $request->identifier)->first()->return_url;
+            // $tevini_hash =  hash('sha256', $code);
+            $tevini_hash = encrypt($code);
 
-        if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
+            $reason ='Fingerprint assigned to user';
+            return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason,'HID'=>$tevini_hash]);
+            exit();
+        }else {
+            $reason ='User not authenticated';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+    }
+
+
+
+    public function cardFingerprintDonation(Request $request)
+    {
+
+
+        $campaign = $request->campaign;
+        $hash = $request->hash;
+        $fingerprint = $request->fingerprint;
+        $HID = decrypt($request->HID);
+        // $HID = $request->HID;
+        $amount = $request->Amount;
+        $FunddAccountNumber = $request->FunddAccountNumber;
+
+        $chkuser = User::where('hid',$HID)->first();
+
+
+        if(empty($chkuser)){
+            $reason ='No matching HID found';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+
+        $campaign_dtls = Campaign::where('id',$campaign)->first();
+        if(empty($campaign_dtls)){
+            $reason ='Invalid campaign details provided';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
+        }
+
+
+        
+        if($chkuser->fingerprint == $fingerprint)
         {
 
-            $u_bal = User::where('accountno',$request->acc)->first()->balance;
-            $donor_id = User::where('accountno',$request->acc)->first()->id;
+            $u_bal = $chkuser->balance;
+            $donor_id = $chkuser->id;
 
-            $overdrawn = (User::where('id',$donor_id)->first()->overdrawn_amount);
+            $overdrawn = $chkuser->overdrawn_amount;
             $limitChk = $u_bal + $overdrawn;
 
-            if($limitChk < $request->amt ){
-                $message ='<span id="msg" style="color: rgb(255, 0, 0);">Overdrawn limit exceed.</span>';
-                return response()->json(['status'=> 303,'message'=>$message]);
+            if($limitChk < $amount ){
+                $reason ='Overdrawn limit exceed.';
+                return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
                 exit();
             }
 
@@ -202,25 +274,48 @@ class HomepageController extends Controller
             $utransaction->charity_id = $campaign_dtls->charity_id;
             $utransaction->user_id = $donor_id;
             $utransaction->t_type = "Out";
-            $utransaction->amount =  $request->amt;
+            $utransaction->amount =  $amount;
             $utransaction->note =  $request->comment;
-            $utransaction->title ="Online Campaign (".$campaign_dtls->campaign_title.")";
-            $utransaction->gateway_id =  $request->identifier;
+            $utransaction->title ="Online Campaign (".$campaign_dtls->campaign_title.") - Fingerprint Donation";
+            // $utransaction->gateway_id =  $request->identifier;
             $utransaction->campaign_id =  $campaign_dtls->id;
             $utransaction->status =  1;
             $utransaction->save();
 
+            $user = User::find($donor_id);
+            $user->decrement('balance',$amount);
+            $user->save();
 
-            $success_hash = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
+            // card balance update
+            // if (isset($user->CreditProfileId)) {
+            //     $CreditProfileId = $user->CreditProfileId;
+            //     $CreditProfileName = $user->name;
+            //     $AvailableBalance = 0 - $amount;
+            //     $comment = "third party donation by tevini";
+            //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+            //             'CreditProfileId' => $CreditProfileId,
+            //             'CreditProfileName' => $CreditProfileName,
+            //             'AvailableBalance' => $AvailableBalance,
+            //             'comment' => $comment,
+            //         ]);
+            // }
+            // card balance update end
 
-            $tevini_hash = hash_hmac("sha256", $success_hash, $campaign_dtls->hash_code);
+            $ch = Charity::find($campaign_dtls->charity_id);
+            $ch->increment('balance',$amount);
+            $ch->save();
 
-            $success_url = $return_url.$success_hash."&hash=".$tevini_hash;
+            $reason ='Donation completed successfully';
+            return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason,'intid'=>$utransaction->t_id]);
+            exit();
 
-            $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
-            return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
 
+        }else{
 
+            $reason ='No matching HID found';
+            return response()->json(['status'=> 'rejected','http code'=> 400,'reason'=>$reason]);
+            exit();
         }
     }
 

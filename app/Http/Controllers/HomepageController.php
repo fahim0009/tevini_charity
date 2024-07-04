@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Usertransaction;
 use App\Models\Campaign;
 use App\Models\Charity;
+use App\Models\FingerprintDonation;
 use App\Models\Gateway;
 use Illuminate\Support\Facades\Http;
 
@@ -234,6 +235,8 @@ class HomepageController extends Controller
         $amount = $request->Amount;
         $FunddAccountNumber = $request->FunddAccountNumber;
 
+        
+
         $chkuser = User::where('hid',$HID)->first();
 
 
@@ -282,25 +285,38 @@ class HomepageController extends Controller
             $user->decrement('balance',$amount);
             $user->save();
 
-            // card balance update
-            // if (isset($user->CreditProfileId)) {
-            //     $CreditProfileId = $user->CreditProfileId;
-            //     $CreditProfileName = $user->name;
-            //     $AvailableBalance = 0 - $amount;
-            //     $comment = "third party donation by tevini";
-            //     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-            //             'CreditProfileId' => $CreditProfileId,
-            //             'CreditProfileName' => $CreditProfileName,
-            //             'AvailableBalance' => $AvailableBalance,
-            //             'comment' => $comment,
-            //         ]);
-            // }
-            // card balance update end
-
             $ch = Charity::find($campaign_dtls->charity_id);
             $ch->increment('balance',$amount);
             $ch->save();
+            
+            $fingerData = new FingerprintDonation();
+            $fingerData->date = date('Y-m-d');
+            $fingerData->campaign = $campaign;
+            $fingerData->hash = $hash;
+            $fingerData->fingerprint = $fingerprint;
+            $fingerData->hid = $HID;
+            $fingerData->amount = $amount;
+            $fingerData->FunddAccountNumber = $FunddAccountNumber;
+            $fingerData->title = "Fingerprint Donation";
+            $fingerData->save();
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                // $CreditProfileId = $user->CreditProfileId;
+                // $CreditProfileName = $user->name;
+                // $AvailableBalance = 0 - $amount;
+                // $comment = "third party donation by tevini";
+                // $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                //     ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                //         'CreditProfileId' => $CreditProfileId,
+                //         'CreditProfileName' => $CreditProfileName,
+                //         'AvailableBalance' => $AvailableBalance,
+                //         'comment' => $comment,
+                //     ]);
+            }
+            // card balance update end
+
+            
 
             $reason ='Donation completed successfully';
             return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason,'intid'=>$utransaction->t_id]);

@@ -196,10 +196,10 @@ Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonatio
 Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 
 
-Route::post('/card-enrol-fingerprint', [App\Http\Controllers\HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
-Route::post('/card-fingerprint-donation', [App\Http\Controllers\HomepageController::class, 'cardFingerprintDonation'])->name('cardFingerprintDonation');
-Route::post('/card-is-fingerprint-user-enrolled', [App\Http\Controllers\HomepageController::class, 'cardIsFingerprintUserEnrolled'])->name('cardIsFingerprintUserEnrolled');
-Route::post('/card-deregister-fingerprint', [App\Http\Controllers\HomepageController::class, 'cardDeregisterFingerprint'])->name('cardDeregisterFingerprint');
+Route::post('/cardEnrolFingerprint', [App\Http\Controllers\HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
+Route::post('/cardFingerprintDonation', [App\Http\Controllers\HomepageController::class, 'cardFingerprintDonation'])->name('cardFingerprintDonation');
+Route::post('/cardIsFingerprintUserEnrolled', [App\Http\Controllers\HomepageController::class, 'cardIsFingerprintUserEnrolled'])->name('cardIsFingerprintUserEnrolled');
+Route::post('/cardDeregisterFingerprint', [App\Http\Controllers\HomepageController::class, 'cardDeregisterFingerprint'])->name('cardDeregisterFingerprint');
 
 
 // change password

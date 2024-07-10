@@ -302,17 +302,17 @@ class HomepageController extends Controller
 
             // card balance update
             if (isset($user->CreditProfileId)) {
-                // $CreditProfileId = $user->CreditProfileId;
-                // $CreditProfileName = $user->name;
-                // $AvailableBalance = 0 - $amount;
-                // $comment = "third party donation by tevini";
-                // $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                //     ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                //         'CreditProfileId' => $CreditProfileId,
-                //         'CreditProfileName' => $CreditProfileName,
-                //         'AvailableBalance' => $AvailableBalance,
-                //         'comment' => $comment,
-                //     ]);
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = 0 - $amount;
+                $comment = "third party donation by tevini";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
             }
             // card balance update end
 

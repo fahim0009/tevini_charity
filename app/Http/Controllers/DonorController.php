@@ -551,7 +551,6 @@ class DonorController extends Controller
 
     $user = json_decode($response->getBody()->getContents());
 
-    dd($user);
 
         // $user = User::where('id', $id)->first();
         return view('frontend.user.donation', compact('user'));

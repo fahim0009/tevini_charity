@@ -6,7 +6,7 @@
 
         <li><a href="{{ route('user.dashboard') }}" class="{{ (request()->is('user/dashboard*')) ? 'nav-link current' : '' }}">Dashboard</a></li>
 
-        @if (Auth::user()->accountno)
+        @if (Auth::user() && Auth::user()->accountno)
             <li><a href="{{ route('user.makedonation') }}" class="{{ (request()->is('user/make-donation*')) ? 'nav-link current' : '' }}">Make a donation</a></li>
             <li><a href="{{ route('user.donationrecord') }}" class="{{ (request()->is('user/donation-record*')) ? 'nav-link current' : '' }}">Donation records</a></li>
             <li><a href="{{ route('user.standingrecord') }}" class="{{ (request()->is('user/standing-order-record*')) ? 'nav-link current' : '' }}">Standing order records</a></li>
@@ -25,7 +25,7 @@
         {{-- <li><a href="{{ route('userCardService') }}" class="{{ (request()->is('user/card-service*')) ? 'nav-link current' : '' }}">Card Service</a></li> --}}
     </ul>
     <div class="bottom-part">
-        @if (Auth::user()->accountno)
+        @if (Auth::user() && Auth::user()->accountno)
         <a href="{{ route('user.orderbook') }}" class="btn-theme bg-secondary">Order voucher books</a>
         <a href="{{ route('user.makedonation')}}" class="btn-theme bg-primary">Make a donation</a>
         @endif

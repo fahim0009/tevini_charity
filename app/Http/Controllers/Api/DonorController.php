@@ -26,6 +26,7 @@ use Hash;
 use Validator;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Client;
 
 class DonorController extends Controller
 {
@@ -197,4 +198,12 @@ class DonorController extends Controller
         }
 
     }
+
+    public function getMakeDonation()
+    {
+
+        return view('frontend.user.donation');
+    }
+
+   
 }

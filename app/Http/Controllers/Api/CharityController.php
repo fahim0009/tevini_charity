@@ -33,6 +33,8 @@ class CharityController extends Controller
         return response()->json($responseArray,200);
     }
 
+    
+
     public function profileShow($id)
     {
         $data = Charity::where('id', $id)->first();

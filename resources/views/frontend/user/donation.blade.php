@@ -19,6 +19,8 @@
     if (isset($_GET["amount"])) {
         $amount = $_GET["amount"];
     } 
+
+
 @endphp
 
 <div class="content">
@@ -44,7 +46,8 @@
         <div class="row ">
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
-                <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
+                <h2 class="amount">{{ Auth::user() ? auth()->user()->balance : $user->balance }}
+                    GBP</h2>
 
                 <div class="row">
                     <div class="col-lg-12">

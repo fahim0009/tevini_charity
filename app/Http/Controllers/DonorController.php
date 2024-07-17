@@ -517,6 +517,46 @@ class DonorController extends Controller
         return view('frontend.user.donation');
     }
 
+    public function userDonationShowwithID($token)
+    {
+        // Get the full URL
+        // $url = request()->url();
+        // // Extract the last segment after the last '/'
+        // $lastSegment = substr($url, strrpos($url, '/') + 1);
+        // // Make a GET request to retrieve user data or perform actions
+        // $response = Http::withToken($lastSegment)->get($url);
+
+        // // Handle response
+        // if ($response->successful()) {
+        //     $userData = $response->json();
+        //     // Process user data or perform actions
+        // } else {
+        //     // Handle failed authentication or other errors
+        //     abort($response->status(), 'Unauthorized');
+        // }
+
+
+        // Retrieve the token from session or wherever you stored it
+    $token = $token;
+
+    // You can use the token to authenticate API requests
+    // Example using GuzzleHttp:
+    $client = new \GuzzleHttp\Client();
+    $response = $client->request('GET', 'https://www.tevini.co.uk/user/make-donation', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ]
+    ]);
+
+    $user = json_decode($response->getBody()->getContents());
+
+    dd($user);
+
+        // $user = User::where('id', $id)->first();
+        return view('frontend.user.donation', compact('user'));
+    }
+
     public function userDonationAdmin($id)
     {
         $donor_id = $id;

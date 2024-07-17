@@ -49,7 +49,7 @@
                 <h3 id="usertestID"></h3>
                 <h2 class="amount">{{ Auth::user() ? auth()->user()->balance : $user->balance }}
                     GBP</h2>
-                <div class='alert alert-success chkdata'>{{Auth::user()->name}}</div>
+                    
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="form-group">
@@ -269,8 +269,8 @@
                         data: {charity_id,amount,ano_donation,standard,payments_type,number_payments,starting,interval,c_donation,charitynote,mynote,userid},
                         success: function (d) {
                             console.log(d.data)
-                            $("#usertestID").html(d.username);
-                            $(".ermsg").html(d.charity);
+                            
+                            
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
                                 $(".rightbar").animate({ scrollTop: 0 }, "fast");

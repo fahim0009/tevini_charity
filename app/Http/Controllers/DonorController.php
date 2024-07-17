@@ -562,12 +562,12 @@ class DonorController extends Controller
         return view('donor.onlinedonation',compact('donor_id'));
     }
 
-    public function userDonationStore(Request $request)
-    {
-        return response()->json(['status'=> 300,'charity'=>$request->charity_id,'username'=>Auth::user()->name]);
-    }
+    // public function userDonationStore(Request $request)
+    // {
+    //     return response()->json(['status'=> 300,'charity'=>$request->charity_id,'username'=>Auth::user()->name]);
+    // }
 
-    public function userDonationStore2(Request $request)
+    public function userDonationStore(Request $request)
     {
         
         $userid = $request->userid;

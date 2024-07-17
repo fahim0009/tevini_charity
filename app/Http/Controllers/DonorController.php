@@ -565,6 +565,7 @@ class DonorController extends Controller
     public function userDonationStore(Request $request)
     {
 
+        $userid = $request->userid;
 
         if(empty($request->charity_id)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
@@ -590,7 +591,7 @@ class DonorController extends Controller
         }
 
         $data = new Donation;
-        $data->user_id = Auth::user()->id;
+        $data->user_id = $userid;
         $data->charity_id = $request->charity_id;
         $data->amount = $request->amount;
         $data->currency = "GBP";
@@ -605,8 +606,8 @@ class DonorController extends Controller
         if($data->save()){
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . Auth::user()->id;
-            $utransaction->user_id = Auth::user()->id;
+            $utransaction->t_id = time() . "-" . $userid;
+            $utransaction->user_id = $userid;
             $utransaction->charity_id = $request->charity_id;
             $utransaction->donation_id = $data->id;
             $utransaction->t_type = "Out";
@@ -615,7 +616,7 @@ class DonorController extends Controller
             $utransaction->status =  1;
             $utransaction->save();
 
-            $user = User::find(Auth::user()->id);
+            $user = User::find($userid);
             $user->decrement('balance',$request->amount);
             $user->save();
 
@@ -623,16 +624,16 @@ class DonorController extends Controller
             $charity->increment('balance',$request->amount);
             $charity->save();
 
-            $user = User::where('id',Auth::user()->id)->first();
+            $user = User::where('id',$userid)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
             $charity = Charity::where('id',$request->charity_id)->first();
             $donation = Donation::where('id',$data->id)->first();
 
 
             // card balance update
-            if (isset(Auth::user()->CreditProfileId)) {
-                $CreditProfileId = Auth::user()->CreditProfileId;
-                $CreditProfileName = Auth::user()->name;
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
                 $AvailableBalance = 0 - $request->amount;
                 $comment = "Make a donation or Standing order";
                 $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')

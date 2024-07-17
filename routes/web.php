@@ -220,7 +220,6 @@ Route::post('/charity-barcode', [OrderController::class, 'getCharitybarCode']);
 
 
 
-Route::get('make-donation/{token}', [DonorController::class, 'userDonationShowwithID'])->name('user.makedonationApp');
 
 
 Route::middleware(['auth:sanctum,charity', 'verified']);

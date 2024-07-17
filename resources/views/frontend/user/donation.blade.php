@@ -157,12 +157,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-12 mt-4">
-                        <div class="form-group ">
-                            <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary">
-                            {{-- <button class="btn-theme bg-primary" id="addBtn">Make a donation</button> --}}
-                        </div>
-                    </div>
+                    
                 </div>
 
             </div>
@@ -170,14 +165,22 @@
                 <div class="col-lg-12 mt-5">
                     <div class="form-group ">
                         <label for="">Notes to charity</label>
-                        <textarea id="charitynote" name="charitynote" class="border-0 mt-2 w-100" rows="8"></textarea>
+                        <textarea id="charitynote" name="charitynote" class="border-0 mt-2 w-100" rows="6"></textarea>
                     </div>
                 </div>
                 <div class="col-lg-12 mt-4">
                     <div class="form-group ">
                         <label for="">My Notes</label>
-                        <textarea name="mynote" id="mynote" class="border-0 mt-2 w-100" rows="8"></textarea>
+                        <textarea name="mynote" id="mynote" class="border-0 mt-2 w-100" rows="6"></textarea>
                     </div>
+                </div>
+            </div>
+
+            <div class="col-lg-12 mt-2">
+                <div class="form-group ">
+                    <input type="hidden" id="userid" value="{{Auth::user()->id}}">
+                    <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary">
+                    {{-- <button class="btn-theme bg-primary" id="addBtn">Make a donation</button> --}}
                 </div>
             </div>
         </div>
@@ -250,6 +253,7 @@
                     var c_donation= $('#confirm_donation').prop('checked');
                     var charitynote= $("#charitynote").val();
                     var mynote= $("#mynote").val();
+                    var userid= $("#userid").val();
 
                     if($("#standard").is(":checked")) {
                         var url = "{{URL::to('/user/standing-donation')}}";
@@ -261,7 +265,7 @@
                     $.ajax({
                         url: url,
                         method: "POST",
-                        data: {charity_id,amount,ano_donation,standard,payments_type,number_payments,starting,interval,c_donation,charitynote,mynote},
+                        data: {charity_id,amount,ano_donation,standard,payments_type,number_payments,starting,interval,c_donation,charitynote,mynote,userid},
                         success: function (d) {
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
@@ -269,7 +273,7 @@
                             }else if(d.status == 300){
                                 $(".ermsg").html(d.message);
                                 $(".rightbar").animate({ scrollTop: 0 }, "fast");
-                                window.setTimeout(function(){location.reload()},2000)
+                                // window.setTimeout(function(){location.reload()},2000)
                             }
                         },
                         complete:function(data){

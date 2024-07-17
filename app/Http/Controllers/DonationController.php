@@ -385,6 +385,8 @@ class DonationController extends Controller
     public function userStantingDonationStore(Request $request)
     {
 
+        
+        $userid = $request->userid;
 
         if(empty($request->charity_id)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
@@ -410,7 +412,7 @@ class DonationController extends Controller
         }
 
         $data = new StandingDonation;
-        $data->user_id = Auth::user()->id;
+        $data->user_id = $userid;
         $data->charity_id = $request->charity_id;
         $data->amount = $request->amount;
         $data->currency = "GBP";
@@ -447,7 +449,7 @@ class DonationController extends Controller
             // $charity->increment('balance',$request->amount);
             // $charity->save();
 
-            $user = User::where('id',Auth::user()->id)->first();
+            $user = User::where('id',$userid)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
             $charity = Charity::where('id',$request->charity_id)->first();
             $donation = StandingDonation::where('id',$data->id)->first();

@@ -564,7 +564,7 @@ class DonorController extends Controller
 
     public function userDonationStore(Request $request)
     {
-        return response()->json(['status'=> 300,'data'=>$request->userid]);
+        return response()->json(['status'=> 300,'data'=>Auth::user()->id]);
     }
 
     public function userDonationStore2(Request $request)

@@ -45,7 +45,7 @@
     <form action="{{ route('donation.store') }}" method="POST" enctype="multipart/form-data">
         <div class="row ">
             <div class="col-lg-6  px-3">
-                <h4 class="txt-dash mt-5">Account Balance {{Auth::user()->id}}</h4>
+                <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h2 class="amount">{{ Auth::user() ? auth()->user()->balance : $user->balance }}
                     GBP</h2>
 

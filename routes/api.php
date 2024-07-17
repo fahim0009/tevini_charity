@@ -56,6 +56,10 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('profile-image', [UserController::class, 'updateprofileImage']);
 
     
+    // charity donation link close request 
+    Route::post('/close-a-link', [CharityController::class, 'closecharityLink']);
+
+    
     Route::get('donation-record', [DonorController::class, 'userDonationrecod']);
     Route::get('standing-order-record', [DonorController::class, 'userStandingrecod']);
     Route::get('standing-order-record/{id}', [DonorController::class, 'usersingleStanding']);

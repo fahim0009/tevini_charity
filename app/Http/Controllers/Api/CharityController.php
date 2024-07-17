@@ -234,4 +234,14 @@ class CharityController extends Controller
 
     }
 
+    public function closecharityLink(Request $request)
+    {
+        $deactive = CharityLink::find($request->id);
+        $deactive->donor_notification = "1";
+        $deactive->save();
+        
+        $success['message'] = 'Donation request close Successfully.';
+        return response()->json(['success'=>true,'response'=> $success], 200);
+    }
+
 }

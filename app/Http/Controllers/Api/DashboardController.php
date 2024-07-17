@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Charity;
+use App\Models\CharityLink;
 use Illuminate\Http\Request;
 use App\Models\Usertransaction;
 use App\Models\User;
@@ -107,6 +108,9 @@ class DashboardController extends Controller
         $prebalance = $preamntIn + $precommission - $preamntOut;
             // previous balance calculation
 
+            
+        $donation_req = CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
+
         $responseArray = [
             'status'=>'ok',
             'pending_transactions'=>$pending_transactions,
@@ -117,7 +121,8 @@ class DashboardController extends Controller
             'preamntIn'=>$preamntIn,
             'precommission'=>$precommission,
             'preamntOut'=>$preamntOut,
-            'alltransactions'=>$alltransactions
+            'alltransactions'=>$alltransactions,
+            'donation_request'=>$donation_req,
         ]; 
         return response()->json($responseArray,200);
     }

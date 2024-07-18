@@ -62,7 +62,15 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction');
     Route::post('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction_search');
     Route::get('make-donation', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
-    Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
+
+
+
+
+
+
+
+
+
     // standing donation 
     Route::post('standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
     Route::post('active-standingdonation', [DonationController::class, 'activeStandinguser'])->name('user.standingstatus');
@@ -189,6 +197,11 @@ Route::get('/how-it-works', [App\Http\Controllers\HomepageController::class, 'ho
 Route::get('/tdf', [App\Http\Controllers\HomepageController::class, 'tdf'])->name('tdf');
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
+
+// make a donation for user
+Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
+
+
 
 // api
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');

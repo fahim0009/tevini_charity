@@ -566,7 +566,6 @@ class DonorController extends Controller
 
     public function userDonationStore(Request $request)
     {
-        // dd($request->all());
         $userid = $request->userid;
 
         if(empty($request->charity_id)){

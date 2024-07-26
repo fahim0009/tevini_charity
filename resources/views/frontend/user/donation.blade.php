@@ -43,7 +43,7 @@
   <!-- Image loader -->
     </div>
     <form action="{{ route('donation.store') }}" method="POST" enctype="multipart/form-data">
-        {{-- @csrf --}}
+        {{-- <input type="hidden" name="_token" value="{{ csrf_token() }}"> --}}
         <div class="row ">
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>

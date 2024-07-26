@@ -13,7 +13,6 @@ public/hot
 public/images
 public/invoices
 public/master
-routes/web.php
 
 #stripe key ignore
 resources/views/frontend/user/strip_topup.blade.php

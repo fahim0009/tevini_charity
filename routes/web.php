@@ -201,6 +201,7 @@ Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, '
 
 // make a donation for user
 
+Route::post('/user/make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
 
 
 

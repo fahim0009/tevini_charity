@@ -288,6 +288,8 @@ use Illuminate\Support\Carbon;
 
         var tdfurl = "{{URL::to('/user/transfer-to-tdf')}}";
         $("#tdfsubmit").click(function(){
+
+            if(!confirm('Are you sure?')) return;
             
                 $("#loading").show();
             var tdfamount = $("#tdfamount").val();

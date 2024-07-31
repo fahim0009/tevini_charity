@@ -157,6 +157,8 @@ body {
 
         $("#addvoucher").click(function(){
 
+            if(!confirm('Are you sure?')) return;
+            
             $("#loading").show();
 
             var voucherIds = $("input[name='v_ids[]']")

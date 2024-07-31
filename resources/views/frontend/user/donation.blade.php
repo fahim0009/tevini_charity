@@ -243,6 +243,9 @@
             //  make doantion start
         
             $("#addBtn").click(function(){
+                
+                if(!confirm('Are you sure?')) return;
+                
                  $("#loading").show();
                     var charity_id= $("#charity_id").val();
                     var amount= $("#amount").val();

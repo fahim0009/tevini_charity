@@ -23,6 +23,7 @@ class VerifyCsrfToken extends Middleware
 
         
         'https://www.tevini.co.uk/api/make-donation',
+        'https://www.tevini.co.uk/make-online-donation',
         'https://www.tevini.co.uk/user/make-donation',
         'https://www.tevini.co.uk/user/standing-donation',
 

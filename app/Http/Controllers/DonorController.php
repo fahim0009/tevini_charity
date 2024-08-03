@@ -562,6 +562,167 @@ class DonorController extends Controller
         return view('donor.onlinedonation',compact('donor_id'));
     }
 
+    public function userOnlineDonationStore(Request $request) 
+    {
+        
+
+        if ($request->standard == "on") {
+            
+            $rules = [
+                'userid' => 'required',
+                'charity_id' => 'required',
+                'payments_type' => 'required',
+                'number_payments' => 'required_if:payments_type,1|integer',
+                'starting' => 'required',
+                'interval' => 'required',
+                'amount' => 'required|integer',
+                'confirm_donation' => 'required'
+            ];
+            $customMessages = [
+                'charity_id.required' => 'Please select a charity.',
+                'payments_type.required' => 'Please select payment type.',
+                'number_payments.required' => 'Number of payment field is required',
+                'starting.required' => 'Starting field is required.',
+                'interval.required' => 'Interval field is required.',
+                'confirm_donation.required' => 'Please check confirmed about your donation.',
+                'required' => 'The :attribute field is required.',
+            ];
+            $this->validate($request, $rules, $customMessages);
+
+
+            $userid = $request->userid;
+            $data = new StandingDonation;
+            $data->user_id = $userid;
+            $data->charity_id = $request->charity_id;
+            $data->amount = $request->amount;
+            $data->currency = "GBP";
+            $data->ano_donation = $request->ano_donation;
+            $data->standing_order = $request->standard;
+            $data->payments = $request->payments_type;
+            $data->number_payments = $request->number_payments;
+            $data->payment_made = 0;
+            $data->starting = $request->starting;
+            $data->interval = $request->interval;   
+            $data->charitynote = $request->charitynote;
+            $data->mynote = $request->mynote;
+            $data->notification = 1;
+            $data->status = 0;
+
+            if($data->save()){
+
+                $user = User::where('id',$userid)->first();
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $charity = Charity::where('id',$request->charity_id)->first();
+                $donation = StandingDonation::where('id',$data->id)->first();
+
+
+                $array['name'] = $user->name;
+                $array['donation'] = $donation;
+                $array['cc'] = $contactmail;
+                $array['client_no'] = $user->accountno;
+                $email = $user->email;
+                $array['amount'] = $request->amount;
+                $array['charity_note'] = $request->charitynote;
+                $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
+
+                Mail::to($email)
+                ->cc($contactmail)
+                ->send(new DonationstandingReport($array));
+
+                return redirect()->back()->with('success', 'Standing order donation submited Successfully.');
+            }
+
+        } else {
+
+            
+            $rules = [
+                'userid' => 'required',
+                'charity_id' => 'required',
+                'amount' => 'required|integer',
+                'confirm_donation' => 'required'
+            ];
+            $customMessages = [
+                'charity_id.required' => 'Please select a charity.',
+                'confirm_donation.required' => 'Please check confirmed about your donation.',
+                'required' => 'The :attribute field is required.',
+            ];
+            $this->validate($request, $rules, $customMessages);
+
+            $userid = $request->userid;
+            $data = new Donation;
+            $data->user_id = $userid;
+            $data->charity_id = $request->charity_id;
+            $data->amount = $request->amount;
+            $data->currency = "GBP";
+            $data->ano_donation = $request->ano_donation;
+            $data->standing_order = $request->standard;
+            $data->confirm_donation = $request->c_donation;
+            $data->charitynote = $request->charitynote;
+            $data->mynote = $request->mynote;
+            $data->notification = 1;
+            $data->status = 0;
+
+            if($data->save()){
+
+                $utransaction = new Usertransaction();
+                $utransaction->t_id = time() . "-" . $userid;
+                $utransaction->user_id = $userid;
+                $utransaction->charity_id = $request->charity_id;
+                $utransaction->donation_id = $data->id;
+                $utransaction->t_type = "Out";
+                $utransaction->amount =  $request->amount;
+                $utransaction->title =  "Online Donation";
+                $utransaction->status =  1;
+                $utransaction->save();
+
+                $user = User::find($userid);
+                $user->decrement('balance',$request->amount);
+                $user->save();
+
+                $charity = Charity::find($request->charity_id);
+                $charity->increment('balance',$request->amount);
+                $charity->save();
+
+                $user = User::where('id',$userid)->first();
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $charity = Charity::where('id',$request->charity_id)->first();
+                $donation = Donation::where('id',$data->id)->first();
+
+                // card balance update
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 - $request->amount;
+                    $comment = "Make a donation or Standing order";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+                // card balance update end
+
+                $array['name'] = $user->name;
+                $array['cc'] = $contactmail;
+                $array['client_no'] = $user->accountno;
+                $email = $user->email;
+                $array['amount'] = $request->amount;
+                $array['charity_note'] = $request->charitynote;
+                $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
+
+                Mail::to($email)
+                ->cc($contactmail)
+                ->send(new DonationReport($array));
+                
+                return redirect()->back()->with('success', 'Donation submited Successfully.');
+            }
+
+        }
+
+    }
+
 
 
     public function userDonationStore(Request $request)

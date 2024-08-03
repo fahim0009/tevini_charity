@@ -12,6 +12,40 @@
 
 </style>
 
+<style>
+    /* Simple spinner */
+    #loader {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1000; /* Sit on top */
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        top: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+    }
+
+    #loader::after {
+        content: "";
+        display: block;
+        width: 50px;
+        height: 50px;
+        border: 5px solid #fff;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: -25px 0 0 -25px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
 @php
     if (isset($_GET["cid"])) {
         $cid = $_GET["cid"];
@@ -33,17 +67,43 @@
         <section class="px-4">
             <div class="row my-3">
                 <div class="ermsg"></div>
+
+                @if(session()->has('success'))
+                <section class="px-4">
+                    <div class="row my-3">
+                        <div class="alert alert-success" id="successMessage">{{ session()->get('success') }}</div>
+                    </div>
+                </section>
+                @endif
+                @if(session()->has('error'))
+                <section class="px-4">
+                    <div class="row my-3">
+                        <div class="alert alert-danger" id="errMessage">{{ session()->get('error') }}</div>
+                    </div>
+                </section>
+                @endif
+
+                @if ($errors->any())
+                    @foreach ($errors->all() as $error)
+                    <section class="px-2">
+                        <div class="row">
+                            <div class="alert alert-danger">{{ $error }}</div>
+                        </div>
+                    </section>
+                    @endforeach
+                @endif
+
             </div>
         </section>
 
         <!-- Image loader -->
-<div id='loading' style='display:none ;'>
-    <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
-  </div>
-  <!-- Image loader -->
+        <div id='loader' style='display:none ;'>
+            {{-- <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." /> --}}
+        </div>
+        <!-- Image loader -->
     </div>
-    <form action="{{ route('donation.store') }}" method="POST" enctype="multipart/form-data">
-        {{-- <input type="hidden" name="_token" value="{{ csrf_token() }}"> --}}
+    <form action="{{ route('onlinedonation.store') }}" method="POST" enctype="multipart/form-data" id="DonationForm">
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <div class="row ">
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
@@ -60,7 +120,7 @@
                                 <option value="">Select a charity</option>
                                 <option value="">Please Select</option>
                                 @foreach (App\Models\Charity::all() as $charity)
-                                <option value="{{ $charity->id }}" @if (isset($cid)) @if ($charity->id == $cid) selected @endif @endif>{{ $charity->name }} - ({{ $charity->acc_no }})</option>
+                                <option value="{{ $charity->id }}" {{ old('charity_id') == $charity->id ?  "selected": "" }} @if (isset($cid)) @if ($charity->id == $cid) selected @endif @endif>{{ $charity->name }} - ({{ $charity->acc_no }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -69,7 +129,7 @@
                         <div class="form-group">
                             <label for="">Amount</label>
                             <div class="d-flex align-items-center">
-                                <input type="text" class="form-control me-3" name="amount" id="amount" placeholder="0.00" value="@if(isset($amount)){{$amount}}@endif"> <span
+                                <input type="text" class="form-control me-3" name="amount" id="amount" placeholder="0.00" value="@if(isset($amount)){{$amount}}@endif{{old('amount')}}"> <span
                                     class="txt-secondary fs-16">GBP</span>
                             </div>
                         </div>
@@ -78,8 +138,7 @@
                         <div class="form-group ">
                             <label for=""> &nbsp; </label>
                             <div class="d-flex align-items-center">
-                                <input type="checkbox" name="ano_donation" id="ano_donation" class="form-check"> <span
-                                    class="txt-secondary fs-16">Make this an anonymous donation</span>
+                                <input type="checkbox" name="ano_donation" id="ano_donation" class="form-check" {{ old('ano_donation') == "on" ?  "checked": "" }}> <span class="txt-secondary fs-16">Make this an anonymous donation</span>
                             </div>
                         </div>
                     </div>
@@ -94,11 +153,11 @@
                         <div class="form-group ">
 
                             <div class="d-flex align-items-center">
-                                <input type="checkbox" name="standard" id="standard" class="form-check"> <span
+                                <input type="checkbox" name="standard" id="standard" class="form-check"  {{ old('standard') == "on" ?  "checked": "" }}> <span
                                     class="txt-secondary fs-16">Set up a standing order</span>
                             </div>
 
-                            <div class="standardOptions my-4">
+                            <div class="{{ old('standard') == "on" ?  "selected": "standardOptions" }} my-4">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
@@ -151,7 +210,7 @@
                     <div class="col-lg-12">
                         <div class="form-group ">
                             <div class="d-flex  ">
-                                <input type="checkbox" name="confirm_donation" id="confirm_donation" required class="form-check" style="width: 56px;">
+                                <input type="checkbox" name="confirm_donation" id="confirm_donation" required class="form-check" style="width: 56px;" {{ old('confirm_donation') == "on" ?  "checked": "" }}>
                                  <div
                                     class="txt-secondary fs-16">I confirm that this donation is for
                                     charitable purposes only, I will not benefit directly or indirectly by
@@ -167,13 +226,13 @@
                 <div class="col-lg-12 mt-5">
                     <div class="form-group ">
                         <label for="">Notes to charity</label>
-                        <textarea id="charitynote" name="charitynote" class="border-0 mt-2 w-100" rows="6"></textarea>
+                        <textarea id="charitynote" name="charitynote" class="border-0 mt-2 w-100" rows="6">{{ old('charitynote') }}</textarea>
                     </div>
                 </div>
                 <div class="col-lg-12 mt-4">
                     <div class="form-group ">
                         <label for="">My Notes</label>
-                        <textarea name="mynote" id="mynote" class="border-0 mt-2 w-100" rows="6"></textarea>
+                        <textarea name="mynote" id="mynote" class="border-0 mt-2 w-100" rows="6">{{ old('mynote') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -181,8 +240,8 @@
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
                     <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
-                    <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary">
-                    {{-- <button class="btn-theme bg-primary" type="submit">Make a donation</button> --}}
+                    {{-- <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary"> --}}
+                    <button class="btn-theme bg-primary" type="submit">Make a donation</button>
                 </div>
             </div>
         </div>
@@ -194,6 +253,11 @@
 @endsection
 
 @section('script')
+<script>
+    document.getElementById('DonationForm').addEventListener('submit', function() {
+        document.getElementById('loader').style.display = 'block';
+    });
+</script>
 <script>
      $(document).ready(function () {
 
@@ -281,7 +345,7 @@
                             }else if(d.status == 300){
                                 $(".ermsg").html(d.message);
                                 $(".rightbar").animate({ scrollTop: 0 }, "fast");
-                                // window.setTimeout(function(){location.reload()},2000)
+                                window.setTimeout(function(){location.reload()},2000)
                             }
                         },
                         complete:function(data){

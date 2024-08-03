@@ -204,6 +204,8 @@ Route::post('/user/make-donation', [DonorController::class, 'userDonationStore']
 Route::post('/user/standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
 
 
+Route::post('make-online-donation', [DonorController::class, 'userOnlineDonationStore'])->name('onlinedonation.store');
+
 
 // api
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');

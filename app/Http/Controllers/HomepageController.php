@@ -226,7 +226,6 @@ class HomepageController extends Controller
     public function cardFingerprintDonation(Request $request)
     {
 
-
         $campaign = $request->campaign;
         $hash = $request->hash;
         $fingerprint = $request->fingerprint;
@@ -238,6 +237,7 @@ class HomepageController extends Controller
         
 
         $chkuser = User::where('hid',$HID)->first();
+
 
 
         if(empty($chkuser)){
@@ -319,7 +319,7 @@ class HomepageController extends Controller
             
 
             $reason ='Donation completed successfully';
-            return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason,'intid'=>$utransaction->t_id]);
+            return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason,'intid'=>$utransaction->t_id,'HID'=>$HID]);
             exit();
 
 

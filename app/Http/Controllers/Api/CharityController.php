@@ -12,7 +12,6 @@ use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
-use Auth;
 use App\Mail\CharitypayReport;
 use App\Mail\CharitylinkRequest;
 use App\Mail\DonationReport;
@@ -239,8 +238,8 @@ class CharityController extends Controller
     public function closecharityLink(Request $request)
     {
         $user = User::where('id', auth()->user()->id)->first();
-        dd($user);
-        $values = CharityLink::where('email', $user->email)->update(['donor_notification'=>"1"]);
+        // dd($user);
+        $values = CharityLink::where('email', Auth::user()->email)->update(['donor_notification'=>"1"]);
         
         $success['message'] = 'Donation request close Successfully.';
         return response()->json(['success'=>true,'response'=> $success], 200);

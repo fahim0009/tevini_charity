@@ -18,6 +18,7 @@ use App\Mail\CharitylinkRequest;
 use App\Mail\DonationReport;
 use App\Mail\UrgentRequest;
 use App\Models\CharityLink;
+use App\Models\User;
 
 class CharityController extends Controller
 {
@@ -237,8 +238,9 @@ class CharityController extends Controller
 
     public function closecharityLink(Request $request)
     {
+        $user = User::where('id', auth()->user()->id)->first();
         
-        $values = CharityLink::where('email', $request->email)->update(['donor_notification'=>"1"]);
+        $values = CharityLink::where('email', $user->email)->update(['donor_notification'=>"1"]);
         
         $success['message'] = 'Donation request close Successfully.';
         return response()->json(['success'=>true,'response'=> $success], 200);

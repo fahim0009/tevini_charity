@@ -83,7 +83,8 @@
                 </section>
                 @endif
 
-                @if ($errors->any())
+                @if (isset($errors))
+                    @if ($errors->any())
                     @foreach ($errors->all() as $error)
                     <section class="px-2">
                         <div class="row">
@@ -92,6 +93,8 @@
                     </section>
                     @endforeach
                 @endif
+                @endif
+                
 
             </div>
         </section>

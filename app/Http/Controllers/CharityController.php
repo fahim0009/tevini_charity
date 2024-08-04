@@ -504,6 +504,8 @@ class CharityController extends Controller
         $deactive = CharityLink::find($request->linkid);
         $deactive->donor_notification = "1";
         $deactive->save();
+
+        
         $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation request close Successfully.</b></div>";
         return response()->json(['status'=> 300,'message'=>$message]);
     }

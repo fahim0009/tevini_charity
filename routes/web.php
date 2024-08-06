@@ -66,12 +66,8 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
 
 
-
-
-
-
-
     // standing donation 
+    Route::post('standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
     Route::post('active-standingdonation', [DonationController::class, 'activeStandinguser'])->name('user.standingstatus');
     Route::get('donation-record', [DonorController::class, 'userDonationrecod'])->name('user.donationrecord');
     Route::get('standing-order-record', [DonorController::class, 'userStandingrecod'])->name('user.standingrecord');
@@ -197,13 +193,8 @@ Route::get('/tdf', [App\Http\Controllers\HomepageController::class, 'tdf'])->nam
 Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
 
-// make a donation for user
 
-Route::post('/user/make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
 // standing donation 
-Route::post('/user/standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
-
-
 Route::post('make-online-donation', [DonorController::class, 'userOnlineDonationStore'])->name('onlinedonation.store');
 
 

@@ -269,7 +269,7 @@ class HomepageController extends Controller
             }
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $donor_id;
+            $utransaction->t_id = time().$donor_id;
             $utransaction->charity_id = $campaign_dtls->charity_id;
             $utransaction->user_id = $donor_id;
             $utransaction->t_type = "Out";
@@ -291,6 +291,7 @@ class HomepageController extends Controller
             
             $fingerData = new FingerprintDonation();
             $fingerData->date = date('Y-m-d');
+            $fingerData->user_id = $donor_id;
             $fingerData->campaign = $campaign;
             $fingerData->hash = $hash;
             $fingerData->fingerprint = $fingerprint;

@@ -195,6 +195,7 @@ Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, '
 
 
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);
+Route::get('make-donation-success', [DonorController::class, 'makeDonationAppMessage'])->name('onlinedonation.appview');
 // standing donation 
 Route::post('make-online-donation', [DonorController::class, 'userOnlineDonationStore'])->name('onlinedonation.store');
 

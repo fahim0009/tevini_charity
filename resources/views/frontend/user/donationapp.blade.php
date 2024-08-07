@@ -68,6 +68,12 @@
             <div class="row my-3">
                 <div class="ermsg"></div>
 
+                @if(isset($success))
+                    <div class="alert alert-success">
+                        {{ $success }}
+                    </div>
+                @endif
+
                 @if(session()->has('success'))
                 <section class="px-4">
                     <div class="row my-3">

@@ -517,6 +517,12 @@ class DonorController extends Controller
         return view('frontend.user.donation');
     }
 
+    public function makeDonationAppView()
+    {
+        return view('frontend.user.donationapp');
+    }
+
+
     public function userDonationShowwithID($token)
     {
         // Get the full URL
@@ -579,6 +585,7 @@ class DonorController extends Controller
                 'confirm_donation' => 'required'
             ];
             $customMessages = [
+                'userid.required' => 'Server error!!!',
                 'charity_id.required' => 'Please select a charity.',
                 'payments_type.required' => 'Please select payment type.',
                 'number_payments.required' => 'Number of payment field is required',
@@ -642,6 +649,7 @@ class DonorController extends Controller
                 'confirm_donation' => 'required'
             ];
             $customMessages = [
+                'userid.required' => 'Server error!!!',
                 'charity_id.required' => 'Please select a charity.',
                 'confirm_donation.required' => 'Please check confirmed about your donation.',
                 'required' => 'The :attribute field is required.',
@@ -716,7 +724,7 @@ class DonorController extends Controller
                 ->cc($contactmail)
                 ->send(new DonationReport($array));
                 
-                return redirect()->back()->with('success', 'Donation submited Successfully.');
+                return view('frontend.user.donationsuccess', ['success' => 'Donation submited Successfully.']);
             }
 
         }

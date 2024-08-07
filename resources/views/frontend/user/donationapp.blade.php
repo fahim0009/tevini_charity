@@ -100,13 +100,13 @@
         </section>
 
         <!-- Image loader -->
-        <div id='loading' style='display:none ;'>
-            <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+        <div id='loader' style='display:none ;'>
+            {{-- <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." /> --}}
         </div>
         <!-- Image loader -->
     </div>
     <form action="{{ route('onlinedonation.store') }}" method="POST" enctype="multipart/form-data" id="DonationForm">
-        {{-- <input type="hidden" name="_token" value="{{ csrf_token() }}"> --}}
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <div class="row ">
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
@@ -243,8 +243,8 @@
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
                     <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
-                    <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary">
-                    {{-- <button class="btn-theme bg-primary" type="submit">Make a donation</button> --}}
+                    {{-- <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary"> --}}
+                    <button class="btn-theme bg-primary" type="submit">Make a donation</button>
                 </div>
             </div>
         </div>

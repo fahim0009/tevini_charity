@@ -202,7 +202,7 @@ class DonorController extends Controller
     public function getMakeDonation()
     {
 
-        return view('frontend.user.donation');
+        return view('frontend.user.donationapp');
     }
 
    

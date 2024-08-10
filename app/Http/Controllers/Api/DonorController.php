@@ -205,5 +205,10 @@ class DonorController extends Controller
         return view('frontend.user.donationapp');
     }
 
+    public function makeDonationAppMessage()
+    {
+        return view('frontend.user.donationsuccess');
+    }
+
    
 }

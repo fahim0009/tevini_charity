@@ -640,9 +640,9 @@ class DonorController extends Controller
                 ->cc($contactmail)
                 ->send(new DonationstandingReport($array));
                 
-                return redirect()->route('onlinedonation.appview')->with('success', 'Standing order donation submited Successfully.');
+                // return redirect()->route('onlinedonation.appview')->with('success', 'Standing order donation submited Successfully.');
 
-                // return view('frontend.user.donationsuccess', ['success' => 'Standing order donation submited Successfully.']);
+                return view('frontend.user.donationsuccess', ['success' => 'Standing order donation submited Successfully.']);
             }
 
         } else {
@@ -730,9 +730,9 @@ class DonorController extends Controller
                 ->cc($contactmail)
                 ->send(new DonationReport($array));
                 
-                // return view('frontend.user.donationsuccess', ['success' => 'Donation submited Successfully.']);
+                return view('frontend.user.donationsuccess', ['success' => 'Donation submited Successfully.']);
 
-                return redirect()->route('onlinedonation.appview')->with('success', 'Donation submited Successfully.');
+                // return redirect()->route('onlinedonation.appview')->with('success', 'Donation submited Successfully.');
             }
 
         }

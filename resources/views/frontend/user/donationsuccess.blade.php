@@ -241,8 +241,7 @@
 
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
-                    <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
-                    {{-- <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary"> --}}
+                    <input type="hidden" id="userid" name="userid" value="">
                     <button class="btn-theme bg-primary" type="submit">Make a donation</button>
                 </div>
             </div>

@@ -241,7 +241,7 @@
 
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
-                    <input type="hidden" id="userid" name="userid" value="">
+                    <input type="hidden" id="userid" name="userid" value="{{$userid}}">
                     <button class="btn-theme bg-primary" type="submit">Make a donation</button>
                 </div>
             </div>

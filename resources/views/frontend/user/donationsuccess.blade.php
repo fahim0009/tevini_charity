@@ -111,8 +111,7 @@
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h3 id="usertestID"></h3>
-                <h2 class="amount">{{ Auth::user() ? auth()->user()->balance : $user->balance }}
-                    GBP</h2>
+                
                     
                 <div class="row">
                     <div class="col-lg-12">

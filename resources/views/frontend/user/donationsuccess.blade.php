@@ -75,12 +75,12 @@
                     </div>
                 </section>
                 @endif
-                @if(session()->has('error'))
-                <section class="px-4">
-                    <div class="row my-3">
-                        <div class="alert alert-danger" id="errMessage">{{ session()->get('error') }}</div>
-                    </div>
-                </section>
+                @if(isset($success))
+                    <section class="px-4">
+                        <div class="row my-3">
+                            <div class="alert alert-success">{{ $success }}</div>
+                        </div>
+                    </section>
                 @endif
 
                 @if (isset($errors))

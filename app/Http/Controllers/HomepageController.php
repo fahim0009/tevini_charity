@@ -234,7 +234,11 @@ class HomepageController extends Controller
         $amount = $request->Amount;
         $FunddAccountNumber = $request->FunddAccountNumber;
 
-        
+        $uniqueId = rand(100000, 999999);
+            // Ensure uniqueness by checking the database (optional)
+        while (Usertransaction::where('t_id', $uniqueId)->exists()) {
+            $uniqueId = rand(100000, 999999);
+        }
 
         $chkuser = User::where('hid',$HID)->first();
 
@@ -253,8 +257,11 @@ class HomepageController extends Controller
             exit();
         }
 
+        
+
         if($chkuser->fingerprint == $fingerprint)
         {
+            
 
             $u_bal = $chkuser->balance;
             $donor_id = $chkuser->id;
@@ -269,7 +276,7 @@ class HomepageController extends Controller
             }
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time().$donor_id;
+            $utransaction->t_id = $uniqueId;
             $utransaction->charity_id = $campaign_dtls->charity_id;
             $utransaction->user_id = $donor_id;
             $utransaction->t_type = "Out";
@@ -320,7 +327,7 @@ class HomepageController extends Controller
             
 
             $reason ='Donation completed successfully';
-            return response()->json(['status'=> 'success','http code'=> 200,'reason'=>$reason,'intid'=>$utransaction->t_id,'HID'=>$HID]);
+            return response()->json(['status'=> 'success','reason'=>$reason,'intid'=>$utransaction->t_id]);
             exit();
 
 

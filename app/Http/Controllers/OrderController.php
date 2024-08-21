@@ -36,10 +36,21 @@ class OrderController extends Controller
         return view('frontend.user.standingorder');
     }
 
-    public function userOrderVoucherBook()
+    public function userOrderVoucherBook(Request $request)
     {
-        return view('frontend.user.voucharbook');
+        
+        $cartJson = $request->session()->get('cart', '[]');
+        $cart = json_decode($cartJson, true);
+        return view('frontend.user.voucharbook', compact('cart'));
     }
+
+    public function userOrderVoucherBookstoreCart(Request $request)
+    {
+        $request->session()->put('cart', $request->input('cart'));
+
+        return response()->json(['success' => true]);
+    }
+
     public function voucherBookStock()
     {
         $voucher = Voucher::all();
@@ -247,6 +258,7 @@ class OrderController extends Controller
                 // card balance update end
             }
 
+            session()->forget('cart');
             $user = User::where('id',$request->did)->first();
 
             $contactmail = ContactMail::where('id', 1)->first()->name;

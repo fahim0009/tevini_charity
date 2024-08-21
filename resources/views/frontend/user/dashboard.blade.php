@@ -67,7 +67,11 @@ use Illuminate\Support\Carbon;
                     <input type="text" id="tdfaccount" name="tdfaccount" class="form-control">
                     <label for="">Amount to Transfer</label>
                     <input type="text" id="tdfamount" min="0" name="tdfamount" class="form-control">
-                    <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
+                    {{-- <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button> --}}
+                    <!-- Button trigger modal -->
+                    <button type="button" id="tdfmodal" class="btn-theme bg-secondary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        Transfer to TDF
+                    </button>
                 </div>
             </div>
             <div class="col-lg-6 pt-3 d-flex flex-column px-4">
@@ -237,6 +241,29 @@ use Illuminate\Support\Carbon;
     </div>
 
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Transfer to TDF</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">TDF Account Number: <span id="tdfaccmodal"></span> </div>
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Amount to Transfer: <span id="tdfamtmodal"></span></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="tdfsubmit" class="btn-theme bg-secondary">Transfer to TDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 @endsection
 
 @section('script')
@@ -285,16 +312,27 @@ use Illuminate\Support\Carbon;
         });
 
 
+        // tdf transfer modal show
+        $("#tdfmodal").click(function(){
+
+            var tdfamount = $("#tdfamount").val();
+            var tdfaccount = $("#tdfaccount").val();
+            
+            $("#tdfamtmodal").html(tdfamount);
+            $("#tdfaccmodal").html(tdfaccount);
+                        
+
+        });
 
         var tdfurl = "{{URL::to('/user/transfer-to-tdf')}}";
         $("#tdfsubmit").click(function(){
 
-            if(!confirm('Are you sure?')) return;
-            
+            // if(!confirm('Are you sure?')) return;
+            $('#exampleModal').modal('hide');
                 $("#loading").show();
             var tdfamount = $("#tdfamount").val();
             var tdfaccount = $("#tdfaccount").val();
-            console.log(tdfamount);
+            
             $.ajax({
                 url: tdfurl,
                 method: "POST",

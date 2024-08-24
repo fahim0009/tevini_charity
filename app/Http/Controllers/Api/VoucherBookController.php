@@ -44,9 +44,9 @@ class VoucherBookController extends Controller
     public function storeVoucher(Request $request)
     {
 
-        // dd('Controller');
         
         $vouchers = json_decode($request->vouchers, true); 
+
 
         $prepaid_amount= 0;
         $order_amount= 0;
@@ -194,11 +194,11 @@ class VoucherBookController extends Controller
             }
 
             if ($ppc > 0) {
-                if($request->delivery == "true"){
+                if($delivery_opt == "Delivery"){
                     if ($prepaid_amount < 200) {
                         $udtransaction = new Usertransaction();
-                        $udtransaction->t_id = time() . "-" . $request->did;
-                        $udtransaction->user_id = $request->did;
+                        $udtransaction->t_id = time() . "-" . Auth::user()->id;
+                        $udtransaction->user_id = Auth::user()->id;
                         $udtransaction->t_type = "Out";
                         $udtransaction->amount =  3.50;
                         $udtransaction->t_unq = time().rand(1,100);
@@ -246,10 +246,10 @@ class VoucherBookController extends Controller
             $array['delivery_option'] = $delivery_opt;
 
 
-            Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
-             $message->from($array['from'], 'Tevini.co.uk');
-             $message->to($email)->cc($array['cc'])->subject($array['subject']);
-            });
+            // Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
+            //  $message->from($array['from'], 'Tevini.co.uk');
+            //  $message->to($email)->cc($array['cc'])->subject($array['subject']);
+            // });
 
 
             $success['message'] = 'Voucher order place successfully.';

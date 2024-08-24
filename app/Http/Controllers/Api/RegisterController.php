@@ -89,7 +89,7 @@ class RegisterController extends BaseController
     {
 
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'email' => 'required',
             'password' => 'required',
         ]);
    
@@ -98,7 +98,7 @@ class RegisterController extends BaseController
         }
 
 
-        $chksts = User::where('email', $request->email)->first();
+        $chksts = User::where('email', $request->email)->orwhere('accountno', $request->email)->first();
         if ($chksts) {
             
                 if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
@@ -110,7 +110,16 @@ class RegisterController extends BaseController
                     $success['data'] =  $data;
                     $success['message'] =  'User login successfully.';
                     return response()->json($success,200);
-                } 
+
+                } elseif (Auth::attempt(['accountno' => $request->email, 'password' => $request->password])) {
+                    $user = Auth::user(); 
+                    $data = User::where('id', Auth::user()->id)->first(); 
+                    $success['token'] =  $user->createToken('MyApp')->accessToken; 
+                    $success['name'] =  $user->name;
+                    $success['data'] =  $data;
+                    $success['message'] =  'User login successfully.';
+                    return response()->json($success,200);
+                }
                 else{ 
                     return $this->sendError('Wrong Password!!.', ['error'=>'Wrong Password!!']);
                 }

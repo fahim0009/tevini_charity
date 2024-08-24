@@ -81,7 +81,7 @@ use Illuminate\Support\Carbon;
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->title}}</td>
                                                 <td>{{ $transaction->cheque_no}}</td>
-                                                <td>{{ $transaction->note}}</td>
+                                                <td>{{ $transaction->title}}</td>
                                                 <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach
@@ -150,7 +150,7 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
-                                            <td>{{ $transaction->note }}</td>
+                                            <td>{{ $transaction->title }}</td>
                                             <td>{{ $transaction->name}}</td>
                                             <td>{{ $transaction->amount}}</td>
                                         </tr>

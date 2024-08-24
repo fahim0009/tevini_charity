@@ -135,6 +135,8 @@ class VoucherBookController extends Controller
         $order->status = 0;
         if($order->save()){
 
+            
+            $ppc = 0;
             foreach($vouchers as $vdata)
             {
                 if($vdata['qtys'] != "0"){
@@ -185,25 +187,27 @@ class VoucherBookController extends Controller
                     $utransaction->title ="Prepaid Voucher Book";
                     $utransaction->status =  1;
                     $utransaction->save();
+                    $ppc = $ppc + 1;
                 }
 
                 }
             }
 
-            if($request->delivery == "true"){
-                if ($prepaid_amount < 200) {
-                    $udtransaction = new Usertransaction();
-                    $udtransaction->t_id = time() . "-" . $request->did;
-                    $udtransaction->user_id = $request->did;
-                    $udtransaction->t_type = "Out";
-                    $udtransaction->amount =  3.50;
-                    $udtransaction->t_unq = time().rand(1,100);
-                    $udtransaction->order_id = $order->id;
-                    $udtransaction->title ="Delivery Charge";
-                    $udtransaction->status =  1;
-                    $udtransaction->save();
+            if ($ppc > 0) {
+                if($request->delivery == "true"){
+                    if ($prepaid_amount < 200) {
+                        $udtransaction = new Usertransaction();
+                        $udtransaction->t_id = time() . "-" . $request->did;
+                        $udtransaction->user_id = $request->did;
+                        $udtransaction->t_type = "Out";
+                        $udtransaction->amount =  3.50;
+                        $udtransaction->t_unq = time().rand(1,100);
+                        $udtransaction->order_id = $order->id;
+                        $udtransaction->title ="Delivery Charge";
+                        $udtransaction->status =  1;
+                        $udtransaction->save();
+                    }
                 }
-                
             }
 
             if($prepaid_amount !=0){

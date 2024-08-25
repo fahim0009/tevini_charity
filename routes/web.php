@@ -77,7 +77,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('/addvoucher', [OrderController::class, 'storeVoucher']);
 
     Route::get('order-voucher-book', [OrderController::class, 'userOrderVoucherBook'])->name('user.orderbook');
-    Route::put('order-voucher-book/cart/store', [OrderController::class, 'userOrderVoucherBookstoreCart'])->name('orderbook.cart.store');
+    Route::post('order-voucher-book/cart/store', [OrderController::class, 'userOrderVoucherBookstoreCart'])->name('orderbook.cart.store');
     Route::get('order-history', [OrderController::class, 'userOrderview'])->name('user.orderhistory');
 
     // voucher controller satart 

@@ -123,7 +123,7 @@
                                 <option value="">Select a charity</option>
                                 <option value="">Please Select</option>
                                 @foreach (App\Models\Charity::all() as $charity)
-                                <option value="{{ $charity->id }}" {{ old('charity_id') == $charity->id ?  "selected": "" }} @if (isset($cid)) @if ($charity->id == $cid) selected @endif @endif>{{ $charity->name }} - ({{ $charity->acc_no }})</option>
+                                <option value="{{ $charity->id }}|{{ $charity->name }}" {{ old('charity_id') == $charity->id ?  "selected": "" }} @if (isset($cid)) @if ($charity->id == $cid) selected @endif @endif>{{ $charity->name }} - ({{ $charity->acc_no }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -243,7 +243,11 @@
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
                     <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
-                    <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary">
+                    
+                    <button type="button" id="donatemodal" class="btn-theme bg-secondary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        Make Donation
+                    </button>
+                    {{-- <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary"> --}}
                     {{-- <button class="btn-theme bg-primary" type="submit">Make a donation</button> --}}
                 </div>
             </div>
@@ -251,7 +255,37 @@
     </form>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Make Donation</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Charity Name: <span id="charityname"></span> </div>
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Donation Amount: <span id="donationamnt"></span></div>
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Note: <span id="donationNote"></span></div>
+            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">My Note: <span id="dmynote"></span></div>
 
+            <div id="standardDiv">
+                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Set up a standing order: <span id="">Yes</span></div>
+                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">PAYMENTS: <span id="d_payment"></span></div>
+                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">NUMBER OF PAYMENTS: <span id="d_nymber"></span></div>
+                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">STARTING: <span id="d_starting"></span></div>
+                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">INTERVAL: <span id="d_interval"></span></div>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="addBtn" class="btn-theme bg-secondary">Make Donation</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 @endsection
 
@@ -263,6 +297,61 @@
 </script>
 <script>
      $(document).ready(function () {
+
+        // donatemodal transfer modal show
+        $("#donatemodal").click(function(){
+            var i = $("#charity_id").val();
+            values=i.split('|');
+            account_id=values[0];
+            account_name=values[1];
+
+            var charity_id = $("#charity_id").val();
+            var amount = $("#amount").val();
+            var charitynote = $("#charitynote").val();
+            var mynote = $("#mynote").val();
+
+            var standard= $('#standard').prop('checked');
+            console.log(standard);
+
+            var payments_type = $("#payments_type").val();
+            var number_payments = $("#number_payments").val();
+            var starting = $("#starting").val();
+            var interval = $("#interval").val();
+
+            $("#charityname").html(account_name);
+            $("#donationamnt").html(amount);
+            $("#donationNote").html(charitynote);
+            $("#dmynote").html(mynote);
+
+            if (standard == true) {
+            $("#standardDiv").show();
+            } else {
+            $("#standardDiv").hide();
+            }
+
+            if (interval == 1) {
+            $("#d_interval").html("Monthly");
+            } else if (interval == 3) {
+            $("#d_interval").html("Every 3 month");
+            } else if (interval == 6) {
+            $("#d_interval").html("Every 6 month");
+            } else {
+            $("#d_interval").html("Yearly");
+            } 
+            if (payments_type == 1) {
+                
+            $("#d_payment").html("Fixed number of payments");
+            } else {
+                
+            $("#d_payment").html("Continuous payments");
+            }
+
+            $("#d_starting").html(starting);
+            $("#d_nymber").html(number_payments);
+                    
+
+        });
+        // donatemodal transfer modal end
 
         $(".standardOptions").hide();
         $("#standard").click(function() {
@@ -304,17 +393,25 @@
         });
         //calculation end  
 
- //header for csrf-token is must in laravel
- $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        //header for csrf-token is must in laravel
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
             //  make doantion start
         
             $("#addBtn").click(function(){
                 
-                if(!confirm('Are you sure?')) return;
+                $('#exampleModal').modal('hide');
+                // if(!confirm('Are you sure?')) return;
                 
                  $("#loading").show();
-                    var charity_id= $("#charity_id").val();
+
+                 
+                    var i = $("#charity_id").val();
+                    values=i.split('|');
+                    account_id=values[0];
+                    account_name=values[1];
+
+                    var charity_id= account_id;
                     var amount= $("#amount").val();
                     var ano_donation= $('#ano_donation').prop('checked');
                     var standard= $('#standard').prop('checked');

@@ -24,7 +24,9 @@ use App\Mail\PendingvCancelReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingVoucherCancel;
 use App\Mail\WaitingvoucherReport;
+use App\Models\VoucherCart;
 use Auth;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 use PDF;
 
 use Illuminate\Support\Facades\Http;
@@ -39,16 +41,44 @@ class OrderController extends Controller
     public function userOrderVoucherBook(Request $request)
     {
         
-        $cartJson = $request->session()->get('cart', '[]');
-        $cart = json_decode($cartJson, true);
+        $cart = VoucherCart::where('user_id', Auth::user()->id)->get();
         return view('frontend.user.voucharbook', compact('cart'));
     }
 
     public function userOrderVoucherBookstoreCart(Request $request)
     {
-        $request->session()->put('cart', $request->input('cart'));
+        if ($request->cartid) {
+            if(VoucherCart::destroy($request->cartid)){
+            return response()->json(['success'=>true,'message'=>'Listing Deleted']);
+            }
+        }else{
+            
+            $chkcart = VoucherCart::where('user_id', Auth::user()->id)->where('voucher_id', $request->voucherID)->first();
 
-        return response()->json(['success' => true]);
+            if (isset($chkcart)) {
+                $chkcart->qty = $chkcart->qty + 1;
+                $chkcart->save();
+                
+                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Cart update successfully.</b></div>";
+                return response()->json(['status'=> 300,'message'=>$message]);
+            } else {
+                $data = new VoucherCart();
+                $data->user_id = Auth::user()->id;
+                $data->qty =  $request->quantity;
+                $data->number_voucher =  $request->single_amount;
+                $data->voucher_id =  $request->voucherID;
+                $data->amount =  $request->v_amount;
+                $data->tamount =  $request->quantity * $request->v_amount;
+                $data->save();
+                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data added successfully.</b></div>";
+                return response()->json(['status'=> 300,'message'=>$message]);
+            }
+
+        }
+
+        
+        
+       
     }
 
     public function voucherBookStock()
@@ -257,8 +287,7 @@ class OrderController extends Controller
                 }
                 // card balance update end
             }
-
-            session()->forget('cart');
+            VoucherCart::where('user_id', Auth::user()->id)->delete();
             $user = User::where('id',$request->did)->first();
 
             $contactmail = ContactMail::where('id', 1)->first()->name;

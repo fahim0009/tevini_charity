@@ -606,7 +606,7 @@ body {
                     $("#cartValue"+voucherID).val(total_qty);
                     $("#sub"+voucherID).val(total_qty*v_amount);
                     // $("#parent_product_qty"+pid).val(new_parent_product_qty);
-                    swal.fire("Successfully added to busket!");
+                    swal.fire("Successfully added to the basket!");
                     return;
                 }
 
@@ -642,7 +642,7 @@ body {
                             
                         }
                         $("table #cardinner ").append(markup);
-                        swal.fire("Successfully added to busket!");
+                        swal.fire("Successfully added to the basket!");
                         
                         
                     }
@@ -668,7 +668,7 @@ body {
                         cartid: cartid
                     },
                     success: function() {
-                        swal.fire("Successfully delete from busket!");
+                        swal.fire("Successfully delete from the basket!");
                         console.log('success')
                     }
                 });

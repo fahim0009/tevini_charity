@@ -139,7 +139,7 @@ body {
                                                         {{ $cartVoucher->type }}
                                                     </div>
                                                 </div>
-                                                <span class="bottom-data"> {{$cartVoucher->note}} @if ($cartVoucher->type == 'Prepaid') = £{{ $cartVoucher->single_amount  }} @endif</span>
+                                                <span class="bottom-data"> {{$cartVoucher->note}} @if ($cartVoucher->type == 'Prepaid') = £{{ $cartVoucher->amount  }} @endif</span>
                                             </td>
 
                                             <td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="{{$item->qty}}"  v_amount="{{ $item->tamount }}" v_type="{{ $cartVoucher->type }}" data-type="{{ $cartVoucher->type }}" vid="{{$item->voucher_id}}"  id="cartValue{{$item->voucher_id}}"> </td>

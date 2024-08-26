@@ -607,6 +607,7 @@ body {
                     $("#sub"+voucherID).val(total_qty*v_amount);
                     // $("#parent_product_qty"+pid).val(new_parent_product_qty);
                     swal.fire("Successfully added to the basket!");
+                    $('[type="checkbox"]').prop('checked', false);
                     return;
                 }
 

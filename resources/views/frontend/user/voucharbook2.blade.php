@@ -91,7 +91,7 @@ body {
                             <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Your basket</div> <br>
                             <div class="otherermsg"></div>
 
-                            <div class="data-container">
+                            <div class="">
 
                                 <table  class="table inner table-theme mt-0" id="">
                                     <tbody id="cardinner" class="right">
@@ -121,7 +121,7 @@ body {
                                             $cartVoucher = \App\Models\Voucher::where('id', $item->voucher_id)->first();
                                         @endphp
 
-                                        <tr class="item-row" style="position:realative;"> 
+                                        <tr class="item-row"> 
                                             <td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="{{ $item->id }}" data-cart-index="{{ $loop->index }}" class="remove-from-cart">X</div>
                                             </td>
                                             <td width="250px"> 

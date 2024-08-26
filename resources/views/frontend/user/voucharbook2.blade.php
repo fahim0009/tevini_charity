@@ -538,7 +538,6 @@ body {
         $(document).on('click', '.add-to-cart', function (e) {
             e.preventDefault();
 
-            swal.fire("Successfully added to busket!");
 
             // swal.fire({ type: 'success', title: 'Done!', 
             // showConfirmButton: false, timer: 1500 
@@ -599,12 +598,13 @@ body {
                 seen = v_ids.filter((s => v => s.has(v) || !s.add(v))(new Set));
                 
                 if (Array.isArray(seen) && seen.length) {
-                    console.log(v_ids);
-                    cartValue = $("#cartValue"+v_ids).val();
+                    console.log(voucherID);
+                    cartValue = $("#cartValue"+voucherID).val();
                     total_qty = parseFloat(cartValue) + 1;
-                    $("#cartValue"+v_ids).val(total_qty);
-                    $("#sub"+v_ids).val(total_qty*v_amount);
+                    $("#cartValue"+voucherID).val(total_qty);
+                    $("#sub"+voucherID).val(total_qty*v_amount);
                     // $("#parent_product_qty"+pid).val(new_parent_product_qty);
+                    swal.fire("Successfully added to busket!");
                     return;
                 }
 
@@ -629,13 +629,18 @@ body {
                             var markup = '<tr class="item-row" style="position:realative;"><td width="33%"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="'+d.newID+'"  class="remove-from-cart">X</div></td><td width="33%"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total"  id="sub'+voucherID+'" value="'+v_amount+'"><span class="bottom-data">£'+single_amount+'</span><div class="badge prepaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+' £'+v_amount+'</span></td><td width="width" > <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="'+v_amount+'" readonly> </td></tr>';
                                 // prepaid end
                         } else if (single_amount == "0") {
+
                             var markup = '<tr class="item-row" style="position:realative;"><td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="'+d.newID+'"  class="remove-from-cart">X</div></td><td width="250px"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total" value=""><span class="bottom-data">Blank Cheque</span><div class="badge postpaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+'</span></td><td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="" readonly> </td></tr>';
+
                         }else if (v_type == 'Postpaid') {
+
                             var markup = '<tr class="item-row" style="position:realative;"><td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="'+d.newID+'"  class="remove-from-cart">X</div></td><td width="250px"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total" value=""><span class="bottom-data">£'+single_amount+'</span><div class="badge postpaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+'</span></td><td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="" readonly> </td></tr>';
+
                         } else {
                             
                         }
                         $("table #cardinner ").append(markup);
+                        swal.fire("Successfully added to busket!");
                         
                         
                     }

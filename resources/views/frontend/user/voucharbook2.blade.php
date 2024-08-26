@@ -550,6 +550,8 @@ body {
             single_amount = $(this).attr('single_amount');
             quantity = 1;
 
+            console.log(single_amount);
+
             // var cart = JSON.parse(localStorage.getItem('cart')) || [];
 
             // var existingItem = cart.find(function(item) {

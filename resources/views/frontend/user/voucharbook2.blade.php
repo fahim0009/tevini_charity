@@ -1,5 +1,7 @@
 @extends('frontend.layouts.user')
 @section('content')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/10.5.1/sweetalert2.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/10.5.1/sweetalert2.all.min.js"></script>
 <style>
 body {
   overflow-x: hidden;
@@ -536,6 +538,12 @@ body {
         $(document).on('click', '.add-to-cart', function (e) {
             e.preventDefault();
 
+            swal.fire("Successfully added to busket!");
+
+            // swal.fire({ type: 'success', title: 'Done!', 
+            // showConfirmButton: false, timer: 1500 
+            // });
+
             v_amount = $(this).attr('v_amount');
             voucherID = $(this).attr('voucherID');
             v_type = $(this).attr('v_type');
@@ -603,29 +611,31 @@ body {
 
 
 
-                if (v_type == 'Prepaid') {
-                    // prepaid
-                    var markup = '<tr class="item-row" style="position:realative;"><td width="33%"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-entity-id="'+voucherID+'"  class="remove-from-cart">X</div></td><td width="33%"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total"  id="sub'+voucherID+'" value="'+v_amount+'"><span class="bottom-data">£'+single_amount+'</span><div class="badge prepaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+' £'+v_amount+'</span></td><td width="width" > <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="'+v_amount+'" readonly> </td></tr>';
-                        // prepaid end
-                } else if (single_amount == "0") {
-                    var markup = '<tr class="item-row" style="position:realative;"><td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-entity-id="'+voucherID+'"  class="remove-from-cart">X</div></td><td width="250px"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total" value=""><span class="bottom-data">Blank Cheque</span><div class="badge postpaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+'</span></td><td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="" readonly> </td></tr>';
-                }else if (v_type == 'Postpaid') {
-                    var markup = '<tr class="item-row" style="position:realative;"><td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-entity-id="'+voucherID+'"  class="remove-from-cart">X</div></td><td width="250px"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total" value=""><span class="bottom-data">£'+single_amount+'</span><div class="badge postpaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+'</span></td><td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="" readonly> </td></tr>';
-                } else {
-                    
-                }
-
-            $("table #cardinner ").append(markup);
+                
 
             $.ajax({
                 url: "{{ route('orderbook.cart.store') }}",
                 method: "POST",
                 data: {v_amount,voucherID,v_type,v_note,single_amount,quantity},
                 success: function (d) {
+                    
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);
                         $(".rightbar").animate({ scrollTop: 0 }, "fast");
                     }else if(d.status == 300){
+
+                        if (v_type == 'Prepaid') {
+                            // prepaid
+                            var markup = '<tr class="item-row" style="position:realative;"><td width="33%"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="'+d.newID+'"  class="remove-from-cart">X</div></td><td width="33%"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total"  id="sub'+voucherID+'" value="'+v_amount+'"><span class="bottom-data">£'+single_amount+'</span><div class="badge prepaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+' £'+v_amount+'</span></td><td width="width" > <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="'+v_amount+'" readonly> </td></tr>';
+                                // prepaid end
+                        } else if (single_amount == "0") {
+                            var markup = '<tr class="item-row" style="position:realative;"><td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="'+d.newID+'"  class="remove-from-cart">X</div></td><td width="250px"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total" value=""><span class="bottom-data">Blank Cheque</span><div class="badge postpaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+'</span></td><td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="" readonly> </td></tr>';
+                        }else if (v_type == 'Postpaid') {
+                            var markup = '<tr class="item-row" style="position:realative;"><td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="'+d.newID+'"  class="remove-from-cart">X</div></td><td width="250px"><div class="title"><input type="hidden" value="'+voucherID+'" name="v_ids[]"><input type="hidden" class="total" value=""><span class="bottom-data">£'+single_amount+'</span><div class="badge postpaid">'+v_type+'</div></div><span class="bottom-data">'+v_note+'</span></td><td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="'+quantity+'"  v_amount="'+v_amount+'" v_type="'+v_type+'" data-type="'+v_type+'" vid="'+voucherID+'"  id="cartValue'+voucherID+'"> </td><td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal'+voucherID+'" value="" readonly> </td></tr>';
+                        } else {
+                            
+                        }
+                        $("table #cardinner ").append(markup);
                         
                         
                     }
@@ -642,7 +652,7 @@ body {
             var cartid = $(this).data('cartid');
             
             $('[type="checkbox"]').prop('checked', false);
-            if (index !== undefined) {
+            if (cartid) {
                 $.ajax({
                     url: "{{ route('orderbook.cart.store') }}",
                     method: "POST",
@@ -651,11 +661,13 @@ body {
                         cartid: cartid
                     },
                     success: function() {
-                        $("#loading").hide();
+                        swal.fire("Successfully delete from busket!");
                         console.log('success')
                     }
                 });
             }
+            
+            net_total_value();
         });
 
 

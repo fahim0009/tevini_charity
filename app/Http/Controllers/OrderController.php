@@ -42,7 +42,7 @@ class OrderController extends Controller
     {
         
         $cart = VoucherCart::where('user_id', Auth::user()->id)->get();
-        return view('frontend.user.voucharbook', compact('cart'));
+        return view('frontend.user.voucharbook2', compact('cart'));
     }
 
     public function userOrderVoucherBookstoreCart(Request $request)
@@ -71,7 +71,7 @@ class OrderController extends Controller
                 $data->tamount =  $request->quantity * $request->v_amount;
                 $data->save();
                 $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Data added successfully.</b></div>";
-                return response()->json(['status'=> 300,'message'=>$message]);
+                return response()->json(['status'=> 300,'message'=>$message, 'newID' => $data->id]);
             }
 
         }

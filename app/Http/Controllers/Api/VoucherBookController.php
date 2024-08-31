@@ -24,6 +24,7 @@ use App\Mail\WaitingVComplete;
 use App\Mail\InstantReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingvoucherReport;
+use App\Models\VoucherCart;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use PDF;
@@ -36,7 +37,9 @@ class VoucherBookController extends Controller
     {
         $data = Voucher::where('status','=','1')->get();
         
+        $cart = VoucherCart::where('user_id', Auth::user()->id)->get();
         $success['data'] = $data;
+        $success['cart'] = $cart;
         return response()->json(['success'=>true,'response'=> $success], 200);
 
     }

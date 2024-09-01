@@ -379,6 +379,43 @@ class VoucherBookController extends Controller
     }
 
 
+    public function userOrderVoucherBookstoreCart(Request $request)
+    {
+        if ($request->cartid) {
+            if(VoucherCart::destroy($request->cartid)){
+            $success['message'] = 'Removed successfully.';
+            return response()->json(['success'=>true,'response'=> $success], 200);
+            }
+        }else{
+            
+            $chkcart = VoucherCart::where('user_id', Auth::user()->id)->where('voucher_id', $request->voucherID)->first();
+
+            if (isset($chkcart)) {
+                $chkcart->qty = $chkcart->qty + 1;
+                $chkcart->save();
+                $success['message'] = 'Cart update successfully.';
+                return response()->json(['success'=>true,'response'=> $success], 200);
+            } else {
+                $data = new VoucherCart();
+                $data->user_id = Auth::user()->id;
+                $data->qty =  $request->quantity;
+                $data->number_voucher =  $request->single_amount;
+                $data->voucher_id =  $request->voucherID;
+                $data->amount =  $request->v_amount;
+                $data->tamount =  $request->quantity * $request->v_amount;
+                $data->save();
+
+                $success['message'] = 'Data added successfully.';
+                $success['data'] = $data;
+                $success['cartid'] = $data->id;
+                return response()->json(['success'=>true,'response'=> $success], 200);
+            
+            }
+
+        }
+    }
+
+
 
 
 }

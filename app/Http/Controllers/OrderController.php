@@ -75,10 +75,6 @@ class OrderController extends Controller
             }
 
         }
-
-        
-        
-       
     }
 
     public function voucherBookStock()

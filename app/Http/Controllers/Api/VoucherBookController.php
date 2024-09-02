@@ -392,8 +392,10 @@ class VoucherBookController extends Controller
 
             if (isset($chkcart)) {
                 $chkcart->qty = $chkcart->qty + 1;
+                $chkcart->tamount =  $chkcart->qty * $request->v_amount;
                 $chkcart->save();
                 $success['message'] = 'Cart update successfully.';
+                $success['data'] = $chkcart;
                 return response()->json(['success'=>true,'response'=> $success], 200);
             } else {
                 $data = new VoucherCart();

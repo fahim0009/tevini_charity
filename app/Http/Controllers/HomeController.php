@@ -104,6 +104,8 @@ class HomeController extends Controller
         }
         // current year data end
 
+        
+
         return view('frontend.user.dashboard',compact('currentyramount','totalamount'));
 
     }

@@ -106,10 +106,65 @@ class DashboardController extends Controller
             ])->orderBy('id','DESC')->sum('amount');
 
         $prebalance = $preamntIn + $precommission - $preamntOut;
+
+
+
+        $tinAmt = Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1'],
+            ['t_type','=', 'In']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '1'],
+            ['t_type','=', 'In']
+            ])->orderBy('id','DESC')->sum('amount');
+
+            // dd($tinAmt);
+
+        $toutAmt = Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1'],
+            ['t_type','=', 'Out']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '1'],
+            ['t_type','=', 'Out']
+            ])->orderBy('id','DESC')->sum('amount');
+
+            // dd($toutAmt-$tinAmt);
+            //3267.68
+
+        $latestbalance = $tinAmt - $toutAmt;
+
+        $gettrans = Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '1']
+            ])->orderBy('id','DESC')->limit(5)->get();
+
+            $tbalance = $latestbalance;
+
+            foreach ($gettrans as $key => $tran) {
+                if ($tran->t_type == "In") {
+                    $tbalance = $tbalance - $tran->amount;
+                }elseif ($tran->t_type == "Out") {
+                    $tbalance = $tbalance + $tran->amount;
+                } else {
+                    # code...
+                }
+            }
+            // -453.5
+
+            // dd($tbalance); //-2814.18
+            // 'previousBalance'=>$prebalance,
             // previous balance calculation
 
             
         $donation_req = CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
+
+
 
         $responseArray = [
             'status'=>'ok',
@@ -117,7 +172,7 @@ class DashboardController extends Controller
             'currentyramount'=>$currentyramount,
             'totalamount'=>$totalamount,
             'tamount'=>$tamount,
-            'prebalance'=>$prebalance,
+            'previousBalance'=>$tbalance,
             'preamntIn'=>$preamntIn,
             'precommission'=>$precommission,
             'preamntOut'=>$preamntOut,

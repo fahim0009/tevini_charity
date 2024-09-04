@@ -235,6 +235,7 @@ class VoucherBookController extends Controller
                 // card balance update end
             }
 
+            VoucherCart::where('user_id', Auth::user()->id)->delete();
             $user = User::where('id',Auth::user()->id)->first();
 
             $contactmail = ContactMail::where('id', 1)->first()->name;

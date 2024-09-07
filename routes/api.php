@@ -48,6 +48,7 @@ Route::post('/expired', [CardServiceController::class, 'expired']);
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();
     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::post('account-delete-request', [DashboardController::class, 'accountDeleteRequest']);
     Route::get('get-user-details', [RegisterController::class, 'userDetails']);
     Route::get('get-all-charity', [CharityController::class, 'getAllCharity']);
     

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccDelRequest;
 use App\Models\Charity;
 use App\Models\CharityLink;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use App\Models\Usertransaction;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\Date;
 use Illuminate\support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -222,5 +224,25 @@ class DashboardController extends Controller
             'data'=>$data
         ]; 
         return response()->json($responseArray,200);
+    }
+
+
+    public function accountDeleteRequest(Request $request)
+    {
+        $callback = new AccDelRequest();
+        $callback->user_id = Auth::id();
+        $callback->date = Date::now()->format('Y-m-d');
+        if ($callback->save()) {
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Account delete request sent successfully.'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to request a callback.'
+            ], 202);
+        }
     }
 }

@@ -280,6 +280,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/get-donor-balance', [DonorBalanceController::class, 'balanceUpdate']);
 
 
-
+    // get users account delete request
+    
+    Route::get('/user-delete-request', [AdminController::class, 'getUserDeleteRequest'])->name('allUserDeleteReq');
 
 });

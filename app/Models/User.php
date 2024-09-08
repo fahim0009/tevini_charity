@@ -138,5 +138,10 @@ class User extends Authenticatable
       return $this->hasOne('App\Models\StandingDonation');
     }
 
+    public function accDelRequest()
+    {
+        return $this->hasMany(AccDelRequest::class);
+    }
+
 
 }

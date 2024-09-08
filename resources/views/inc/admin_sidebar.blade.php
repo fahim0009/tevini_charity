@@ -355,6 +355,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/user-delete-request')) ? 'active' : '' }}" id="">
+                <a href="{{ route('allUserDeleteReq') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Account Delete Request
+                </a>
+            </li>
+
             {{-- <li class="nav-item " id="admindashboard">
                 <a href="./utility.html">
                     <span class="iconify" data-icon="icomoon-free:profile"></span>

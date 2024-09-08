@@ -583,6 +583,12 @@ class AdminController extends Controller
         }
     }
 
+    public function getUserDeleteRequest()
+    {
+        $users = User::whereHas('accDelRequest')->orderby('id','DESC')->get();
+        return view('donor.deldonor', compact('users'));
+    }
+
 
 
 

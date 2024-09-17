@@ -259,7 +259,7 @@ class HomepageController extends Controller
 
         
 
-        if($chkuser->fingerprint == $fingerprint)
+        if($chkuser)
         {
             
 

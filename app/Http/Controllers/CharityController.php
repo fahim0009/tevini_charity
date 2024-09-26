@@ -238,6 +238,8 @@ class CharityController extends Controller
 
     public function payStore(Request $request)
     {
+        
+
         $charity_bal = Charity::find($request->topupid);
         $charity_bal->decrement('balance',$request->balance);
         $t_id = time() . "-" . $request->topupid;
@@ -268,12 +270,12 @@ class CharityController extends Controller
             $array['t_id'] = $t_id;
             $array['subjectsingle'] = 'Report Placed - '.$charity->name;
 
+            if ($request->topupid) {
+                Mail::to($email)
+                ->cc($contactmail)
+                ->send(new CharitypayReport($array));
+            }
     
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new CharitypayReport($array));
-
-
             $message ="Amount pay Successfully. Transaction id is: ". $t_id;
             return back()->with('message', $message);
 

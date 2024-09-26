@@ -431,6 +431,7 @@ class DonorController extends Controller
 
     public function multiUserreport(Request $request)
     {
+        $checkAll = $request->checkAll;
         $donorIds = $request->donorIds;
         $fromDate = $request->fromdate;
         $toDate   = $request->todate;
@@ -453,52 +454,104 @@ class DonorController extends Controller
             exit();
         }
 
-        foreach($donorIds as $id)
-        {
+        if ($checkAll == "all") {
 
-            $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
-            if(!empty($fromDate) && !empty($toDate)){
+            $activedonorIds = User::where('is_type', 'user')->where('status', 1)->get();
+            foreach($activedonorIds as $duser)
+            {
 
-                $report = Usertransaction::where([
-                    ['user_id','=', $id],
-                    ['created_at', '>=', $fromDate],
-                    ['created_at', '<=', $toDate.' 23:59:59'],
-                    ['status','=', '1']
-                ])->orwhere([
+                $tamount = Usertransaction::where('user_id','=', $duser->id)->where('status','=', '1')->orderBy('id','DESC')->get();
+                if(!empty($fromDate) && !empty($toDate)){
+
+                    $report = Usertransaction::where([
+                        ['user_id','=', $duser->id],
+                        ['created_at', '>=', $fromDate],
+                        ['created_at', '<=', $toDate.' 23:59:59'],
+                        ['status','=', '1']
+                    ])->orwhere([
+                        ['user_id','=', $duser->id],
+                        ['pending','=', '0']
+                        ])->orderBy('id','DESC')->get();
+                }else{
+                    $report = Usertransaction::where([
+                        ['user_id','=', $duser->id],
+                        ['status','=', '1']
+                    ])->orwhere([
+                    ['user_id','=', $duser->id],
+                    ['pending','=', '0']
+                    ])->orderBy('id','DESC')->get();
+                    $fromDate = "";
+                    $toDate   = "";
+                }
+                $user = User::find($duser->id);
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $array['cc'] = $contactmail;
+                $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+                $output = $pdf->output();
+                file_put_contents(public_path().'/invoices/'.'Report#'.$duser->id.'.pdf', $output);
+                $array['userbalance'] = $user->balance;
+                $array['name'] = $user->name;
+                $array['view'] = 'mail.donorreport';
+                $array['subject'] = 'Donor Report';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['content'] = 'Hi, Your donation report has been placed';
+                $array['file'] = public_path().'/invoices/Report#'.$duser->id.'.pdf';
+                $array['file_name'] = 'Report#'.$duser->id.'.pdf';
+                $array['subjectsingle'] = 'Report Placed - '.$duser->id;
+
+                Mail::to($user->email)->queue(new DonerReport($array));
+
+            }
+            
+        } else {
+            
+            foreach($donorIds as $id)
+            {
+
+                $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
+                if(!empty($fromDate) && !empty($toDate)){
+
+                    $report = Usertransaction::where([
+                        ['user_id','=', $id],
+                        ['created_at', '>=', $fromDate],
+                        ['created_at', '<=', $toDate.' 23:59:59'],
+                        ['status','=', '1']
+                    ])->orwhere([
+                        ['user_id','=', $id],
+                        ['pending','=', '0']
+                        ])->orderBy('id','DESC')->get();
+                }else{
+                    $report = Usertransaction::where([
+                        ['user_id','=', $id],
+                        ['status','=', '1']
+                    ])->orwhere([
                     ['user_id','=', $id],
                     ['pending','=', '0']
                     ])->orderBy('id','DESC')->get();
-            }else{
-                $report = Usertransaction::where([
-                    ['user_id','=', $id],
-                    ['status','=', '1']
-                ])->orwhere([
-                   ['user_id','=', $id],
-                   ['pending','=', '0']
-                   ])->orderBy('id','DESC')->get();
-                $fromDate = "";
-                $toDate   = "";
+                    $fromDate = "";
+                    $toDate   = "";
+                }
+                $user = User::find($id);
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $array['cc'] = $contactmail;
+                $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+                $output = $pdf->output();
+                file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
+                $array['userbalance'] = $user->balance;
+                $array['name'] = $user->name;
+                $array['view'] = 'mail.donorreport';
+                $array['subject'] = 'Donor Report';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['content'] = 'Hi, Your donation report has been placed';
+                $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
+                $array['file_name'] = 'Report#'.$id.'.pdf';
+                $array['subjectsingle'] = 'Report Placed - '.$id;
+
+                Mail::to($user->email)->queue(new DonerReport($array));
+
             }
-            $user = User::find($id);
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $array['cc'] = $contactmail;
-            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
-            $output = $pdf->output();
-            file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
-            $array['userbalance'] = $user->balance;
-            $array['name'] = $user->name;
-            $array['view'] = 'mail.donorreport';
-            $array['subject'] = 'Donor Report';
-            $array['from'] = 'info@tevini.co.uk';
-            $array['content'] = 'Hi, Your donation report has been placed';
-            $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
-            $array['file_name'] = 'Report#'.$id.'.pdf';
-            $array['subjectsingle'] = 'Report Placed - '.$id;
-
-            Mail::to($user->email)->queue(new DonerReport($array));
-
         }
-
+        
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
 
@@ -1270,6 +1323,47 @@ class DonorController extends Controller
     public function stripeDonation()
     {
         return view('frontend.user.strip_topup');
+    }
+
+    // donor email send
+    public function sendemail($id)
+    {
+        $user = User::where('id','=', $id)->first();
+        return view('donor.sendemail')
+        ->with('user',$user);
+    }
+
+
+    public function mailsend(Request $request)
+    {
+
+
+        $validatedData = $request->validate([
+            'subject' => 'required',
+            'emailto' => 'required|email',
+            'body' => 'required',
+        ]);
+
+
+            $user = User::where('id',$request->userid)->first();
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['cc'] = $contactmail;
+            $array['name'] = $user->name;
+            $array['email'] = $user->email;
+            $array['phone'] = $user->phone;
+            $email = $user->email;
+            $array['balance'] = $request->balance;
+            $array['gbalance'] = $request->gbalance;
+            $array['commission'] = $request->commission;
+            $array['source'] = $request->source;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new TopupReport($array));
+
+            return redirect()->back()->with('success', 'Mail send successfully.');
     }
 
 

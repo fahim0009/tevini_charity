@@ -139,6 +139,9 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // active deactive charity
     Route::get('active-charity', [CharityController::class, 'activeCharity']);
 
+    // donor email
+    Route::get('/send-email/{id}', [DonorController::class, 'sendemail'])->name('sendemail');
+    Route::post('/send-email', [DonorController::class, 'mailsend'])->name('mailsend');
 
 
     // topup

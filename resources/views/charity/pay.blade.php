@@ -106,6 +106,14 @@
                                     <option value="Card">Card</option>
                                 </select>
                                 </div>
+                                
+                                <div class="form-group my-2">
+                                    <input type="checkbox" name="sendemail" >
+                                    <label class="form-check-label" for="sendemail">
+                                        I want to send email.
+                                    </label>
+                                </div>
+
                                 <input type="hidden" name="topupid" id="topupid" value="{{ $charity->id }}">
                                 <div class="form-group my-2">
                                     <button type="submit" id="payBtn" class="my-2 btn btn-sm btn-info text-white">Add</button>

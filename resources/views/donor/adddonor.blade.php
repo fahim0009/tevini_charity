@@ -132,7 +132,7 @@
 
                 <div class="col-md-12 my-2">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="checkAll">
+                        <input class="form-check-input" type="checkbox" id="checkAll" value="all">
                         <label class="form-check-label" for="checkAll">
                             All Select
                         </label>
@@ -218,6 +218,7 @@
                                         <a class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" href="{{ route('topup',[$user->id,0]) }}" target="blank">
                                          <small>Top Up</small> </a>
                                        <div class="py-1 text-center">
+                                        <a href="{{ route('sendemail', $user->id)}}"><i class="fa fa-envelope-o" style="color: #4D617E;font-size:16px;"></i></a>
                                         <a href="{{ route('donor.profile', $user->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
                                         <a href="{{ route('donor.edit', encrypt($user->id))}}"><i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i></a>
                                         <a id="deleteBtn" rid="{{$user->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
@@ -445,14 +446,21 @@ $("#sentRpt").click(function(){
 
    var fromdate = $("#fromdate").val();
    var todate = $("#todate").val();
-
+   
+   var all = document.getElementById("checkAll");
+    if (all.checked) {
+        var checkAll = "all";
+    }else{
+        var checkAll = "";
+    }
+   console.log(checkAll);
         $.ajax({
             url: url,
             method: "POST",
-            data: {donorIds,fromdate,todate},
+            data: {donorIds,fromdate,todate,checkAll},
 
             success: function (d) {
-                console.log(d.message);
+                console.log(d);
 
                 if (d.status == 303) {
                     $(".ermsg").html(d.message);

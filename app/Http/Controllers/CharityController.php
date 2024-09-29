@@ -765,4 +765,45 @@ class CharityController extends Controller
 
     }
 
+    // donor email send
+    public function charityemail($id)
+    {
+        
+        $charity = Charity::where('id','=', $id)->first();
+        return view('charity.email',compact('charity'));
+    }
+
+
+    public function charitymailsend(Request $request)
+    {
+
+
+        $validatedData = $request->validate([
+            'subject' => 'required',
+            'emailto' => 'required|email',
+            'body' => 'required',
+        ]);
+
+
+            $charity = Charity::where('id',$request->userid)->first();
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['cc'] = $contactmail;
+            $array['name'] = $charity->name;
+            $array['email'] = $charity->email;
+            $array['phone'] = $charity->phone;
+            $email = $request->emailto;
+            $array['subject'] = $request->subject;
+            $array['body'] = $request->body;
+            $array['from'] = 'info@tevini.co.uk';
+
+            Mail::send('mail.donorMail', compact('array'), function($message)use($array,$email) {
+                $message->from($array['from'], 'Tevini.co.uk');
+                $message->to($email)->cc($array['cc'])->subject($array['subject']);
+               });
+
+            return redirect()->back()->with('success', 'Mail send successfully.');
+    }
+
 }

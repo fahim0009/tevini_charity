@@ -152,6 +152,11 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/charity-topupstore', [CharityController::class, 'topupStore'])->name('charity.topup.store');
     Route::post('/charity-paystore', [CharityController::class, 'payStore'])->name('charity.pay.store');
 
+    
+    // charity email
+    Route::get('/charity-email/{id}', [CharityController::class, 'charityemail'])->name('charityemail');
+    Route::post('/charity-email', [CharityController::class, 'charitymailsend'])->name('charitymailsend');
+
     // voucher book
     Route::get('/voucher-book', [OrderController::class, 'voucherBookStock'])->name('voucherbooks');
     Route::post('/add-stock', [OrderController::class, 'addStock']);

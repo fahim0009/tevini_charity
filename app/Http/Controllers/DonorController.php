@@ -1353,15 +1353,19 @@ class DonorController extends Controller
             $array['name'] = $user->name;
             $array['email'] = $user->email;
             $array['phone'] = $user->phone;
-            $email = $user->email;
-            $array['balance'] = $request->balance;
-            $array['gbalance'] = $request->gbalance;
-            $array['commission'] = $request->commission;
-            $array['source'] = $request->source;
+            $email = $request->emailto;
+            $array['subject'] = $request->subject;
+            $array['body'] = $request->body;
+            $array['from'] = 'info@tevini.co.uk';
 
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new TopupReport($array));
+            // Mail::to($email)
+            // ->cc($contactmail)
+            // ->send(new TopupReport($array));
+
+            Mail::send('mail.donorMail', compact('array'), function($message)use($array,$email) {
+                $message->from($array['from'], 'Tevini.co.uk');
+                $message->to($email)->cc($array['cc'])->subject($array['subject']);
+               });
 
             return redirect()->back()->with('success', 'Mail send successfully.');
     }

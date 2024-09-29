@@ -172,6 +172,9 @@
                                         Top up </a>
                                         </div>
                                         <div class="text-center">
+
+                                            <a href="{{ route('charityemail', $user->id)}}"><i class="fa fa-envelope-o" style="color: #4D617E;font-size:16px;"></i></a>
+
                                             <a href="{{ route('charity.tranview', $user->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
                                         <a href="{{ route('charity.edit', encrypt($user->id))}}"><i class="fa fa-edit" style="color: #2196f3;font-size:16px;"></i></a>
                                         <a id="deleteBtn" rid="{{$user->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>

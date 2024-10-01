@@ -126,13 +126,15 @@ class DeductStandingDonation extends Command
                         $array['name'] = $user->name;
                         $array['email'] = $user->email;
                         $array['phone'] = $user->phone;
+                        $array['amount'] = $activestand_order->amount;
+                        $array['charity'] = $charity->name;
                         $email = $user->email;
                         $array['from'] = 'info@tevini.co.uk';
 
-                        // Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
-                        //     $message->from($array['from'], 'Tevini.co.uk');
-                        //     $message->to($email)->cc($array['cc'])->subject($array['subject']);
-                        // });
+                        Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
+                            $message->from($array['from'], 'Tevini.co.uk');
+                            $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                        });
                         // email
 
                     }
@@ -196,13 +198,15 @@ class DeductStandingDonation extends Command
                         $array['name'] = $user->name;
                         $array['email'] = $user->email;
                         $array['phone'] = $user->phone;
+                        $array['amount'] = $activestand_order->amount;
+                        $array['charity'] = $charity->name;
                         $email = $user->email;
                         $array['from'] = 'info@tevini.co.uk';
 
-                        // Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
-                        //     $message->from($array['from'], 'Tevini.co.uk');
-                        //     $message->to($email)->cc($array['cc'])->subject($array['subject']);
-                        // });
+                        Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
+                            $message->from($array['from'], 'Tevini.co.uk');
+                            $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                        });
                         // email
 
                     }

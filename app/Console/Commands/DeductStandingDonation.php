@@ -13,6 +13,7 @@ use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 
 class DeductStandingDonation extends Command
@@ -74,50 +75,65 @@ class DeductStandingDonation extends Command
 
                     if (($current_date >= $instalment_date)) {
 
-                                $doncaldetl = new StandingdonationDetail;
-                                $doncaldetl->standing_donation_id = $activestand_order->id;
-                                $doncaldetl->user_id = $activestand_order->user_id;
-                                $doncaldetl->charity_id = $activestand_order->charity_id;
-                                $doncaldetl->amount = $activestand_order->amount;
-                                $doncaldetl->instalment_date = $instalment_date;
-                                $doncaldetl->instalment_mode = "continuous";
-                                $doncaldetl->status = 0;
-                                $doncaldetl->save();
+                        $doncaldetl = new StandingdonationDetail;
+                        $doncaldetl->standing_donation_id = $activestand_order->id;
+                        $doncaldetl->user_id = $activestand_order->user_id;
+                        $doncaldetl->charity_id = $activestand_order->charity_id;
+                        $doncaldetl->amount = $activestand_order->amount;
+                        $doncaldetl->instalment_date = $instalment_date;
+                        $doncaldetl->instalment_mode = "continuous";
+                        $doncaldetl->status = 0;
+                        $doncaldetl->save();
 
-                                $utransaction = new Usertransaction();
-                                $utransaction->t_id = time() . "-" . $activestand_order->user_id;
-                                $utransaction->user_id = $activestand_order->user_id;
-                                $utransaction->charity_id = $activestand_order->charity_id;
-                                $utransaction->standing_donationdetails_id = $activestand_order->id;
-                                $utransaction->t_type = "Out";
-                                $utransaction->amount =   $activestand_order->amount;
-                                $utransaction->title =  "Standing order donation";
-                                $utransaction->status =  1;
-                                $utransaction->save();
+                        $utransaction = new Usertransaction();
+                        $utransaction->t_id = time() . "-" . $activestand_order->user_id;
+                        $utransaction->user_id = $activestand_order->user_id;
+                        $utransaction->charity_id = $activestand_order->charity_id;
+                        $utransaction->standing_donationdetails_id = $activestand_order->id;
+                        $utransaction->t_type = "Out";
+                        $utransaction->amount =   $activestand_order->amount;
+                        $utransaction->title =  "Standing order donation";
+                        $utransaction->status =  1;
+                        $utransaction->save();
 
-                                $user = User::find($activestand_order->user_id);
-                                $user->decrement('balance',$activestand_order->amount);
-                                $user->save();
+                        $user = User::find($activestand_order->user_id);
+                        $user->decrement('balance',$activestand_order->amount);
+                        $user->save();
 
-                                // card balance update
-                                if (isset($user->CreditProfileId)) {
-                                    $CreditProfileId = $user->CreditProfileId;
-                                    $CreditProfileName = $user->name;
-                                    $AvailableBalance = 0 - $activestand_order->amount;
-                                    $comment = "Make a donation or Standing order";
-                                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                                            'CreditProfileId' => $CreditProfileId,
-                                            'CreditProfileName' => $CreditProfileName,
-                                            'AvailableBalance' => $AvailableBalance,
-                                            'comment' => $comment,
-                                        ]);
-                                }
-                                // card balance update end
-        
-                                $charity = Charity::find($activestand_order->charity_id);
-                                $charity->increment('balance',$activestand_order->amount);
-                                $charity->save();
+                        // card balance update
+                        if (isset($user->CreditProfileId)) {
+                            $CreditProfileId = $user->CreditProfileId;
+                            $CreditProfileName = $user->name;
+                            $AvailableBalance = 0 - $activestand_order->amount;
+                            $comment = "Make a donation or Standing order";
+                            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                    'CreditProfileId' => $CreditProfileId,
+                                    'CreditProfileName' => $CreditProfileName,
+                                    'AvailableBalance' => $AvailableBalance,
+                                    'comment' => $comment,
+                                ]);
+                        }
+                        // card balance update end
+
+                        $charity = Charity::find($activestand_order->charity_id);
+                        $charity->increment('balance',$activestand_order->amount);
+                        $charity->save();
+
+                        // email
+                        $contactmail = ContactMail::where('id', 1)->first()->name;
+                        $array['cc'] = $contactmail;
+                        $array['name'] = $user->name;
+                        $array['email'] = $user->email;
+                        $array['phone'] = $user->phone;
+                        $email = $user->email;
+                        $array['from'] = 'info@tevini.co.uk';
+
+                        // Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
+                        //     $message->from($array['from'], 'Tevini.co.uk');
+                        //     $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                        // });
+                        // email
 
                     }
 
@@ -173,6 +189,21 @@ class DeductStandingDonation extends Command
                         $standing_order = StandingDonation::find($activestand_order->id);
                         $standing_order->increment('payment_made',1);
                         $standing_order->save();
+
+                        // email
+                        $contactmail = ContactMail::where('id', 1)->first()->name;
+                        $array['cc'] = $contactmail;
+                        $array['name'] = $user->name;
+                        $array['email'] = $user->email;
+                        $array['phone'] = $user->phone;
+                        $email = $user->email;
+                        $array['from'] = 'info@tevini.co.uk';
+
+                        // Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
+                        //     $message->from($array['from'], 'Tevini.co.uk');
+                        //     $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                        // });
+                        // email
 
                     }
 

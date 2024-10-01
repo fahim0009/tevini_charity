@@ -37,6 +37,7 @@ class CardServiceController extends Controller
                     ]);
                 
                 $data = $response->json();
+
                 $CardHolderId = CardHolder::where('user_id', Auth::user()->id)->first();
                 return view('frontend.user.card.index', compact('data','CardHolderId'));
             } catch (\Exception $e) {

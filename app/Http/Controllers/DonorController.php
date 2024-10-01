@@ -1358,10 +1358,6 @@ class DonorController extends Controller
             $array['body'] = $request->body;
             $array['from'] = 'info@tevini.co.uk';
 
-            // Mail::to($email)
-            // ->cc($contactmail)
-            // ->send(new TopupReport($array));
-
             Mail::send('mail.donorMail', compact('array'), function($message)use($array,$email) {
                 $message->from($array['from'], 'Tevini.co.uk');
                 $message->to($email)->cc($array['cc'])->subject($array['subject']);

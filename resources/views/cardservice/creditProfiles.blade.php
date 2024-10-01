@@ -32,10 +32,13 @@
         </section>
         @endif
 
-        <section class="px-4"  id="contentContainer">
+        
+
+        <section class="px-4"  id="">
             <div class="row my-3">
             <div class="ermsg"></div>
             <div class="row  my-3 mx-0 ">
+
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
                         <table class="table table-donor shadow-sm bg-white" id="example">
@@ -43,32 +46,19 @@
                                 <tr>
                                     <th>Credit Profile Id</th>
                                     <th>Profile Name</th>
+                                    <th>email</th>
                                     <th>Credit Limit</th>
                                     <th>Available Balance</th>
-                                    <th colspan="3">Action</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- @forelse ($data['CreditProfileList'] as $profile)
-                                    <tr>
-                                        <td>{{ $profile['CreditProfileId'] }}</td>
-                                        <td>{{ $profile['ProfileName'] }}</td>
-                                        <td>{{ $profile['CreditLimit'] }}</td>
-                                        <td>{{ $profile['AvailableBalance'] }}</td>
-                                        <td>{{ $profile['IsPrePaid'] }}</td>
-                                        <td>
-                                            <a href="{{ route('cardprofileview', ['id' => $profile['CreditProfileId'] ]) }}" class="btn btn-success" type="button">View</a>
-                                            <a href="{{ route('cardprofileedit', ['id' => $profile['CreditProfileId'] ]) }}" class="btn btn-primary">Update Balance</a>
-                                            <a href="{{ route('cardprofilelimite', ['id' => $profile['CreditProfileId'] ]) }}" class="btn btn-primary">Update Limite</a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                @endforelse --}}
 
                                 @forelse ($data as $profile)
                                     <tr>
                                         <td>{{ $profile->CreditProfileId }}</td>
                                         <td>{{ $profile->name }}</td>
+                                        <td>{{ $profile->email }}</td>
                                         <td>{{ $profile->overdrawn_amount }}</td>
                                         <td>{{ $profile->balance }}</td>
                                         <td>
@@ -96,7 +86,18 @@
 
 <script>
 
+
+        // $('#cardprofileTable').DataTable();
+$('#cardprofileTable').DataTable({
+            pageLength: 25,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            "order": [[ 0, "desc" ]], //or asc 
+        });
+
     $(document).ready(function () {
+
+
+        
 
 
     setTimeout(function() {

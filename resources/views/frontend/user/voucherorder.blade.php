@@ -54,7 +54,7 @@ use Illuminate\Support\Carbon;
                         </div> --}}
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                <table class="table table-custom shadow-sm bg-white" id="voucherTable">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
@@ -66,7 +66,7 @@ use Illuminate\Support\Carbon;
                                     </thead>
                                     <tbody>
 
-                                        @forelse ($orders as $order)
+                                        @forelse ($orders as $key => $order)
 
                                         <tr>
                                             <td>{{ Carbon::parse($order->created_at)->format('d/m/Y')}}</td>
@@ -99,4 +99,16 @@ use Illuminate\Support\Carbon;
     </div>
   </section>
 </div>
+@endsection
+
+@section('script')
+    <script>
+        // $('#voucherTable').DataTable();
+        $('#voucherTable').DataTable({
+            pageLength: 25,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            "order": [[ 0, "desc" ]], //or asc 
+            "columnDefs" : [{"targets":3, "type":"date-eu"}],
+        });
+    </script>
 @endsection

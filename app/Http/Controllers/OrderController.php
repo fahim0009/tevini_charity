@@ -1325,7 +1325,7 @@ public function watingvoucherCancel(Request $request)
 
     public function userOrderview()
     {
-        $orders = Order::where('user_id', Auth::user()->id)->orderBy('id','DESC')->get();
+        $orders = Order::where('user_id', Auth::user()->id)->orderBy('created_at','DESC')->get();
         return view('frontend.user.voucherorder')
         ->with('orders',$orders);
 

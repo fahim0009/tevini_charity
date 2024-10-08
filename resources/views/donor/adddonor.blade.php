@@ -141,15 +141,16 @@
                         <label class="form-check-label" for="checkAll">
                             Date From
                         </label>
-                        <input type="date" id="fromdate" name="fromdate" placeholder="Search" aria-label="Search">
+                        <input type="date" id="fromdate" name="fromdate" placeholder="Search" aria-label="Search" class="form-control">
                     </div>
                     <div class="form-check form-check-inline">
                         <label class="form-check-label" for="checkAll">
                             Date To
                         </label>
-                        <input type="date" id="todate" name="todate" placeholder="Search" aria-label="Search">
+                        <input type="date" id="todate" name="todate" placeholder="Search" aria-label="Search"  class="form-control">
                     </div>
                     <button class="btn btn-primary rounded-pill" id="sentRpt" type="button">Send Mail</button>
+                    {{-- <a href="{{route('admin.donor.email')}}" class="btn btn-success rounded-pill">Custom Mail</a> --}}
                 </div>
 
         <!-- Image loader -->

@@ -52,6 +52,7 @@
                                 <th>Qty</th>
                                 <th>Price </th>
                                 <th>Total </th>
+                                <th>Cancel </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -84,6 +85,17 @@
                                     <td>{{ $orderDtl->number_voucher}}</td>
                                     <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->voucher->amount }}@endif</td>
                                     <td>@if($orderDtl->voucher->type =="Prepaid") £{{ $orderDtl->amount}} @endif</td>
+                                    <td>
+
+                                        @if($orderDtl->total_page)
+                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc3" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                            Cancel
+                                        </button>
+                                        @endif
+
+
+                                        
+                                    </td>
 
                             </tr>
                             @endforeach
@@ -146,7 +158,32 @@
             </div>
           </div>
         </div>
-      </div>
+    </div>
+      <!-- Modal End -->
+
+      
+    <!-- Modal -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ermsg"></div>
+                <div class="mb-3">
+                    <h5 class="modal-title" id="exampleModalLabel">Are you sure?</h5>
+                    <input type="hidden" class="form-control" value="" id="orderhisid3">
+                    <input type="hidden" class="form-control" value="{{ $user->id }}" id="user_id">
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+              <button type="button" id="cancelBtn" class="btn btn-success">Yes</button>
+            </div>
+          </div>
+        </div>
+    </div>
       <!-- Modal End -->
 @endsection
 
@@ -169,6 +206,11 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
     $(".acc2").click(function(){
         var orderid = $(this).attr("order-id");
         $('#orderhisid2').val(orderid);
+    });
+
+    $(".acc3").click(function(){
+        var orderid = $(this).attr("order-id");
+        $('#orderhisid3').val(orderid);
     });
 
         //add start barcode
@@ -202,30 +244,57 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         //add number of pages
         var endurl = "{{URL::to('/admin/add-pages')}}";
         $("#addEndBtn").click(function(){
-        var orderhisid= $("#orderhisid2").val();
-        var pages = $("#pages").val();
-        var user_id = $("#user_id").val();
-            // console.log(user_id);
-        $.ajax({
-            url: endurl,
-            method: "POST",
-            data: {orderhisid,pages,user_id},
-            success: function (d) {
-                if (d.status == 303) {
-                    $(".ermsg").html(d.message);
-                }else if(d.status == 300){
-                    $(".ermsg").html(d.message);
-                    location.reload();
+            var orderhisid= $("#orderhisid2").val();
+            var pages = $("#pages").val();
+            var user_id = $("#user_id").val();
+                // console.log(user_id);
+            $.ajax({
+                url: endurl,
+                method: "POST",
+                data: {orderhisid,pages,user_id},
+                success: function (d) {
+                    if (d.status == 303) {
+                        $(".ermsg").html(d.message);
+                    }else if(d.status == 300){
+                        $(".ermsg").html(d.message);
+                        location.reload();
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
                 }
-            },
-            error: function (d) {
-                console.log(d);
-            }
+            });
         });
-
-    });
-
         //add start barcode END
+
+        //cancel of pages
+        var endurl = "{{URL::to('/admin/cancel-pages')}}";
+        $("#cancelBtn").click(function(){
+            var orderhisid= $("#orderhisid3").val();
+            var user_id = $("#user_id").val();
+                console.log(orderhisid);
+            $.ajax({
+                url: endurl,
+                method: "POST",
+                data: {orderhisid,user_id},
+                success: function (d) {
+                    if (d.status == 303) {
+                        $(".ermsg").html(d.message);
+                    }else if(d.status == 300){
+                        $(".ermsg").html(d.message);
+                        location.reload();
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
+                }
+            });
+        });
+        //cancel barcode END
+
+
+
+
 });
 </script>
 @endsection

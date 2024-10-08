@@ -1325,6 +1325,45 @@ class DonorController extends Controller
         return view('frontend.user.strip_topup');
     }
 
+    // all donor email send
+    public function addDonorMail()
+    {
+        return view('donor.custom_mail');
+    }
+
+    // all donor mail send
+    public function donorMailSend(Request $request)
+    {
+
+        $validatedData = $request->validate([
+            'subject' => 'required',
+            'body' => 'required',
+        ]);
+
+
+            $users = User::where('is_type', 'user')->get();
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            foreach ($users as $key => $user) {
+                $array['cc'] = $contactmail;
+                $array['name'] = $user->name;
+                $array['email'] = $user->email;
+                $array['phone'] = $user->phone;
+                $email = $user->email;
+                $array['subject'] = $request->subject;
+                $array['body'] = $request->body;
+                $array['from'] = 'info@tevini.co.uk';
+
+                Mail::send('mail.donorMail', compact('array'), function($message)use($array,$email) {
+                    $message->from($array['from'], 'Tevini.co.uk');
+                    $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                });
+            }
+            
+
+            return redirect()->back()->with('success', 'Mail send successfully.');
+    }
+
     // donor email send
     public function sendemail($id)
     {

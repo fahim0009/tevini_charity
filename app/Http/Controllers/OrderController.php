@@ -18,7 +18,7 @@ use App\Models\Commission;
 use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use App\Models\ProvouchersImages;
-
+use Illuminate\Support\Facades\DB;
 use App\Mail\InstantReport;
 use App\Mail\PendingvCancelReport;
 use App\Mail\PendingvReport;
@@ -418,9 +418,16 @@ class OrderController extends Controller
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher number ".$chq." is already proccesed. </b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
-
-
                 }
+            }
+        }
+
+        foreach($chqs as $chq){
+            $chkOrderHistory = Barcode::where('barcode', $chq)->where('status', 1)->first();
+            if($chkOrderHistory){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher number ".$chq." is already cancel. </b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
             }
         }
 
@@ -693,7 +700,7 @@ class OrderController extends Controller
         $single_vamount = $order_history->voucher->single_amount;
 
         if(empty($startbarcode)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please add start Start Barcode first.</b></div>";
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please add Start Barcode first.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
@@ -720,6 +727,21 @@ class OrderController extends Controller
            }
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Number of pages added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
+    public function cancelVoucherBook(Request $request)
+    {
+        
+        $data = OrderHistory::find($request->orderhisid);
+        $data->status = 1;
+        if($data->save()){
+            DB::table('barcodes')
+            ->where('orderhistory_id', $request->orderhisid)
+            ->update(['status' => 1]);
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Cancelled successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
 

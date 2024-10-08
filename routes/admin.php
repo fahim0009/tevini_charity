@@ -140,6 +140,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('active-charity', [CharityController::class, 'activeCharity']);
 
     // donor email
+    Route::get('/donor-custom-mail', [DonorController::class, 'addDonorMail'])->name('admin.donor.email');
+    Route::post('/donor-custom-mail', [DonorController::class, 'donorMailSend'])->name('allDonorMailSend');
     Route::get('/send-email/{id}', [DonorController::class, 'sendemail'])->name('sendemail');
     Route::post('/send-email', [DonorController::class, 'mailsend'])->name('mailsend');
 
@@ -189,6 +191,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/order/cencle', [OrderController::class, 'cancelOrder'])->name('cancelorder');
     Route::post('/add-start-barcode', [OrderController::class, 'addStartBarcode']);
     Route::post('/add-pages', [OrderController::class, 'addNumberofpage']);
+    Route::post('/cancel-pages', [OrderController::class, 'cancelVoucherBook']);
 
     // commission
     Route::get('/commission', [OrderController::class, 'commission'])->name('commission');

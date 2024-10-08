@@ -20,6 +20,7 @@ use App\Mail\DonationReport;
 use App\Mail\DonationstandingReport;
 use App\Mail\DonerReport;
 use App\Mail\DonationreportCharity;
+use App\Mail\DonorCustomMail;
 use App\Models\ExpectedGiftAid;
 use PDF;
 use Hash;
@@ -1340,28 +1341,22 @@ class DonorController extends Controller
             'body' => 'required',
         ]);
 
+        $users = User::where('is_type', 'user')->get();
+        $contactmail = ContactMail::where('id', 1)->first()->name;
 
-            $users = User::where('is_type', 'user')->get();
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-
-            foreach ($users as $key => $user) {
-                $array['cc'] = $contactmail;
-                $array['name'] = $user->name;
-                $array['email'] = $user->email;
-                $array['phone'] = $user->phone;
-                $email = $user->email;
-                $array['subject'] = $request->subject;
-                $array['body'] = $request->body;
-                $array['from'] = 'info@tevini.co.uk';
-
-                Mail::send('mail.donorMail', compact('array'), function($message)use($array,$email) {
-                    $message->from($array['from'], 'Tevini.co.uk');
-                    $message->to($email)->cc($array['cc'])->subject($array['subject']);
-                });
-            }
+        foreach ($users as $key => $user) {
+            $array['cc'] = $contactmail;
+            $array['view'] = 'mail.donorMail';
+            $array['name'] = $user->name;
+            $array['email'] = $user->email;
+            $array['phone'] = $user->phone;
+            $array['subject'] = $request->subject;
+            $array['body'] = $request->body;
+            $array['from'] = 'info@tevini.co.uk';
             
-
-            return redirect()->back()->with('success', 'Mail send successfully.');
+            Mail::to($user->email)->cc($contactmail)->queue(new DonorCustomMail($array));
+        }
+        return redirect()->back()->with('success', 'Mail send successfully.');
     }
 
     // donor email send

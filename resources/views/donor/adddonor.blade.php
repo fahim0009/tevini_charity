@@ -150,7 +150,7 @@
                         <input type="date" id="todate" name="todate" placeholder="Search" aria-label="Search"  class="form-control">
                     </div>
                     <button class="btn btn-primary rounded-pill" id="sentRpt" type="button">Send Mail</button>
-                    {{-- <a href="{{route('admin.donor.email')}}" class="btn btn-success rounded-pill">Custom Mail</a> --}}
+                    <a href="{{route('admin.donor.email')}}" class="btn btn-success rounded-pill">Custom Mail</a>
                 </div>
 
         <!-- Image loader -->

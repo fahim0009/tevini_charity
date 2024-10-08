@@ -205,6 +205,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
 
     $(".acc2").click(function(){
         var orderid = $(this).attr("order-id");
+        console.log(orderid);
         $('#orderhisid2').val(orderid);
     });
 
@@ -247,7 +248,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
             var orderhisid= $("#orderhisid2").val();
             var pages = $("#pages").val();
             var user_id = $("#user_id").val();
-                // console.log(user_id);
+                console.log(orderhisid);
             $.ajax({
                 url: endurl,
                 method: "POST",
@@ -268,13 +269,13 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         //add start barcode END
 
         //cancel of pages
-        var endurl = "{{URL::to('/admin/cancel-pages')}}";
+        var cancelurl = "{{URL::to('/admin/cancel-pages')}}";
         $("#cancelBtn").click(function(){
             var orderhisid= $("#orderhisid3").val();
             var user_id = $("#user_id").val();
                 console.log(orderhisid);
             $.ajax({
-                url: endurl,
+                url: cancelurl,
                 method: "POST",
                 data: {orderhisid,user_id},
                 success: function (d) {

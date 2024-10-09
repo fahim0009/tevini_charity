@@ -51,7 +51,7 @@ use Illuminate\Support\Carbon;
         @endif
         <br>
         <h4 class="txt-dash">Account Balance</h4>
-        <h2 class="amount">{{auth()->user()->balance}} GBP</h2>
+        <h2 class="amount">{{$donorUpBalance}} GBP</h2>
         <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
         <div class="row my-2">
             <div class="col-lg-12" id="tdfDiv">

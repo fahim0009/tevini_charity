@@ -157,16 +157,8 @@ class DashboardController extends Controller
                     # code...
                 }
             }
-            // -453.5
-
-            // dd($tbalance); //-2814.18
-            // 'previousBalance'=>$prebalance,
-            // previous balance calculation
-
             
         $donation_req = CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
-
-
 
         $responseArray = [
             'status'=>'ok',

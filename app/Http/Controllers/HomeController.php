@@ -104,9 +104,28 @@ class HomeController extends Controller
         }
         // current year data end
 
-        
+        // user balance calculation start
+        $gettrans = Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '1']
+        ])->orderBy('id','DESC')->get();
 
-        return view('frontend.user.dashboard',compact('currentyramount','totalamount'));
+        $donorUpBalance = 0;
+
+        foreach ($gettrans as $key => $tran) {
+            if ($tran->t_type == "In") {
+                $donorUpBalance = $donorUpBalance + $tran->amount;
+            }elseif ($tran->t_type == "Out") {
+                $donorUpBalance = $donorUpBalance - $tran->amount;
+            } else {
+                # code...
+            }
+        }
+        // user balance calculation end
+        return view('frontend.user.dashboard',compact('currentyramount','totalamount','donorUpBalance'));
 
     }
     public function changePassword()

@@ -56,7 +56,7 @@
                 <p><strong>Credit Limit : </strong>{{$data['CreditProfile']['CreditLimit']}}</p>
             </div> --}}
             <div class="col">
-                <p><strong>Available Balance : </strong>{{$data['CreditProfile']['AvailableBalance']}}</p>
+                <p><strong>Available Balance : </strong>{{$data['CreditProfile']['AvailableBalance']}} <br> with overdrawn limit.</p>
             </div>
 
             @if (isset($cardsts))

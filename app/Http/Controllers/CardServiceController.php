@@ -61,13 +61,36 @@ class CardServiceController extends Controller
         if (isset($chkpCode)) {
             return redirect()->back()->with('error', 'Already created a credit profile.');
         } else {
+
+            
+        // user balance calculation start
+        $gettrans = Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '1']
+        ])->orderBy('id','DESC')->get();
+
+        $donorUpBalance = 0;
+
+        foreach ($gettrans as $key => $tran) {
+            if ($tran->t_type == "In") {
+                $donorUpBalance = $donorUpBalance + $tran->amount;
+            }elseif ($tran->t_type == "Out") {
+                $donorUpBalance = $donorUpBalance - $tran->amount;
+            } else {
+                # code...
+            }
+        }
+        // user balance calculation end
             
 
         $ProfileName = Auth::user()->name;
         $CreditLimit =  100000;
         $IsPrePaid = true;
 
-        $avlblBalnce = Auth::user()->balance + Auth::user()->overdrawn_amount - $CreditLimit;
+        $avlblBalnce = $donorUpBalance + Auth::user()->overdrawn_amount - $CreditLimit;
 
         // Send a POST request to the API with the updated finance fee value
         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
@@ -678,7 +701,30 @@ class CardServiceController extends Controller
         ];
         $this->validate($request, $rules, $customMessages);
 
-        $totalBalance = Auth::user()->balance + Auth::user()->overdrawn_amount;
+        
+        // user balance calculation start
+        $gettrans = Usertransaction::where([
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['user_id','=', auth()->user()->id],
+            ['pending','=', '1']
+        ])->orderBy('id','DESC')->get();
+
+        $donorUpBalance = 0;
+
+        foreach ($gettrans as $key => $tran) {
+            if ($tran->t_type == "In") {
+                $donorUpBalance = $donorUpBalance + $tran->amount;
+            }elseif ($tran->t_type == "Out") {
+                $donorUpBalance = $donorUpBalance - $tran->amount;
+            } else {
+                # code...
+            }
+        }
+        // user balance calculation end
+
+        $totalBalance = $donorUpBalance + Auth::user()->overdrawn_amount;
         if ($totalBalance > 5) {
             $chkPrevOrder = CardOrder::where('user_id', Auth::user()->id)->first();
             if ($chkPrevOrder) {

@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\DeductStandingDonation::class,
+        Commands\DonorMailCommand::class,
     ];
 
     /**
@@ -25,6 +26,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('donation:deduct-standing')->daily();
+        $schedule->command('queue:listen')->everyMinute();
     }
 
     /**

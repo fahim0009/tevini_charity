@@ -136,7 +136,29 @@ class UserController extends Controller
         $currentMonthName = $date->format('F'); // July
         $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
 
-        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName'));
+        // user balance calculation start
+        $gettrans = Usertransaction::where([
+            ['user_id','=', $donor_id],
+            ['status','=', '1']
+        ])->orwhere([
+            ['user_id','=', $donor_id],
+            ['pending','=', '1']
+        ])->orderBy('id','DESC')->get();
+
+        $donorUpBalance = 0;
+
+        foreach ($gettrans as $key => $tran) {
+            if ($tran->t_type == "In") {
+                $donorUpBalance = $donorUpBalance + $tran->amount;
+            }elseif ($tran->t_type == "Out") {
+                $donorUpBalance = $donorUpBalance - $tran->amount;
+            } else {
+                # code...
+            }
+        }
+        // user balance calculation end
+
+        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName','donorUpBalance'));
     }
 
     public function updateprofile(Request $request)

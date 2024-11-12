@@ -480,7 +480,10 @@ class DonationController extends Controller
             $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
 
             Mail::to($email)
-            ->cc($contactmail)
+            ->send(new DonationstandingReport($array));
+
+            
+            Mail::to($contactmail)
             ->send(new DonationstandingReport($array));
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Standing order donation submited Successfully.</b></div>";

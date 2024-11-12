@@ -72,6 +72,7 @@ class DeductStandingDonation extends Command
                 
                 if($activestand_order->payments == 2){
 
+                    // payment == 2 means Continuous payments 
 
                     if (($current_date >= $instalment_date)) {
 
@@ -128,18 +129,28 @@ class DeductStandingDonation extends Command
                         $array['phone'] = $user->phone;
                         $array['amount'] = $activestand_order->amount;
                         $array['charity'] = $charity->name;
+                        $array['charityEmail'] = $charity->email;
                         $email = $user->email;
                         $array['from'] = 'info@tevini.co.uk';
+                        $array['subject'] = 'Standing donation installment';
+                        $array['charity_subject'] = 'Standing donation installment received';
 
                         Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
                             $message->from($array['from'], 'Tevini.co.uk');
                             $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                        });
+
+                        Mail::send('mail.standingDonationCharity', compact('array'), function($message)use($array,$charity) {
+                            $message->from($array['from'], 'Tevini.co.uk');
+                            $message->to($charity->email)->cc($array['cc'])->subject($array['charity_subject']);
                         });
                         // email
 
                     }
 
                 }elseif($activestand_order->payments == 1){
+                    
+                    // payment == 1 means Fixed number of payments
 
                     if (($current_date >= $instalment_date) && ($activestand_order->payment_made < $activestand_order->number_payments)) {
 
@@ -200,12 +211,20 @@ class DeductStandingDonation extends Command
                         $array['phone'] = $user->phone;
                         $array['amount'] = $activestand_order->amount;
                         $array['charity'] = $charity->name;
+                        $array['charityEmail'] = $charity->email;
                         $email = $user->email;
                         $array['from'] = 'info@tevini.co.uk';
+                        $array['subject'] = 'Standing donation installment';
+                        $array['charity_subject'] = 'Standing donation installment received';
 
                         Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
                             $message->from($array['from'], 'Tevini.co.uk');
                             $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                        });
+
+                        Mail::send('mail.standingDonationCharity', compact('array'), function($message)use($array,$charity) {
+                            $message->from($array['from'], 'Tevini.co.uk');
+                            $message->to($charity->email)->cc($array['cc'])->subject($array['charity_subject']);
                         });
                         // email
 

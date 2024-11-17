@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class TDFTransfer extends Mailable
+class TDFCompleteMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -32,7 +32,7 @@ class TDFTransfer extends Mailable
     {
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
         ->replyTo($this->array['cc'], 'Tevini')
-        ->subject('TDF Transfer confirmation ')
-        ->markdown('mail.tdf');
+        ->subject('TDF transfer complete')
+        ->markdown('mail.tdfComplete');
     }
 }

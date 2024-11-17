@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TDFCompleteMail;
 use App\Models\ContactMail;
 use App\Models\TdfTransaction;
 use App\Models\User;
 use App\Models\Usertransaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 
 class TDFTransactionController extends Controller
@@ -74,7 +76,7 @@ class TDFTransactionController extends Controller
         if (isset($user->CreditProfileId)) {
             $CreditProfileId = $user->CreditProfileId;
             $CreditProfileName = $user->name;
-            $AvailableBalance = $tdf_amount;
+            $AvailableBalance = 0 - $tdf_amount;
             $comment = "TDF Transaction Cancel";
             $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
@@ -92,6 +94,25 @@ class TDFTransactionController extends Controller
         $order = TdfTransaction::find($request->tdfid);
         $order->status = $request->status;
         if($order->save()){
+
+            if ($request->status == 1) {
+                // email
+                    $donor = User::find($user_id);
+                    $contactmail = ContactMail::where('id', 1)->first()->name;
+                    $array['subject'] = 'TDF transfer complete';
+                    $array['from'] = 'info@tevini.co.uk';
+                    $array['cc'] = $contactmail;
+                    $array['name'] = $donor->name;
+                    $email = $donor->email;
+
+                    Mail::to($email)
+                    ->cc($contactmail)
+                    ->send(new TDFCompleteMail($array));
+                // email
+            }
+            
+
+
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Status change successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }

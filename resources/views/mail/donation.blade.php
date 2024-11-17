@@ -2,7 +2,7 @@
 
 <h3>Dear {{$array['name']}},</h3> 
      
-<p>This message is to confirm that you have made the request below via the Tevini website. It will be dealt with in due course.</p>
+<p>This message is to confirm that we have received your request via the Tevini website. It will be processed shortly.</p>
 
 
 @component('mail::table')
@@ -14,8 +14,17 @@
 |  Amount  |£{{$array['amount']}}|
 @endcomponent
 
-<p>Your donation is being processed. If this is still the case after two working days please contact us by email.</p>
+<p>If you have not requested this, please contact us immediately. </p>
 
-Thanks,<br>
-{{ config('app.name') }}
+<br>
+Kind Regards, <br>
+P. Schlesinger <br>
+<br><br>
+Tevini Ltd<br>
+5A Holmdale Terrace<br>
+London<br>
+N15 6PP<br>
+M. 07490956227<br>
+E. Tevinivouchers@gmail.com<br>
+W. www.tevini.co.uk<br>
 @endcomponent

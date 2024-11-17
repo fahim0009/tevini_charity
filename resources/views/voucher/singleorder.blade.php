@@ -14,6 +14,10 @@
             <a href="{{route('neworder')}}"  class="btn btn-info">back</a>
         </div>
     </section>
+    <!-- Image loader -->
+    <div id='loading' style='display:none ;'>
+        <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+   </div>
     <section class="px-4">
         <div class="ermsg"></div>
         <div class="row my-3">
@@ -98,6 +102,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
 var url = "{{URL::to('/admin/order-status')}}";
 
 $('select').on('change', function() {
+    $("#loading").show();
     var status =  this.value;
     var orderId = {!! json_encode($order->id) !!};
 
@@ -107,6 +112,7 @@ $('select').on('change', function() {
             data: {status,orderId},
 
             success: function (d) {
+                $("#loading").hide();
                 if (d.status == 303) {
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
@@ -114,6 +120,7 @@ $('select').on('change', function() {
                 }
             },
             error: function (d) {
+                $("#loading").hide();
                 console.log(d);
             }
         });

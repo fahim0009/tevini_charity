@@ -297,7 +297,7 @@ class DonorController extends Controller
     }
 
 
-    // donor report in admin
+    // Monthly statement in admin
     public function userReportinAdmin(Request $request, $id)
     {
         $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
@@ -493,7 +493,7 @@ class DonorController extends Controller
                 $array['userbalance'] = $user->balance;
                 $array['name'] = $user->name;
                 $array['view'] = 'mail.donorreport';
-                $array['subject'] = 'Donor Report';
+                $array['subject'] = 'Monthly statement';
                 $array['from'] = 'info@tevini.co.uk';
                 $array['content'] = 'Hi, Your donation report has been placed';
                 $array['file'] = public_path().'/invoices/Report#'.$duser->id.'.pdf';
@@ -541,7 +541,7 @@ class DonorController extends Controller
                 $array['userbalance'] = $user->balance;
                 $array['name'] = $user->name;
                 $array['view'] = 'mail.donorreport';
-                $array['subject'] = 'Donor Report';
+                $array['subject'] = 'Monthly statement';
                 $array['from'] = 'info@tevini.co.uk';
                 $array['content'] = 'Hi, Your donation report has been placed';
                 $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';

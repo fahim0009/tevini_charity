@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use App\Mail\InstantReport;
 use App\Mail\PendingvCancelReport;
 use App\Mail\PendingvReport;
+use App\Mail\VoucherOrderBookStatusMail;
 use App\Mail\WaitingVoucherCancel;
 use App\Mail\WaitingvoucherReport;
 use App\Models\VoucherCart;
@@ -288,7 +289,7 @@ class OrderController extends Controller
 
             $contactmail = ContactMail::where('id', 1)->first()->name;
 
-            $array['subject'] = 'Order place to Tevini';
+            $array['subject'] = 'Voucher books order confirmation';
             $array['from'] = 'info@tevini.co.uk';
             $array['cc'] = $contactmail;
             $array['name'] = $user->name;
@@ -1277,12 +1278,12 @@ public function watingvoucherCancel(Request $request)
                     $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
                     $donor->increment('balance',$amount*$order->number_voucher);
                     $donor->save();
-
+                    $cardBalance = $amount*$order->number_voucher;
                     // card balance update
                     if (isset($donor->CreditProfileId)) {
                         $CreditProfileId = $donor->CreditProfileId;
                         $CreditProfileName = $donor->name;
-                        $AvailableBalance = $amount*$order->number_voucher;
+                        $AvailableBalance = 0 - $cardBalance;
                         $comment = "Make a donation or Standing order";
                         $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
@@ -1307,6 +1308,21 @@ public function watingvoucherCancel(Request $request)
         $order = Order::find($request->orderId);
         $order->status = $request->status;
         if($order->save()){
+            if ($request->status == 1) {
+                // email 
+                $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $array['subject'] = 'Voucher order complete';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['cc'] = $contactmail;
+                $array['name'] = $donor->name;
+                $email = $donor->email;
+
+                Mail::to($email)
+                ->cc($contactmail)
+                ->send(new VoucherOrderBookStatusMail($array));
+                // email 
+            }
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Order status change successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }

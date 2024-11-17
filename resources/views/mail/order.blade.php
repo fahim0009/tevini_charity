@@ -2,8 +2,10 @@
 
    <h3>Dear {{$array['name']}},</h3>
 
-   <p>This message is to confirm that you have made the request below via the Tevini  website. It will be dealt with in due course.</p>
+   <p>Thank you for your voucher book order. <br>
+    Your order is now being prepared.</p>
 
+    <p> <b>Order details:</b></p>
    <p>Client number : {{$array['client_no']}}</p>
    <p>Delivery Option : {{ $array['delivery_option']}}</p>
 
@@ -41,3 +43,16 @@
                         </table>
 
     </div>
+
+
+<br>
+Kind Regards, <br>
+P. Schlesinger <br>
+<br><br>
+Tevini Ltd<br>
+5A Holmdale Terrace<br>
+London<br>
+N15 6PP<br>
+M. 07490956227<br>
+E. Tevinivouchers@gmail.com<br>
+W. www.tevini.co.uk<br>

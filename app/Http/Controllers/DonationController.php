@@ -437,7 +437,7 @@ class DonationController extends Controller
             // $utransaction->donation_id = $data->id;
             // $utransaction->t_type = "Out";
             // $utransaction->amount =  $request->amount;
-            // $utransaction->title =  "Online Donation";
+            // $utransaction->title =  "Donation request confirmation";
             // $utransaction->status =  1;
             // $utransaction->save();
 

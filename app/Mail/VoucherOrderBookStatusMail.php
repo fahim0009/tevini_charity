@@ -7,12 +7,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class TDFTransfer extends Mailable
+class VoucherOrderBookStatusMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $array;
-
     /**
      * Create a new message instance.
      *
@@ -32,7 +31,7 @@ class TDFTransfer extends Mailable
     {
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
         ->replyTo($this->array['cc'], 'Tevini')
-        ->subject('TDF Transfer confirmation ')
-        ->markdown('mail.tdf');
+        ->subject('Voucher order complete')
+        ->markdown('mail.voucherComplete');
     }
 }

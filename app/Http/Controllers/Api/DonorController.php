@@ -123,9 +123,9 @@ class DonorController extends Controller
             $array['charity_note'] = $request->charitynote;
             $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
 
-            // Mail::to($email)
-            // ->cc($contactmail)
-            // ->send(new DonationReport($array));
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new DonationReport($array));
 
             $success['message'] = 'Donation create Successfully.';
             $success['data'] = $data;

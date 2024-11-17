@@ -308,6 +308,17 @@ class DonationController extends Controller
 
     }
 
+    public function otherdonationDetails()
+    {
+
+        $data = OtherDonation::where([
+            ['donor_id','=', auth()->user()->id]
+        ])->orderBy('id','DESC')->get();
+
+        return view('frontend.user.otherdonation',compact('data'));
+
+    }
+
 
     public function otherDonationStore(Request $request)
     {
@@ -704,6 +715,8 @@ class DonationController extends Controller
         return view('frontend.user.singlestandingrecord',compact('singleStddonation'));
 
     }
+
+    
 
 
 

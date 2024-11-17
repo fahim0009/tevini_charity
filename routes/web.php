@@ -115,6 +115,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('one-off-donation', [DonationController::class, 'oneoffDonation'])->name('oneoffdonation');
 
     // other donation store
+    Route::get('other-donation-details', [DonationController::class, 'otherdonationDetails'])->name('user.otherdonationDetails');
     Route::post('other-donation-store', [DonationController::class, 'otherDonationStore'])->name('donation.otherdonation');
 
     // charity donation link close request 

@@ -60,7 +60,8 @@
                         
                         <div class="col-lg-12">
                             <div class="form-group ">
-                                <input type="button" id="othrBtn" value="Submit" class="btn-theme mt-3 bg-secondary text-white">
+                                <input type="button" id="othrBtn" value="Submit" class="btn-theme mt-3 bg-secondary text-white w-100">
+                                <a href="{{ route('user.otherdonationDetails')}}" class="btn-theme bg-primary text-white w-100">View</a>
                             </div>
                         </div>
                     </div>
@@ -271,7 +272,7 @@
                         
                         <div class="col-lg-12 mt-4">
                             <div class="form-group ">
-                                <input type="button" id="othrBtn" value="Submit" class="btn btn-primary">
+                                <input type="button" id="othrCharityBtn" value="Submit" class="btn btn-primary">
                             </div>
                         </div>
                     </div>

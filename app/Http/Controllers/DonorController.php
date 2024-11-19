@@ -36,7 +36,8 @@ class DonorController extends Controller
 
     public function addDonor()
     {
-        $users = User::where('is_type','=' ,'user')->orderBy('id','DESC')->get();
+        $users = User::where('is_type','=' ,'user')->select('id', 'name', 'surname', 'email', 'phone', 'accountno', 'town', 'balance', 'overdrawn_amount')->orderBy('id','DESC')->get();
+
         return view('donor.adddonor', compact('users'));
     }
 

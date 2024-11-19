@@ -190,7 +190,28 @@
                                                                 ['user_id','=', $user->id],
                                                                 ['pending','=', '0']
                                                             ])->sum('amount');
+
+                                    $gettrans = \App\Models\Usertransaction::where([
+                                            ['user_id','=', $user->id],
+                                            ['status','=', '1']
+                                        ])->orwhere([
+                                            ['user_id','=', $user->id],
+                                            ['pending','=', '1']
+                                        ])->orderBy('id','DESC')->get();
+
+                                        $donorUpBalance = 0;
+                                        foreach ($gettrans as $key => $tran) {
+                                        if ($tran->t_type == "In") {
+                                            $donorUpBalance = $donorUpBalance + $tran->amount;
+                                        }elseif ($tran->t_type == "Out") {
+                                            $donorUpBalance = $donorUpBalance - $tran->amount;
+                                        } else {
+                                            # code...
+                                        }
+                                    }
                                 @endphp 
+                                    
+                                    
                                     <tr>
                                         <td><input class="form-check-input getDid" type="checkbox" name="donorIds[]" value="{{ $user->id }}"></td>
                                         {{-- <td>{{$n++}}</td> --}}
@@ -208,7 +229,7 @@
                                             </button>
                                             @endif
                                         </td>
-                                        <td>£{{$user->balance}}</td>
+                                        <td>£{{$donorUpBalance}}</td>
                                         <td>£{{$user->overdrawn_amount}}
                                             <a overdrawn-id="{{$user->id}}" class="overdrawn" data-bs-toggle="modal" data-bs-target="#exampleModal2">
                                                 <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>

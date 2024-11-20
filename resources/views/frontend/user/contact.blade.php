@@ -74,8 +74,8 @@
                 </div>
                 <div class="fs-16 my-3 txt-secondary">
                     Tevini Ltd, <br>
-                    Sort Code: 40-52-40 <br>
-                    Account no: 00024463
+                    Sort Code: 30-99-50 <br>
+                    Account no: 80075460
                 </div>
                 <div class="fs-24 fw-bold txt-secondary">
                     2. Send a cheque

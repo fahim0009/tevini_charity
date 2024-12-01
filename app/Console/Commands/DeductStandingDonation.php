@@ -132,8 +132,8 @@ class DeductStandingDonation extends Command
                         $array['charityEmail'] = $charity->email;
                         $email = $user->email;
                         $array['from'] = 'info@tevini.co.uk';
-                        $array['subject'] = 'Standing donation installment';
-                        $array['charity_subject'] = 'Standing donation installment received';
+                        $array['subject'] = 'Standing order donation';
+                        $array['charity_subject'] = 'Standing order donation';
 
                         Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
                             $message->from($array['from'], 'Tevini.co.uk');
@@ -214,8 +214,8 @@ class DeductStandingDonation extends Command
                         $array['charityEmail'] = $charity->email;
                         $email = $user->email;
                         $array['from'] = 'info@tevini.co.uk';
-                        $array['subject'] = 'Standing donation installment';
-                        $array['charity_subject'] = 'Standing donation installment received';
+                        $array['subject'] = 'Standing order donation';
+                        $array['charity_subject'] = 'Standing order donation';
 
                         Mail::send('mail.standingDonation', compact('array'), function($message)use($array,$email) {
                             $message->from($array['from'], 'Tevini.co.uk');

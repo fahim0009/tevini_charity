@@ -57,7 +57,7 @@
                           <div class="row my-3">
                               <div class="container">
                                   <div class="col-md-12 my-3">
-                                      <p>**Please note that if you are topping up your account using a credit/debit card there will be an additional fee of 2% on top of the standard 5% commission fee alternatively you can top up by transfer to the following: Tevini Ltd S/C 40-52-40 A/C 00024463.</p>
+                                      <p>**Please note that if you are topping up your account using a credit/debit card there will be an additional fee of 2% on top of the standard 5% commission fee alternatively you can top up by transfer to the following: Tevini Ltd S/C 30-99-50 A/C 80075460.</p>
                                   </div>
                                   
                               </div>

@@ -152,7 +152,7 @@
                             <div class="form-group text-info d-flex justify-content-between fw-bold my-3">
                                 <label for="account-number" class="">Total donation amount</label>
                                 <span class="float-right fw-bold"> {{$amt}} </span>
-                                <input type="text" id="amt" hidden value="{{$amt}}">
+                                <input type="number" id="amt" hidden value="{{$amt}}">
                             </div>
 
                             <div class="form-group mb-4">

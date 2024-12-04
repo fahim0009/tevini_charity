@@ -48,6 +48,7 @@ Route::post('/expired', [CardServiceController::class, 'expired']);
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();
     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::get('userbalance', [DashboardController::class, 'userBalance']);
     Route::post('account-delete-request', [DashboardController::class, 'accountDeleteRequest']);
     Route::get('get-user-details', [RegisterController::class, 'userDetails']);
     Route::get('get-all-charity', [CharityController::class, 'getAllCharity']);
@@ -115,9 +116,6 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('stripe-top-up', [StripePaymentController::class, 'stripetopUpPost']);
 
 });
-
-
-
 
 Route::get('all-donor', [DashboardController::class, 'get_all_donor']);
 Route::get('charity-dashboard/{id}', [DashboardController::class, 'charity_dashboard']);

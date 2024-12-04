@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\AboutContent;
 use App\Models\AboutHelp;
+use App\Models\CompanyDetail;
 use Illuminate\Http\Request;
 
 class AboutController extends Controller
@@ -178,5 +179,21 @@ class AboutController extends Controller
     public function blog()
     {
         return view('frontend.blog');
+    }
+
+    // app version check
+    public function appVersion()
+    {
+        
+        $data = CompanyDetail::select('id','app_version', 'version_category')->first(); 
+        
+        if($data == null){
+            $data = 'Data Not Found';
+        }
+        $responseArray = [
+            'status'=>'ok',
+            'data'=>$data
+        ]; 
+        return response()->json($responseArray,200);
     }
 }

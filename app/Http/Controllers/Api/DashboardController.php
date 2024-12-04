@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccDelRequest;
 use App\Models\Charity;
 use App\Models\CharityLink;
+use App\Models\CompanyDetail;
 use Illuminate\Http\Request;
 use App\Models\Usertransaction;
 use App\Models\User;
@@ -237,4 +238,34 @@ class DashboardController extends Controller
             ], 202);
         }
     }
+
+    // app version check
+    public function userBalance()
+    {
+         
+        // donor balance
+        $data = UserTransaction::selectRaw('
+        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', Auth::id()],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=', Auth::id()],
+                ['pending','=', '1']
+            ])
+            ->first();
+        // donor balance end
+        
+        if($data == null){
+            $data = 'Data Not Found';
+        }
+        $responseArray = [
+            'status'=>'ok',
+            'data'=>$data
+        ]; 
+        return response()->json($responseArray,200);
+    }
+
 }

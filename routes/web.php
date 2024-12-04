@@ -43,6 +43,10 @@ Route::get('/clear', function() {
  });
 
 
+// use mobile app
+Route::get('app-version', [AboutController::class, 'appVersion']);
+ 
+
 // user part start
 Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function(){
     Route::get('dashboard', [HomeController::class, 'userHome'])->name('user.dashboard');
@@ -178,6 +182,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
 
 Auth::routes();
+
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 

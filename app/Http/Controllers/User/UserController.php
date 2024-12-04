@@ -156,9 +156,23 @@ class UserController extends Controller
                 # code...
             }
         }
+
+        $userTransactionBalance = UserTransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', $donor_id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=', $donor_id],
+                ['pending','=', '1']
+            ])
+            ->first();
+
         // user balance calculation end
 
-        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName','donorUpBalance'));
+        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName','donorUpBalance','userTransactionBalance'));
     }
 
     public function updateprofile(Request $request)

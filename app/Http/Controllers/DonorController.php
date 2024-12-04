@@ -533,13 +533,30 @@ class DonorController extends Controller
                     $fromDate = "";
                     $toDate   = "";
                 }
+
+                // donor balance
+                $userTransactionBalance = UserTransaction::selectRaw('
+                        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+                    ')
+                    ->where([
+                        ['user_id','=', $id],
+                        ['status','=', '1']
+                    ])->orwhere([
+                        ['user_id','=', $id],
+                        ['pending','=', '1']
+                    ])
+                    ->first();
+                // donor balance end
+
+
                 $user = User::find($id);
                 $contactmail = ContactMail::where('id', 1)->first()->name;
                 $array['cc'] = $contactmail;
                 $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
                 $output = $pdf->output();
                 file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
-                $array['userbalance'] = $user->balance;
+                $array['userbalance'] = $userTransactionBalance->balance;
                 $array['name'] = $user->name;
                 $array['view'] = 'mail.donorreport';
                 $array['subject'] = 'Monthly statement';

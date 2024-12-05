@@ -384,4 +384,22 @@ class MaaserController extends Controller
         }
 
     }
+
+
+    public function getOtherDonation()
+    {
+         
+        // donor balance
+        $data = OtherDonation::where('donor_id', Auth::user()->id)->get();
+        // donor balance end
+        
+        if($data == null){
+            $data = 'Data Not Found';
+        }
+        $responseArray = [
+            'status'=>'ok',
+            'data'=>$data
+        ]; 
+        return response()->json($responseArray,200);
+    }
 }

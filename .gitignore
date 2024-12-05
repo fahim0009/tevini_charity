@@ -15,6 +15,7 @@ public/invoices
 public/master
 
 #stripe key ignore
+resources/views/frontend/user/strip_topup.blade.php
 app/Http/Controllers/StripePaymentController.php
 app/Http/Controllers/OTPController.php
 

@@ -94,7 +94,7 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::get('donation-calculation', [MaaserController::class, 'donationCal']);
     Route::post('one-off-donation', [MaaserController::class, 'oneoffDonation']);
     Route::post('other-donation-store', [MaaserController::class, 'otherDonationStore']);
-    Route::get('other-donation-store', [MaaserController::class, 'getOtherDonation']);
+    Route::get('other-donation', [MaaserController::class, 'getOtherDonation']);
 
     
     Route::get('on-off-donation-details', [MaaserController::class, 'onOffdonationDetails']);

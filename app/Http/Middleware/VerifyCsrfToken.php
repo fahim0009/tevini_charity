@@ -28,7 +28,7 @@ class VerifyCsrfToken extends Middleware
         'https://www.tevini.co.uk/user/standing-donation',
 
         'http://127.0.0.1:8000/all-donor',
-        'http://127.0.0.1:8000/api/app-version',
+        'https://www.tevini.co.uk/app-version',
         'http://127.0.0.1:8000/transaction-store',
         'http://127.0.0.1:8000/api/transaction-store'
         

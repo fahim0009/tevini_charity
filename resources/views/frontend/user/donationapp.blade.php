@@ -55,7 +55,7 @@
     } 
 
                // donor balance
-               $user = \app\Models\Usertransaction::selectRaw('
+               $user = \App\Models\Usertransaction::selectRaw('
                         SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
                         SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
                     ')

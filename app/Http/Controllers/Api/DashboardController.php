@@ -252,18 +252,20 @@ class DashboardController extends Controller
             ['pending','=', '1']
         ])->orderBy('id','DESC')->get();
 
-        $data = 0;
+        $donorUpBalance = 0;
 
         foreach ($gettrans as $key => $tran) {
             if ($tran->t_type == "In") {
-                $data = $data + $tran->amount;
+                $donorUpBalance = $donorUpBalance + $tran->amount;
             }elseif ($tran->t_type == "Out") {
-                $data = $data - $tran->amount;
+                $donorUpBalance = $donorUpBalance - $tran->amount;
             } else {
                 # code...
             }
         }
         // donor balance end
+
+        $data = $donorUpBalance;
         
         if($data == null){
             $data = 'Data Not Found';

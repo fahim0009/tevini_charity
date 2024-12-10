@@ -242,7 +242,7 @@ class DashboardController extends Controller
     // app version check
     public function userBalance()
     {
-         
+
         // donor balance
         $gettrans = Usertransaction::where([
             ['user_id','=', auth()->user()->id],
@@ -265,7 +265,9 @@ class DashboardController extends Controller
         }
         // donor balance end
 
-        $data = number_format($donorUpBalance, 2);
+        $data = [
+                    'balance' => number_format($donorUpBalance, 2)
+                ];
         
         if($data == null){
             $data = 'Data Not Found';

@@ -55,7 +55,7 @@
     } 
 
                // donor balance
-               $gettrans = Usertransaction::where([
+               $gettrans = \App\Models\Usertransaction::where([
                     ['user_id','=', auth()->user()->id],
                     ['status','=', '1']
                 ])->orwhere([

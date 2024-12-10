@@ -265,7 +265,7 @@ class DashboardController extends Controller
         }
         // donor balance end
 
-        $data = $donorUpBalance;
+        $data = number_format($donorUpBalance, 2);
         
         if($data == null){
             $data = 'Data Not Found';

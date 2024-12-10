@@ -131,7 +131,7 @@
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h3 id="usertestID"></h3>
-                <h2 class="amount">{{  $user ?  $user->balance : "Loading..." }}
+                <h2 class="amount">{{  $user ? number_format($user->balance, 2) : "Loading..." }}
                     GBP</h2>
                     
                 <div class="row">

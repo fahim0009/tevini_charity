@@ -199,12 +199,9 @@ class DonorController extends Controller
 
     }
 
+    // this function is use for mobile app
     public function getMakeDonation()
     {
-
-
-        dd('We are working. please use website for a moment. Thank you.');
-
         return view('frontend.user.donationapp');
     }
 
@@ -212,6 +209,7 @@ class DonorController extends Controller
     {
         return view('frontend.user.donationsuccess');
     }
+    // this function is use for mobile app
 
    
 }

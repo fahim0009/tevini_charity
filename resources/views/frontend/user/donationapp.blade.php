@@ -55,19 +55,26 @@
     } 
 
                // donor balance
-               $user = \App\Models\Usertransaction::selectRaw('
-                        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                    ')
-                    ->where([
-                        ['user_id','=', Auth::user()->id],
-                        ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', Auth::user()->id],
-                        ['pending','=', '1']
-                    ])
-                    ->first();
-                    // donor balance end
+               $gettrans = Usertransaction::where([
+                    ['user_id','=', auth()->user()->id],
+                    ['status','=', '1']
+                ])->orwhere([
+                    ['user_id','=', auth()->user()->id],
+                    ['pending','=', '1']
+                ])->orderBy('id','DESC')->get();
+
+                $donorUpBalance = 0;
+
+                foreach ($gettrans as $key => $tran) {
+                    if ($tran->t_type == "In") {
+                        $donorUpBalance = $donorUpBalance + $tran->amount;
+                    }elseif ($tran->t_type == "Out") {
+                        $donorUpBalance = $donorUpBalance - $tran->amount;
+                    } else {
+                        # code...
+                    }
+                }
+                // donor balance end
 
 @endphp
 
@@ -131,7 +138,7 @@
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h3 id="usertestID"></h3>
-                <h2 class="amount">{{  $user ? number_format($user->balance, 2) : "Loading..." }}
+                <h2 class="amount">{{  $donorUpBalance ? number_format($donorUpBalance, 2) : "Loading..." }}
                     GBP</h2>
                     
                 <div class="row">

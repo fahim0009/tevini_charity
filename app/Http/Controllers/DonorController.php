@@ -407,7 +407,7 @@ class DonorController extends Controller
             }
             $user = User::find($id);
             // donor balance
-            $userTransactionBalance = UserTransaction::selectRaw('
+            $userTransactionBalance = Usertransaction::selectRaw('
                     SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
                     SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
                 ')
@@ -503,7 +503,7 @@ class DonorController extends Controller
                 $user = User::find($duser->id);
 
                 // donor balance
-                $userTransactionBalance = UserTransaction::selectRaw('
+                $userTransactionBalance = Usertransaction::selectRaw('
                         SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
                         SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
                     ')
@@ -568,7 +568,7 @@ class DonorController extends Controller
                 }
 
                 // donor balance
-                $userTransactionBalance = UserTransaction::selectRaw('
+                $userTransactionBalance = Usertransaction::selectRaw('
                         SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
                         SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
                     ')

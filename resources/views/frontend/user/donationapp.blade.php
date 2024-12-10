@@ -54,6 +54,21 @@
         $amount = $_GET["amount"];
     } 
 
+    // donor balance
+    $userTransactionBalance = \App\Models\UserTransaction::selectRaw('
+                        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+                    ')
+                    ->where([
+                        ['user_id','=', auth()->user()->id],
+                        ['status','=', '1']
+                    ])->orwhere([
+                        ['user_id','=', auth()->user()->id],
+                        ['pending','=', '1']
+                    ])
+                    ->first();
+                // donor balance end
+
 
 @endphp
 
@@ -117,7 +132,7 @@
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h3 id="usertestID"></h3>
-                <h2 class="amount">{{ Auth::user() ? auth()->user()->balance : $user->balance }}
+                <h2 class="amount">{{ $userTransactionBalance ? $userTransactionBalance->balance : "Loading..." }}
                     GBP</h2>
                     
                 <div class="row">

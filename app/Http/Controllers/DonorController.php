@@ -645,6 +645,7 @@ class DonorController extends Controller
 
     public function makeDonationAppView()
     {
+        dd('working...');
         return view('frontend.user.donationapp');
     }
     public function makeDonationAppMessage()

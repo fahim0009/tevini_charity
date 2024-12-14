@@ -799,8 +799,8 @@ class DonorController extends Controller
             $data->amount = $request->amount;
             $data->currency = "GBP";
             $data->ano_donation = $request->ano_donation;
-            $data->standing_order = $request->standard;
-            $data->confirm_donation = $request->c_donation;
+            $data->standing_order = $request->standard ?? false;
+            $data->confirm_donation = $request->c_donation ?? true;
             $data->charitynote = $request->charitynote;
             $data->mynote = $request->mynote;
             $data->notification = 1;

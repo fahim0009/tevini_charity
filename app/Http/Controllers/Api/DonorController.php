@@ -136,7 +136,7 @@ class DonorController extends Controller
 
     public function userDonationrecod()
     {
-        $data = Donation::where([
+        $data = Donation::with(['charity:id,name'])->where([
             ['standing_order','=', 'false'],
             ['user_id','=', auth()->user()->id]
         ])->orderBy('id','DESC')->get();

@@ -1,7 +1,17 @@
 @extends('layouts.admin')
 @section('content')
-<main class="app-content">
-    <div class="row user">
+
+<div class="rightSection">
+  <main class="dashboard-content py-2 px-4">
+    
+    <section class="profile purchase-status mb-5">
+      <div class="title-section">
+          <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+          <div class="mx-2">Profile </div>
+      </div>
+    </section>
+
+    <div class="row user  py-2 px-4">
 
       <div class="col-md-3">
         <div class="tile p-0">
@@ -13,6 +23,8 @@
           </ul>
         </div>
       </div>
+
+
       <div class="col-md-9">
         <div class="tab-content">
             {{-- image tab --}}
@@ -141,8 +153,15 @@
 
         </div>
       </div>
+
+      
     </div>
   </main>
+</div>
+
+
+
+
 @endsection
 @section('script')
 

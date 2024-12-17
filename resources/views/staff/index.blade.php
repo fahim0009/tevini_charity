@@ -14,7 +14,7 @@
         </div> --}}
         <section class="profile purchase-status">
             <div class="title-section">
-                <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">View All Staff</div>
+                <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">View All Admin <a href="{{route('profile')}}"><i class="fa fa-edit" style="color: #2196f3;font-size:16px;"></i></a></div>
             </div>
         </section>
         <div id="addThisFormContainer">
@@ -25,7 +25,7 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h3>New  Staff</h3>
+                            <h3>New  Admin</h3>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -237,13 +237,14 @@ $('#demoNotify').click(function(){
                         type: "PUT",
                         data:{ staffid:staffid,name:name,email:email,password:password,role:role },
                         success: function(d){
+                            console.log(d);
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
                                 pagetop();
                             }else if(d.status == 300){
                                 pagetop();
                                 success("Staff Updated Successfully!!");
-                                window.setTimeout(function(){location.reload()},2000)
+                                // window.setTimeout(function(){location.reload()},2000)
                             }
                         },
                         error:function(d){
@@ -298,6 +299,7 @@ $('#demoNotify').click(function(){
                 $("#email").val(data.email);
                 $("div#staff_role select").val(data.role_id);
                 $("#staffid").val(data.id);
+                $("#adminID").val(data.id);
                 $("#addBtn").val('Update');
                 $("#addThisFormContainer").show(300);
                 $("#newBtn").hide(100);

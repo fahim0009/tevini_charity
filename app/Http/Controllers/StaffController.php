@@ -107,19 +107,21 @@ class StaffController extends Controller
     public function update(Request $request, $id)
     {
 
+        $alldata = $request->all();
+
 
         $staff = Staff::findOrFail($id);
         $user = $staff->user;
         $user->name = $request->name;
         $user->email = $request->email;
-        if(strlen($request->password) > 0){
+        if($request->password){
             $user->password = Hash::make($request->password);
         }
         if($user->save()){
             $staff->role_id = $request->role;
             if($staff->save()){
                 $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Staff Updated Successfully.</b></div>";
-                return response()->json(['status'=> 300,'message'=>$message]);
+                return response()->json(['status'=> 300,'message'=>$message, 'alldata'=>$alldata]);
             }
         }else{
             return response()->json(['status'=> 303,'message'=>'Server Error!!']);

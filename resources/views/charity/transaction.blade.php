@@ -19,6 +19,9 @@ use Illuminate\Support\Carbon;
 
                   <button class="nav-link" id="nav-report-tab" data-bs-toggle="tab" data-bs-target="#nav-reportTab" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Report</button>
 
+                  
+                  <button class="nav-link" id="nav-ledger-tab" data-bs-toggle="tab" data-bs-target="#nav-ledger" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Ledger</button>
+
                 </div>
               </nav>
               <div class="tab-content" id="nav-tabContent">
@@ -151,8 +154,6 @@ use Illuminate\Support\Carbon;
                         </div>
                     </div>
                 </div>
-
-                
                 <div class="tab-pane fade" id="nav-reportTab" role="tabpanel" aria-labelledby="nav-report-tab">
                     <div class="row my-2">
                         
@@ -179,6 +180,32 @@ use Illuminate\Support\Carbon;
                                         @endforeach
                                         
                                         
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="nav-ledger" role="tabpanel" aria-labelledby="nav-ledger-tab">
+                    <div class="row my-2">
+                        <div class="col-md-12 mt-2 text-center">
+                            <div class="overflow">
+                                <table class="table table-custom shadow-sm bg-white" id="">
+                                    <thead>
+                                        <tr>
+                                            <th>Total In</th>
+                                            <th>Total Out</th>
+                                            <th>Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        
+                                        <tr>
+                                            <td>{{ $totalIN}}</td>
+                                            <td>{{ $totalOUT}}</td>
+                                            <td>{{ $totalIN-$totalOUT}}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

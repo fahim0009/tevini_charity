@@ -336,11 +336,33 @@ class TransactionController extends Controller
         }
 
 
+        $totalIN = Usertransaction::where([
+            ['t_type','=', 'Out'],
+            ['charity_id','=', $id],
+            ['status','=', '1']
+        ])->orderBy('id','DESC')->sum('amount');
+
+        $totalOUT= Transaction::where([
+            ['t_type','=', 'Out'],
+            ['charity_id','=', $id],
+            ['status','=', '1']
+        ])->orderBy('id','DESC')->sum('amount');
+
+        // $ledgers = DB::table('charities')
+        // ->join('usertransactions', 'charities.id', '=', 'usertransactions.charity_id')
+        // ->join('transactions', 'charities.id', '=', 'transactions.charity_id')
+        // ->select('transactions.amount as tranamount','transactions.t_type as trantype','transactions.t_id as trantid','usertransactions.t_id as utrantid','usertransactions.amount as utranamount')
+        // ->where('usertransactions.charity_id', $id)->get();
+
+ 
+
 
         return view('charity.transaction')
         ->with('intransactions',$intransactions)
         ->with('id',$id)
         ->with('reports',$reports)
+        ->with('totalIN',$totalIN)
+        ->with('totalOUT',$totalOUT)
         ->with('outtransactions',$outtransactions);
     }
 

@@ -25,9 +25,6 @@ class AdminController extends Controller
         $userdata->phone= $request->phone;
         $userdata->city= $request->city;
         $userdata->country= $request->country;
-        $userdata->postal_code= $request->postal_code;
-        $userdata->about= $request->about;
-        $userdata->address= $request->address;
 
         if ($userdata->save()) {
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Profile Updated Successfully.</b></div>";

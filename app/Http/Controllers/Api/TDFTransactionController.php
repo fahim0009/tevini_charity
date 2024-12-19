@@ -106,11 +106,12 @@ class TDFTransactionController extends Controller
             $transaction->note ="Transfer to TDF";
             $transaction->status =  1;
             $transaction->save();
+            
 
             
             $contactmail = ContactMail::where('id', 1)->first()->name;
             $array['name'] = auth()->user()->name;
-            $array['subject'] = 'Urgent request';
+            $array['subject'] = 'TDF transferred successfully.';
             $array['from'] = 'info@tevini.co.uk';
             $array['cc'] = $contactmail;
             $email = auth()->user()->email;

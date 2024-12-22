@@ -8,6 +8,10 @@
             <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">Complete Voucher</div>
         </div>
     </section>
+    
+    @if (isset($donor_id))
+        @include('inc.user_menue')
+    @endif
   <section class="">
     <div class="row  my-3 mx-0 ">
         <div class="col-md-12 ">

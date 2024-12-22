@@ -55,6 +55,7 @@
 
     
     <a href="{{ route('pendingvoucher', $donor_id) }}" class="{{ (request()->is('admin/pending-voucher')) ? 'actv' : '' }}">Pending Voucher </a>
+    <a href="{{ route('completevoucher', $donor_id) }}" class="{{ (request()->is('admin/complete-voucher')) ? 'actv' : '' }}">Complete Voucher </a>
     {{-- <a href=""> menu items </a>
     <a href=""> menu items </a>  --}}
 </section>

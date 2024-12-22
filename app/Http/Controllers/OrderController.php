@@ -619,12 +619,17 @@ class OrderController extends Controller
 
 
 
-    public function completeVoucher()
+    public function completeVoucher($id = null)
     {
-        $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->orderBy('id','DESC')->limit(1500)->get();
+        if ($id) {
+            $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC')->limit(1500)->get();
+        } else {
+            $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->orderBy('id','DESC')->limit(1500)->get();
+        }
+        
         // $cvouchers = Provoucher::where('status','=', '1')->orderBy('id','DESC')->get();
         return view('voucher.completevoucher')
-        ->with('cvouchers',$cvouchers);
+        ->with('cvouchers',$cvouchers)->with('donor_id',$id);
 
     }
 

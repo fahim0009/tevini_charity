@@ -637,14 +637,24 @@ class OrderController extends Controller
     }
 
 
-    public function pendingVoucher()
+    public function pendingVoucher($id = null)
     {
-        $cvouchers = Provoucher::where([
-            ['waiting', '=', 'No'],
-            ['status', '=', '0']
-        ])->orderBy('id','DESC')->get();
+        
+        if ($id) {
+            $cvouchers = Provoucher::where([
+                ['waiting', '=', 'No'],
+                ['status', '=', '0']
+            ])->where('user_id', $id)->orderBy('id','DESC')->get();
+        } else {
+            $cvouchers = Provoucher::where([
+                ['waiting', '=', 'No'],
+                ['status', '=', '0']
+            ])->orderBy('id','DESC')->get();
+        }
+        
+        
         return view('voucher.pendingvoucher')
-        ->with('cvouchers',$cvouchers);
+        ->with('cvouchers',$cvouchers)->with('donor_id',$id);
 
     }
 

@@ -7,6 +7,9 @@
             <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">Pending Voucher</div>
         </div>
     </section>
+    @if (isset($donor_id))
+        @include('inc.user_menue')
+    @endif
 <!-- Image loader -->
     <div id='loading' style='display:none ;'>
         <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />

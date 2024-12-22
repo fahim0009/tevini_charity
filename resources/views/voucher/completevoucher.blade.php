@@ -1,7 +1,8 @@
 @extends('layouts.admin')
 
 @section('content')
-
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -18,69 +19,33 @@
 
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
-                        <!--<div class="col-md-12 my-3">-->
-                        <!--   <div class="row">-->
-                        <!--    <div class="col-md-9">-->
-                        <!--        <form class="form-inline">-->
-                        <!--            <div class="row">-->
-                        <!--                <div class="col-md-5 d-flex align-items-center">-->
-                        <!--                    <div class="form-group d-flex mt-4">-->
-                        <!--                        <input class="form-control" type="search" placeholder="Search" aria-label="Search">-->
-                        <!--                        <button class="text-white btn-theme ml-1" type="submit">Search</button>-->
-                        <!--                      </div>-->
-                        <!--                </div>-->
-                        <!--                <div class="col-md-3">-->
-                        <!--                    <div class="form-group my-2">-->
-                        <!--                        <label for=""><small>Date From </small> </label>-->
-                        <!--                        <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">-->
-                        <!--                      </div>-->
-                        <!--                </div>-->
-                        <!--                <div class="col-md-3">-->
-                        <!--                    <div class="form-group my-2">-->
-                        <!--                        <label for=""><small>Date To </small> </label>-->
-                        <!--                        <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">-->
-                        <!--                      </div>-->
-                        <!--                </div>-->
-                        <!--            </div>-->
-                        <!--          </form>-->
-                        <!--    </div>-->
-                        <!--    <div class="col-md-3 d-flex align-items-center justify-content-center">-->
-                        <!--        <div>-->
-                        <!--            {{-- <button title="Download" class="my-2 btn btn-sm btn-info text-white">Download PDF</button>-->
-                        <!--            <button title="Download" class="my-2 btn btn-sm btn-secondary">Download excel</button> --}}-->
-                        <!--        </div>-->
-                        <!--    </div>-->
-                        <!--   </div>-->
-                        <!--</div>-->
+                        
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                <table class="table table-custom shadow-sm bg-white" id="example3">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
                                             <th>Charity</th>
                                             <th>Donor</th>
                                             <th>Cheque No</th>
-                                            {{-- <th>Voucher type</th> --}}
                                             <th>Note</th>
                                             <th>Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
 
-                                        @foreach ($cvouchers as $voucher)
-
+                                        {{-- @foreach ($cvouchers as $voucher)
                                         <tr>
                                                 <td>{{ $voucher->created_at->format('m/d/Y')}} </td>
                                                 <td>{{ $voucher->charity->name}} </td>
                                                 <td>{{ $voucher->user->name }}</td>
                                                 <td>{{ $voucher->cheque_no}}</td>
-                                                {{-- <td>{{ $voucher->voucher_type}}</td> --}}
+                                                <td>{{ $voucher->voucher_type}}</td>
                                                 <td>{{ $voucher->note}}</td>
                                                 <td>£{{ $voucher->amount}}</td>
-                                            
                                         </tr>
-                                        @endforeach
+                                        @endforeach --}}
 
 
                                     </tbody>
@@ -93,4 +58,40 @@
     </div>
   </section>
 </div>
+@endsection
+
+@section('script')
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            let id = $('#donor_id').val();
+            
+            $('#example3').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: "{{ route('completevoucher') }}",
+                    type: "GET",
+                    data: function (d) {
+                        d.id = id; // Add the ID as a parameter to the request
+                    }
+                },
+                pageLength: 100,
+                columns: [
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'charity', name: 'charity' },
+                    { data: 'user', name: 'user' },
+                    { data: 'cheque_no', name: 'cheque_no' },
+                    { data: 'note', name: 'note' },
+                    { data: 'amount', name: 'amount' }
+                ],
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ]
+            });
+        });
+    </script>
 @endsection

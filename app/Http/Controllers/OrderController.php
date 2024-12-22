@@ -27,7 +27,7 @@ use App\Mail\WaitingVoucherCancel;
 use App\Mail\WaitingvoucherReport;
 use App\Models\VoucherCart;
 use Auth;
-use Illuminate\Support\Facades\Auth as FacadesAuth;
+use Yajra\DataTables\Facades\DataTables;
 use PDF;
 
 use Illuminate\Support\Facades\Http;
@@ -619,17 +619,31 @@ class OrderController extends Controller
 
 
 
-    public function completeVoucher($id = null)
+    public function completeVoucher(Request $request, $id = null)
     {
-        if ($id) {
-            $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC')->limit(1500)->get();
-        } else {
-            $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->orderBy('id','DESC')->limit(1500)->get();
+        $id = $request->id; // Get the passed ID
+        if ($request->ajax()) {
+
+            if ($id) {
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC');
+            } else {
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->orderBy('id','DESC');
+            }
+
+            return DataTables::of($cvouchers)
+                ->addColumn('charity', function ($row) {
+                    return $row->charity_id ? $row->charity->name : 'N/A';
+                })
+                ->addColumn('user', function ($row) {
+                    return $row->user ? $row->user->name : 'N/A';
+                })
+                ->editColumn('created_at', function ($row) {
+                    return $row->created_at ? $row->created_at->format('m/d/Y'): 'N/A';
+                })
+                ->make(true);
         }
         
-        // $cvouchers = Provoucher::where('status','=', '1')->orderBy('id','DESC')->get();
-        return view('voucher.completevoucher')
-        ->with('cvouchers',$cvouchers)->with('donor_id',$id);
+        return view('voucher.completevoucher')->with('donor_id',$id);
 
     }
 

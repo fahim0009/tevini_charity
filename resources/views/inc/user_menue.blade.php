@@ -58,4 +58,5 @@
     <a href="{{ route('completevoucher', $donor_id) }}" class="{{ (request()->is('admin/complete-voucher')) ? 'actv' : '' }}">Complete Voucher </a>
     {{-- <a href=""> menu items </a>
     <a href=""> menu items </a>  --}}
+    <input type="hidden" id="donor_id" value="{{ $donor_id }}">
 </section>

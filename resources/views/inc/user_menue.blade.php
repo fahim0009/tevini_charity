@@ -49,6 +49,9 @@
     <a href="{{ route('donor.standingorder', $donor_id) }}" class="{{ (request()->is('admin/standing-order*')) ? 'actv' : '' }}"> Standing Order </a>
     <a href="{{ route('donor.orderhistory', $donor_id) }}" class="{{ (request()->is('admin/donor-order-history*')) ? 'actv' : '' }}"> Order Record </a>
     <a href="{{ route('donor.vorder', $donor_id) }}" class="{{ (request()->is('admin/donor-voucher-order*')) ? 'actv' : '' }}"> Voucher </a>
+    
+    <a href="{{ route('donor.vorderReport', $donor_id) }}" class="{{ (request()->is('admin/donor-voucher-report*')) ? 'actv' : '' }}"> Voucher Report </a>
+
     <a href="{{ route('donor.donation', $donor_id) }}" class="{{ (request()->is('admin/make-donation*')) ? 'actv' : '' }}"> Online Doantion </a>
     <a href="{{ route('donor.report', $donor_id) }}" class="{{ (request()->is('admin/donor-report*')) ? 'actv' : '' }}"> Report </a>
     <a href="{{ route('donor.topupreport', $donor_id) }}" class="{{ (request()->is('admin/donor-topup-report*')) ? 'actv' : '' }}">Topup Report </a>

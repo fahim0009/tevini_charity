@@ -105,6 +105,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
 
     Route::get('/donor-voucher-order/{id}', [OrderController::class, 'voucherinAdmin'])->name('donor.vorder');
+    Route::get('/donor-voucher-report/{id}', [OrderController::class, 'voucherReportinAdmin'])->name('donor.vorderReport');
     Route::post('/addvoucher', [OrderController::class, 'storeVoucher'])->name('voucher.store');
 
     Route::get('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview');

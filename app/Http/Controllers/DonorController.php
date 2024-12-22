@@ -334,6 +334,8 @@ class DonorController extends Controller
 
     }
 
+
+
     public function userTopReportinAdmin(Request $request, $id)
     {
         $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();

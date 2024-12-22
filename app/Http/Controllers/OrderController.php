@@ -90,6 +90,13 @@ class OrderController extends Controller
         ->with('donor_id',$id);
     }
 
+    public function voucherReportinAdmin($id)
+    {
+        $donor_id = $id;
+        $reports = Provoucher::where('user_id','=', $id)->get();
+        return view('voucher.donorvoucher',compact('reports','donor_id'));
+    }
+
     public function storeVoucher(Request $request)
     {
         $voucher_ids= $request->voucherIds;

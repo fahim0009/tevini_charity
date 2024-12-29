@@ -15,40 +15,7 @@
     
                     <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                         <div class="row my-2">
-                            {{-- <div class="col-md-12 my-3">
-                               <div class="row">
-                                <div class="col-md-9">
-                                    <form class="form-inline">
-                                        <div class="row">
-                                            <div class="col-md-5 d-flex align-items-center">
-                                                <div class="form-group d-flex mt-4">
-                                                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-                                                    <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                                  </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group my-2">
-                                                    <label for=""><small>Date From </small> </label>
-                                                    <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                                  </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group my-2">
-                                                    <label for=""><small>Date To </small> </label>
-                                                    <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                                  </div>
-                                            </div>
-                                        </div>
-                                      </form>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-center justify-content-center">
-                                    <div>
-                                        <button title="Download" class="my-2 btn btn-sm btn-info text-white">Download PDF</button>
-                                        <button title="Download" class="my-2 btn btn-sm btn-secondary">Download excel</button>
-                                    </div>
-                                </div>
-                               </div>
-                            </div> --}}
+                            
                             <div class="col-md-12 mt-2 text-center">
                                 <div class="overflow">
                                     <table class="table table-custom shadow-sm bg-white" id="example">
@@ -58,7 +25,7 @@
                                                 <th>Order Id</th>
                                                 <th>Amount</th>
                                                 <th>Status</th>
-                                                <!--<th>Action</th>-->
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -77,7 +44,11 @@
                                                     Cancel
                                                     @endif
                                                 </td>
-                                                <!--<td><a href="{{ route('singleorder',$order->id) }}"> <i class="fa fa-eye"></i></a></td>-->
+                                                <td>
+                                                    @if ($order->status == 0)
+                                                    <a href="{{ route('donor.vorderEdit',$order->id) }}"> <i class="fa fa-edit"></i></a>
+                                                    @endif
+                                                </td>
                                             </tr>
                                             @empty
                                             <tr>

@@ -90,10 +90,24 @@ class OrderController extends Controller
         ->with('donor_id',$id);
     }
 
+    public function voucherEditinAdmin($id)
+    {
+        $data = Order::with('orderhistories')->where('id', $id)->first();
+        $orderhistories = DB::table('order_histories')
+            ->where('order_id', $id)
+            ->select('voucher_id', DB::raw('SUM(number_voucher) as total_number_voucher'), DB::raw('SUM(amount) as total_amount'))
+            ->groupBy('voucher_id')
+            ->get();
+        
+        $donor_id = $data->user_id;
+        // dd($data);
+        return view('donor.voucherorderedit', compact('data','donor_id','orderhistories'));
+    }
+
     public function voucherReportinAdmin($id)
     {
         $donor_id = $id;
-        $reports = Provoucher::where('user_id','=', $id)->get();
+        $reports = Provoucher::where('user_id','=', $id)->orderby('id', 'DESC')->get();
         return view('voucher.donorvoucher',compact('reports','donor_id'));
     }
 
@@ -310,6 +324,256 @@ class OrderController extends Controller
              $message->from($array['from'], 'Tevini.co.uk');
              $message->to($email)->cc($array['cc'])->subject($array['subject']);
             });
+
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher order place successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+
+        }
+
+
+    }
+
+
+    public function updateVoucher(Request $request)
+    {
+        $orderId = $request->orderId;
+        $voucher_ids= $request->voucherIds;
+        $qtys = $request->qtys;
+        $prepaid_amount= 0;
+        $order_amount= 0;
+        $all_zero = true;
+
+        // update card balance
+        $oldOrder = Order::find($orderId);
+        if($prepaid_amount !=0){
+            $user = User::find($request->did);
+            $user->increment('balance',$oldOrder->amount);
+            $user->save();
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = $oldOrder->amount;
+                $comment = "Voucher Store";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+        }
+        // updatew card balance end
+
+            foreach($qtys as $key => $qty){
+             if($qty > Voucher::where('id',$voucher_ids[$key])->first()->stock){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>One or some vouchers stock limit exceeded.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+             }
+            }
+
+            foreach($qtys as $qty){
+                if($qty != '0')
+                    {
+                        $all_zero = false;
+                        break;
+                    }
+            }
+
+            if($all_zero == true){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You didn't select any voucher.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+            }
+
+            if($request->delivery == "false" && $request->collection == "false"){
+                $message ="<div class='alert alert-danger'>Please select delivery option.</div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+
+            if($request->delivery == "true"){
+                $delivery_opt = "Delivery";
+            }elseif($request->collection == "true"){
+                $delivery_opt = "Collection";
+            }else{
+                $delivery_opt = null;
+            }
+
+            foreach($voucher_ids as $key => $id){
+                $order_amount+= Voucher::where('id',$id)->first()->amount*$qtys[$key];
+
+                $p_amount =  Voucher::where('id',$id)->first()->amount;
+
+                if(Voucher::where('id',$id)->first()->type == "Prepaid"){
+                    $prepaid_amount += $p_amount*$qtys[$key];
+                }
+            }
+
+            
+
+
+            $u_bal = User::where('id',$request->did)->first()->balance;
+            $overdrawn = (User::where('id',$request->did)->first()->overdrawn_amount);
+            $limitChk = $u_bal + $overdrawn;
+
+            if ($prepaid_amount > 0) {
+                if($limitChk < $prepaid_amount ){
+                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Overdrawn limit exceed.</b></div>";
+                    return response()->json(['status'=> 303,'message'=>$message]);
+                    exit();
+                }
+            }
+            
+        $order = Order::find($orderId);
+        if ($delivery_opt = "Delivery") {
+            $order->amount = $prepaid_amount + $request->delivery_charge;
+            $order->delivery_charge = $request->delivery_charge;
+        } else {
+            $order->amount = $prepaid_amount;
+            $order->delivery_charge = 0;
+        }
+        if($request->delivery == "true"){
+            $order->delivery_option = "Delivery";
+        }elseif($request->collection == "true"){
+            $order->delivery_option = "Collection";
+        }else{
+            $order->delivery_option = null;
+        }
+        $order->notification = 1;
+        $order->status = 0;
+        if($order->save()){
+
+            foreach($order->orderhistories as $orderhistory){
+                $upVoucher = Voucher::where('id',$orderhistory->voucher_id)->first();
+                $upVoucher->increment('stock',$orderhistory->number_voucher);
+                $upVoucher->save();
+                $orderhistory->delete();
+            }
+            
+            $oldtrans = Usertransaction::where('order_id',$orderId)->update(['status' => 0]);
+
+            $ppc = 0;
+            foreach($voucher_ids as $key => $voucher_id)
+            {
+                if($qtys[$key] != "0"){
+
+                    if($qtys[$key] > "1"){
+
+                        for($x = 0; $x < $qtys[$key]; $x++)
+                        {
+                        $unique = time().rand(1,100);
+                        //order history
+                        $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $input['order_id'] = $order->id;
+                        $input['voucher_id'] = $voucher_id;
+                        $input['number_voucher'] = 1;
+                        $input['amount'] = $amount;
+                        $input['o_unq'] = $unique;
+                        $input['status'] = "0";
+                        OrderHistory::create($input);
+                        }
+
+                    }else{
+
+                        $unique = time().rand(1,100);
+
+                        //order history
+                        $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $input['order_id'] = $order->id;
+                        $input['voucher_id'] = $voucher_id;
+                        $input['number_voucher'] = $qtys[$key];
+                        $input['amount'] = $qtys[$key]*$amount;
+                        $input['o_unq'] = $unique;
+                        $input['status'] = "0";
+                        OrderHistory::create($input);
+                    }
+                    //voucher stock decrement
+                    $v = Voucher::find($voucher_id);
+                    $v->decrement('stock',$qtys[$key]);
+                    $v->save();
+
+                    //user transaction out if voucher is/are prepaid
+                    if(Voucher::where('id',$voucher_id)->first()->type == "Prepaid"){
+                        $utransaction = new Usertransaction();
+                        $utransaction->t_id = time() . "-" . $request->did;
+                        $utransaction->user_id = $request->did;
+                        $utransaction->t_type = "Out";
+                        $utransaction->amount =  $qtys[$key]*$amount;
+                        $utransaction->t_unq = $unique;
+                        $utransaction->order_id = $order->id;
+                        $utransaction->title ="Prepaid Voucher Book";
+                        $utransaction->status =  1;
+                        $utransaction->save();
+                        $ppc = $ppc + 1;
+                    }
+
+                }
+            }
+
+            if ($ppc > 0) {
+                if($request->delivery == "true"){
+                    if ($prepaid_amount < 200) {
+                        $udtransaction = new Usertransaction();
+                        $udtransaction->t_id = time() . "-" . $request->did;
+                        $udtransaction->user_id = $request->did;
+                        $udtransaction->t_type = "Out";
+                        $udtransaction->amount =  3.50;
+                        $udtransaction->t_unq = time().rand(1,100);
+                        $udtransaction->order_id = $order->id;
+                        $udtransaction->title ="Delivery Charge";
+                        $udtransaction->status =  1;
+                        $udtransaction->save();
+                    }
+                }
+            }
+            
+
+            if($prepaid_amount !=0){
+                $user = User::find($request->did);
+                $user->decrement('balance',$order->amount);
+                $user->save();
+
+                // card balance update
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 - $prepaid_amount - $request->delivery_charge;
+                    $comment = "Voucher Store";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+                // card balance update end
+            }
+            VoucherCart::where('user_id', Auth::user()->id)->delete();
+            $user = User::where('id',$request->did)->first();
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['subject'] = 'Voucher books order confirmation';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $array['name'] = $user->name;
+            $array['client_no'] = $user->accountno;
+            $email = $user->email;
+            $array['order_id'] = $order->id;
+            $array['delivery_option'] = $delivery_opt;
+
+
+            // Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
+            //  $message->from($array['from'], 'Tevini.co.uk');
+            //  $message->to($email)->cc($array['cc'])->subject($array['subject']);
+            // });
 
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher order place successfully.</b></div>";

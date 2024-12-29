@@ -18,4 +18,9 @@ class Order extends Model
     {
       return $this->hasOne('App\Models\OrderHistory');
     }
+
+    public function orderhistories()
+    {
+      return $this->hasMany('App\Models\OrderHistory');
+    }
 }

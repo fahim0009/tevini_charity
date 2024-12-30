@@ -83,6 +83,8 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::get('order-voucher-book', [OrderController::class, 'userOrderVoucherBook'])->name('user.orderbook');
     Route::post('order-voucher-book/cart/store', [OrderController::class, 'userOrderVoucherBookstoreCart'])->name('orderbook.cart.store');
     Route::get('order-history', [OrderController::class, 'userOrderview'])->name('user.orderhistory');
+    Route::get('voucher-order-edit/{id}', [OrderController::class, 'voucherEditByDonor'])->name('voucherBookEdit');
+    Route::post('donor-voucher-update', [OrderController::class, 'updateVoucher']);
 
     // voucher controller satart 
     Route::get('process-voucher', [VoucherController::class, 'processed_Voucher_show'])->name('user.process_voucher');

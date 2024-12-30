@@ -61,7 +61,7 @@ use Illuminate\Support\Carbon;
                                             <th>Order Id</th>
                                             <th>Amount</th>
                                             <th>Status</th>
-                                            <!--<th>Action</th>-->
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -80,7 +80,12 @@ use Illuminate\Support\Carbon;
                                                 Cancel
                                                 @endif
                                             </td>
-                                            <!--<td><a href="{{ route('singleorder',$order->id) }}"> <i class="fa fa-eye"></i></a></td>-->
+                                            <td>
+                                                @if ($order->status == 0)
+                                                <a href="{{ route('voucherBookEdit',$order->id) }}" class="btn-theme bg-secondary"> <i class="fa fa-edit"></i>Edit</a>
+                                                @endif
+                                                
+                                            </td>
                                         </tr>
                                         @empty
                                         <tr>

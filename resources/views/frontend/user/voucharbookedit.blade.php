@@ -115,21 +115,26 @@ body {
                                         </tr>
                                          --}}
 
-                                        @foreach ($cart as $item)
+                                        @foreach ($orderhistories as $key => $item)
 
                                         @php
+                                            // // Find the corresponding grouped data by voucher_id
+                                            // $match = $item->firstWhere('voucher_id', $voucher->id);
+                                            // $amount = $match ? $match->total_amount : 0; // Default to 0 if not found
+                                            // $oldvqty = $match ? $match->total_number_voucher : 0; // Default to 0 if not found
+                                            
                                             $cartVoucher = \App\Models\Voucher::where('id', $item->voucher_id)->first();
                                         @endphp
 
                                         <tr class="item-row"> 
-                                            <td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cartid="{{ $item->id }}" data-cart-index="{{ $loop->index }}" class="remove-from-cart">X</div>
+                                            <td width="40px"> <div style="color: white; user-select:none; padding: 2px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 8px;" data-cart-index="{{ $loop->index }}" class="remove-from-cart">X</div>
                                             </td>
                                             <td width="250px"> 
                                                 <div class="title">
                                                     
                                                     <input type="hidden" value="{{ $item->voucher_id }}" name="v_ids[]">
                                                     @if ($cartVoucher->type == 'Prepaid') 
-                                                    <input type="hidden" class="total" id="sub{{ $item->voucher_id }}" value="{{ $item->tamount }}">
+                                                    <input type="hidden" class="total" id="sub{{ $item->voucher_id }}" value="{{ $item->total_amount }}">
                                                     @else 
                                                     <input type="hidden" class="total" value="">
                                                     @endif
@@ -142,10 +147,10 @@ body {
                                                 <span class="bottom-data"> {{$cartVoucher->note}} @if ($cartVoucher->type == 'Prepaid') = £{{ $cartVoucher->amount  }} @endif</span>
                                             </td>
 
-                                            <td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="{{$item->qty}}"  v_amount="{{ $item->tamount }}" v_type="{{ $cartVoucher->type }}" data-type="{{ $cartVoucher->type }}" vid="{{$item->voucher_id}}"  id="cartValue{{$item->voucher_id}}"> </td>
+                                            <td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="{{$item->total_number_voucher}}"  v_amount="{{ $item->total_amount }}" v_type="{{ $cartVoucher->type }}" data-type="{{ $cartVoucher->type }}" vid="{{$item->voucher_id}}"  id="cartValue{{$item->voucher_id}}"> </td>
                                             
                                             
-                                            <td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal{{$item->voucher_id}}" @if ($cartVoucher->type == 'Prepaid') value="{{ $item->tamount }}" @else value="" @endif readonly> </td>
+                                            <td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal{{$item->voucher_id}}" @if ($cartVoucher->type == 'Prepaid') value="{{ $item->total_amount }}" @else value="" @endif readonly> </td>
 
                                         </tr>
 
@@ -242,6 +247,7 @@ body {
                                     <input style="max-width:136px" type="text" id="net_total" value="" class="rounded text-center mx-3 form-control fw-bold border-0" placeholder="£0.00">
                                     <input type="hidden" value="{{auth()->user()->id}}" id="donner_id">
                                     <button class="btn-theme bg-primary text-white" id="addvoucher" type="button">Place order</button>
+                                    <input type="number" id="orderId" value="{{$data->id}}" hidden>
                                     {{-- <a href="#" class="btn-theme bg-primary text-white">Place order</a> --}}
                                 </div>
                             </div>
@@ -277,7 +283,7 @@ body {
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
         //
 
-         var url = "{{URL::to('/user/addvoucher')}}";
+         var url = "{{URL::to('/user/donor-voucher-update')}}";
 
 
         $("#addvoucher").click(function(){
@@ -297,6 +303,7 @@ body {
             var net_total = $("#net_total").val();
             var delivery = $('#delivery').prop('checked');
             var collection = $('#collection').prop('checked');
+            var orderId = $("#orderId").val();
             
             var del = document.getElementById("delivery");
             var col = document.getElementById("collection");
@@ -315,7 +322,7 @@ body {
                 $.ajax({
                     url: url,
                     method: "POST",
-                    data: {voucherIds,qtys,did,delivery,collection,delivery_charge},
+                    data: {voucherIds,qtys,did,delivery,collection,delivery_charge,orderId,net_total},
 
                     success: function (d) {
                         if (d.status == 303) {
@@ -484,47 +491,6 @@ body {
 
             console.log(single_amount);
 
-            // var cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-            // var existingItem = cart.find(function(item) {
-            //     return item.v_amount === v_amount && 
-            //            item.voucherID === voucherID && 
-            //            item.v_type === v_type && 
-            //            item.v_note === v_note && 
-            //            item.single_amount === single_amount;
-            // });
-
-            // if (existingItem) {
-            //     existingItem.quantity += quantity;
-            //     // alert("work");
-            //     $('#cartValue'+voucherID).val(existingItem.quantity);
-            //     $('#vtotal'+voucherID).val(existingItem.quantity * v_amount);
-            //     $('#sub'+voucherID).val(existingItem.quantity * v_amount);
-                
-            //     $.ajax({
-            //         url: "{{ route('orderbook.cart.store') }}",
-            //         method: "PUT",
-            //         data: {
-            //             _token: "{{ csrf_token() }}",
-            //             cart: JSON.stringify(cartlist)
-            //         },
-            //         success: function() {
-            //             console.log('success2')
-            //         }
-            //     });
-            //     return;
-            // } else {
-            //     var cartItem = {
-            //         v_amount: v_amount,
-            //         voucherID: voucherID,
-            //         v_type: v_type,
-            //         v_note: v_note,
-            //         single_amount: single_amount,
-            //         quantity: quantity
-            //     };
-            //     cart.push(cartItem);
-            // }
-
             var v_ids = $("input[name='v_ids[]']")
                         .map(function(){return $(this).val();}).get();
                         
@@ -542,11 +508,6 @@ body {
                     $('[type="checkbox"]').prop('checked', false);
                     return;
                 }
-
-
-
-
-                
 
             $.ajax({
                 url: "{{ route('orderbook.cart.store') }}",

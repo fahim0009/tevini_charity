@@ -84,6 +84,22 @@ class OrderController extends Controller
         return view('voucher.index', compact('voucher'));
     }
 
+    public function voucherEditByDonor($id)
+    {
+        $data = Order::with('orderhistories')->where('id', $id)->first();
+        
+        $orderhistories = DB::table('order_histories')
+            ->where('order_id', $id)
+            ->select('voucher_id', DB::raw('SUM(number_voucher) as total_number_voucher'), DB::raw('SUM(amount) as total_amount'))
+            ->groupBy('voucher_id')
+            ->get();
+        
+        // dd($orderhistories);
+        $cart = VoucherCart::where('user_id', Auth::user()->id)->get();
+        return view('frontend.user.voucharbookedit', compact('data','cart','orderhistories'));
+    }
+
+
     public function voucherinAdmin($id)
     {
         return view('donor.voucherorder')
@@ -570,10 +586,10 @@ class OrderController extends Controller
             $array['delivery_option'] = $delivery_opt;
 
 
-            // Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
-            //  $message->from($array['from'], 'Tevini.co.uk');
-            //  $message->to($email)->cc($array['cc'])->subject($array['subject']);
-            // });
+            Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
+             $message->from($array['from'], 'Tevini.co.uk');
+             $message->to($email)->cc($array['cc'])->subject($array['subject']);
+            });
 
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher order place successfully.</b></div>";

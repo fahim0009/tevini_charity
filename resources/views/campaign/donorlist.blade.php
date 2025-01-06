@@ -36,9 +36,9 @@
                                 @forelse ($data as $key => $item)
                                     <tr>
                                         <td>{{$item->created_at->format('d/m/Y') }}</td>
-                                        <td>{{$item->user->name}}</td>
-                                        @if (isset($item->campaign_title))
-                                        <td>{{$item->campaign->campaign_title}}</td>
+                                        <td>{{$item->user->name ?? " "}}</td>
+                                        @if (isset($item->campaign_id))
+                                        <td>{{$item->campaign->campaign_title ?? " "}}</td>
                                         @else
                                         <td></td>
                                         @endif

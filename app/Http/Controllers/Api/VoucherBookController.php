@@ -321,6 +321,7 @@ class VoucherBookController extends Controller
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->waiting = "No";
             $pstatus->status = 1;
+            $pstatus->completed_date = date('Y-m-d');
             $pstatus->save();
 
             }else {

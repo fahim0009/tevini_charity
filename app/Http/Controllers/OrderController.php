@@ -912,9 +912,9 @@ class OrderController extends Controller
         if ($request->ajax()) {
 
             if ($id) {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC');
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC');
             } else {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no')->where('status','=', '1')->orderBy('id','DESC');
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->orderBy('id','DESC');
             }
 
             return DataTables::of($cvouchers)
@@ -926,6 +926,9 @@ class OrderController extends Controller
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at ? $row->created_at->format('m/d/Y'): 'N/A';
+                })
+                ->editColumn('completed_date', function ($row) {
+                    return $row->completed_date ? $row->completed_date->format('m/d/Y'): '';
                 })
                 ->make(true);
         }
@@ -1199,6 +1202,7 @@ class OrderController extends Controller
 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->status = 1;
+            $pstatus->completed_date = date('Y-m-d');
             $pstatus->save();
         }
 
@@ -1363,6 +1367,7 @@ class OrderController extends Controller
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->waiting = "No";
             $pstatus->status = 1;
+            $pstatus->completed_date = date('Y-m-d');
             $pstatus->save();
 
             }else {

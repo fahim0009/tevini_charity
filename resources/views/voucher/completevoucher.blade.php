@@ -26,6 +26,7 @@
                                     <thead>
                                         <tr>
                                             <th>Date</th>
+                                            <th>Completed Date</th>
                                             <th>Charity</th>
                                             <th>Donor</th>
                                             <th>Cheque No</th>
@@ -82,6 +83,7 @@
                 pageLength: 100,
                 columns: [
                     { data: 'created_at', name: 'created_at' },
+                    { data: 'completed_date', name: 'completed_date' },
                     { data: 'charity', name: 'charity' },
                     { data: 'user', name: 'user' },
                     { data: 'cheque_no', name: 'cheque_no' },

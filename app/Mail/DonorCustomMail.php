@@ -30,7 +30,7 @@ class DonorCustomMail extends Mailable
     public function build()
      {
         return $this->view($this->array['view'])
-                     ->from($this->array['from'],'TEST')
+                     ->from($this->array['from'], $this->array['subject'])
                      ->subject($this->array['subject']);
      }
 }

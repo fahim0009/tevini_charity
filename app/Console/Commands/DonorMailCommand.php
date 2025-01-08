@@ -12,7 +12,7 @@ class DonorMailCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue:listen';
+    protected $signature = 'queue:work';
 
     /**
      * The console command description.

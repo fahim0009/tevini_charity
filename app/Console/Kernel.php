@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('donation:deduct-standing')->daily();
-        $schedule->command('queue:listen')->everyMinute();
+        $schedule->command('queue:work')->everyFiveMinutes();
     }
 
     /**

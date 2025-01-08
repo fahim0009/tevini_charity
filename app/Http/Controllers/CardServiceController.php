@@ -665,7 +665,6 @@ class CardServiceController extends Controller
                 }
             } else {
                 if ($cardsts->Status == "NORMAL" || $cardsts->Status == "REORDERED" || $cardsts->Status == "ORDERED") {
-                    // dd('test2');
                     if ($ldate < $updated_at) {
                         $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
                         $order = CardOrder::where('user_id', Auth::user()->id)->orderby('id', 'DESC')->first();
@@ -675,7 +674,6 @@ class CardServiceController extends Controller
                         return view('frontend.user.card.ordercard', compact('CardHolderData'));
                     }
                 } else {
-                    // dd('test');
                     $CardHolderData = CardHolder::where('user_id', Auth::user()->id)->first();
                     return view('frontend.user.card.ordercard', compact('CardHolderData'));
                 }

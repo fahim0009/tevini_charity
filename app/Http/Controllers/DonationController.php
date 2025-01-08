@@ -612,7 +612,7 @@ class DonationController extends Controller
                                     $CreditProfileId = $user->CreditProfileId;
                                     $CreditProfileName = $user->name;
                                     $AvailableBalance = 0 - $activestand_order->amount;
-                                    $comment = "std test";
+                                    $comment = "Standing order donation";
                                     $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                                         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
                                             'CreditProfileId' => $CreditProfileId,
@@ -665,7 +665,7 @@ class DonationController extends Controller
                             $CreditProfileId = $user->CreditProfileId;
                             $CreditProfileName = $user->name;
                             $AvailableBalance = 0 - $activestand_order->amount;
-                            $comment = "std test";
+                            $comment = "Standing order donation";
                             $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                                 ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
                                     'CreditProfileId' => $CreditProfileId,

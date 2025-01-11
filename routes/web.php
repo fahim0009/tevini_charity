@@ -56,6 +56,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('changepassword', [UserController::class, 'changeUserPassword']);
     Route::put('image/{id}', [UserController::class, 'userImageUpload']);
     Route::post('profile', [UserController::class, 'updateprofile'])->name('user.update');
+    Route::post('profile-delete-request', [UserController::class, 'profileDeleteRequest'])->name('account.deleteRequest');
     // profile end
 
 

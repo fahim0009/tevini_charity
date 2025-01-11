@@ -36,15 +36,6 @@
                     </div>
                     
                     <div class="col-lg-9"> 
-
-
-
-
-
-                        
-
-
-                        
                         <div class="row mt-4">
 
                             <div class="col-lg-6">
@@ -190,6 +181,46 @@
         </div>
     </div>
 </section> 
+
+
+<section class="additional-info py-4">
+    <div class="container">
+        <div class="row">
+            <div class="pagetitle pb-2">
+                Account Delete Request
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-lg-10 mx-auto">
+                <p class="mb-4 text-danger">If you want to delete your account, please submit a request. We will review your request and delete your account.</p>
+                @if(session()->has('status') && session()->get('status') == 303)
+                <section class="px-4">
+                    <div class="row my-3">
+                        <div class="alert alert-info" id="statusMessage">{{ session()->get('message') }}</div>
+                    </div>
+                </section>
+                @endif
+                <form action="{{route('account.deleteRequest')}}" method="POST">
+                    @csrf
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="form-group mb-3">
+                                <label for="note">Note</label>
+                                
+                                <textarea class="form-control" id="note" name="note" placeholder="Enter your note"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group mt-4">
+                                <button class="btn-theme bg-primary" type="submit">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
 
 
 

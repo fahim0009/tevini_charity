@@ -16,7 +16,9 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Date;
 use App\Mail\TDFTransfer;
+use App\Models\AccDelRequest;
 use App\Models\ContactMail;
 
 class UserController extends Controller
@@ -436,5 +438,19 @@ class UserController extends Controller
         $data = TdfTransaction::where('user_id', Auth::user()->id)->orderBy('id','DESC')->get();
         return view('frontend.user.transfertotdf')->with('data',$data);
 
+    }
+
+    public function profileDeleteRequest(Request $request)
+    {
+        $data = new AccDelRequest();
+        $data->user_id = Auth::id();
+        $data->date = Date::now()->format('Y-m-d');
+        $data->note = $request->note;
+        if ($data->save()) {
+            $message = "Account deletion request submitted successfully.";
+            return redirect()->route('user.profile')->with(['status' => 303, 'message' => $message]);
+        } else {
+            return back()->with(['status' => 303, 'message' => 'Server Error!!']);
+        }
     }
 }

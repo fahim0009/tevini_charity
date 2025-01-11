@@ -85,7 +85,10 @@
                                                 @endif
                                             </td>
                                             <td><a href="{{ route('barcode',$order->id) }}"> <i class="fa fa-eye"></i></a></td>
-                                            <td><a href="{{ route('singleorder',$order->id) }}"> <i class="fa fa-eye"></i></a></td>
+                                            <td>
+                                                <a href="{{ route('singleorder',$order->id) }}"> <i class="fa fa-eye"></i></a>
+                                                <a href="{{ route('donor.vorderEdit',$order->id) }}"> <i class="fa fa-edit"></i></a>
+                                            </td>
                                         </tr>
                                         @empty
                                         <tr>

@@ -293,8 +293,9 @@ class DonorController extends Controller
         $user = User::where('id',$transaction->user_id)->first();
         
         $balance = $transaction->amount;
+        $commission = $transaction->commission ?? 0;
         $source = $transaction->source;
-        return view('donor.topupreportshow', compact('balance','source','user'));
+        return view('donor.topupreportshow', compact('balance','source','user','commission','transaction'));
     }
 
 
@@ -432,6 +433,64 @@ class DonorController extends Controller
             $array['userbalance'] =  $userTransactionBalance->balance;
             $array['view'] = 'mail.donorreport';
             $array['subject'] = 'Monthly statement';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['content'] = 'Hi, Your donation report has been placed';
+            $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
+            $array['file_name'] = 'Report#'.$id.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$id;
+
+            Mail::to($user->email)->queue(new DonerReport($array));
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+
+
+    }
+
+
+    public function userTopupReportMailinAdmin(Request $request)
+    {
+            $id = $request->user_id;
+            $tranid = $request->transaction_id;
+            $tamount = Usertransaction::where('id','=', $tranid)->where('status','=', '1')->orderBy('id','DESC')->get();
+            
+            $report = Usertransaction::where([
+                    ['id','=', $tranid],
+                    ['status','=', '1']
+                ])->orwhere([
+                   ['id','=', $tranid],
+                   ['pending','=', '0']
+                   ])->orderBy('id','DESC')->get();
+
+
+            $fromDate = "";
+            $toDate   = "";
+
+            $user = User::find($id);
+            // donor balance
+            $userTransactionBalance = Usertransaction::selectRaw('
+                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                    SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+                ')
+                ->where([
+                    ['id','=', $tranid],
+                    ['status','=', '1']
+                ])->orwhere([
+                    ['id','=',  $tranid],
+                    ['pending','=', '1']
+                ])
+                ->first();
+            // donor balance end
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $array['cc'] = $contactmail;
+            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
+            $array['name'] = $user->name;
+            $array['userbalance'] =  $userTransactionBalance->balance;
+            $array['view'] = 'mail.donorreport';
+            $array['subject'] = 'Donation Report';
             $array['from'] = 'info@tevini.co.uk';
             $array['content'] = 'Hi, Your donation report has been placed';
             $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';

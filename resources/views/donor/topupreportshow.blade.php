@@ -74,96 +74,179 @@
 }
  
 </style>
-<div class="wrapper">
 
-    <div class="heading">
-        <div class="title">
-            Donation receipt
+<section class="profile purchase-status no-print">
+    <div class="title-section">
+        <span class="iconify" data-icon="et:wallet"></span>
+        <div class="mx-2">
+          Donation Report
         </div>
-        <div class="subHead">
-            <div class="left">
-                Tevini Limited <br>
-                Registered charity no. 282079 <br>
-                5A Holmdale Terrace<br>
-                N156PP
+    </div>
+</section>
 
-            </div>
-            <div class="right">
-                Date: <b>@php echo date('d-m-Y'); @endphp</b> <br>
-                Receipt <b>#@php echo(rand(100,999));  @endphp</b>
+        <!-- Image loader -->
+        <div id='loading' style='display:none ;'>
+            <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+       </div>
+       <!-- Image loader -->
+       <div class="ermsg"></div>
 
-            </div>
+<section>
+    <div class="row no-print">
+        <div class="col-12">
+            <button onclick="window.print()" class="fa fa-print btn btn-default float-end">Print</button>
         </div>
-        <p class="donated">
-           <b> Donation By:</b>
-        </p>
     </div>
 
-    <div class="tableData">
-        <table>
-           <thead>
-            <tr>
-                <th>Date</th>
-                <th></th>
-                <th></th>
-                <th>Donation type</th>
-                <th></th>
-                <th></th>
-                <th>Total</th>
-            </tr>
-           </thead>
-           <tbody>
-            <tr>
-                <td>@php echo date('d-m-Y'); @endphp</td>
-                <td></td>
-                <td></td>
-                <td>{{$source}}</td>
-                <td></td>
-                <td></td>
-                <td>£{{$balance}}</td>
-            </tr>
-            <tr> 
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td><b>Total</b></td>
-                <td><b>£{{$balance}}</b></td>
-            </tr>
-           </tbody>
-        </table>
+    <div class="row my-3">
+        <div class="col-md-8 mt-2 mx-auto">
+
+            <div class="text-start mb-4 px-2 no-print">
+
+            <p class="mb-1" id="charityname">{{$user->name}}</p>
+            <p class="mb-1" id="charityaddress">{{$user->street}}</p>
+            <p class="mb-1" id="charityaddress">{{$user->town}}</p>
+
+            </div>
+
+            <div class="d-flex justify-content-between no-print align-items-center flex-wrap">
+
+            <div class="text-start mb-1 flex-fill">
+               <div  class="d-flex justify-content-around align-items-center flex-wrap">
+                @csrf
+
+                <input type="hidden" name="user_id" id="user_id" value="{{$user->id}}">
+                <input type="hidden" name="transaction_id" id="transaction_id" value="{{$transaction->id}}">
+                <div class="form-group my-2 mx-1 flex-fill">
+                <label for=""><small>Donor Mail</small> </label>
+                <input class="form-control mr-sm-2 no-print" type="text" value="{{$user->email}}" readonly>
+                </div>
+                <div class="form-group my-2 mx-1 flex-fill">
+            <button class="text-white btn-theme no-print ml-1 mt-4" id="sendMail"  class="btn" >Send Mail</button>
+                </div>
+               </div>
+            </div>
+            </div>
+        </div>
     </div>
 
-</div>
+
+    <div class="wrapper">
+
+        <div class="heading">
+            <div class="title">
+                Donation receipt
+            </div>
+            <div class="subHead">
+                <div class="left">
+                    Tevini Limited <br>
+                    Registered charity no. 282079 <br>
+                    5A Holmdale Terrace<br>
+                    N156PP
+    
+                </div>
+                <div class="right">
+                    Date: <b>@php echo date('d-m-Y'); @endphp</b> <br>
+                    Receipt <b>#@php echo(rand(100,999));  @endphp</b>
+    
+                </div>
+            </div>
+            <p class="donated">
+               <b> Donation By: {{$user->name}}</b>
+            </p>
+        </div>
+    
+        <div class="tableData">
+            <table>
+               <thead>
+                <tr>
+                    <th>Date</th>
+                    <th></th>
+                    <th></th>
+                    <th>Donation type</th>
+                    <th></th>
+                    <th></th>
+                    <th>Total</th>
+                </tr>
+               </thead>
+               <tbody>
+                <tr>
+                    <td>@php echo date('d-m-Y'); @endphp</td>
+                    <td></td>
+                    <td></td>
+                    <td>{{$source}}</td>
+                    <td></td>
+                    <td></td>
+                    <td>£{{$balance+$commission}}</td>
+                </tr>
+                <tr> 
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><b>Total</b></td>
+                    <td><b>£{{$balance+$commission}}</b></td>
+                </tr>
+               </tbody>
+            </table>
+        </div>
+    
+    </div>
+</section>
+
+
 
 @endsection
+
 
 @section('script')
-    
+<script type="text/javascript">
+$(document).ready(function() {
+
+
+//header for csrf-token is must in laravel
+$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+//
+
+var url = "{{URL::to('/admin/donor-topup-report-mail')}}";
+
+
+    $("#sendMail").click(function(){
+
+        $("#loading").show();
+
+        var user_id = $("#user_id").val();
+        var transaction_id = $("#transaction_id").val();
+
+            $.ajax({
+                url: url,
+                method: "POST",
+                data: {user_id,transaction_id},
+
+                success: function (d) {
+                    if (d.status == 303) {
+                        $(".ermsg").html(d.message);
+                        pagetop();
+                    }else if(d.status == 300){
+                        $(".ermsg").html(d.message);
+                        pagetop();
+                    }
+                },
+                complete:function(d){
+                            $("#loading").hide();
+                        },
+                error: function (d) {
+                    console.log(d);
+                }
+            });
+
+    });
+
+});
+</script>
 @endsection
 
 
 
 
-
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>voucher</title>
-   <style>
-
- 
-   </style>
-</head>
-
-<body>
-
-
-
-</body>
-
-</html>

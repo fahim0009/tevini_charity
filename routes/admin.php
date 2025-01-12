@@ -98,6 +98,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/donor-topup-report-show/{id}', [DonorController::class, 'userTopReportShowinAdmin'])->name('topup.reportShow');
     Route::post('/donor-report/{id}', [DonorController::class, 'userReportinAdmin'])->name('donor.reportsearch');;
     Route::post('/donor-report-mail', [DonorController::class, 'userReportMailinAdmin'])->name('donor.reportmail');
+    Route::post('/donor-topup-report-mail', [DonorController::class, 'userTopupReportMailinAdmin'])->name('donor.topupreportmail');
     Route::post('/reportall', [DonorController::class, 'multiUserreport'])->name('muliti.report');
     Route::get('/make-donation/{id}', [DonorController::class, 'userDonationAdmin'])->name('donor.donation');
     Route::post('/make-donation', [DonorController::class, 'userDonationAdminStore'])->name('donor.dnstore');

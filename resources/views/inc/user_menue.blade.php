@@ -54,7 +54,7 @@
 
     <a href="{{ route('donor.donation', $donor_id) }}" class="{{ (request()->is('admin/make-donation*')) ? 'actv' : '' }}"> Online Doantion </a>
     <a href="{{ route('donor.report', $donor_id) }}" class="{{ (request()->is('admin/donor-report*')) ? 'actv' : '' }}"> Report </a>
-    <a href="{{ route('donor.topupreport', $donor_id) }}" class="{{ (request()->is('admin/donor-topup-report*')) ? 'actv' : '' }}">Donation Report </a>
+    <a href="{{ route('donor.topupreport', $donor_id) }}" class="{{ (request()->is('admin/donor-topup-report*')) ? 'actv' : '' }}">Donation Receipt </a>
 
     
     <a href="{{ route('pendingvoucher', $donor_id) }}" class="{{ (request()->is('admin/pending-voucher')) ? 'actv' : '' }}">Pending Voucher </a>

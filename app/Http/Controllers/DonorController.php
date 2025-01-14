@@ -451,59 +451,37 @@ class DonorController extends Controller
 
     public function userTopupReportMailinAdmin(Request $request)
     {
-            $id = $request->user_id;
+        
             $tranid = $request->transaction_id;
-            $tamount = Usertransaction::where('id','=', $tranid)->where('status','=', '1')->orderBy('id','DESC')->get();
-            
-            $report = Usertransaction::where([
-                    ['id','=', $tranid],
-                    ['status','=', '1']
-                ])->orwhere([
-                   ['id','=', $tranid],
-                   ['pending','=', '0']
-                   ])->orderBy('id','DESC')->get();
-
-
-            $fromDate = "";
-            $toDate   = "";
-
-            $user = User::find($id);
-            // donor balance
-            $userTransactionBalance = Usertransaction::selectRaw('
-                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                    SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                ')
-                ->where([
-                    ['id','=', $tranid],
-                    ['status','=', '1']
-                ])->orwhere([
-                    ['id','=',  $tranid],
-                    ['pending','=', '1']
-                ])
-                ->first();
-            // donor balance end
-
+            $trandata = Usertransaction::where('id','=', $tranid)->first();
+            $user = User::where('id',$request->user_id)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
-            $array['cc'] = $contactmail;
-            $pdf = PDF::loadView('invoices.topup_report', compact('report','fromDate','toDate','user','tamount'));
-            $output = $pdf->output();
-            file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
-            $array['name'] = $user->name;
-            $array['userbalance'] =  number_format($userTransactionBalance->balance, 2);
-            $array['view'] = 'mail.donorreport';
-            $array['subject'] = 'Donation Report';
-            $array['from'] = 'info@tevini.co.uk';
-            $array['content'] = 'Hi, Your donation report has been placed';
-            $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
-            $array['file_name'] = 'Report#'.$id.'.pdf';
-            $array['subjectsingle'] = 'Report Placed - '.$id;
 
-            Mail::to($user->email)->queue(new DonerReport($array));
+                $balance = $trandata->amount + $trandata->commission;
+                $source = $trandata->source;
+                $donationBy = $trandata->donation_by;
+                $title = "DONATION RECEIPT";
+                $pdf = PDF::loadView('invoices.topup_report', compact('balance','source','user','donationBy','title'));
+                $output = $pdf->output();
+                file_put_contents(public_path().'/invoices/'.'Donation-report#'.$user->id.'.pdf', $output);
+                $array['file'] = public_path().'/invoices/Donation-report#'.$user->id.'.pdf';
+                $array['file_name'] = 'Donation-report#'.$user->id.'.pdf';
+                $array['cc'] = $contactmail;
+                $array['name'] = $user->name;
+                $array['email'] = $user->email;
+                $array['phone'] = $user->phone;
+                $email = $user->email;
+                $array['balance'] = $request->balance;
+                $array['gbalance'] = $request->gbalance;
+                $array['commission'] = $request->commission;
+                $array['source'] = $request->source;
 
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
+                Mail::to($email)
+                ->cc($contactmail)
+                ->send(new TopupReport($array));
 
-
+                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Balance added successfully & receipt sent to donor mail.</b></div>";
+                return response()->json(['status'=> 300,'message'=>$message]);
     }
 
     // report to multiple donor

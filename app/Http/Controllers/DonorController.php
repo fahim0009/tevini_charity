@@ -223,6 +223,7 @@ class DonorController extends Controller
             $utransaction->commission = $request->commission;
             $utransaction->amount = $request->balance;
             $utransaction->note = $request->note;
+            $utransaction->donation_by = $request->donationBy;
             if($request->gift == "true"){
             $utransaction->gift =  1;
             }

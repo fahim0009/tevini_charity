@@ -152,7 +152,7 @@
                 </div>
             </div>
             <p class="donated">
-               <b> Donation By: {{$user->name}}</b>
+               <b> Donation By: {{$transaction->donation_by ?? " "}}</b>
             </p>
         </div>
     

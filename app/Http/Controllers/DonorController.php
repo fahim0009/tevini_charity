@@ -485,7 +485,7 @@ class DonorController extends Controller
 
             $contactmail = ContactMail::where('id', 1)->first()->name;
             $array['cc'] = $contactmail;
-            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+            $pdf = PDF::loadView('invoices.topup_report', compact('report','fromDate','toDate','user','tamount'));
             $output = $pdf->output();
             file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
             $array['name'] = $user->name;

@@ -57,7 +57,7 @@ Route::post('/email/resend-verification', function (Request $request) {
 
     $user->sendEmailVerificationNotification();
 
-    return redirect()->back()->with('message', 'Verification email sent!');
+    return redirect()->back()->with('message', 'Please check your email. we have send a link to confirm your email!');
 })->middleware(['auth'])->name('verification.resend');
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {

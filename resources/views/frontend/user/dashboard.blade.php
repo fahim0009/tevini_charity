@@ -40,7 +40,9 @@ use Illuminate\Support\Carbon;
   @if (!auth()->user()->hasVerifiedEmail())
 
     <div class="alert alert-warning">
-        <strong>Warning!</strong> You have not verified your email yet. Please verify quickly. Click <a href="{{ route('verification.resend') }}" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">here</a> to verify your email.
+        <strong>Warning!</strong> Is Your Email Up to Date?
+        <br>  <a href="{{ route('verification.resend') }}" class="btn-theme bg-secondary" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">Yes</a>
+        <a href="{{ route('verification.resend') }}" class="btn-theme bg-danger" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">No</a> <br> – Please update your current active email address
         </div>
 
         <form method="POST" action="{{ route('verification.resend') }}" id="verifyBtn" style="display: none;">

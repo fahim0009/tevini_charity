@@ -1,7 +1,9 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\HomepageController;
@@ -46,6 +48,22 @@ Route::get('/clear', function() {
 // use mobile app
 Route::get('app-version', [AboutController::class, 'appVersion']);
  
+Route::post('/email/resend-verification', function (Request $request) {
+    $user = Auth::user();
+
+    if ($user->hasVerifiedEmail()) {
+        return redirect()->back()->with('message', 'Your email is already verified.');
+    }
+
+    $user->sendEmailVerificationNotification();
+
+    return redirect()->back()->with('message', 'Verification email sent!');
+})->middleware(['auth'])->name('verification.resend');
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('/home'); // Or wherever you want to redirect after verification
+})->middleware(['auth', 'signed'])->name('verification.verify');
 
 // user part start
 Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function(){

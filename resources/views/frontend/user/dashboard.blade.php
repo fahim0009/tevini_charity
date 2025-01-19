@@ -36,6 +36,29 @@ use Illuminate\Support\Carbon;
 <!-- Image loader -->
 
 
+
+  @if (!auth()->user()->hasVerifiedEmail())
+
+    <div class="alert alert-warning">
+        <strong>Warning!</strong> You have not verified your email yet. Please verify quickly. Click <a href="{{ route('verification.resend') }}" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">here</a> to verify your email.
+        </div>
+
+        <form method="POST" action="{{ route('verification.resend') }}" id="verifyBtn" style="display: none;">
+        @csrf
+        <button type="submit" class="btn btn-primary">
+            Resend Verification Email
+        </button>
+        </form>
+
+        @if (session('message'))
+        <div class="alert alert-success" role="alert">
+            {{ session('message') }}
+        </div>
+    @endif
+
+@endif
+
+  
 <div class="row ">
     <div class="col-lg-6">
         <div class="user">
@@ -270,6 +293,13 @@ use Illuminate\Support\Carbon;
 
 
 <script>
+
+    // document.getElementById('verifythis').addEventListener('click', function() {
+    //     document.getElementById('loading').style.display = 'block';
+    //     setTimeout(function() {
+    //         document.getElementById('loading').style.display = 'none';
+    //     }, 2000); // Adjust the timeout duration as needed
+    // });
 
     // JavaScript to allow only numeric input
     document.getElementById('tdfamount').addEventListener('input', function() {

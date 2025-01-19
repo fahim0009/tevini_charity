@@ -36,7 +36,7 @@ class DonorController extends Controller
 
     public function addDonor()
     {
-        $users = User::where('is_type','=' ,'user')->select('id', 'name', 'surname', 'email', 'phone', 'accountno', 'town', 'balance', 'overdrawn_amount')->orderBy('id','DESC')->get();
+        $users = User::where('is_type','=' ,'user')->select('id', 'name', 'surname', 'email', 'phone', 'accountno', 'town', 'balance', 'overdrawn_amount','email_verified_at')->orderBy('id','DESC')->get();
 
         return view('donor.adddonor', compact('users'));
     }
@@ -639,9 +639,9 @@ class DonorController extends Controller
                 $array['file_name'] = 'Report#'.$id.'.pdf';
                 $array['subjectsingle'] = 'Report Placed - '.$id;
 
-                Mail::to($user->email)->queue(new DonerReport($array));
+                // Mail::to($user->email)->queue(new DonerReport($array));
 
-                // Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
+                Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
 
             }
         }

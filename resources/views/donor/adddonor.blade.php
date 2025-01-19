@@ -216,7 +216,13 @@
                                         <td><input class="form-check-input getDid" type="checkbox" name="donorIds[]" value="{{ $user->id }}"></td>
                                         {{-- <td>{{$n++}}</td> --}}
                                         <td>{{$user->id}}</td>
-                                        <td>{{$user->name}} {{$user->surname}}</td>
+                                        <td>{{$user->name}} {{$user->surname}} 
+                                            @if($user->email_verified_at)
+                                                <i class="fa fa-check-circle" style="color: green;"></i>
+                                            @else
+                                                <i class="fa fa-times-circle" style="color: red;"></i>
+                                            @endif
+                                        </td>
                                         <td>{{$user->email}}</td>
                                         <td>{{$user->phone}}</td>
                                         <td>{{$user->town}}</td>

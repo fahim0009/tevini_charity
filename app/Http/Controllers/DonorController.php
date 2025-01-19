@@ -573,8 +573,10 @@ class DonorController extends Controller
                 $array['file'] = public_path().'/invoices/Report#'.$duser->id.'.pdf';
                 $array['file_name'] = 'Report#'.$duser->id.'.pdf';
                 $array['subjectsingle'] = 'Report Placed - '.$duser->id;
-
-                Mail::to($user->email)->queue(new DonerReport($array));
+                
+                if ($user->email_verified_at) {
+                    Mail::to($user->email)->queue(new DonerReport($array));
+                }
 
             }
             
@@ -639,9 +641,10 @@ class DonorController extends Controller
                 $array['file_name'] = 'Report#'.$id.'.pdf';
                 $array['subjectsingle'] = 'Report Placed - '.$id;
 
-                // Mail::to($user->email)->queue(new DonerReport($array));
-
-                Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
+                if ($user->email_verified_at) {
+                    // Mail::to($user->email)->queue(new DonerReport($array));
+                    Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
+                }
 
             }
         }

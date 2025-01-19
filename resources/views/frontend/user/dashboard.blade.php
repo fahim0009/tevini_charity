@@ -40,9 +40,9 @@ use Illuminate\Support\Carbon;
   @if (!auth()->user()->hasVerifiedEmail())
 
     <div class="alert alert-warning">
-        <strong>Warning!</strong> Is Your Email Up to Date?
+        <strong>  Is Your Email Up to Date? </strong>
         <br>  <a href="{{ route('verification.resend') }}" class="btn-theme bg-secondary" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">Yes</a>
-        <a href="{{ route('verification.resend') }}" class="btn-theme bg-danger" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">No</a> <br> – Please update your current active email address
+        <a href="{{ route('verification.resend') }}" class="btn-theme bg-danger" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">No</a> <br> Please update your current active email address
         </div>
 
         <form method="POST" action="{{ route('verification.resend') }}" id="verifyBtn" style="display: none;">

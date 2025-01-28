@@ -38,6 +38,6 @@ class DonorMailCommand extends Command
      */
     public function handle()
     {
-        Log::info('Every minute email send.');
+        Log::info('Every 5 minute email send.');
     }
 }

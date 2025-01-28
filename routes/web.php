@@ -44,6 +44,11 @@ Route::get('/clear', function() {
     return "Cleared!";
  });
 
+Route::get('/queue-work', function() {
+    Artisan::call('queue:work');
+    return "done!";
+ });
+
 
 // use mobile app
 Route::get('app-version', [AboutController::class, 'appVersion']);

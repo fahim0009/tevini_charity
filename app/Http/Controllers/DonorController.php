@@ -514,77 +514,71 @@ class DonorController extends Controller
         if ($checkAll == "all") {
 
             $activedonorIds = User::where('is_type', 'user')->where('status', 1)->get();
+            foreach($activedonorIds as $duser)
+            {
 
-            User::chunk(100, function ($activedonorIds) {
-                foreach($activedonorIds as $duser)
-                {
+                $tamount = Usertransaction::where('user_id','=', $duser->id)->where('status','=', '1')->orderBy('id','DESC')->get();
+                if(!empty($fromDate) && !empty($toDate)){
 
-                    $tamount = Usertransaction::where('user_id','=', $duser->id)->where('status','=', '1')->orderBy('id','DESC')->get();
-                    if(!empty($fromDate) && !empty($toDate)){
-
-                        $report = Usertransaction::where([
-                            ['user_id','=', $duser->id],
-                            ['created_at', '>=', $fromDate],
-                            ['created_at', '<=', $toDate.' 23:59:59'],
-                            ['status','=', '1']
-                        ])->orwhere([
-                            ['user_id','=', $duser->id],
-                            ['pending','=', '0']
-                            ])->orderBy('id','DESC')->get();
-                    }else{
-                        $report = Usertransaction::where([
-                            ['user_id','=', $duser->id],
-                            ['status','=', '1']
-                        ])->orwhere([
+                    $report = Usertransaction::where([
+                        ['user_id','=', $duser->id],
+                        ['created_at', '>=', $fromDate],
+                        ['created_at', '<=', $toDate.' 23:59:59'],
+                        ['status','=', '1']
+                    ])->orwhere([
                         ['user_id','=', $duser->id],
                         ['pending','=', '0']
                         ])->orderBy('id','DESC')->get();
-                        $fromDate = "";
-                        $toDate   = "";
-                    }
-                    $user = User::find($duser->id);
-
-                    // donor balance
-                    $userTransactionBalance = Usertransaction::selectRaw('
-                            SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                            SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                        ')
-                        ->where([
-                            ['user_id','=', $user->id],
-                            ['status','=', '1']
-                        ])->orwhere([
-                            ['user_id','=',  $user->id],
-                            ['pending','=', '1']
-                        ])
-                        ->first();
-                    // donor balance end
-
-
-
-                    $contactmail = ContactMail::where('id', 1)->first()->name;
-                    $array['cc'] = $contactmail;
-                    $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
-                    $output = $pdf->output();
-                    file_put_contents(public_path().'/invoices/'.'Report#'.$duser->id.'.pdf', $output);
-                    $array['userbalance'] =  number_format($userTransactionBalance->balance, 2);
-                    $array['name'] = $user->name;
-                    $array['view'] = 'mail.donorreport';
-                    $array['subject'] = 'Monthly statement';
-                    $array['from'] = 'info@tevini.co.uk';
-                    $array['content'] = 'Hi, Your donation report has been placed';
-                    $array['file'] = public_path().'/invoices/Report#'.$duser->id.'.pdf';
-                    $array['file_name'] = 'Report#'.$duser->id.'.pdf';
-                    $array['subjectsingle'] = 'Report Placed - '.$duser->id;
-                    
-                    if ($user->email_verified_at) {
-                        Mail::to($user->email)->queue(new DonerReport($array));
-                    }
-
+                }else{
+                    $report = Usertransaction::where([
+                        ['user_id','=', $duser->id],
+                        ['status','=', '1']
+                    ])->orwhere([
+                    ['user_id','=', $duser->id],
+                    ['pending','=', '0']
+                    ])->orderBy('id','DESC')->get();
+                    $fromDate = "";
+                    $toDate   = "";
                 }
-            });
+                $user = User::find($duser->id);
+
+                // donor balance
+                $userTransactionBalance = Usertransaction::selectRaw('
+                        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+                    ')
+                    ->where([
+                        ['user_id','=', $user->id],
+                        ['status','=', '1']
+                    ])->orwhere([
+                        ['user_id','=',  $user->id],
+                        ['pending','=', '1']
+                    ])
+                    ->first();
+                // donor balance end
 
 
-            
+
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $array['cc'] = $contactmail;
+                $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+                $output = $pdf->output();
+                file_put_contents(public_path().'/invoices/'.'Report#'.$duser->id.'.pdf', $output);
+                $array['userbalance'] =  number_format($userTransactionBalance->balance, 2);
+                $array['name'] = $user->name;
+                $array['view'] = 'mail.donorreport';
+                $array['subject'] = 'Monthly statement';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['content'] = 'Hi, Your donation report has been placed';
+                $array['file'] = public_path().'/invoices/Report#'.$duser->id.'.pdf';
+                $array['file_name'] = 'Report#'.$duser->id.'.pdf';
+                $array['subjectsingle'] = 'Report Placed - '.$duser->id;
+                
+                if ($user->email_verified_at) {
+                    Mail::to($user->email)->queue(new DonerReport($array));
+                }
+
+            }
             
         } else {
             
@@ -648,8 +642,7 @@ class DonorController extends Controller
                 $array['subjectsingle'] = 'Report Placed - '.$id;
 
                 if ($user->email_verified_at) {
-                    // Mail::to($user->email)->queue(new DonerReport($array));
-                    Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
+                    Mail::to($user->email)->queue(new DonerReport($array));
                 }
                 // Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
 

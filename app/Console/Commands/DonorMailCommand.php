@@ -12,7 +12,8 @@ class DonorMailCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'queue:work';
+    // protected $signature = 'queue:work';
+    protected $signature = 'donor:mail {--once}';
 
     /**
      * The console command description.
@@ -38,6 +39,15 @@ class DonorMailCommand extends Command
      */
     public function handle()
     {
-        Log::info('Every 5 minute email send.');
+
+        if ($this->option('once')) {
+            Log::info('Every 5 minute email send.');
+            // Perform the task once
+            $this->info('Processing one batch of donor mails.');
+            return;
+        }
+    
+        // Default behavior
+        $this->info('Processing all donor mails.');
     }
 }

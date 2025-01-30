@@ -235,7 +235,7 @@
                                             </button>
                                             @endif
                                         </td>
-                                        <td>£{{$donorUpBalance}}</td>
+                                        <td>£{{number_format($donorUpBalance, 2)}}</td>
                                         <td>£{{$user->overdrawn_amount}}
                                             <a overdrawn-id="{{$user->id}}" class="overdrawn" data-bs-toggle="modal" data-bs-target="#exampleModal2">
                                                 <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>

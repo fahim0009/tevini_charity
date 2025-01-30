@@ -641,10 +641,10 @@ class DonorController extends Controller
                 $array['file_name'] = 'Report#'.$id.'.pdf';
                 $array['subjectsingle'] = 'Report Placed - '.$id;
 
-                // if ($user->email_verified_at) {
-                //     Mail::to($user->email)->queue(new DonerReport($array));
-                // }
-                Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
+                if ($user->email_verified_at) {
+                    Mail::to($user->email)->queue(new DonerReport($array));
+                }
+                // Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
 
             }
         }

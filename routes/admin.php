@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\SpendProfileController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
+use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
 
@@ -103,6 +104,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/make-donation/{id}', [DonorController::class, 'userDonationAdmin'])->name('donor.donation');
     Route::post('/make-donation', [DonorController::class, 'userDonationAdminStore'])->name('donor.dnstore');
     Route::post('/make-stnddonation', [DonorController::class, 'userstandingDonationAdminStore']);
+    Route::get('/tdf-transfer/{id}', [DonorController::class, 'tdfTransferAdmin'])->name('donor.tdftransfer');
+    Route::post('/tdf-transfer', [DonorController::class, 'tdfTransferStore'])->name('donor.tdftransferstore');
 
 
     Route::get('/donor-voucher-order/{id}', [OrderController::class, 'voucherinAdmin'])->name('donor.vorder');
@@ -217,13 +220,14 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // Campaign
     Route::get('/campaign', [CampaignController::class, 'index'])->name('campaign');
+    Route::post('/campaign', [CampaignController::class, 'index'])->name('campaign.search');
     Route::post('/add-campaign', [CampaignController::class, 'store'])->name('campaign.store');
     Route::get('/edit-campaign/{id}/edit', [CampaignController::class, 'edit'])->name('campaign.edit');
     Route::post('/edit-campaign/{id}', [CampaignController::class, 'update'])->name('campaign.update');
     Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
     Route::post('/update-url', [CampaignController::class, 'updateUrl'])->name('updateurl');
 
-    Route::get('/cmpgn/donor-list', [CampaignController::class, 'getAllCampaignDonor'])->name('campaign.donor_list');
+    Route::get('/cmpgn/donor-list/{id?}', [CampaignController::class, 'getAllCampaignDonor'])->name('campaign.donor_list');
 
     // gateway
     Route::resource('gateway','App\Http\Controllers\GatewayController');
@@ -290,13 +294,16 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     
 
     // donor balance check
-    
     Route::get('/get-donor-balance', [DonorBalanceController::class, 'index'])->name('donorBalance');
     Route::post('/get-donor-balance', [DonorBalanceController::class, 'balanceUpdate']);
 
+    // voucher search
+    Route::get('/get-voucher', [VouchersController::class, 'getVoucher'])->name('getVoucher');
+    Route::post('/get-voucher', [VouchersController::class, 'getVoucher'])->name('voucherSearch');
+
+
 
     // get users account delete request
-    
     Route::get('/user-delete-request', [AdminController::class, 'getUserDeleteRequest'])->name('allUserDeleteReq');
 
 });

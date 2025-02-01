@@ -362,6 +362,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/get-voucher')) ? 'active' : '' }}" id="">
+                <a href="{{ route('getVoucher') }}">
+                    <span class="iconify" data-icon="mdi:magnify"></span>
+                    Voucher Search
+                </a>
+            </li>
+
             {{-- <li class="nav-item " id="admindashboard">
                 <a href="./utility.html">
                     <span class="iconify" data-icon="icomoon-free:profile"></span>

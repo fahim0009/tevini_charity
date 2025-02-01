@@ -338,7 +338,24 @@ class UserController extends Controller
             exit();
         }
 
-        if($request->tdfamount  > (auth()->user()->balance + auth()->user()->overdrawn_amount)){
+        // donor balance
+        $userTransactionBalance = Usertransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', auth()->user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=',  auth()->user()->id],
+                ['pending','=', '1']
+            ])
+            ->first();
+        // donor balance end
+        
+        $donorBlanacewithLimit = $userTransactionBalance->balance + auth()->user()->overdrawn_amount;
+
+        if($request->tdfamount  > $donorBlanacewithLimit){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();

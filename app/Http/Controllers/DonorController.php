@@ -21,7 +21,9 @@ use App\Mail\DonationstandingReport;
 use App\Mail\DonerReport;
 use App\Mail\DonationreportCharity;
 use App\Mail\DonorCustomMail;
+use App\Mail\TDFTransfer;
 use App\Models\ExpectedGiftAid;
+use App\Models\TdfTransaction;
 use PDF;
 use Hash;
 use Auth;
@@ -738,6 +740,127 @@ class DonorController extends Controller
         return view('frontend.user.donation', compact('user'));
     }
 
+    public function tdfTransferAdmin($id)
+    {
+        $donor_id = $id;
+        return view('donor.tdftransfer',compact('donor_id'));
+    }
+
+    public function tdfTransferStore(Request $request)
+    {
+
+        $donor_id = $request->donner_id;
+        if(empty($request->tdfaccount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Account Field Required.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        if($request->tdfamount < 18){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Minimum transfer is £18.00.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+
+        if(empty($request->tdfamount)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        // donor balance
+        $userTransactionBalance = Usertransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', $donor_id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=',  $donor_id],
+                ['pending','=', '1']
+            ])
+            ->first();
+        // donor balance end
+        
+        
+        $overdrownlimit = User::where('id', $donor_id)->first()->overdrawn_amount;
+        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
+
+        if($request->tdfamount  > $donorBlanacewithLimit){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        
+        $data = new TdfTransaction();
+        $data->issue_date = date('Y-m-d');
+        $data->user_id = $donor_id;
+        $data->tdfaccount = $request->tdfaccount;
+        $data->tdf_amount = $request->tdfamount;
+        $data->current_dollar_amount = $request->tdfamount;
+        if ($data->save()) {
+
+            $user = User::find($donor_id);
+            $user->balance = $user->balance - $request->tdfamount;
+            $user->save();
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = 0 - $request->tdfamount;
+                $comment = "Transfer to TDF";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+
+            
+            $udtransaction = new Usertransaction();
+            $udtransaction->t_id = time()."-".$donor_id;
+            $udtransaction->user_id = $donor_id;
+            $udtransaction->t_type = "Out";
+            $udtransaction->amount =  $request->tdfamount;
+            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->title ="Transfer to TDF";
+            $udtransaction->status =  1;
+            $udtransaction->save();
+
+            $transaction = new Transaction();
+            $transaction->t_id = time()."-".$donor_id;
+            $transaction->user_id = $donor_id;
+            $transaction->t_type = "Out";
+            $transaction->amount =  $request->tdfamount;
+            $transaction->note ="Transfer to TDF";
+            $transaction->status =  1;
+            $transaction->save();
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $array['name'] = auth()->user()->name;
+            $array['subject'] = 'Urgent request';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $email = auth()->user()->email;
+
+            Mail::to($email)
+                    ->cc($contactmail)
+                    ->send(new TDFTransfer($array));
+
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        } else {
+            return response()->json(['status'=> 303,'message'=>'Server error!!']);
+        }
+    }
+
     public function userDonationAdmin($id)
     {
         $donor_id = $id;
@@ -944,6 +1067,30 @@ class DonorController extends Controller
             exit();
         }
 
+        // donor balance
+        $userTransactionBalance = Usertransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', $userid],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=',  $userid],
+                ['pending','=', '1']
+            ])
+            ->first();
+        // donor balance end
+        $overdrownlimit = User::where('id', $userid)->first()->overdrawn_amount;
+        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
+
+        if ($donorBlanacewithLimit < $request->amount) {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have sufficient balance for this donation.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+        
+
         $data = new Donation;
         $data->user_id = $userid;
         $data->charity_id = $request->charity_id;
@@ -1058,6 +1205,29 @@ class DonorController extends Controller
         }
 
         $donner_id = $request->donner_id;
+
+        // donor balance
+        $userTransactionBalance = Usertransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', $donner_id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=',  $donner_id],
+                ['pending','=', '1']
+            ])
+            ->first();
+        // donor balance end
+        $overdrownlimit = User::where('id', $donner_id)->first()->overdrawn_amount;
+        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
+
+        if ($donorBlanacewithLimit < $request->amount) {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have sufficient balance for this donation.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
 
         $data = new Donation;
         $data->user_id = $donner_id;

@@ -28,6 +28,7 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Donor</th>
+                                    <th>Charity</th>
                                     <th>Campaign</th>
                                     <th>Amount</th>
                                 </tr>
@@ -37,6 +38,7 @@
                                     <tr>
                                         <td>{{$item->created_at->format('d/m/Y') }}</td>
                                         <td>{{$item->user->name ?? " "}}</td>
+                                        <td>{{$item->campaign->charity->name ?? " "}}</td>
                                         @if (isset($item->campaign_id))
                                         <td>{{$item->campaign->campaign_title ?? " "}}</td>
                                         @else
@@ -47,6 +49,16 @@
                                 @empty
                                 @endforelse
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>Total Amount</td>
+                                    <td><b>{{ number_format($data->sum('amount'), 2) }}</b></td>
+                                
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

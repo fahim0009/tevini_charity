@@ -8,9 +8,19 @@ use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Campaign::orderBy('id','DESC')->get();
+        $data = Campaign::orderBy('id', 'DESC')
+                ->when(request()->input('campaign'), function ($query, $campaign) {
+                    return $query->where('id', $campaign);
+                })
+                ->when(request()->input('charity'), function ($query, $charity) {
+                    return $query->where('charity_id', $charity);
+                })
+                ->get();
+
+
+
         return view('campaign.index', compact('data'));
     }
 
@@ -18,6 +28,12 @@ class CampaignController extends Controller
     public function store(Request $request)
     {
 
+        $request->validate([
+            'charity_id' => 'required|integer|exists:charities,id',
+            'title' => 'required|string|max:255',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
 
         if(empty($request->charity_id)){
             $message ="Please select charity";
@@ -30,10 +46,19 @@ class CampaignController extends Controller
             return back()->with('message', $message);
             exit();
         }
+
+        if(empty($request->end_date)){
+            $message ="Please fill campaign end date";
+            return back()->with('message', $message);
+            exit();
+        }
+
         $secret = time();
         $data = new Campaign;
         $data->campaign_title = $request->title;
         $data->charity_id = $request->charity_id;
+        $data->start_date = $request->start_date;
+        $data->end_date = $request->end_date;
         $data->status = "1";
         $data->hash_code = hash_hmac("sha256", $secret, $request->title);
 
@@ -100,9 +125,15 @@ class CampaignController extends Controller
 
     }
 
-    public function getAllCampaignDonor()
+    public function getAllCampaignDonor($id = Null)
     {
-        $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->get();
+        if ($id) {
+            $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->where('campaign_id', $id)->get();
+        } else {
+            $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->get();
+        }
+
+        
         // dd($data);
         return view('campaign.donorlist', compact('data'));
     }

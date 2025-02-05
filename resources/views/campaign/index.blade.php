@@ -72,7 +72,7 @@
     
                             <div class="col my-3">
                                     <label for="">Charity</label>
-                                    <select name="charity_id" id="charity_id" class="form-control @error('charity_id') is-invalid @enderror">
+                                    <select name="charity_id" id="charity_id" class="form-control @error('charity_id') is-invalid @enderror select2">
                                     <option value="">Please Select</option>
                                     @foreach (\App\Models\Charity::orderby('id','DESC')->get() as $charity)
                                     <option value="{{$charity->id}}" {{ old('charity_id') == $charity->id ? 'selected' : '' }}>{{$charity->name}}</option>
@@ -363,11 +363,6 @@ window.onload = (event) => {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
 <script>
-    $('#charity_id').select2({
-      width: '100%',
-      placeholder: "Select an Option",
-      allowClear: true
-    });
 
     $('.select2').select2({
       width: '100%',

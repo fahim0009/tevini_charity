@@ -185,8 +185,16 @@
                                                     <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>
                                                 </a>
                                             </td>
-                                            <td>{{$item->start_date}}</td>
-                                            <td>{{ \Carbon\Carbon::parse($item->end_date)->format('d-m-Y') }}</td>
+                                            <td>
+                                                @if ($item->start_date)
+                                                {{ \Carbon\Carbon::parse($item->start_date)->format('d-m-Y') ?? '' }}
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($item->end_date)
+                                                {{ \Carbon\Carbon::parse($item->end_date)->format('d-m-Y') ?? '' }}
+                                                @endif
+                                            </td>
                                             <td>
                                                 <a href="{{route('campaign.donor_list', $item->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
                                                 <a href="{{ route('campaign.edit', encrypt($item->id))}}"><i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i></a>

@@ -60,7 +60,7 @@ body {
                             </div>
                             <div class="right">
                                 <div class="title">
-                                    £{{ $voucher->single_amount }} @if ($voucher->single_amount == "0" ) <span class="bottom-data">Blank Cheque</span>  @endif
+                                    £{{ $voucher->single_amount }} @if ($voucher->single_amount == "0" ) <span class="bottom-data">{{$voucher->type}}</span>  @endif
                                     @if ($voucher->type == 'Prepaid')
                                     <div class="badge prepaid">
                                         Prepaid
@@ -310,6 +310,9 @@ body {
             } else {
                 var delivery_charge = 0;
             }
+
+
+            console.log("Donor" + did, "net_total" + net_total, "voucherIds" + voucherIds, "qtys" + qtys, "delivery_charge" + delivery_charge, );
 
 
                 $.ajax({

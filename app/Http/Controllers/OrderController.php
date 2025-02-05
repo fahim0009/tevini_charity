@@ -236,13 +236,22 @@ class OrderController extends Controller
                         $unique = time().rand(1,100);
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $voucherDtl =  Voucher::where('id',$voucher_id)->first();
                         $input['order_id'] = $order->id;
                         $input['voucher_id'] = $voucher_id;
                         $input['number_voucher'] = 1;
                         $input['amount'] = $amount;
                         $input['o_unq'] = $unique;
                         $input['status'] = "0";
-                        OrderHistory::create($input);
+
+                        $vqtys = 1;
+
+                            if ($voucherDtl->type == "Mixed") {
+                                $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                            } else {
+                                OrderHistory::create($input);
+                            }
+                        
                         }
 
                     }else{
@@ -251,13 +260,21 @@ class OrderController extends Controller
 
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $voucherDtl =  Voucher::where('id',$voucher_id)->first();
+
                         $input['order_id'] = $order->id;
                         $input['voucher_id'] = $voucher_id;
                         $input['number_voucher'] = $qtys[$key];
                         $input['amount'] = $qtys[$key]*$amount;
                         $input['o_unq'] = $unique;
                         $input['status'] = "0";
-                        OrderHistory::create($input);
+                        $vqtys = $qtys[$key];
+                        
+                        if ($voucherDtl->type == "Mixed") {
+                            $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                        } else {
+                            OrderHistory::create($input);
+                        }
                     }
                     //voucher stock decrement
                     $v = Voucher::find($voucher_id);
@@ -334,19 +351,95 @@ class OrderController extends Controller
             $email = $user->email;
             $array['order_id'] = $order->id;
             $array['delivery_option'] = $delivery_opt;
-
-
             Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
              $message->from($array['from'], 'Tevini.co.uk');
              $message->to($email)->cc($array['cc'])->subject($array['subject']);
             });
-
-
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher order place successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
 
         }
 
+
+    }
+
+    public function voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl)
+    {
+
+        if ($voucher_id == 176) {
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "3";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "5";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "10";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+            
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "18";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+        } else {
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "20";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "25";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "36";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+            
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "50";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+        }
 
     }
 

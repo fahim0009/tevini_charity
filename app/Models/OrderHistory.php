@@ -21,6 +21,7 @@ class OrderHistory extends Model
       'amount',
       'o_unq',
       'status',
+      'mixed_value',
       'updated_by',
       'created_by',
   ];

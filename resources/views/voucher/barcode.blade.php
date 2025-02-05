@@ -61,7 +61,16 @@
                                 @php $n++; @endphp
                             <tr>
                                     <td>{{$n}}</td>
-                                    <td>{{ $orderDtl->voucher->type }} @if($orderDtl->voucher->note)(£{{$orderDtl->voucher->single_amount}} of {{ $orderDtl->voucher->note }}) @endif</td>
+                                    <td>{{ $orderDtl->voucher->type }} 
+                                        @if ($orderDtl->voucher->type == "Mixed")
+                                            (£{{$orderDtl->mixed_value}})
+                                        @else
+                                            @if($orderDtl->voucher->note)
+                                            (£{{$orderDtl->voucher->single_amount}} of {{ $orderDtl->voucher->note }}) @endif  
+                                        @endif
+                                        
+
+                                    </td>
                                     <td>
                                         @if($orderDtl->startbarcode)
                                         {!! DNS1D::getBarcodeHTML($orderDtl->startbarcode, 'PHARMA') !!}

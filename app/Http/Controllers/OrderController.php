@@ -999,34 +999,46 @@ class OrderController extends Controller
 
 
 
-    public function completeVoucher(Request $request, $id = null)
+    public function completeVoucher(Request $request)
     {
-        $id = $request->id; // Get the passed ID
+        
         if ($request->ajax()) {
 
+            $id = $request->id;
+
             if ($id) {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC');
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC')->get();
             } else {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->orderBy('id','DESC');
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->orderBy('id','DESC')->limit(20000)->get();
             }
 
             return DataTables::of($cvouchers)
                 ->addColumn('charity', function ($row) {
-                    return $row->charity_id ? $row->charity->name : 'N/A';
+                    return $row->charity_id ? $row->charity->name : '';
                 })
                 ->addColumn('user', function ($row) {
-                    return $row->user ? $row->user->name : 'N/A';
+                    return $row->user ? $row->user->name : ' ';
+                })
+                
+                ->editColumn('cheque_no', function ($row) {
+                    return $row->cheque_no ? $row->cheque_no : ' ';
+                })
+                ->editColumn('note', function ($row) {
+                    return $row->note ? $row->note : ' ';
+                })
+                ->editColumn('amount', function ($row) {
+                    return $row->amount ? $row->amount : ' ';
                 })
                 ->editColumn('created_at', function ($row) {
-                    return $row->created_at ? $row->created_at->format('m/d/Y'): 'N/A';
+                    return $row->created_at ? $row->created_at->format('m/d/Y'): ' ';
                 })
                 ->editColumn('completed_date', function ($row) {
-                    return $row->completed_date ? $row->completed_date->format('m/d/Y'): '';
+                    return $row->completed_date ? $row->completed_date : ' ';
                 })
                 ->make(true);
         }
         
-        return view('voucher.completevoucher')->with('donor_id',$id);
+        return view('voucher.completevoucher');
 
     }
 

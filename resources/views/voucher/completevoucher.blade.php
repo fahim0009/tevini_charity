@@ -78,6 +78,9 @@
                     type: "GET",
                     data: function (d) {
                         d.id = id; // Add the ID as a parameter to the request
+                    },
+                    error: function(xhr, error, code) {
+                        console.log(xhr.responseText); // Debugging response
                     }
                 },
                 pageLength: 100,

@@ -34,6 +34,10 @@ class Provoucher extends Model
       }
 
       public function charity(){
-        return $this->belongsTo('App\Models\Charity');
+        return $this->belongsTo('App\Models\Charity')->withDefault(function ($charity, $provoucher) {
+            if (!$charity) {
+            return null;
+            }
+        });
       }
 }

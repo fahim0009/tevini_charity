@@ -14,6 +14,7 @@
         @include('inc.user_menue')
     @endif
   <section class="">
+    <input type="hidden" id="donorid" value="{{$donorid}}">
     <div class="row  my-3 mx-0 ">
         <div class="col-md-12 ">
 
@@ -68,8 +69,8 @@
 
     <script>
         $(document).ready(function() {
-            let id = $('#donor_id').val();
-            
+            let id = $('#donorid').val();
+            console.log(id)
             $('#example3').DataTable({
                 processing: true,
                 serverSide: true,

@@ -999,15 +999,15 @@ class OrderController extends Controller
 
 
 
-    public function completeVoucher(Request $request)
+    public function completeVoucher(Request $request, $id = Null)
     {
         
+        $donorid = $id;
         if ($request->ajax()) {
 
-            $id = $request->id;
 
-            if ($id) {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->where('user_id', $id)->orderBy('id','DESC')->get();
+            if ($request->id) {
+                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->where('user_id', $request->id)->orderBy('id','DESC')->get();
             } else {
                 $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->orderBy('id','DESC')->limit(20000)->get();
             }
@@ -1038,7 +1038,7 @@ class OrderController extends Controller
                 ->make(true);
         }
         
-        return view('voucher.completevoucher');
+        return view('voucher.completevoucher', compact('donorid'));
 
     }
 

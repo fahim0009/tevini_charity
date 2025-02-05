@@ -176,7 +176,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/pvoucher-draft', [OrderController::class, 'pvoucherDraft'])->name('pvoucher.draft');
 
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');
-    Route::get('/complete-voucher', [OrderController::class, 'completeVoucher'])->name('completevoucher');
+    Route::get('/complete-voucher/{id?}', [OrderController::class, 'completeVoucher'])->name('completevoucher');
     Route::get('/pending-voucher/{id?}', [OrderController::class, 'pendingVoucher'])->name('pendingvoucher');
     Route::post('/pvcomplete', [OrderController::class, 'pvComplete']);
     Route::get('/waiting-voucher', [OrderController::class, 'waitingVoucher'])->name('waitingvoucher');

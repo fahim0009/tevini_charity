@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\CampaignReport;
+use App\Models\Campaign;
 use Illuminate\Console\Command;
 
 use App\Models\StandingDonation;
@@ -13,6 +15,7 @@ use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 
@@ -49,12 +52,39 @@ class DeductStandingDonation extends Command
      */
     public function handle()
     {
-
         $current_date = now()->format('Y-m-d'); // current date with server format
 
-        $activestand_orders = StandingDonation::where('status', '=' ,'1')->orderBy('id','DESC')->get();
+        // campaign report part start
+        $campaign = Campaign::where('end_date', '<=', $current_date)->where('emailsend', 0)->get();
+        foreach ($campaign as $key => $campaign) {
+            $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->where('campaign_id', $campaign->id)->get();
+            $reportid = rand(1000, 9999);
 
-        
+            $charity = Charity::find($campaign->charity_id);
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $array['cc'] = $contactmail;
+
+            $pdf = PDF::loadView('invoices.campaign_report', compact('data','charity'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Report#'.$reportid.'.pdf', $output);
+            
+            $array['name'] = $charity->name;
+            $array['view'] = 'mail.campaignreport';
+            $array['subject'] = 'Campaign report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['content'] = 'Hi, Your campaign report has been placed';
+            $array['file'] = public_path().'/invoices/Report#'.$reportid.'.pdf';
+            $array['file_name'] = 'Report#'.$reportid.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$reportid;
+            Mail::to($charity->email)->cc($contactmail)->send(new CampaignReport($array));
+
+            $updateCampaign = Campaign::find($campaign->id);
+            $updateCampaign->emailsend = 1;
+            $updateCampaign->save();
+        }
+        // campaign report part end
+
+        $activestand_orders = StandingDonation::where('status', '=' ,'1')->orderBy('id','DESC')->get();        
         foreach($activestand_orders as $activestand_order)
         {
             

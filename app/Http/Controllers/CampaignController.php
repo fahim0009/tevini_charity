@@ -154,8 +154,6 @@ class CampaignController extends Controller
 
 
             $reportid = rand(1000, 9999);
-
-
             $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->where('campaign_id', $request->campaignid)->get();
 
             $charity = Charity::find($request->charityid);

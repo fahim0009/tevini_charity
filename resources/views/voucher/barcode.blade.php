@@ -56,9 +56,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php $n = 0; @endphp
+                            @php $n = 1; @endphp
                             @foreach ($orderDtls as $orderDtl)
-                                @php $n++; @endphp
+                            
                             <tr>
                                     <td>{{$n}}</td>
                                     <td>{{ $orderDtl->voucher->type }} 
@@ -107,6 +107,9 @@
                                     </td>
 
                             </tr>
+                            @if ($orderDtl->voucher->type != "Mixed")
+                            @php $n++; @endphp
+                            @endif
                             @endforeach
 
                         </tbody>

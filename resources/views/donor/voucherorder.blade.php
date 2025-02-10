@@ -62,6 +62,7 @@
                                     <span class="h6">(@if($voucher->note){{$voucher->note}}@endif)</span>
                                 @else
                                     <div class="badge rounded-pill bg-info">{{ $voucher->type }}</div>
+                                    <span class="h6">(@if($voucher->note){{$voucher->note}}@endif)</span>
                                 @endif
                             </div>
                             <div class="items">

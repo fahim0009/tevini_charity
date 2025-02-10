@@ -226,6 +226,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/edit-campaign/{id}', [CampaignController::class, 'update'])->name('campaign.update');
     Route::post('/campaign/delete', [CampaignController::class, 'delete'])->name('deletecampaign');
     Route::post('/update-url', [CampaignController::class, 'updateUrl'])->name('updateurl');
+    Route::post('/campaign-report', [CampaignController::class, 'campaignReport'])->name('campaignReport');
 
     Route::get('/cmpgn/donor-list/{id?}', [CampaignController::class, 'getAllCampaignDonor'])->name('campaign.donor_list');
 

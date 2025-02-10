@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CampaignReport;
+use App\Models\Charity;
 use App\Models\Campaign;
+use App\Models\ContactMail;
 use App\Models\Usertransaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use PDF;
 
 class CampaignController extends Controller
 {
@@ -135,7 +140,47 @@ class CampaignController extends Controller
 
         
         // dd($data);
-        return view('campaign.donorlist', compact('data'));
+        return view('campaign.donorlist', compact('data', 'id'));
+    }
+
+
+    public function campaignReport(Request $request)
+    {
+        $charityEmail = $request->email;
+
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+
+            $reportid = rand(1000, 9999);
+
+
+            $data = Usertransaction::select('id', 'user_id','amount','campaign_id','created_at')->whereNotNull('campaign_id')->orderBy('id','DESC')->where('campaign_id', $request->campaignid)->get();
+
+            $charity = Charity::find($request->charityid);
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $array['cc'] = $contactmail;
+
+            $pdf = PDF::loadView('invoices.campaign_report', compact('data','charity'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Report#'.$reportid.'.pdf', $output);
+            
+            $array['name'] = $charity->name;
+            $array['view'] = 'mail.campaignreport';
+            $array['subject'] = 'Campaign report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['content'] = 'Hi, Your campaign report has been placed';
+            $array['file'] = public_path().'/invoices/Report#'.$reportid.'.pdf';
+            $array['file_name'] = 'Report#'.$reportid.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$reportid;
+
+            Mail::to($charity->email)->cc($contactmail)->send(new CampaignReport($array));
+
+            $message = "Campaign report sent successfully";
+            return back()->with('message', $message);
+
+
     }
 
 

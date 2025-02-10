@@ -17,6 +17,45 @@
             </div>
         </section>
 
+        @if ($id)
+        <section class="px-4 profile purchase-status">
+            @if (session('message'))
+                <div class="alert alert-info" id="message">
+                    {{ session('message') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-danger" id="errMessage">
+                    {{ session('error') }}
+                </div>
+            @endif
+            @php
+                $campaign  = \App\Models\Campaign::where('id', $id)->first();
+                $charity = \App\Models\Charity::where('id', $campaign->charity_id)->first();
+            @endphp
+            <form action="{{route('campaignReport')}}" method="POST">
+                @csrf
+                <div class="row my-3 mx-3">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label for="email" class="col-sm-2 col-form-label">Email</label>
+                            <div class="col-sm-10">
+                                <input type="email" class="form-control" value="{{$charity->email}}" id="email" name="email" required>
+                                <input type="hidden" name="charityid" value="{{$charity->id}}">
+                                <input type="hidden" name="campaignid" value="{{$id}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-primary">Send Email</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        @endif
+        
+
         <section class="px-4"  id="contentContainer">
             <div class="row my-3">
             <div class="ermsg"></div>

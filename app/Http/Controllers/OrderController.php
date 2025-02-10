@@ -579,13 +579,20 @@ class OrderController extends Controller
                         $unique = time().rand(1,100);
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $voucherDtl =  Voucher::where('id',$voucher_id)->first();
+
                         $input['order_id'] = $order->id;
                         $input['voucher_id'] = $voucher_id;
                         $input['number_voucher'] = 1;
                         $input['amount'] = $amount;
                         $input['o_unq'] = $unique;
                         $input['status'] = "0";
-                        OrderHistory::create($input);
+                        $vqtys = 1;
+                            if ($voucherDtl->type == "Mixed") {
+                                $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                            } else {
+                                OrderHistory::create($input);
+                            }
                         }
 
                     }else{
@@ -594,13 +601,21 @@ class OrderController extends Controller
 
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
+                        $voucherDtl =  Voucher::where('id',$voucher_id)->first();
+
                         $input['order_id'] = $order->id;
                         $input['voucher_id'] = $voucher_id;
                         $input['number_voucher'] = $qtys[$key];
                         $input['amount'] = $qtys[$key]*$amount;
                         $input['o_unq'] = $unique;
                         $input['status'] = "0";
-                        OrderHistory::create($input);
+                        $vqtys = $qtys[$key];
+
+                        if ($voucherDtl->type == "Mixed") {
+                            $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                        } else {
+                            OrderHistory::create($input);
+                        }
                     }
                     //voucher stock decrement
                     $v = Voucher::find($voucher_id);

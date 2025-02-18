@@ -12,14 +12,30 @@ class VouchersController extends Controller
     public function getVoucher(Request $request)
     {
 
-        $vnumber = $request->voucher_number;
-        $chkVoucher = Usertransaction::where('cheque_no', $vnumber)->whereNotNull('cheque_no')->get();
-        if ($chkVoucher->count() < 1) {
-            $chkVoucher = Barcode::where('barcode', $vnumber)->get();
-            
-        }
+        
+        if ($request->isMethod('post')) {
 
-        // dd($chkVoucher);
-        return view('voucher.search', compact('chkVoucher','vnumber'));
+            $request->validate([
+                'voucher_number' => 'required|string|max:255',
+            ]);
+    
+
+            $vnumber = $request->voucher_number;
+            $chkVoucher = Usertransaction::where('cheque_no', $vnumber)->whereNotNull('cheque_no')->get();
+            if ($chkVoucher->count() < 1) {
+                $chkVoucher = Barcode::where('barcode', $vnumber)->get();
+                
+            }
+
+            if ($chkVoucher->count() > 0) {
+                return view('voucher.search', compact('chkVoucher', 'vnumber'))->with('success', 'Voucher found successfully.');
+            } else {
+                
+                return redirect()->back()->with(['error' => 'Voucher not found.']);
+            }
+            
+        }else{
+            return view('voucher.search');
+        }
     }
 }

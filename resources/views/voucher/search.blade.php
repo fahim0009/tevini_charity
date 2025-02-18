@@ -15,7 +15,25 @@ use Illuminate\Support\Carbon;
 <section class="card m-3">
     <div class="row  my-3 mx-0 ">
         <div class="col-md-12 ">
-            <div class="stsermsg"></div>
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
+            @if (isset($success))
+                <div class="alert alert-success">
+                    {{ $success }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
+
             <div class="col-md-12">
                 <form class="form-inline" action="{{route('voucherSearch')}}" method="POST">
                     @csrf         
@@ -46,7 +64,7 @@ use Illuminate\Support\Carbon;
 </section>
 
 
-@if ($chkVoucher->count() > 0)
+@if (isset($chkVoucher) && $chkVoucher->count() > 0)
 <section class="card m-3">
     <div class="row  my-3 mx-0 ">
         <div class="col-md-12 ">

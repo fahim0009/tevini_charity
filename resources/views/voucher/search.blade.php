@@ -76,9 +76,6 @@ use Illuminate\Support\Carbon;
                                         {{ $transaction->charity->name}}
                                         @endif
 
-                                        @if ($transaction->crdAcptID)
-                                        {{ $transaction->crdAcptLoc}}
-                                        @endif
 
 
                                     </td>

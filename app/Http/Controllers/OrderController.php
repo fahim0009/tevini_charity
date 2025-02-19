@@ -446,6 +446,9 @@ class OrderController extends Controller
 
     public function updateVoucher(Request $request)
     {
+
+        $allRequet = $request->all();
+
         $orderId = $request->orderId;
         $voucher_ids= $request->voucherIds;
         $qtys = $request->qtys;
@@ -540,6 +543,34 @@ class OrderController extends Controller
             }
             
         $order = Order::find($orderId);
+
+
+            if ($order->amount > 0) {
+                $user = User::find($order->user_id);
+                $user->increment('balance',$order->amount);
+                $user->save();
+
+                // card balance update
+                if (isset($user->CreditProfileId)) {
+                    $CreditProfileId = $user->CreditProfileId;
+                    $CreditProfileName = $user->name;
+                    $AvailableBalance = 0 + $order->amount;
+                    $comment = "Voucher Update";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+            }
+        
+            
+            
+
+
+
         if ($delivery_opt = "Delivery") {
             $order->amount = $prepaid_amount + $request->delivery_charge;
             $order->delivery_charge = $request->delivery_charge;
@@ -701,7 +732,7 @@ class OrderController extends Controller
 
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher order place successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
+            return response()->json(['status'=> 300,'message'=>$message, 'allRequet' => $allRequet]);
 
         }
 

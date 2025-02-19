@@ -279,4 +279,20 @@ class DashboardController extends Controller
         return response()->json($responseArray,200);
     }
 
+    // address finder api
+    public function addressFinderApi()
+    {
+        
+        $data = CompanyDetail::select('id','address_finder_api')->first(); 
+        
+        if($data == null){
+            $data = 'Data Not Found';
+        }
+        $responseArray = [
+            'status'=>'ok',
+            'data'=>$data
+        ]; 
+        return response()->json($responseArray,200);
+    }
+
 }

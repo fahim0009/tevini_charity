@@ -28,6 +28,7 @@ use App\Models\VoucherCart;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use PDF;
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Http;
 
@@ -514,6 +515,26 @@ class VoucherBookController extends Controller
             }
 
         }
+    }
+
+
+    public function voucherEditByDonor($id)
+    {
+        $data = Order::where('id', $id)->first();
+        
+        $orderhistories = DB::table('order_histories')
+            ->where('order_id', $id)
+            ->select('voucher_id', DB::raw('SUM(number_voucher) as total_number_voucher'), DB::raw('SUM(amount) as total_amount'))
+            ->groupBy('voucher_id')
+            ->get();
+        
+        
+        $voucher_books = Voucher::where('status','=','1')->get();
+        $success['message'] = 'Data found.';
+        $success['order'] = $data;
+        $success['order_details'] = $orderhistories;
+        $success['voucher_books'] = $voucher_books;
+        return response()->json(['success'=>true,'response'=> $success], 200);
     }
 
 

@@ -44,6 +44,86 @@ class VoucherBookController extends Controller
 
     }
 
+    public function voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl)
+    {
+
+        if ($voucher_id == 176) {
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "3";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "5";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "10";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+            
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "18";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+        } else {
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "20";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "25";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "36";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+            
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "50";
+            $input['status'] = "0";
+            OrderHistory::create($input);
+        }
+
+    }
+
     public function storeVoucher(Request $request)
     {
 
@@ -143,57 +223,74 @@ class VoucherBookController extends Controller
             foreach($vouchers as $vdata)
             {
                 if($vdata['qtys'] != "0"){
-                if($vdata['qtys'] > "1"){
+                    if($vdata['qtys'] > "1"){
 
-                    for($x = 0; $x < $vdata['qtys']; $x++)
-                    {
-                    $unique = time().rand(1,100);
-                    //order history
-                    $amount =  Voucher::where('id',$vdata['voucherIds'])->first()->amount;
-                    $input['order_id'] = $order->id;
-                    $input['voucher_id'] = $vdata['voucherIds'];
-                    $input['number_voucher'] = 1;
-                    $input['amount'] = $amount;
-                    $input['o_unq'] = $unique;
-                    $input['status'] = "0";
-                    OrderHistory::create($input);
+                        for($x = 0; $x < $vdata['qtys']; $x++)
+                        {
+                        $unique = time().rand(1,100);
+                        //order history
+                        $amount =  Voucher::where('id', $vdata['voucherIds'])->first()->amount;
+                        $voucherDtl =  Voucher::where('id', $vdata['voucherIds'])->first();
+                        $voucher_id = $vdata['voucherIds'];
+                        $input['order_id'] = $order->id;
+                        $input['voucher_id'] = $vdata['voucherIds'];
+                        $input['number_voucher'] = 1;
+                        $input['amount'] = $amount;
+                        $input['o_unq'] = $unique;
+                        $input['status'] = "0";
+                        $vqtys = 1;
+                            if ($voucherDtl->type == "Mixed") {
+                                $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                            } else {
+                                OrderHistory::create($input);
+                            }
+                        }
+                    }else{
+
+                        $unique = time().rand(1,100);
+
+                        //order history
+                        $amount =  Voucher::where('id', $vdata['voucherIds'])->first()->amount;
+                        $voucherDtl =  Voucher::where('id', $vdata['voucherIds'])->first();
+                        $voucher_id = $vdata['voucherIds'];
+                        $input['order_id'] = $order->id;
+                        $input['voucher_id'] = $vdata['voucherIds'];
+                        $input['number_voucher'] = $vdata['qtys'];
+                        $input['amount'] = $vdata['qtys']*$amount;
+                        $input['o_unq'] = $unique;
+                        $input['status'] = "0";
+                        $vqtys = $vdata['qtys'];
+
+                        if ($voucherDtl->type == "Mixed") {
+                            $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                        } else {
+                            OrderHistory::create($input);
+                        }
                     }
 
-                }else{
+                    //voucher stock decrement
+                    $v = Voucher::find($vdata['voucherIds']);
+                    $v->decrement('stock',$vdata['qtys']);
+                    $v->save();
 
-                $unique = time().rand(1,100);
-
-                //order history
-                $amount =  Voucher::where('id',$vdata['voucherIds'])->first()->amount;
-                $input['order_id'] = $order->id;
-                $input['voucher_id'] = $vdata['voucherIds'];
-                $input['number_voucher'] = $vdata['qtys'];
-                $input['amount'] = $vdata['qtys']*$amount;
-                $input['o_unq'] = $unique;
-                $input['status'] = "0";
-                OrderHistory::create($input);
-                }
-                //voucher stock decrement
-                $v = Voucher::find($vdata['voucherIds']);
-                $v->decrement('stock',$vdata['qtys']);
-                $v->save();
-
-                //user transaction out if voucher is/are prepaid
-                if(Voucher::where('id',$vdata['voucherIds'])->first()->type == "Prepaid"){
-                    $utransaction = new Usertransaction();
-                    $utransaction->t_id = time() . "-" . Auth::user()->id;
-                    $utransaction->user_id = Auth::user()->id;
-                    $utransaction->t_type = "Out";
-                    $utransaction->amount =  $vdata['qtys']*$amount;
-                    $utransaction->t_unq = $unique;
-                    $utransaction->order_id = $order->id;
-                    $utransaction->title ="Prepaid Voucher Book";
-                    $utransaction->status =  1;
-                    $utransaction->save();
-                    $ppc = $ppc + 1;
-                }
+                    //user transaction out if voucher is/are prepaid
+                    if(Voucher::where('id',$vdata['voucherIds'])->first()->type == "Prepaid"){
+                        $utransaction = new Usertransaction();
+                        $utransaction->t_id = time() . "-" . Auth::user()->id;
+                        $utransaction->user_id = Auth::user()->id;
+                        $utransaction->t_type = "Out";
+                        $utransaction->amount =  $vdata['qtys']*$amount;
+                        $utransaction->t_unq = $unique;
+                        $utransaction->order_id = $order->id;
+                        $utransaction->title ="Prepaid Voucher Book";
+                        $utransaction->status =  1;
+                        $utransaction->save();
+                        $ppc = $ppc + 1;
+                    }
 
                 }
+                
+
             }
 
             if ($ppc > 0) {
@@ -250,10 +347,10 @@ class VoucherBookController extends Controller
             $array['delivery_option'] = $delivery_opt;
 
 
-            // Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
-            //  $message->from($array['from'], 'Tevini.co.uk');
-            //  $message->to($email)->cc($array['cc'])->subject($array['subject']);
-            // });
+            Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
+             $message->from($array['from'], 'Tevini.co.uk');
+             $message->to($email)->cc($array['cc'])->subject($array['subject']);
+            });
 
 
             $success['message'] = 'Voucher order place successfully.';

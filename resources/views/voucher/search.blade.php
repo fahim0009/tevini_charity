@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
             @if (session('error'))
                 <div class="alert alert-danger">
                     {{ session('error') }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <button type="button" class="close text-right" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
             @if (isset($success))
                 <div class="alert alert-success">
                     {{ $success }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <button type="button" class="close text-right float-right" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

@@ -794,16 +794,25 @@ class VoucherBookController extends Controller
         
         $orderhistories = DB::table('order_histories')
             ->where('order_id', $id)
-            ->select('voucher_id', DB::raw('SUM(number_voucher) as total_number_voucher'), DB::raw('SUM(amount) as total_amount'))
+            ->select('voucher_id', DB::raw('SUM(number_voucher) as qty'), DB::raw('SUM(amount) as total_amount'))
             ->groupBy('voucher_id')
             ->get();
+
+        $voucherTypes = DB::table('vouchers')
+            ->whereIn('id', $orderhistories->pluck('voucher_id'))
+            ->pluck('type', 'id');
+
+        foreach ($orderhistories as $order) {
+            if (isset($voucherTypes[$order->voucher_id]) && $voucherTypes[$order->voucher_id] === 'Mixed') {
+                $order->qty /= 4;
+                $order->total_amount /= 4;
+            }
+        }
         
         
-        $voucher_books = Voucher::where('status','=','1')->get();
         $success['message'] = 'Data found.';
         $success['order'] = $data;
         $success['order_details'] = $orderhistories;
-        $success['voucher_books'] = $voucher_books;
         return response()->json(['success'=>true,'response'=> $success], 200);
     }
 

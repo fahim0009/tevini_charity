@@ -390,7 +390,7 @@ class MaaserController extends Controller
     {
          
         // donor balance
-        $data = OtherDonation::where('donor_id', Auth::user()->id)->get();
+        $data = OtherDonation::where('donor_id', Auth::user()->id)->orderby('id', 'DESC')->get();
         // donor balance end
         
         if($data == null){

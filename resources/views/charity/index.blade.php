@@ -157,7 +157,7 @@
                                         <td>{{$user->town}}</td>
                                         <td>{{$user->post_code}}</td>
                                         <td>{{$user->acc_no}}</td>
-                                        <td>£{{$user->balance}}</td>
+                                        <td>£{{number_format($user->balance, 2)  ?? '0.00'}}</td>
                                         <td>£{{number_format($pending_transactions, 2)}}</td>
                                         <td style="text-align: center">
                                             <div class="form-check form-switch">

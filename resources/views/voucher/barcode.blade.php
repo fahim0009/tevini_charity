@@ -86,7 +86,7 @@
                                         @if($orderDtl->total_page)
                                         {{ $orderDtl->total_page }}
                                         @else
-                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc2" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc2" data-bs-toggle="modal" vtype="{{$orderDtl->voucher->type}}" mixedAmount="{{$orderDtl->mixed_value}}" data-bs-target="#exampleModal2">
                                             add
                                         </button>
                                         @endif
@@ -162,6 +162,8 @@
                     <input type="text" class="form-control" id="pages">
                     <input type="hidden" class="form-control" value="" id="orderhisid2">
                     <input type="hidden" class="form-control" value="{{ $user->id }}" id="user_id">
+                    <input type="hidden" class="form-control" value="" id="voucherType">
+                    <input type="hidden" class="form-control" value="" id="mixedamount">
                 </div>
             </div>
             <div class="modal-footer">
@@ -217,8 +219,12 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
 
     $(".acc2").click(function(){
         var orderid = $(this).attr("order-id");
+        var vtype = $(this).attr("vtype");
+        var mixedamount = $(this).attr("mixedamount");
         console.log(orderid);
         $('#orderhisid2').val(orderid);
+        $('#voucherType').val(vtype);
+        $('#mixedamount').val(mixedamount);
     });
 
     $(".acc3").click(function(){
@@ -232,12 +238,13 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         var orderhisid= $("#orderhisid").val();
         var startbarcode = $("#startbarcode").val();
         var user_id = $("#user_id").val();
-        console.log(user_id);
+        // console.log(user_id); 
         $.ajax({
             url: starturl,
             method: "POST",
             data: {orderhisid,startbarcode},
             success: function (d) {
+                // console.log(d);
                 if (d.status == 303) {
                     $(".ermsg").html(d.message);
                 }else if(d.status == 300){
@@ -260,11 +267,13 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
             var orderhisid= $("#orderhisid2").val();
             var pages = $("#pages").val();
             var user_id = $("#user_id").val();
-                console.log(orderhisid);
+            var voucherType = $("#voucherType").val();
+            var mixedamount = $("#mixedamount").val();
+                // console.log(orderhisid, voucherType, mixedamount, pages, user_id);
             $.ajax({
                 url: endurl,
                 method: "POST",
-                data: {orderhisid,pages,user_id},
+                data: {orderhisid,pages,user_id,voucherType,mixedamount},
                 success: function (d) {
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);

@@ -1145,12 +1145,14 @@ class OrderController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+
         $user = OrderHistory::find($request->orderhisid);
         $user->startbarcode = $request->startbarcode;
         if($user->save()){
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
+
 
     }
 
@@ -1176,6 +1178,8 @@ class OrderController extends Controller
             exit();
         }
 
+        $mixedamount = $request->mixedamount;
+        $voucherType = $request->voucherType;
 
         $endbarcode = $startbarcode + $number_pages;
 
@@ -1186,15 +1190,22 @@ class OrderController extends Controller
             for($x = $startbarcode; $x < $endbarcode; $x++)
             {
 
-
-                $addbarcode = new Barcode();
-                $addbarcode->orderhistory_id = $request->orderhisid;
-                $addbarcode->user_id = $request->user_id;
-                $addbarcode->barcode = $x;
-                $addbarcode->amount = $single_vamount;
-                $addbarcode->save();
-
-
+                if ($voucherType == "Mixed") {
+                    $addbarcode = new Barcode();
+                    $addbarcode->orderhistory_id = $request->orderhisid;
+                    $addbarcode->user_id = $request->user_id;
+                    $addbarcode->barcode = $x;
+                    $addbarcode->amount = $mixedamount;
+                    $addbarcode->save();
+                } else {
+                    $addbarcode = new Barcode();
+                    $addbarcode->orderhistory_id = $request->orderhisid;
+                    $addbarcode->user_id = $request->user_id;
+                    $addbarcode->barcode = $x;
+                    $addbarcode->amount = $single_vamount;
+                    $addbarcode->save();
+                }
+                
            }
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Number of pages added successfully.</b></div>";

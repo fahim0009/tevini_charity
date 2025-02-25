@@ -86,9 +86,12 @@ class CampaignController extends Controller
 
     public function update(Request $request, $id)
     {
+        
         $data = Campaign::findOrFail($id);
         $data->charity_id = $request->charity_id;
         $data->campaign_title = $request->title;
+        $data->start_date = $request->start_date;
+        $data->end_date = $request->end_date;
 
         if($data->save()){
             $message ="Campaign Update Successfully";

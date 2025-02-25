@@ -37,6 +37,17 @@
                                 <label for="">Title</label>
                                <input type="text" name="title" id="title" placeholder="Title" class="form-control @error('title') is-invalid @enderror" value="{{ $data->campaign_title }}">
                          </div>
+
+                         <div class="col my-3">
+                            <label for="start_date">Start Date</label>
+                           <input type="date" name="start_date" id="start_date" class="form-control @error('start_date') is-invalid @enderror" value="{{ $data->start_date }}">
+                        </div>
+
+                        
+                        <div class="col my-3">
+                            <label for="">End Date</label>
+                           <input type="date" name="end_date" id="end_date" class="form-control @error('end_date') is-invalid @enderror" value="{{ $data->end_date }}">
+                        </div>
                          
                          
                     </div>

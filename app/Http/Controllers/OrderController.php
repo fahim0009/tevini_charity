@@ -439,6 +439,15 @@ class OrderController extends Controller
             $input['mixed_value'] = "50";
             $input['status'] = "0";
             OrderHistory::create($input);
+
+            $input['order_id'] = $order->id;
+            $input['voucher_id'] = $voucher_id;
+            $input['number_voucher'] = 1;
+            $input['amount'] = 0;
+            $input['o_unq'] = $unique;
+            $input['mixed_value'] = "72";
+            $input['status'] = "0";
+            OrderHistory::create($input);
         }
 
     }

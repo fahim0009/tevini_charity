@@ -131,6 +131,7 @@ class DonorController extends Controller
         $user->street = $request->street;
         $user->postcode = $request->postcode;
         $user->houseno = $request->houseno;
+        $user->address_third_line = $request->address_third_line;
         $user->town = $request->town;
         $user->accountno = $request->accountno;
 

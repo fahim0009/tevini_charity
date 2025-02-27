@@ -190,6 +190,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/barcode/{id}', [OrderController::class, 'barcode'])->name('barcode');
     Route::post('/find-name', [OrderController::class, 'findName']);
     Route::post('/barcode', [OrderController::class, 'getbarCode']);
+    
+    Route::get('/downloadpostage/{id}', [OrderController::class, 'downloadpostage'])->name('downloadpostage');
 
     //order
     Route::post('/order-status', [OrderController::class, 'orderStatus']);

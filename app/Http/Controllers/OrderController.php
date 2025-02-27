@@ -1155,10 +1155,46 @@ class OrderController extends Controller
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+        $mixedamount = $request->mixedamount;
+        $voucherType = $request->voucherType;
+
+        if ($voucherType == "Mixed") {
+            if ($mixedamount == 3 || $mixedamount == 5) {
+                $page = 15;
+            } else {
+                $page = 10;
+            }
+
+          
+        $startbarcode = $request->startbarcode;  
+        $endbarcode = $startbarcode + $page;
+            
+        }
+
+        
 
         $user = OrderHistory::find($request->orderhisid);
         $user->startbarcode = $request->startbarcode;
+        if ($voucherType == "Mixed") {
+            $user->total_page = $page;
+        }
         if($user->save()){
+
+            if ($voucherType == "Mixed") {
+                
+                for($x = $startbarcode; $x < $endbarcode; $x++)
+                {
+
+                    $addbarcode = new Barcode();
+                    $addbarcode->orderhistory_id = $request->orderhisid;
+                    $addbarcode->user_id = $request->user_id;
+                    $addbarcode->barcode = $x;
+                    $addbarcode->amount = $mixedamount;
+                    $addbarcode->save();
+                }
+                
+            }
+
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
@@ -1216,7 +1252,7 @@ class OrderController extends Controller
                     $addbarcode->save();
                 }
                 
-           }
+            }
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Number of pages added successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
@@ -1252,6 +1288,21 @@ class OrderController extends Controller
         ->with('order',$order)
         ->with('orderDtls',$orderDtls);
 
+    }
+
+    // download voucher book invoice
+    public function downloadpostage($id)
+    {
+        
+        $order = Order::where('id',$id)->first();
+        $user_id = $order->user_id;
+        $user = User::where('id','=', $user_id)->first();
+        // dd();
+        $orderDtls = OrderHistory::where('order_id',  $id)->get();
+        $pdf = PDF::loadView('invoices.voucherbookpostage', compact('user','order','orderDtls'));
+        return $pdf->download('voucherbook_' . $order->id . '.pdf');
+
+        // return view('invoices.voucherbookpostage', compact('user','order','orderDtls'));
     }
 
     public function findName(Request $request)

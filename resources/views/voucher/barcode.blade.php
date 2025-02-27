@@ -22,7 +22,7 @@
                     <div class="text-start text-muted mb-4 px-2">
                         <p class="mb-1">Name: {{$user->name}}</p>
                         <p class="mb-1">Email: {{$user->email}}</p>
-                        <p class="mb-1">Address: {{$user->address}}</p>
+                        <p class="mb-1">Address: {{ $user->houseno }} {{ $user->street }} {{ $user->address_third_line }} {{ $user->town }} {{ $user->postcode }} </p>
                         <br>
                         <p class="mb-1">Delivery Option: {{$order->delivery_option}}</p>
                     </div>
@@ -36,6 +36,10 @@
                             @else
                             Cancel
                             @endif
+                        </p>
+
+                        <p>
+                            <a href="{{ route('downloadpostage', $order->id) }}" class="btn btn-success">Download Voucher</a>
                         </p>
 
                     </div>
@@ -77,7 +81,7 @@
                                         <br>
                                         <span style="margin: -20px 0px 0px 30px">{{$orderDtl->startbarcode}}</span>
                                         @else
-                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-primary btn-sm acc" vtype="{{$orderDtl->voucher->type}}" mixedAmount="{{$orderDtl->mixed_value}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             add
                                         </button>
                                         @endif
@@ -214,14 +218,18 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
 //add stock to voucher
     $(".acc").click(function(){
         var orderid = $(this).attr("order-id");
+        var vtype = $(this).attr("vtype");
+        var mixedamount = $(this).attr("mixedamount");
         $('#orderhisid').val(orderid);
+        $('#voucherType').val(vtype);
+        $('#mixedamount').val(mixedamount);
     });
 
     $(".acc2").click(function(){
         var orderid = $(this).attr("order-id");
         var vtype = $(this).attr("vtype");
         var mixedamount = $(this).attr("mixedamount");
-        console.log(orderid);
+        // console.log(orderid);
         $('#orderhisid2').val(orderid);
         $('#voucherType').val(vtype);
         $('#mixedamount').val(mixedamount);
@@ -233,16 +241,20 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
     });
 
         //add start barcode
-        var starturl = "{{URL::to('/admin/add-start-barcode')}}";
-        $("#addStartBtn").click(function(){
+    var starturl = "{{URL::to('/admin/add-start-barcode')}}";
+    $("#addStartBtn").click(function(){
         var orderhisid= $("#orderhisid").val();
         var startbarcode = $("#startbarcode").val();
         var user_id = $("#user_id").val();
-        // console.log(user_id); 
+        var voucherType = $("#voucherType").val();
+        var mixedamount = $("#mixedamount").val();
+        
+                // console.log(orderhisid, voucherType, mixedamount, user_id);
+
         $.ajax({
             url: starturl,
             method: "POST",
-            data: {orderhisid,startbarcode},
+            data: {orderhisid,startbarcode,user_id,voucherType,mixedamount},
             success: function (d) {
                 // console.log(d);
                 if (d.status == 303) {

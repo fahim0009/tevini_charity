@@ -56,7 +56,7 @@ class RegisterController extends Controller
             'name' => ['required_if:profile_type,Personal', 'nullable', 'max:255'],
             'company_name' => ['required_if:profile_type,Company', 'nullable', 'max:255'],
             'phone' => ['required', 'regex:/^((44)|(45)|(46))[0-9]{10}/','min:12'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users', 'email:rfc,dns'],
             'houseno' => ['required', 'string', 'max:255'],
             'town' => ['required', 'string', 'max:255'],
             'postcode' => ['required', 'string', 'max:255'],

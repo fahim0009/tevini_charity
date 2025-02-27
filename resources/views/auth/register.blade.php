@@ -84,7 +84,7 @@
                                 <input id="phone" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}"  placeholder="Contact Number" required autocomplete="phone" maxlength="13" autofocus> 
                                 {{-- <small>*Example:+440123456789</small> --}}
                                 
-                                <span>Example: 441234567890</span>
+                                <small>Example: 441234567890</small>
                                 @error('phone')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -130,7 +130,7 @@
                             </div>
                             <div class="form-group">
                 
-                                <input id="password" type="password" placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                                <input id="password" type="password" placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" value="Shakil@1">
                                 @error('password')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -140,7 +140,7 @@
                             </div>
                             <div class="form-group">
                 
-                                <input id="password-confirm" type="password" class="form-control  @error('password') is-invalid @enderror" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password">
+                                <input id="password-confirm" type="password" class="form-control  @error('password') is-invalid @enderror" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password" value="Shakil@1">
                                 @error('password_confirmation')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -157,7 +157,10 @@
 
 
                             <div class="form-group">
-                                <button class="btn-theme bg-primary d-block text-center mx-0 w-100">Sign up</button>
+                                <button class="btn-theme bg-primary d-block text-center mx-0 w-100" type="submit" id="submitBtn">
+                                    Sign up
+                                    <span id="spinner" class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true" style="display: none;"></span>
+                                </button>
                             </div>
 
 
@@ -209,6 +212,19 @@ $(function() {
             $('#companyDiv').show(); 
         } 
     });
+});
+
+$('#submitBtn').on('click', function() {
+    $('#spinner').show();
+    $(this).closest('form').submit();
+});
+
+$('form').on('submit', function() {
+    $('#spinner').show();
+});
+
+$(document).ajaxComplete(function() {
+    $('#spinner').hide();
 });
 </script>
 @endsection

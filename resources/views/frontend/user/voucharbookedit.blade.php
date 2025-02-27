@@ -124,6 +124,14 @@ body {
                                             // $oldvqty = $match ? $match->total_number_voucher : 0; // Default to 0 if not found
                                             
                                             $cartVoucher = \App\Models\Voucher::where('id', $item->voucher_id)->first();
+
+                                            if ($cartVoucher->type == 'Mixed') {
+                                                $total_number = $item->total_number_voucher/4;
+                                                $total_number_voucher = intval($total_number);
+                                            } else {
+                                                $total_number_voucher = $item->total_number_voucher;
+                                            }
+                                            
                                         @endphp
 
                                         <tr class="item-row"> 
@@ -147,7 +155,7 @@ body {
                                                 <span class="bottom-data"> {{$cartVoucher->note}} @if ($cartVoucher->type == 'Prepaid') = £{{ $cartVoucher->amount  }} @endif</span>
                                             </td>
 
-                                            <td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="{{$item->total_number_voucher}}"  v_amount="{{ $item->total_amount }}" v_type="{{ $cartVoucher->type }}" data-type="{{ $cartVoucher->type }}" vid="{{$item->voucher_id}}"  id="cartValue{{$item->voucher_id}}"> </td>
+                                            <td width="80px"> <input style="min-width: 50px;" type="text" name="qty[]" class="form-control qty" onkeypress="return /[0-9]/i.test(event.key)" value="{{$total_number_voucher}}"  v_amount="{{ $item->total_amount }}" v_type="{{ $cartVoucher->type }}" data-type="{{ $cartVoucher->type }}" vid="{{$item->voucher_id}}"  id="cartValue{{$item->voucher_id}}"> </td>
                                             
                                             
                                             <td width="150px" class="d-none">  <input style="min-width: 50px;" type="number" name="total[]" class="form-control vtotal" id="vtotal{{$item->voucher_id}}" @if ($cartVoucher->type == 'Prepaid') value="{{ $item->total_amount }}" @else value="" @endif readonly> </td>

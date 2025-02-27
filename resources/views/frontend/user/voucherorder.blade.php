@@ -112,7 +112,7 @@ use Illuminate\Support\Carbon;
         $('#voucherTable').DataTable({
             pageLength: 25,
             "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            "order": [[ 0, "desc" ]], //or asc 
+            "order": [[ 0, "desc" ]], // Order by the first column (Date) in descending order
             "columnDefs" : [{"targets":3, "type":"date-eu"}],
         });
     </script>

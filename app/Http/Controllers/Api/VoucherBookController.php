@@ -813,7 +813,7 @@ class VoucherBookController extends Controller
 
         foreach ($orderhistories as $order) {
             if (isset($voucherTypes[$order->voucher_id]) && $voucherTypes[$order->voucher_id] === 'Mixed') {
-                $order->qty /= 4;
+                $order->qty = round($order->qty / 4);
                 $order->total_amount /= 4;
             }
         }

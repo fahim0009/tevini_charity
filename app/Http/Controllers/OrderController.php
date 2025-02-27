@@ -366,6 +366,7 @@ class OrderController extends Controller
     public function voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl)
     {
 
+        // never delete this is from database. 176, 177
         if ($voucher_id == 176) {
             $input['order_id'] = $order->id;
             $input['voucher_id'] = $voucher_id;
@@ -1855,7 +1856,7 @@ public function watingvoucherCancel(Request $request)
 
     public function userOrderview()
     {
-        $orders = Order::where('user_id', Auth::user()->id)->orderBy('created_at','DESC')->get();
+        $orders = Order::where('user_id', Auth::user()->id)->get();
         return view('frontend.user.voucherorder')
         ->with('orders',$orders);
 

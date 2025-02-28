@@ -20,7 +20,15 @@
                 <p><b>Order No: {{$order->order_id}} </b></p>
                 <div class="d-flex justify-content-between align-items-center mb-5">
                     <div class="text-start text-muted mb-4 px-2">
+                        @if ($user->profile_type == 'Personal')
                         <p class="mb-1">Name: {{$user->name}}</p>
+                        @else
+                        <p class="mb-1">Company Name: {{$user->name}}</p>
+                        <p class="mb-1">Donor Name: {{$user->surname}}</p>
+
+                        @endif
+
+
                         <p class="mb-1">Email: {{$user->email}}</p>
                         <p class="mb-1">Address: {{ $user->houseno }} {{ $user->street }} {{ $user->address_third_line }} {{ $user->town }} {{ $user->postcode }} </p>
                         <br>
@@ -39,7 +47,7 @@
                         </p>
 
                         <p>
-                            <a href="{{ route('downloadpostage', $order->id) }}" class="btn btn-success">Download Voucher</a>
+                            <a href="{{ route('downloadpostage', $order->id) }}" class="btn btn-success">Download Postage Label</a>
                         </p>
 
                     </div>

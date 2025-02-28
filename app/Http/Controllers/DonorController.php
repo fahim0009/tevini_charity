@@ -122,9 +122,17 @@ class DonorController extends Controller
 
 
         $user = User::findOrFail($id);
+
         $user->prefix_name = $request->prefix_name;
-        $user->name = $request->fname;
-        $user->surname = $request->surname;
+
+        if ($request->profile_type == "Company") {
+            $user->name = $request->company_name;
+            $user->surname = $request->company_last_name;
+        } else {
+            $user->name = $request->fname;
+            $user->surname = $request->surname;
+        }
+        
         $user->email = $request->email;
         $user->phone = $request->phone;
         $user->title = $request->title;

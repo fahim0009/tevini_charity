@@ -35,30 +35,65 @@ use Illuminate\Support\Carbon;
 </div>
 <!-- Image loader -->
 
+@php
+    $userCreatedDate = auth()->user()->created_at;
+@endphp
 
+@if ($userCreatedDate->isToday())
+@if (!auth()->user()->hasVerifiedEmail())
+<div class="alert alert-warning">
+    We have sent you an email verification link. Please check your inbox and click the link to verify your email address. <br>
 
-  @if (!auth()->user()->hasVerifiedEmail())
+    If you don’t see the email, please check your spam folder or request a new verification link.
+    <br>
+    <a href="{{ route('verification.resend') }}" class="btn-theme bg-secondary" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();">Resend</a>
 
-    <div class="alert alert-warning">
-        <strong>  Is Your Email Up to Date? </strong>
-        <br>  <a href="{{ route('verification.resend') }}" class="btn-theme bg-secondary" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">Yes</a>
-        <a href="{{ route('verification.resend') }}" class="btn-theme bg-danger" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">No</a> <br> Please update your current active email address
-        </div>
+    <form method="POST" action="{{ route('verification.resend') }}" id="verifyBtn" style="display: none;">
+    @csrf
+    <button type="submit" class="btn btn-primary">
+        Resend Verification Email
+    </button>
+    </form>
 
-        <form method="POST" action="{{ route('verification.resend') }}" id="verifyBtn" style="display: none;">
-        @csrf
-        <button type="submit" class="btn btn-primary">
-            Resend Verification Email
-        </button>
-        </form>
+    @if (session('message'))
+    <div class="alert alert-success" role="alert">
+        {{ session('message') }}
+    </div>
+    @endif
+    
+</div> 
+@endif
+    
+@else
+    
 
-        @if (session('message'))
-        <div class="alert alert-success" role="alert">
-            {{ session('message') }}
-        </div>
+    @if (!auth()->user()->hasVerifiedEmail())
+
+        <div class="alert alert-warning">
+            <strong>  Is Your Email Up to Date? </strong>
+            <br>  <a href="{{ route('verification.resend') }}" class="btn-theme bg-secondary" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">Yes</a>
+            <a href="{{ route('verification.resend') }}" class="btn-theme bg-danger" onclick="event.preventDefault(); document.getElementById('verifyBtn').submit();" id="verifythis">No</a> <br> Please update your current active email address
+            </div>
+
+            <form method="POST" action="{{ route('verification.resend') }}" id="verifyBtn" style="display: none;">
+            @csrf
+            <button type="submit" class="btn btn-primary">
+                Resend Verification Email
+            </button>
+            </form>
+
+            @if (session('message'))
+            <div class="alert alert-success" role="alert">
+                {{ session('message') }}
+            </div>
+            @endif
+
     @endif
 
+
 @endif
+
+
 
   
 <div class="row ">

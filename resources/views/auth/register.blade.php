@@ -47,22 +47,43 @@
                             <div class="form-group">
                                 <label for="">Account registration for:</label>
                                 <select name="profile_type" id="profile_type"  class="form-control @error('profile_type') is-invalid @enderror" required>
-                                    <option value="Company">Company</option>
-                                    <option value="Personal">Personal</option>
+                                    <option value="">Select personal or company*</option>
+                                    <option value="Company" @if (old('profile_type') == 'Company') selected @endif >Company</option>
+                                    <option value="Personal"  @if (old('profile_type') == 'Personal') selected @endif>Personal</option>
                                 </select>
+                                @error('profile_type')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
 
-
-                            <div id="companyDiv">
+                            
+                            <div @if (old('profile_type') == 'Company')  @else  id="companyDiv" @endif class="companyDiv">
                                 <div class="form-group">
                                     <input id="company_name" type="text" class="form-control @error('company_name') is-invalid @enderror" name="company_name" value="{{ old('company_name') }}"  placeholder="Company Name" autocomplete="company_name" autofocus>
+
+                                    @error('company_name')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+
+
                                 </div>
                                 <div class="form-group">
                                     <input id="company_last_name" type="text" class="form-control @error('company_last_name') is-invalid @enderror" name="company_last_name" value="{{ old('company_last_name') }}"  placeholder="Your Name" autocomplete="company_last_name" autofocus>
+
+                                    @error('company_last_name')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+
                                 </div>
                             </div>
-
-                            <div id="personalDiv">
+                            
+                            <div @if (old('profile_type') == 'Personal')  @else  id="personalDiv" @endif class="personalDiv">
                                 <div class="form-group">
                                     <select name="prefix_name" id="prefix_name"  class="form-control @error('prefix_name') is-invalid @enderror">
                                         <option value="Mr">Mr</option>
@@ -71,12 +92,32 @@
                                 </div>
                                 <div class="form-group">
                                     <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}"  placeholder="Name" autocomplete="name" autofocus>
+                                    @error('name')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                                 <div class="form-group">
                                     <input id="surname" type="text" class="form-control @error('surname') is-invalid @enderror" name="surname" value="{{ old('surname') }}"  placeholder="Surname" autocomplete="surname" autofocus>
+                                    @error('surname')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                             </div>
 
+                            <script>
+                                if (old('profile_type') == 'Company') {
+                                    $('#companyDiv').show();
+                                    $('#personalDiv').hide();
+                                } else if (old('profile_type') == 'Personal') {
+                                    $('#companyDiv').hide();
+                                    $('#personalDiv').show();
+                                }
+
+                            </script>
                             
 
 
@@ -130,7 +171,7 @@
                             </div>
                             <div class="form-group">
                 
-                                <input id="password" type="password" placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" value="Shakil@1">
+                                <input id="password" type="password" placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" value="">
                                 @error('password')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -140,7 +181,7 @@
                             </div>
                             <div class="form-group">
                 
-                                <input id="password-confirm" type="password" class="form-control  @error('password') is-invalid @enderror" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password" value="Shakil@1">
+                                <input id="password-confirm" type="password" class="form-control  @error('password') is-invalid @enderror" name="password_confirmation" required autocomplete="new-password"  placeholder="Confirm password" value="">
                                 @error('password_confirmation')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -203,18 +244,24 @@
 
 $(function() {
     $('#personalDiv').hide(); 
+    $('#companyDiv').hide(); 
     $('#profile_type').change(function(){
         if($('#profile_type').val() == 'Personal') {
             $('#personalDiv').show(); 
+            $('.personalDiv').show(); 
             $('#companyDiv').hide(); 
+            $('.companyDiv').hide(); 
         } else {
             $('#personalDiv').hide(); 
+            $('.personalDiv').hide(); 
             $('#companyDiv').show(); 
+            $('.companyDiv').show(); 
         } 
     });
 });
 
 $('#submitBtn').on('click', function() {
+    $(this).prop('disabled', true);
     $('#spinner').show();
     $(this).closest('form').submit();
 });

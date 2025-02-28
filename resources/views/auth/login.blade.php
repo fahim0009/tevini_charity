@@ -11,6 +11,14 @@
       <div class="row mt-5">
           <div class="col-lg-10 mx-auto">
               <div class="row">
+                    <div class="col-lg-12">
+                        @if(session()->has('status'))
+                            <div class="alert alert-success alert-dismissible fade show alert-custom" role="alert">
+                                {{ session()->get('status') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+                    </div>
                   <div class="col-lg-8 d-flex align-items-center justify-content-center">
                       <img src="{{ asset('assets/front/images/log in page 1.svg') }}" alt="" class="w-100">
                   </div>

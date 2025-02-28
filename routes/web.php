@@ -65,10 +65,12 @@ Route::post('/email/resend-verification', function (Request $request) {
     return redirect()->back()->with('message', 'Please check your email. we have send a link to confirm your email!');
 })->middleware(['auth'])->name('verification.resend');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return redirect('/home'); // Or wherever you want to redirect after verification
-})->middleware(['auth', 'signed'])->name('verification.verify');
+Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verification'])->name('verification.verify');
+
+// Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+//     $request->fulfill();
+//     return redirect('/home'); // Or wherever you want to redirect after verification
+// })->middleware(['auth', 'signed'])->name('verification.verify');
 
 // user part start
 Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function(){

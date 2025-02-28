@@ -53,6 +53,7 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
+            'profile_type' => ['required'],
             'name' => ['required_if:profile_type,Personal', 'nullable', 'max:255'],
             'company_name' => ['required_if:profile_type,Company', 'nullable', 'max:255'],
             'phone' => ['required', 'regex:/^((44)|(45)|(46))[0-9]{10}/','min:12'],
@@ -122,17 +123,6 @@ class RegisterController extends Controller
 
         ]);
 
-    //   $mail_to_send_to = $data['email'];
-
-        // $from_email = "info@tevini.co.uk";
-        // $subject= "Registration message from Tevini";
-
-        // $message= "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.";
-
-        // $message = $message. "\r\n" ;//add message from the contact form to existing message(name of the client)
-        // $headers = "From: $from_email" . "\r\n" . "Reply-To: $from_email"  ;
-        // $a = mail( $mail_to_send_to, $subject, $message, $headers );
-
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
             $array['prefix_name'] = $data['prefix_name'];
@@ -146,6 +136,8 @@ class RegisterController extends Controller
              $message->from($array['from'], 'Tevini.co.uk');
              $message->to($email)->cc($array['cc'])->subject($array['subject']);
             });
+
+            $user->sendEmailVerificationNotification();
 
         return $user;
     }

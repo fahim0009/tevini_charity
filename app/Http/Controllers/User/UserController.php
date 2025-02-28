@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Verified;
 use App\Models\Usertransaction;
 use App\Models\User;
 use App\Models\Role;
@@ -230,7 +231,7 @@ class UserController extends Controller
         if ($userdata->save()) {
             $message ="Profile Update Successfully";
 
-        return redirect()->route('user.profile')->with(['status'=> 303,'message'=> $message]);
+            return redirect()->route('user.profile')->with(['status'=> 303,'message'=> $message]);
         }
         else{
             return back()->with(['status'=> 303,'message'=>'Server Error!!']);
@@ -238,7 +239,7 @@ class UserController extends Controller
 
     }
 
-    public function changeUserPassword(Request $request)
+        public function changeUserPassword(Request $request)
         {
 
             if(empty($request->opassword)){
@@ -259,33 +260,33 @@ class UserController extends Controller
                 exit();
             }
 
-        $hashedPassword = Auth::user()->password;
+            $hashedPassword = Auth::user()->password;
 
-       if (\Hash::check($request->opassword , $hashedPassword )) {
+            if (\Hash::check($request->opassword , $hashedPassword )) {
 
-         if (!\Hash::check($request->password , $hashedPassword)) {
-                $where = [
-                    'id'=>auth()->user()->id
-                ];
-                $passwordchange = User::where($where)->get()->first();
-                $passwordchange->password =Hash::make($request->password);
+                if (!\Hash::check($request->password , $hashedPassword)) {
+                    $where = [
+                        'id'=>auth()->user()->id
+                    ];
+                    $passwordchange = User::where($where)->get()->first();
+                    $passwordchange->password =Hash::make($request->password);
 
-                if ($passwordchange->save()) {
-                    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Password Change Successfully.</b></div>";
-                    return response()->json(['status'=> 300,'message'=>$message]);
+                    if ($passwordchange->save()) {
+                        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Password Change Successfully.</b></div>";
+                        return response()->json(['status'=> 300,'message'=>$message]);
+                    }else{
+                        return response()->json(['status'=> 303,'message'=>'Server Error!!']);
+                    }
+
                 }else{
-                    return response()->json(['status'=> 303,'message'=>'Server Error!!']);
-                }
-
-        }else{
-            $message ="<div class='alert alert-warning'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>New password can not be the old password.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
+                    $message ="<div class='alert alert-warning'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>New password can not be the old password.</b></div>";
+                    return response()->json(['status'=> 303,'message'=>$message]);
                 }
 
            }else{
             $message ="<div class='alert alert-warning'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Old password doesn't match.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-             }
+            }
 
         }
 
@@ -469,5 +470,47 @@ class UserController extends Controller
         } else {
             return back()->with(['status' => 303, 'message' => 'Server Error!!']);
         }
+    }
+
+    public function verification($id)
+    {
+        if (auth()->user()) {
+            if (! auth()->user()->hasVerifiedEmail()) {
+                auth()->user()->markEmailAsVerified();
+                event(new Verified(auth()->user()));
+    
+                $chkAccNo = User::where('id', auth()->user()->id)->first()->accountno;
+                if (empty($chkAccNo)) {
+                    do {
+                        $accountno = mt_rand(100000, 999999);
+                    } while (User::where('accountno', $accountno)->exists());
+    
+                    $user = User::find(auth()->user()->id);
+                    $user->accountno = $accountno;
+                    $user->save();
+                }
+            }
+            return redirect()->route('user.dashboard');
+        } else {
+            $chkAccNo = User::where('id', $id)->first()->accountno;
+            if (empty($chkAccNo)) {
+                do {
+                    $accountno = mt_rand(100000, 999999);
+                } while (User::where('accountno', $accountno)->exists());
+
+                $user = User::find(auth()->user()->id);
+                $user->accountno = $accountno;
+                $user->save();
+            }
+
+            $user = User::find($id);
+            if ($user && ! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+                event(new Verified($user));
+            }
+            return redirect()->route('login')->with('status', 'Email verified successfully. Please login to continue.');
+        }
+        
+        
     }
 }

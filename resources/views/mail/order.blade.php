@@ -204,6 +204,7 @@
                                            <p>Delivery Option : {{ $array['delivery_option']}}</p>
                                         
                                            <p>Request Date : {{date('m-d-Y')}}</p>
+                                           <p>Order id : {{ $array['orderid']}}</p>
                                         
                                            <div style="display:none">
                                                Voucher books :
@@ -238,7 +239,7 @@
                                            </div>
 
                                            <p style="line-height: 24px">
-                                            <br>
+                                            <br> <br> <br>
                                             Kind Regards, <br>
                                             P. Schlesinger <br>
                                             <br><br>

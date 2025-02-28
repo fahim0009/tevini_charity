@@ -350,6 +350,7 @@ class OrderController extends Controller
             $array['client_no'] = $user->accountno;
             $email = $user->email;
             $array['order_id'] = $order->id;
+            $array['orderid'] = $order->order_id;
             $array['delivery_option'] = $delivery_opt;
             Mail::send('mail.order', compact('array'), function($message)use($array,$email) {
              $message->from($array['from'], 'Tevini.co.uk');

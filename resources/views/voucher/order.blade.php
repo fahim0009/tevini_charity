@@ -74,7 +74,13 @@
                                         <tr>
                                             <td>{{ $order->created_at}} </td>
                                             <td>{{ $order->order_id}} </td>
-                                            <td>{{ $order->user->name }}</td>
+                                            <td>
+                                                @if ($order->user->profile_type == 'Company')
+                                                {{ $order->user->surname }}
+                                                @else
+                                                {{ $order->user->name }}
+                                                @endif
+                                            </td>
                                             <td>£{{ $order->amount}}</td>
                                             <td>@if($order->status =="0")
                                                 Pending

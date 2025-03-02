@@ -165,10 +165,25 @@
     $(function() {
         $('#personalDiv').hide(); 
         $('#profile_type').change(function(){
+
+            var company_name = $('#company_name').val();
+            var your_name = $('#company_last_name').val();
+            var fname = $('#fname').val();
+            var surname = $('#surname').val();
+
+            // $('#company_name').val('');
+            // $('#company_last_name').val('');
+            // $('#fname').val('');
+            // $('#surname').val('');
+
             if($('#profile_type').val() == 'Personal') {
+                $('#fname').val(your_name);
+                $('#surname').val('');
                 $('#personalDiv').show(); 
                 $('#companyDiv').hide(); 
             } else {
+                $('#company_last_name').val(fname);
+                $('#company_name').val('');
                 $('#personalDiv').hide(); 
                 $('#companyDiv').show(); 
             } 

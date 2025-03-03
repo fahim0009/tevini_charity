@@ -1184,7 +1184,7 @@ class OrderController extends Controller
                     {
     
                         $addbarcode = new Barcode();
-                        $addbarcode->orderhistory_id = $request->orderhisid;
+                        $addbarcode->orderhistory_id = $data->id;
                         $addbarcode->user_id = $request->user_id;
                         $addbarcode->barcode = $x;
                         $addbarcode->amount = $data->mixed_value;

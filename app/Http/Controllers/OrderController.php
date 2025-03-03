@@ -1160,45 +1160,62 @@ class OrderController extends Controller
         $voucherType = $request->voucherType;
 
         if ($voucherType == "Mixed") {
-            if ($mixedamount == 3 || $mixedamount == 5) {
-                $page = 15;
-            } else {
-                $page = 10;
+            $startbarcode = $request->startbarcode;  
+            $unqid = OrderHistory::where('id', $request->orderhisid)->first()->o_unq;
+            $orderhis = OrderHistory::where('o_unq', $unqid)->get();
+
+            foreach ($orderhis as $key => $order) {
+                if ($order->mixed_value == 3 || $order->mixed_value == 5 ) {
+                    $page = 15;
+                } else {
+                    $page = 10;
+                }
+                
+                $data = OrderHistory::find($order->id);
+                $data->startbarcode = $startbarcode;
+                $data->total_page = $page;
+                $data->save();
+
+                if ($voucherType == "Mixed") {
+                
+                    $endbarcode = $startbarcode + $page;
+
+                    for($x = $startbarcode; $x < $endbarcode; $x++)
+                    {
+    
+                        $addbarcode = new Barcode();
+                        $addbarcode->orderhistory_id = $request->orderhisid;
+                        $addbarcode->user_id = $request->user_id;
+                        $addbarcode->barcode = $x;
+                        $addbarcode->amount = $mixedamount;
+                        $addbarcode->save();
+                    }
+                    
+                    $startbarcode = $startbarcode + $page;
+                    
+                }
+
             }
 
-          
-        $startbarcode = $request->startbarcode;  
-        $endbarcode = $startbarcode + $page;
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mixed Barcode added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
             
-        }
+        } else {
+
+            $user = OrderHistory::find($request->orderhisid);
+            $user->startbarcode = $request->startbarcode;
+            if($user->save()){
+    
+                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
+                return response()->json(['status'=> 300,'message'=>$message]);
+            }
+        } 
+
+
 
         
 
-        $user = OrderHistory::find($request->orderhisid);
-        $user->startbarcode = $request->startbarcode;
-        if ($voucherType == "Mixed") {
-            $user->total_page = $page;
-        }
-        if($user->save()){
-
-            if ($voucherType == "Mixed") {
-                
-                for($x = $startbarcode; $x < $endbarcode; $x++)
-                {
-
-                    $addbarcode = new Barcode();
-                    $addbarcode->orderhistory_id = $request->orderhisid;
-                    $addbarcode->user_id = $request->user_id;
-                    $addbarcode->barcode = $x;
-                    $addbarcode->amount = $mixedamount;
-                    $addbarcode->save();
-                }
-                
-            }
-
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
+        
 
 
     }

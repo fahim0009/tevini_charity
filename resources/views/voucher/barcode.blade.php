@@ -257,7 +257,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
         var voucherType = $("#voucherType").val();
         var mixedamount = $("#mixedamount").val();
         
-                // console.log(orderhisid, voucherType, mixedamount, user_id);
+        // console.log(orderhisid, voucherType, mixedamount, user_id);
 
         $.ajax({
             url: starturl,

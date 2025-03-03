@@ -1187,7 +1187,7 @@ class OrderController extends Controller
                         $addbarcode->orderhistory_id = $request->orderhisid;
                         $addbarcode->user_id = $request->user_id;
                         $addbarcode->barcode = $x;
-                        $addbarcode->amount = $mixedamount;
+                        $addbarcode->amount = $data->mixed_value;
                         $addbarcode->save();
                     }
                     

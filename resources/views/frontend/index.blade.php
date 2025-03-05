@@ -366,6 +366,39 @@
     </div>
 </section>
 
+<section class="banner py-4 d-none">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 mx-auto">
+                <div class="row">
+                    <div class="col-lg-3 d-flex align-items-center mt-5">
+                        <img src="{{ asset('assets/front/images/iphone.png') }}" class="img-fluid mx-auto" alt="">
+                    </div>
+                    <div class="col-lg-3 d-flex align-items-center mt-5">
+                        <img src="{{ asset('assets/front/images/iphone.png') }}" class="img-fluid mx-auto" alt="">
+                    </div>
+                    <div class="col-lg-6 d-flex align-items-center justify-content-center">
+                        <div class="inner w-75">
+                            <div class="intro-title">
+                                Download App
+                            </div>
+                            
+                            <a href="https://play.google.com/store/apps/details?id=com.tevini.co.uk&pcampaignid=web_share" target="_blank">
+                                <img src="{{ asset('play.png') }}" class="img-fluid mx-auto" alt="" style="height: 60px;">
+                            </a>
+                            <a href="">
+                                <img src="{{ asset('ios.png') }}" class="img-fluid mx-auto" alt="" style="height: 60px;">
+                            </a>
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 {{-- for cokkies  --}}
 
 <div id="cookiebarBox" class="os-animation" data-os-animation="fadeIn" >

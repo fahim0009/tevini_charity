@@ -110,9 +110,22 @@ use Illuminate\Support\Carbon;
         @endforeach
         @endif
         <br>
-        <h4 class="txt-dash">Account Balance</h4>
-        <h2 class="amount">{{$donorUpBalance}} GBP</h2>
-        <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
+
+        <div class="row ">
+            <div class="col-lg-6">
+                <h4 class="txt-dash">Account Balance</h4>
+                <h2 class="amount">{{$donorUpBalance}} GBP</h2>
+                <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
+            </div>
+            <div class="col-lg-6">
+                <h4 class="txt-dash">Tevini Ltd</h4>
+                <h5>Sort Code: 30-99-50</h5>
+                <h5>Account no: 80075460</h5>
+            </div>
+        </div>
+
+
+
         <div class="row my-2">
             <div class="col-lg-12" id="tdfDiv">
                 <div class="tdfermsg"></div>
@@ -153,7 +166,7 @@ use Illuminate\Support\Carbon;
             </div>
             @endif
         </div>
-        <div class="  p-4 py-5 mt-2" style="background-color: #D9D9D9;">
+        <div class="p-4 py-5 mt-2" style="background-color: #D9D9D9;">
             <div>
                 <div class="txt-secondary fs-32 fw-bold  text-center">GIFT AID DONATIONS</div>  <br>
                 <div class="txt-secondary fs-20"> Expected gift aid : £{{ Auth::user()->expected_gift_aid }}</div>

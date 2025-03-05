@@ -498,7 +498,7 @@ class UserController extends Controller
                     $accountno = mt_rand(100000, 999999);
                 } while (User::where('accountno', $accountno)->exists());
 
-                $user = User::find(auth()->user()->id);
+                $user = User::find($id);
                 $user->accountno = $accountno;
                 $user->save();
             }

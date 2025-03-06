@@ -84,6 +84,14 @@
       margin: 0 auto;
 
   }
+
+  .banner .paratitle{
+    font-size: 40px;
+    line-height: 1;
+    color: #003057;
+    margin-bottom: 15px;
+    font-family: "DarkerGrotesque-bold";
+  }
   </style>
 
 
@@ -366,27 +374,27 @@
     </div>
 </section>
 
-<section class="banner py-4 d-none">
+<section class="banner py-4">
     <div class="container">
         <div class="row">
             <div class="col-lg-12 mx-auto">
                 <div class="row">
-                    <div class="col-lg-3 d-flex align-items-center mt-5">
+                    {{-- <div class="col-lg-3 d-flex align-items-center mt-5">
                         <img src="{{ asset('assets/front/images/iphone.png') }}" class="img-fluid mx-auto" alt="">
+                    </div> --}}
+                    <div class="col-lg-5 d-flex align-items-center mt-5">
+                        <img src="{{ asset('appimg.jpeg') }}" class="img-fluid mx-auto" alt="" style="height: 500px; border-radius: 5%;">
                     </div>
-                    <div class="col-lg-3 d-flex align-items-center mt-5">
-                        <img src="{{ asset('assets/front/images/iphone.png') }}" class="img-fluid mx-auto" alt="">
-                    </div>
-                    <div class="col-lg-6 d-flex align-items-center justify-content-center">
+                    <div class="col-lg-7 d-flex align-items-center justify-content-center">
                         <div class="inner w-75">
-                            <div class="intro-title">
+                            <div class="paratitle">
                                 Download App
                             </div>
                             
                             <a href="https://play.google.com/store/apps/details?id=com.tevini.co.uk&pcampaignid=web_share" target="_blank">
                                 <img src="{{ asset('play.png') }}" class="img-fluid mx-auto" alt="" style="height: 60px;">
                             </a>
-                            <a href="">
+                            <a href="https://apps.apple.com/gb/app/tevini/id6479218612 " target="_blank">
                                 <img src="{{ asset('ios.png') }}" class="img-fluid mx-auto" alt="" style="height: 60px;">
                             </a>
 

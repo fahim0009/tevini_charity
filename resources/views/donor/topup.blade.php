@@ -27,6 +27,27 @@
             </div>
         </section>
 
+        @php
+            $gettrans = \App\Models\Usertransaction::where([
+                            ['user_id','=', $topup->id],
+                            ['status','=', '1']
+                        ])->orwhere([
+                            ['user_id','=', $topup->id],
+                            ['pending','=', '1']
+                        ])->orderBy('id','DESC')->get();
+
+                        $donorUpBalance = 0;
+                        foreach ($gettrans as $key => $tran) {
+                        if ($tran->t_type == "In") {
+                            $donorUpBalance = $donorUpBalance + $tran->amount;
+                        }elseif ($tran->t_type == "Out") {
+                            $donorUpBalance = $donorUpBalance - $tran->amount;
+                        } else {
+                            # code...
+                        }
+                    }
+        @endphp
+
          <!-- Image loader -->
          <div id='loading' style='display:none ;'>
             <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
@@ -68,7 +89,7 @@
                                 </tr>
                                 <tr>
                                     <td>Balance</td>
-                                    <td>{{ $topup->balance }}</td>
+                                    <td>{{number_format($donorUpBalance, 2)}}</td>
                                 </tr>
                                 <tr>
                                     <td>Expected gift aid</td>

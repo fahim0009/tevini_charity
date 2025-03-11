@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\SpendProfileController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
+use App\Http\Controllers\Admin\ProcessVoucherController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\User\UserController;
@@ -174,6 +175,12 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/pvr-mail', [OrderController::class, 'instReportmail'])->name('instreportmail');
     Route::post('/pvoucher-store', [OrderController::class, 'pvoucherStore'])->name('pvoucher.store');
     Route::post('/pvoucher-draft', [OrderController::class, 'pvoucherDraft'])->name('pvoucher.draft');
+
+    // upload process voucher pdf
+    Route::post('/upload-barcode-pdf', [ProcessVoucherController::class, 'uploadBarcodePdf']);
+    Route::get('/pdf-to-text', [ProcessVoucherController::class, 'index']);
+    Route::post('/pdf-to-text', [ProcessVoucherController::class, 'convertPdfToText'])->name('pdfToText');
+
 
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');
     Route::get('/complete-voucher/{id?}', [OrderController::class, 'completeVoucher'])->name('completevoucher');

@@ -66,6 +66,7 @@ use Illuminate\Support\Carbon;
                                             <th>Voucher Number</th>
                                             <th>Charity Name</th>
                                             <th>Note</th>
+                                            <th>Donate By</th>
                                             <th>Status</th>
                                             <th>Credit</th>
                                             <th>Debit</th>
@@ -115,6 +116,7 @@ use Illuminate\Support\Carbon;
                                             <td></td>
                                             <td></td>
                                             <td></td>
+                                            <td></td>
                                             <td>-£{{$data->commission}}</td>
                                             <td>£{{ number_format($tbalance, 2) }}</td>
                                             @php
@@ -131,6 +133,7 @@ use Illuminate\Support\Carbon;
                                                 @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
                                             </td>
                                             <td>{{$data->note}}</td>
+                                            <td>{{$data->donation_by}}</td>
                                             <td>@if($data->pending == "0") Pending @endif</td>
 
                                                 @if($data->t_type == "In")
@@ -157,6 +160,7 @@ use Illuminate\Support\Carbon;
                                         </tr>
                                     @endforeach
                                      <tr>
+                                        <td></td>
                                         <td></td>
                                         <td></td>
                                         <td></td>

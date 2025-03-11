@@ -146,13 +146,45 @@
                                 </tr>
                                 <tr>
                                     <td  colspan="4"></td>
-                                    <td colspan="1">
+                                    <td colspan="2">
                                         <div class="row">
-                                        <div class="col-md-6 my-2">
+                                        <div class="col-md-3 my-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="Draftvoucher" type="button">Save Draft</button>
                                         </div>
-                                        <div class="col-md-6 my-2">
+                                        <div class="col-md-4 my-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="addvoucher" type="button">Process Voucher</button>
+                                        </div>
+                                        <div class="col-md-3 m-2 d-none">
+                                            <button class="text-white btn-theme ml-1 mb-4" id="uploadPdfButton" type="button" data-toggle="modal" data-target="#uploadPdfModal">Upload PDF</button>
+
+                                            <!-- Modal -->
+                                            <div class="modal fade" id="uploadPdfModal" tabindex="-1" role="dialog" aria-labelledby="uploadPdfModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="uploadPdfModalLabel">Upload PDF</h5>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form action="{{route('pdfToText')}}" enctype="multipart/form-data" method="POST">
+                                                                @csrf
+                                                                <div class="form-group">
+                                                                    <label for="pdfFile">Choose PDF file</label>
+                                                                    <input type="file" class="form-control-file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                                                                </div>
+                                                                
+                                                                <button type="submit" class="btn btn-primary">Upload</button>
+                                                            </form>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                            {{-- <button type="button" class="btn btn-primary" id="uploadPdfSubmit">Upload</button> --}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     </td>
@@ -443,4 +475,50 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
         });
     </script>
+
+
+
+<script>
+    $(document).ready(function () {
+        
+        var pdfurl = "{{URL::to('/admin/upload-barcode-pdf')}}";
+
+        $('#uploadPdfSubmit').on('click', function (e) {
+            e.preventDefault();
+
+            let formData = new FormData();
+
+            var fileInput = document.querySelector('#pdfFile');
+            if (fileInput.files.length > 0) {
+                formData.append("pdfFile", fileInput.files[0]);
+            } else {
+                alert("Please select a PDF file.");
+                return;
+            }
+
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $.ajax({
+                url: pdfurl,
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log("Success:", response);
+                    $('#message').html('<p style="color:green;">' + response.message + '</p>');
+                },
+                error: function (xhr) {
+                    console.log("Error response:", xhr.responseText);
+                    let errors = xhr.responseJSON ? xhr.responseJSON.errors : null;
+                    if (errors) {
+                        $('#message').html('<p style="color:red;">' + Object.values(errors).join('<br>') + '</p>');
+                    } else {
+                        $('#message').html('<p style="color:red;">An error occurred. Check the console.</p>');
+                    }
+                }
+            });
+        });
+    });
+</script>
 @endsection

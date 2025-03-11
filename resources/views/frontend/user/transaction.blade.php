@@ -77,6 +77,7 @@ use Illuminate\Support\Carbon;
                         <tr>
                             <th scope="col">Date</th>
                             <th scope="col">Description</th>
+                            <th scope="col">Donate By</th>
                             <th scope="col">Amount</th>
                             <th scope="col">Comments</th>
                             <th scope="col">Reference/Voucher no.</th>
@@ -122,6 +123,7 @@ use Illuminate\Support\Carbon;
                         <tr>
                             <td class="fs-16 txt-secondary">{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
                             <td>Commission</td>
+                            <td></td>
                             <td>-£{{$data->commission}}</td>
                             <td></td>
                             <td>{{$data->t_id}}</td>
@@ -141,6 +143,7 @@ use Illuminate\Support\Carbon;
                                     <span class="fs-16 txt-secondary">{{$data->title}}</span>
                                 </div>
                             </td>
+                            <td class="fs-16 txt-secondary">{{$data->donation_by}}</td>
                                 @if($data->t_type == "In")
                                     @if($data->commission != 0)
                                         <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
@@ -196,6 +199,7 @@ use Illuminate\Support\Carbon;
                         </tr>
                     @endforeach
                      <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>

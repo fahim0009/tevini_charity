@@ -179,7 +179,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // upload process voucher pdf
     Route::post('/upload-barcode-pdf', [ProcessVoucherController::class, 'uploadBarcodePdf']);
     Route::get('/pdf-to-text', [ProcessVoucherController::class, 'index']);
-    Route::post('/pdf-to-text', [ProcessVoucherController::class, 'convertPdfToText'])->name('pdfToText');
+    Route::post('/pdf-to-text', [ProcessVoucherController::class, 'uploadAndExtractMultiple'])->name('pdfToText');
 
 
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');

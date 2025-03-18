@@ -168,11 +168,12 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form action="{{route('pdfToText')}}" enctype="multipart/form-data" method="POST">
+                                                            <form action="{{route('pdfToText')}}"  enctype="multipart/form-data" method="POST">
                                                                 @csrf
                                                                 <div class="form-group">
-                                                                    <label for="pdfFile">Choose PDF file</label>
-                                                                    <input type="file" class="form-control-file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                                                                    <label for="pdfFile">Choose file</label>
+                                                                    {{-- <input type="file" class="form-control-file" id="pdfFile" name="pdfFile" accept="application/pdf" required> --}}
+                                                                    <input type="file" name="barcode_image[]" multiple  accept="image/*" required>
                                                                 </div>
                                                                 
                                                                 <button type="submit" class="btn btn-primary">Upload</button>

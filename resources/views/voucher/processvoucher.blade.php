@@ -154,7 +154,7 @@
                                         <div class="col-md-4 my-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="addvoucher" type="button">Process Voucher</button>
                                         </div>
-                                        <div class="col-md-3 m-2 d-none">
+                                        <div class="col-md-3 m-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="uploadPdfButton" type="button" data-toggle="modal" data-target="#uploadPdfModal">Upload PDF</button>
 
                                             <!-- Modal -->
@@ -168,20 +168,20 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form action="{{route('pdfToText')}}"  enctype="multipart/form-data" method="POST">
+                                                            <form action="#"  enctype="multipart/form-data" method="POST">
                                                                 @csrf
                                                                 <div class="form-group">
                                                                     <label for="pdfFile">Choose file</label>
-                                                                    {{-- <input type="file" class="form-control-file" id="pdfFile" name="pdfFile" accept="application/pdf" required> --}}
-                                                                    <input type="file" name="barcode_image[]" multiple  accept="image/*" required>
+                                                                    <input type="file" class="form-control-file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                                                                    {{-- <input type="file" name="barcode_image[]" multiple  accept="image/*" required> --}}
                                                                 </div>
                                                                 
-                                                                <button type="submit" class="btn btn-primary">Upload</button>
+                                                                {{-- <button type="submit" class="btn btn-primary">Upload</button> --}}
                                                             </form>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                            {{-- <button type="button" class="btn btn-primary" id="uploadPdfSubmit">Upload</button> --}}
+                                                            <button type="button" class="btn btn-primary" id="uploadPdfSubmit">Upload</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -411,10 +411,6 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                     }
                     // check duplicate barcode 
 
-
-
-
-                    console.log(barcode);
                     $.ajax({
                     url: urlbr,
                     method: "POST",
@@ -482,10 +478,12 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 <script>
     $(document).ready(function () {
         
-        var pdfurl = "{{URL::to('/admin/upload-barcode-pdf')}}";
+        var pdfurl = "{{URL::to('/admin/pdf-to-text')}}";
 
         $('#uploadPdfSubmit').on('click', function (e) {
             e.preventDefault();
+
+            console.log('test');
 
             let formData = new FormData();
 

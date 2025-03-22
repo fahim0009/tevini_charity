@@ -1,14 +1,34 @@
 <div class="container">
   Hi {{$array['name']}},<br>
  
-  Welcome to Tevini
+  Welcome to Tevini! 
+  <p>
 
- <p> We are pleased to welcome you as a client of Tevini. You can log into your account at <a href="https://www.tevini.co.uk/">www.Tevini.co.uk</a>Here are a few rules to help you use our service.</p>
+    We are thrilled to have you as a customer. <br>
+    To deposit funds into your account the fastest way is by transfer, <br>
+    <b>Tevini Ltd</b> <br>
+    30-99-50 <br>
+    80075460 <br>
+
+  </p>
   
- <ul>
-    <li>Voucher books should be ordered via your online account </li>
-    <li>When you write a voucher, please ensure that it is fully and clearly completed and signed.</li>
-    <li>Donations made to charities via your account online will usually reach the charity a lot quicker than a voucher.</li>
-    <li>Gift Aid claims are submitted monthly. all your transactions will be available to view on your account online, which is updated at various intervals throughout working days.</li>
-</ul>
+  <p>Once you verify your email you will gain full access to your online portal and an account number which should be used as a payment ref. <br>
+
+    Please note that all deposits to your Tevini account are processed manually.  <br>
+
+    Once your deposit has been processed, you will receive a confirmation email from us. We kindly ask that you *stand by* for this email, as it may take a little time to process depending on the volume of transactions.  <br>
+  </p>
+  
+  <p>
+    To ensure your account remains secure and properly set up, we ask that you verify your email address. Please click the link below to complete the verification process: <a href="{{ $array['verification_url'] }}" 
+    style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;">
+     Verify Email
+ </a>
+  </p>
+  <p>If you have any questions or need assistance, please don’t hesitate to reach out to our support team at info@tevini.co.uk. We’re here to help! <br>
+
+    Thank you for choosing Tevini, and we look forward to serving you.
+  </p>
+  
+  
 </div>

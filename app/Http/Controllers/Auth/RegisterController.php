@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ContactMail;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Carbon;
 
 class RegisterController extends Controller
 {
@@ -123,6 +125,8 @@ class RegisterController extends Controller
 
         ]);
 
+        // Generate email verification link
+        $verificationUrl = "test";
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
             $array['prefix_name'] = $data['prefix_name'];
@@ -131,15 +135,24 @@ class RegisterController extends Controller
             $array['from'] = 'info@tevini.co.uk';
             $array['cc'] = $contactmail;
             $email = $data['email'];
+            $array['verification_url'] = $verificationUrl;
 
             Mail::send('mail.register', compact('array'), function($message)use($array,$email) {
              $message->from($array['from'], 'Tevini.co.uk');
              $message->to($email)->cc($array['cc'])->subject($array['subject']);
             });
 
-            $user->sendEmailVerificationNotification();
 
         return $user;
+    }
+
+    protected function verificationUrl($notifiable)
+    {
+        return URL::temporarySignedRoute(
+            'verification.verify',
+            Carbon::now()->addMinutes(config('auth.verification.expire', 60)),
+            ['id' => $notifiable->getKey(), 'hash' => sha1($notifiable->getEmailForVerification())]
+        );
     }
 
 }

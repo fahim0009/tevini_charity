@@ -18,6 +18,10 @@ use Illuminate\Support\Carbon;
                   <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionAll" type="button" role="tab" aria-controls="nav-all" aria-selected="true">All Transaction</button>
                   <button class="nav-link" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Transaction In</button>
                   <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-transcationIn" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Transcation Out</button>
+
+                  
+                  <button class="nav-link" id="nav-giftAid-tab" data-bs-toggle="tab" data-bs-target="#nav-giftAid" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Gift Aid</button>
+
                 </div>
               </nav>
               <div class="tab-content" id="nav-tabContent">
@@ -243,6 +247,7 @@ use Illuminate\Support\Carbon;
                         </div>
                     </div>
                 </div>
+
                 <div class="tab-pane fade" id="nav-transcationIn" role="tabpanel" aria-labelledby="nav-profile-tab">
                     <div class="row my-2">
                         <div class="col-md-12 my-3">
@@ -309,6 +314,42 @@ use Illuminate\Support\Carbon;
                         </div>
                     </div>
                 </div>
+                
+                <div class="tab-pane fade" id="nav-giftAid" role="tabpanel" aria-labelledby="nav-giftAid-tab">
+                    <div class="row my-2">
+                        <div class="col-md-12 mt-2 text-center">
+                            <div class="overflow">
+                                <table class="table table-custom shadow-sm bg-white" id="exampleIn">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Transaction Id</th>
+                                            <th>Donor Name</th>
+                                            <th>Source</th>
+                                            <th>Gift Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $giftAid = \App\Models\Usertransaction::where('user_id', $donor_id)->whereNotNull('gift')->get();
+                                        @endphp
+                                        @foreach ($giftAid as $gift)
+                                        <tr>
+                                            <td><span style="display:none;">{{ $gift->id }}</span>{{Carbon::parse($gift->created_at)->format('d/m/Y')}}</td>
+                                            <td>{{ $gift->t_id }}</td>
+                                            <td>{{$gift->user->name ?? ""}}</td>
+                                            <td>{{ $gift->source}}</td>
+                                            <td>£{{ $gift->amount}}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
               </div>
         </div>
     </div>

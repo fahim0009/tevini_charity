@@ -205,6 +205,7 @@ class TransactionController extends Controller
 
         $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
         $user = User::find($id);
+
         $donor_id = $user->id;
         if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
             $fromDate = $request->input('fromDate');

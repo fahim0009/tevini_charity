@@ -126,7 +126,7 @@ class RegisterController extends Controller
         ]);
 
         // Generate email verification link
-        $verificationUrl = "test";
+        $verificationUrl = $this->verificationUrl($user);
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
             $array['prefix_name'] = $data['prefix_name'];

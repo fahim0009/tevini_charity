@@ -331,7 +331,7 @@ use Illuminate\Support\Carbon;
                                     </thead>
                                     <tbody>
                                         @php
-                                            $giftAid = \App\Models\Usertransaction::where('user_id', $donor_id)->whereNotNull('gift')->get();
+                                            $giftAid = \App\Models\Usertransaction::where('user_id', $donor_id)->whereNotNull('gift')->orderby('id', 'DESC')->get();
                                         @endphp
                                         @foreach ($giftAid as $gift)
                                         <tr>

@@ -67,6 +67,10 @@ use Illuminate\Support\Carbon;
                     type="button" role="tab" aria-controls="pending" aria-selected="false">Pending
                     transaction</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gift-tab" data-bs-toggle="tab" data-bs-target="#gift"
+                    type="button" role="tab" aria-controls="gift" aria-selected="false">Gift Aid</button>
+            </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="transaction" role="tabpanel"
@@ -358,6 +362,47 @@ use Illuminate\Support\Carbon;
 
 
             </div>
+
+            
+            {{-- gift Transaction  --}}
+            <div class="tab-pane fade" id="gift" role="tabpanel" aria-labelledby="gift-tab">
+
+                <div class="data-container">
+                    <table class="table table-theme mt-4" id="example3">
+                          <thead>
+                              <tr>
+                                <th>Date</th>
+                                <th>Transaction Id</th>
+                                <th>Donor Name</th>
+                                <th>Source</th>
+                                <th>Gift Amount</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                            @php
+                                $giftAid = \App\Models\Usertransaction::where('user_id', Auth::user()->id)->whereNotNull('gift')->orderby('id', 'DESC')->get();
+                            @endphp
+                            @foreach ($giftAid as $gift)
+                            <tr>
+                                <td><span style="display:none;">{{ $gift->id }}</span>{{Carbon::parse($gift->created_at)->format('d/m/Y')}}</td>
+                                <td>{{ $gift->t_id }}</td>
+                                <td>{{$gift->user->name ?? ""}}</td>
+                                <td>{{ $gift->source}}</td>
+                                <td>£{{ $gift->amount}}</td>
+                            </tr>
+                            @endforeach
+
+
+                          </tbody>
+                      </table>
+              </div>
+
+
+
+
+            </div>
+
+
         </div>
     </div>
 </div>

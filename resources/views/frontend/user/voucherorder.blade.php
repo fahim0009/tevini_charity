@@ -57,6 +57,7 @@ use Illuminate\Support\Carbon;
                                 <table class="table table-custom shadow-sm bg-white" id="voucherTable">
                                     <thead>
                                         <tr>
+                                            <th style="display: none;">Raw Date</th> 
                                             <th>Date</th>
                                             <th>Order Id</th>
                                             <th>Amount</th>
@@ -69,7 +70,8 @@ use Illuminate\Support\Carbon;
                                         @forelse ($orders as $key => $order)
 
                                         <tr>
-                                            <td>{{ Carbon::parse($order->created_at)->format('d/m/Y')}}</td>
+                                            <td style="display: none;">{{ $order->created_at->format('Y-m-d') }}</td> <!-- Hidden column with correct format -->
+                                            <td>{{ $order->created_at->format('d/m/Y') }}</td>
                                             <td>{{ $order->order_id}} </td>
                                             <td>£{{ $order->amount}}</td>
                                             <td>@if($order->status =="0")
@@ -84,6 +86,54 @@ use Illuminate\Support\Carbon;
                                                 @if ($order->status == 0)
                                                 <a href="{{ route('voucherBookEdit',$order->id) }}" class="btn-theme bg-secondary"> <i class="fa fa-edit"></i>Edit</a>
                                                 @endif
+
+                                                <button type="button" class="btn-theme bg-info" data-toggle="modal" data-target="#orderModal{{ $order->id }}">
+                                                    <i class="fa fa-eye"></i> View
+                                                </button>
+
+                                                <!-- Modal -->
+                                                <div class="modal fade" id="orderModal{{ $order->id }}" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel{{ $order->id }}" aria-hidden="true">
+                                                    <div class="modal-dialog" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="orderModalLabel{{ $order->id }}">Order Details</h5>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                
+                                                                <table class="table table-bordered">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Voucher Type</th>
+                                                                            <th>Voucher Amount</th>
+                                                                            <th>Quantity</th>
+                                                                            <th>Price</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach ($order->orderhistories as $item)
+                                                                        <tr>
+                                                                            <td>{{ $item->voucher->type }}</td>
+                                                                            <td>£{{ $item->voucher->single_amount }}</td>
+                                                                            <td>{{ $item->voucher->note }}</td>
+                                                                            <td>£{{ $item->number_voucher }}</td>
+                                                                            
+                                                                        </tr>
+                                                                        @endforeach
+                                                                    </tbody>
+                                                                </table>
+
+
+                                                                <!-- Add more order details here if needed -->
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 
                                             </td>
                                         </tr>

@@ -23,6 +23,7 @@ use App\Http\Controllers\CardServiceController;
 use App\Http\Controllers\ProductFeeController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
+use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\User\UserController;
 
 /*
@@ -202,6 +203,11 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     // // card service
     // Route::get('card-activation', [CardServiceController::class, 'index'])->name('cardActivation');
     // Route::post('cardprofile/store', [CardServiceController::class, 'cardprofilestore'])->name('cardActivation.store');
+
+    
+    // balance transfer 
+    Route::get('balance-transfer', [BalanceTransferController::class, 'balanceTransfer'])->name('balanceTransfer');
+    Route::post('balance-transfer', [BalanceTransferController::class, 'balanceTransferStore'])->name('transfer.balance');
 
 
 });

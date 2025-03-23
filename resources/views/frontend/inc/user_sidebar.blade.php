@@ -19,6 +19,7 @@
             <li><a href="{{ route('user.contact') }}" class="{{ (request()->is('user/contact*')) ? 'nav-link current' : '' }}">Contact/Top-Up</a></li>
             
             <li><a href="{{ route('user.transfertdf') }}" class="{{ (request()->is('user/transfer-to-tdf*')) ? 'nav-link current' : '' }}">Transfer to TDF</a></li>
+            <li><a href="{{ route('balanceTransfer') }}" class="{{ (request()->is('user/balance-transfer')) ? 'nav-link current' : '' }}">Balance Transfer</a></li>
         @endif
         
         

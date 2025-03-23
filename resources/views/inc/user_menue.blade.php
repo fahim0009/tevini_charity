@@ -60,6 +60,7 @@
     <a href="{{ route('pendingvoucher', $donor_id) }}" class="{{ (request()->is('admin/pending-voucher')) ? 'actv' : '' }}">Pending Voucher </a>
     <a href="{{ route('completevoucher', $donor_id) }}" class="{{ (request()->is('admin/complete-voucher')) ? 'actv' : '' }}">Complete Voucher </a>
     <a href="{{ route('donor.tdftransfer', $donor_id) }}" class="{{ (request()->is('admin/tdf-transfer')) ? 'actv' : '' }}">TDF Transfer </a>
+    <a href="{{ route('donor.balanceTransfer', $donor_id) }}" class="{{ (request()->is('admin/donor-balance-transfer')) ? 'actv' : '' }}">Balance Transfer </a>
     {{-- <a href=""> menu items </a>
     <a href=""> menu items </a>  --}}
     <input type="hidden" id="donor_id" value="{{ $donor_id }}">

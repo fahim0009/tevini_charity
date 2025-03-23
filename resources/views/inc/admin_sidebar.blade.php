@@ -346,6 +346,14 @@
                 </ul>
             </li>
 
+            
+            <li class="nav-item {{ (request()->is('admin/balance-transfer*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('admin.balanceTransfer') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                     Balance Transfer
+                </a>
+            </li>
+
 
             
             <li class="nav-item {{ (request()->is('admin/get-donor-balance*')) ? 'active' : '' }}" id="">

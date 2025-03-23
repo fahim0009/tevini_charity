@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Admin\ProcessVoucherController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
+use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\User\UserController;
 
 //admin part start
@@ -300,6 +301,12 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/tdf-transaction-cancel', [TDFTransactionController::class, 'getTDFTransactionCancel'])->name('tdfTransactionCancel');
     Route::post('/tdf-transaction', [TDFTransactionController::class, 'tdfBlanceStore'])->name('tdfTransaction.update');
     Route::post('/tdf-transaction-status', [TDFTransactionController::class, 'changeStatus']);
+
+    // balance transfer
+    Route::get('/balance-transfer', [BalanceTransferController::class, 'getBalanceTransferByAdmin'])->name('admin.balanceTransfer');
+    Route::get('/donor-balance-transfer/{id}', [BalanceTransferController::class, 'getDonorBalanceTransferByAdmin'])->name('donor.balanceTransfer');
+    Route::post('/balance-transfer-status', [BalanceTransferController::class, 'changeStatus']);
+
     
 
     // donor balance check

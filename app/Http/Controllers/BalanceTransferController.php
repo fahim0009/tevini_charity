@@ -88,4 +88,91 @@ class BalanceTransferController extends Controller
 
     }
 
+    public function getBalanceTransferByAdmin()
+    {
+        $pending = BalanceTransfer::where('status', 0)->orderBy('id','DESC')->get();
+        $complete = BalanceTransfer::where('status', 1)->orderBy('id','DESC')->get();
+        $cancel = BalanceTransfer::where('status', 2)->orderBy('id','DESC')->get();
+        
+        return view('admin.balanceTransfer.index', compact('pending', 'complete','cancel'));
+
+    }
+
+    public function changeStatus(Request $request)
+    {
+        $transfer_to = BalanceTransfer::where('id',$request->id)->first()->transfer_to;
+        $transfer_from = BalanceTransfer::where('id',$request->id)->first()->transfer_from;
+        $amount = BalanceTransfer::where('id',$request->id)->first()->amount;
+
+        $data = BalanceTransfer::find($request->id);
+        $data->status = $request->status;
+        $data->save();
+
+        if($request->status == "2"){
+
+            // card balance update
+            if (isset($user->CreditProfileId)) {
+                $CreditProfileId = $user->CreditProfileId;
+                $CreditProfileName = $user->name;
+                $AvailableBalance = 0 - $amount;
+                $comment = "Balance Transfer Cancel";
+                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                        'CreditProfileId' => $CreditProfileId,
+                        'CreditProfileName' => $CreditProfileName,
+                        'AvailableBalance' => $AvailableBalance,
+                        'comment' => $comment,
+                    ]);
+            }
+            // card balance update end
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Status change successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+
+        } elseif ($request->status == "1") {
+
+            // send
+            $udtransaction = new Usertransaction();
+            $udtransaction->t_id = time()."-".$transfer_from;
+            $udtransaction->user_id = $transfer_from;
+            $udtransaction->t_type = "Out";
+            $udtransaction->amount =  $amount;
+            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->title ="Balance transfer send";
+            $udtransaction->status =  1;
+            $udtransaction->save();
+
+            // receive
+            $udtransaction = new Usertransaction();
+            $udtransaction->t_id = time()."-".$transfer_to;
+            $udtransaction->user_id = $transfer_to;
+            $udtransaction->t_type = "In";
+            $udtransaction->amount =  $amount;
+            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->title ="Balance transfer received";
+            $udtransaction->status =  1;
+            $udtransaction->save();
+
+            
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Status change successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+
+        }else {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Server error!!.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }
+
+    }
+
+
+    public function getDonorBalanceTransferByAdmin($id)
+    {
+        
+        $pending = BalanceTransfer::where('status', 0)->where('transfer_from', $id)->orderBy('id','DESC')->get();
+        $send = BalanceTransfer::where('status', 1)->where('transfer_from', $id)->orderBy('id','DESC')->get();
+        $receive = BalanceTransfer::where('status', 1)->where('transfer_to', $id)->orderBy('id','DESC')->get();
+        
+        return view('admin.balanceTransfer.donorTran', compact('send', 'receive','pending'));
+
+    }
 }

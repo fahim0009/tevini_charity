@@ -239,7 +239,7 @@ class ProcessVoucherController extends Controller
             for ($i = 1; $i <= $numberOfPages; $i++) {
                 $imagePath = $barcodeImagePath . "page_{$i}_" . time() . ".jpg";
                 $pdf->setPage($i)->saveImage($imagePath);
-                // $this->preprocessImage($imagePath); // ✅ Apply preprocessing before OCR
+                $this->preprocessImage($imagePath); // ✅ Apply preprocessing before OCR
                 $images[] = $imagePath;
             }
 
@@ -294,7 +294,14 @@ class ProcessVoucherController extends Controller
     }
 
 
-    private function preprocessImage($imagePath)
+    private function preprocessImage($imagePath) {
+        $image = new Imagick($imagePath);
+        $image->setImageType(Imagick::IMGTYPE_GRAYSCALE);
+        $image->thresholdImage(0.5 * Imagick::getQuantumRange()['quantumRangeLong']);
+        $image->writeImage($imagePath);
+    }
+
+    private function preprocessImage2($imagePath)
     {
         $img = new Imagick($imagePath);
         $img->setImageType(Imagick::IMGTYPE_GRAYSCALE); // Convert to grayscale
@@ -305,6 +312,7 @@ class ProcessVoucherController extends Controller
         $img->clear();
         $img->destroy();
     }
+    
 
     private function isValidImage($imagePath)
     {
@@ -326,27 +334,21 @@ class ProcessVoucherController extends Controller
 
     private function processVoucher($barcodes)
     {
-        $voucherNumbers = array_column($barcodes, 'voucher_number');
-        $voucherNumbers = array_unique($voucherNumbers);
+        $voucherNumbers = array_unique(array_column($barcodes, 'voucher_number'));
+        $existingVouchers = DB::table('barcodes')
+                            ->whereIn('barcode', $voucherNumbers)
+                            ->pluck('barcode')
+                            ->toArray();
 
-        $vouchers = DB::table('barcodes')
-                        ->whereIn('barcode', $voucherNumbers)
-                        ->get();
-
-        $processVoucher = [];
-
-        foreach ($barcodes as $barcode) {
-            $voucher = $vouchers->where('barcodes', $barcode['voucher_number'])->first();
-            $processVoucher[] = [
+        return array_map(function ($barcode) use ($existingVouchers) {
+            return [
                 'file' => $barcode['file'],
                 'barcodes' => $barcode['voucher_number'],
-                'status' => $voucher ? 'Found' : 'Not Found'
+                'status' => in_array($barcode['voucher_number'], $existingVouchers) ? 'Found' : 'Not Found'
             ];
-        }
-
-        return $processVoucher;
-        
+        }, $barcodes);
     }
+
 
 
 

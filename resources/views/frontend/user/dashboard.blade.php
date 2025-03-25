@@ -150,6 +150,7 @@ use Illuminate\Support\Carbon;
             <div class="col-lg-6 pt-3 d-flex flex-column px-4">
                 
                 <img src="{{ asset('assets/user/images/card.png') }}" class="img-fluid mt-3 mb-2" alt="">
+                <a href="{{ route('balanceTransfer') }}" class="btn-theme bg-secondary">Balance Transfer</a>
             </div>
             @if (Auth::user()->accountno)
             <div class="col-lg-6  pt-3 d-flex flex-column px-4">

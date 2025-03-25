@@ -108,19 +108,26 @@ use Illuminate\Support\Carbon;
                                                                         <tr>
                                                                             <th>Voucher Type</th>
                                                                             <th>Voucher Amount</th>
-                                                                            <th>Quantity</th>
-                                                                            <th>Price</th>
+                                                                            <th>Details</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         @foreach ($order->orderhistories as $item)
+
+                                                                        @if ($item->voucher->id == 176)
                                                                         <tr>
                                                                             <td>{{ $item->voucher->type }}</td>
                                                                             <td>£{{ $item->voucher->single_amount }}</td>
                                                                             <td>{{ $item->voucher->note }}</td>
-                                                                            <td>£{{ $item->number_voucher }}</td>
-                                                                            
-                                                                        </tr>
+                                                                        </tr> 
+                                                                        @else
+                                                                        <tr>
+                                                                            <td>{{ $item->voucher->type }}</td>
+                                                                            <td>£{{ $item->voucher->single_amount }}</td>
+                                                                            <td>{{ $item->voucher->note }}</td>
+                                                                        </tr> 
+                                                                        @endif
+                                                                        
                                                                         @endforeach
                                                                     </tbody>
                                                                 </table>

@@ -59,6 +59,7 @@ class BalanceTransferController extends Controller
         $balanceTransfer->transfer_to = $transferTo->id;
         $balanceTransfer->accountno = $request->accountno;
         $balanceTransfer->amount = $request->amount;
+        $balanceTransfer->status =  1;
         if ($balanceTransfer->save()) {
 
             $user = User::find(auth()->user()->id);
@@ -80,6 +81,31 @@ class BalanceTransferController extends Controller
                     ]);
             }
             // card balance update end
+
+
+            // send
+            $udtransaction = new Usertransaction();
+            $udtransaction->t_id = time()."-".Auth::user()->id;
+            $udtransaction->user_id = Auth::user()->id;
+            $udtransaction->t_type = "Out";
+            $udtransaction->amount =  $request->amount;
+            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->title ="Balance transfer send";
+            $udtransaction->status =  1;
+            $udtransaction->save();
+
+            // receive
+            $udtransaction = new Usertransaction();
+            $udtransaction->t_id = time()."-".$transferTo->id;
+            $udtransaction->user_id = $transferTo->id;
+            $udtransaction->t_type = "In";
+            $udtransaction->amount =  $request->amount;
+            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->title ="Balance transfer received";
+            $udtransaction->status =  1;
+            $udtransaction->save();
+
+
             return redirect()->back()->with('success', 'Balance transferred successfully.');
         } else {
             return redirect()->back()->with('error', 'Server Error!!.');

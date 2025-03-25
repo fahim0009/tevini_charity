@@ -154,7 +154,7 @@
                                         <div class="col-md-4 my-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="addvoucher" type="button">Process Voucher</button>
                                         </div>
-                                        <div class="col-md-3 m-2 d-none">
+                                        <div class="col-md-3 m-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="uploadPdfButton" type="button" data-toggle="modal" data-target="#uploadPdfModal">Upload PDF</button>
 
                                             <!-- Modal -->

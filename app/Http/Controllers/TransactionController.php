@@ -355,7 +355,11 @@ class TransactionController extends Controller
         // ->select('transactions.amount as tranamount','transactions.t_type as trantype','transactions.t_id as trantid','usertransactions.t_id as utrantid','usertransactions.amount as utranamount')
         // ->where('usertransactions.charity_id', $id)->get();
 
- 
+        $pvouchers = Provoucher::where([
+            ['charity_id', '=', $id],
+            ['waiting', '=', 'No'],
+            ['status', '=', '0']
+        ])->orderBy('id','DESC')->get();
 
 
         return view('charity.transaction')
@@ -364,6 +368,7 @@ class TransactionController extends Controller
         ->with('reports',$reports)
         ->with('totalIN',$totalIN)
         ->with('totalOUT',$totalOUT)
+        ->with('pvouchers',$pvouchers)
         ->with('outtransactions',$outtransactions);
     }
 

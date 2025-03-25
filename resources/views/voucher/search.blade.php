@@ -80,14 +80,23 @@ use Illuminate\Support\Carbon;
                                 <th>Charity Name</th>
                                 <th>Donor Name</th>
                                 <th>Amount </th>
+                                <th>Status </th>
                             </tr>
                         </thead>
                         <tbody>
 
                             @foreach ($chkVoucher as $transaction)
+                            @php
+                                $tranId = \App\Models\Usertransaction::where('cheque_no', $transaction->cheque_no)->first();
+                            @endphp
+                           
                             <tr>
                                     <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
-                                    <td>{{ $transaction->t_id }}</td>
+                                    <td>
+                                        @if ($tranId)
+                                        {{ $tranId->t_id }}
+                                        @endif
+                                    </td>
                                     <td>
                                         
                                         @if ($transaction->charity_id)
@@ -99,6 +108,12 @@ use Illuminate\Support\Carbon;
                                     </td>
                                     <td>{{ $transaction->user->name}}</td>
                                     <td>£{{ $transaction->amount}}</td>
+                                    
+                                    <td>
+                                        @if($transaction->status == "0") Pending @endif
+                                        @if($transaction->status == "1") Complete @endif
+                                        @if($transaction->status == "3") Cancel @endif
+                                    </td>
                             </tr>
                             @endforeach
                         </tbody>

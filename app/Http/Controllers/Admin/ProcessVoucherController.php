@@ -239,7 +239,7 @@ class ProcessVoucherController extends Controller
             for ($i = 1; $i <= $numberOfPages; $i++) {
                 $imagePath = $barcodeImagePath . "page_{$i}_" . time() . ".jpg";
                 $pdf->setPage($i)->saveImage($imagePath);
-                $this->preprocessImage($imagePath); // ✅ Apply preprocessing before OCR
+                // $this->preprocessImage($imagePath); // ✅ Apply preprocessing before OCR
                 $images[] = $imagePath;
             }
 

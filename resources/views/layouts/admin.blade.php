@@ -59,12 +59,14 @@
         @include('inc.admin_footer')
 
 
-    <script src="{{ asset('assets/admin/js/jquery-3.5.1.min.js') }}"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+    {{-- <script src="{{ asset('assets/admin/js/jquery-3.5.1.min.js') }}"></script> --}}
     <script src="{{ asset('assets/admin/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/chart.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/wow.min.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script> --}}
     <script src="{{ asset('assets/admin/js/iconify.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/app.js') }}"> </script>
     <script src="{{URL::to('js/plugins/datatables.min.js')}}"></script>

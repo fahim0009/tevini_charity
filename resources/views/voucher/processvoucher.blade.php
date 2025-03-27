@@ -1,7 +1,14 @@
 @extends('layouts.admin')
 @section('content')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
-
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet"/>
+<style>
+    table {
+    overflow: visible;
+    }
+    select.form-control {
+        position: static !important;
+    }
+</style>
  @php
      $readableBarcode = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')->get();
      $notReadableBarcode = \App\Models\ProcessedBarcode::where('barcode', '=', 'Not Found')->get();
@@ -16,7 +23,7 @@
                     Process Voucher
                 </div>
                 <div class="ml-auto">
-                        <span class="iconify" data-icon="mdi:book" data-inline="false" data-toggle="modal" data-target="#fullWidthModal" style="cursor: pointer;"></span>
+                        <button class="iconify" data-icon="mdi:book" data-inline="false" data-toggle="modal" data-target="#fullWidthModal" style="cursor: pointer;"></button>
 
                         <!-- Modal -->
                         <div class="modal fade" id="fullWidthModal" tabindex="-1" role="dialog" aria-labelledby="fullWidthModalLabel" aria-hidden="true">
@@ -132,7 +139,7 @@
                                     @if($index == 0)
                                     <tr class="item-row">
                                         <td width="230px">
-                                            <select name="charity" id="charity_list" class="form-control">
+                                            <select name="charity" id="charity_list" class="form-control charitylist">
                                             <option value>Select</option>
                                                 @foreach ($charities as $charity)
                                                     <option value="{{ $charity->id }}" @if($voucher->charity_id == $charity->id) selected @endif>{{ $charity->name }}</option>
@@ -194,7 +201,7 @@
                                     @empty
                                     <tr class="item-row " id="firstRow">
                                         <td width="230px">
-                                            <select name="charity" id="charity_list" style="min-width: 100px;" class="form-control">
+                                            <select name="charity" id="charity_list" style="min-width: 100px;" class="form-control charitylist">
                                             <option value>Select</option>
                                                 @foreach ($charities as $charity)
                                                     <option value="{{ $charity->id }}">{{ $charity->name }}</option>
@@ -306,13 +313,9 @@
 @endsection
 
 @section('script')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 <script>
-    $('#charity_list').select2({
-      width: '250px',
-      placeholder: "Select charity",
-      allowClear: true
-    });
+    $('.charitylist').select2();
   </script>
 
 <script>
@@ -653,6 +656,13 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                 console.log("Success:", response);
                 
                 $("table #inner ").append(response.data);
+                
+                setTimeout(function () {
+                    $('#fullWidthModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                }, 500);
+
             },
             error: function (xhr) {
                 console.log("Error response:", xhr.responseText);

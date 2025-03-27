@@ -1,11 +1,101 @@
 @extends('layouts.admin')
 @section('content')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
+
+ @php
+     $readableBarcode = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')->get();
+     $notReadableBarcode = \App\Models\ProcessedBarcode::where('barcode', '=', 'Not Found')->get();
+ @endphp
+
+
     <div class="dashboard-content" id="focusBcode">
         <section class="profile purchase-status">
-            <div class="title-section">
-                <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                <div class="mx-2">Process Voucher</div>
+            <div class="title-section d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Process Voucher
+                </div>
+                <div class="ml-auto">
+                        <span class="iconify" data-icon="mdi:book" data-inline="false" data-toggle="modal" data-target="#fullWidthModal" style="cursor: pointer;"></span>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="fullWidthModal" tabindex="-1" role="dialog" aria-labelledby="fullWidthModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="fullWidthModalLabel">Voucher</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Add your content here -->
+                                        
+                                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab" aria-controls="tab1" aria-selected="true">Readable Barcode</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab" aria-controls="tab2" aria-selected="false">Not Readable</a>
+                                            </li>
+                                        </ul>
+                                        <div class="tab-content" id="myTabContent">
+                                            <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
+                                                <table class="table table-bordered" id="readableBarcodeTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Date</th>
+                                                            <th>Image</th>
+                                                            <th>Barcode</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($readableBarcode as $readblebarcode)
+                                                        <tr>
+                                                            <td>{{$readblebarcode->created_at}}</td>
+                                                            <td>
+                                                                <a href="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" target="_blank">
+                                                                    <img src="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" alt="barcode" style="width: 100px; height: 100px;">
+                                                                </a>
+                                                            </td>
+                                                            <td>{{$readblebarcode->barcode}}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+
+
+                                            </div>
+                                            <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
+                                                
+                                                
+                                                <div class="image-gallery">
+                                                    <div class="row">
+                                                        @foreach ($notReadableBarcode as $notReadable)
+                                                        <div class="col-md-3 mb-3">
+                                                            <a href="{{ asset('storage/barcodeimages/'.$notReadable->file) }}" target="_blank">
+                                                                <img src="{{ asset('storage/barcodeimages/'.$notReadable->file) }}" alt="barcode" class="img-thumbnail">
+                                                            </a>
+                                                        </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+
+
+
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
             </div>
             <div class="ermsg"></div>
         </section>
@@ -154,7 +244,7 @@
                                         <div class="col-md-4 my-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="addvoucher" type="button">Process Voucher</button>
                                         </div>
-                                        <div class="col-md-3 m-2 d-none">
+                                        <div class="col-md-3 m-2">
                                             <button class="text-white btn-theme ml-1 mb-4" id="uploadPdfButton" type="button" data-toggle="modal" data-target="#uploadPdfModal">Upload PDF</button>
 
                                             <!-- Modal -->
@@ -168,6 +258,7 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
+                                                            <div class="errmsg"></div>
                                                             <form action="#"  enctype="multipart/form-data" method="POST">
                                                                 @csrf
                                                                 <div class="form-group">
@@ -217,6 +308,16 @@
       allowClear: true
     });
   </script>
+
+<script>
+    $(document).ready(function() {
+        $('#readableBarcodeTable').DataTable({
+            "responsive": true,
+            "autoWidth": false,
+            "order": [[0, "desc"]], // Order by date descending
+        });
+    });
+</script>
 
 <script type="text/javascript">
     $(function() {
@@ -505,15 +606,18 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                 processData: false,
                 success: function (response) {
                     console.log("Success:", response);
-                    $('#message').html('<p style="color:green;">' + response.message + '</p>');
+                    $('.errmsg').html('<p style="color:green;">' + response.message + '</p>');
+                    setTimeout(function () {
+                        location.reload();
+                    }, 3000);
                 },
                 error: function (xhr) {
                     console.log("Error response:", xhr.responseText);
                     let errors = xhr.responseJSON ? xhr.responseJSON.errors : null;
                     if (errors) {
-                        $('#message').html('<p style="color:red;">' + Object.values(errors).join('<br>') + '</p>');
+                        $('.errmsg').html('<p style="color:red;">' + Object.values(errors).join('<br>') + '</p>');
                     } else {
-                        $('#message').html('<p style="color:red;">An error occurred. Check the console.</p>');
+                        $('.errmsg').html('<p style="color:red;">An error occurred. Check the console.</p>');
                     }
                 }
             });

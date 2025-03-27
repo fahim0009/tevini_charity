@@ -16,6 +16,7 @@ use Spatie\PdfToImage\Pdf;
 
 use Zxing\QrReader;
 
+use App\Jobs\ProcessBarcodeJob;
 use Illuminate\Support\Facades\Storage;
 use Lukeraymonddowning\BarcodeScanner\Scanner;
 
@@ -206,7 +207,7 @@ class ProcessVoucherController extends Controller
         return response()->json($barcodes);
     }
 
-    public function uploadAndExtract(Request $request)
+    public function uploadAndExtract00(Request $request)
     {
         try {
             // ✅ Set Ghostscript and Tesseract paths manually
@@ -340,15 +341,49 @@ class ProcessVoucherController extends Controller
                             ->pluck('barcode')
                             ->toArray();
 
-        return array_map(function ($barcode) use ($existingVouchers) {
+        return array_map(function ($barcode) use ($existingVouchers, $voucherNumbers) {
+            $barcodeCount = count($voucherNumbers);
             return [
                 'file' => $barcode['file'],
                 'barcodes' => $barcode['voucher_number'],
+                'barcodeCount' => $barcodeCount,
                 'status' => in_array($barcode['voucher_number'], $existingVouchers) ? 'Found' : 'Not Found'
             ];
         }, $barcodes);
     }
 
+
+
+    public function uploadAndExtract(Request $request)
+    {
+        try {
+            $request->validate([
+                'pdfFile' => 'required|mimes:pdf|max:40000'
+            ]);
+
+            $pdfPath = $request->file('pdfFile')->store('public/pdfs');
+            $pdfFullPath = storage_path('app/' . $pdfPath);
+            $barcodeImagePath = storage_path('app/public/barcodeimages/');
+
+            if (!file_exists($barcodeImagePath)) {
+                mkdir($barcodeImagePath, 0777, true);
+            }
+
+            $tesseractPath = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe";
+
+            // ✅ Dispatch Job to Queue
+            ProcessBarcodeJob::dispatch($pdfFullPath, $barcodeImagePath, $tesseractPath)->onQueue('barcode_processing');
+
+            return response()->json([
+                'message' => 'File uploaded successfully! Processing in background...'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 

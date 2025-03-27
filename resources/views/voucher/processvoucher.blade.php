@@ -41,7 +41,13 @@
                                         </ul>
                                         <div class="tab-content" id="myTabContent">
                                             <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
-                                                <table class="table table-bordered" id="readableBarcodeTable">
+
+
+                                                <div class="d-flex justify-content-end p-2">
+                                                    <button class="btn btn-secondary" id="addToProcess">Add to process</button>
+                                                </div>
+
+                                                <table class="table table-bordered table-striped mt-2" id="readableBarcodeTable">
                                                     <thead>
                                                         <tr>
                                                             <th>Date</th>
@@ -55,7 +61,7 @@
                                                             <td>{{$readblebarcode->created_at}}</td>
                                                             <td>
                                                                 <a href="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" target="_blank">
-                                                                    <img src="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" alt="barcode" style="width: 100px; height: 100px;">
+                                                                    <img src="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" alt="barcode" style="width: 200px; height: 100px;">
                                                                 </a>
                                                             </td>
                                                             <td>{{$readblebarcode->barcode}}</td>
@@ -343,8 +349,8 @@
         var url = "{{URL::to('/admin/pvoucher-store')}}";
 
 
-            $("body").delegate("#addvoucher","click",function(event){
-                event.preventDefault();
+        $("body").delegate("#addvoucher","click",function(event){
+            event.preventDefault();
 
             $("#loading").show();    
 
@@ -583,9 +589,6 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
         $('#uploadPdfSubmit').on('click', function (e) {
             e.preventDefault();
-
-            console.log('test');
-
             let formData = new FormData();
 
             var fileInput = document.querySelector('#pdfFile');
@@ -620,6 +623,41 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                         $('.errmsg').html('<p style="color:red;">An error occurred. Check the console.</p>');
                     }
                 }
+            });
+        });
+
+        $('#addToProcess').on('click', function (e) {
+            e.preventDefault();
+
+            let selectedBarcodes = [];
+            $('#readableBarcodeTable tbody tr').each(function () {
+            let barcode = $(this).find('td:nth-child(3)').text().trim();
+            if (barcode) {
+                selectedBarcodes.push(barcode);
+            }
+            });
+
+            if (selectedBarcodes.length === 0) {
+            alert("No barcodes selected to process.");
+            return;
+            }
+
+            $.ajax({
+            url: "{{URL::to('/admin/add-to-process')}}",
+            type: "POST",
+            data: {
+                barcodes: selectedBarcodes,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                console.log("Success:", response);
+                
+                $("table #inner ").append(response.data);
+            },
+            error: function (xhr) {
+                console.log("Error response:", xhr.responseText);
+                alert("An error occurred while processing the barcodes.");
+            }
             });
         });
     });

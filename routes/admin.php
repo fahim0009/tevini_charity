@@ -180,6 +180,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // upload process voucher pdf
     Route::post('/upload-barcode-pdf', [ProcessVoucherController::class, 'uploadAndExtract']);
     Route::post('/pdf-to-text', [ProcessVoucherController::class, 'uploadAndExtract'])->name('pdfToText');
+    Route::post('/add-to-process', [ProcessVoucherController::class, 'addToProcessBarcode'])->name('addToProcessBarcode');
 
 
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');

@@ -17,6 +17,8 @@ use Spatie\PdfToImage\Pdf;
 use Zxing\QrReader;
 
 use App\Jobs\ProcessBarcodeJob;
+use App\Models\Barcode;
+use App\Models\ProcessedBarcode;
 use Illuminate\Support\Facades\Storage;
 use Lukeraymonddowning\BarcodeScanner\Scanner;
 
@@ -383,6 +385,27 @@ class ProcessVoucherController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function addToProcessBarcode(Request $request)
+    {
+        $processBarcode = ProcessedBarcode::where('barcode', '!=', 'Not Found')->get();
+
+        $prop = '';
+        
+            foreach ($processBarcode as $pdata){
+                $orderDtl = Barcode::where('barcode', '=', $pdata->barcode)->first();
+
+                if ($orderDtl) {
+                    // <!-- Single Property Start -->
+                    $prop.= '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'.$orderDtl->user->accountno.'" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="'.$orderDtl->user->name.'" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value="'.$orderDtl->user_id.'"  class="donorid"></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'.$pdata->barcode.'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'.$orderDtl->amount.'" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
+                } else {// <!-- Single Property Start -->
+                    $prop.= '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value=""  class="donorid"></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'.$pdata->barcode.'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
+                }
+                  
+            }
+
+        return response()->json(['status'=> 300,'data'=>$prop]);
     }
 
 

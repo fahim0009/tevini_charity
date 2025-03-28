@@ -28,11 +28,17 @@ class VouchersController extends Controller
                 
             // }
 
+            $chkBarcode = Barcode::where('barcode', $vnumber)->get();
+
             $chkVoucher = Provoucher::where([
                 ['cheque_no', '=', $vnumber]
             ])->get();
 
+
             if ($chkVoucher->count() > 0) {
+                return view('voucher.search', compact('chkVoucher', 'vnumber'))->with('success', 'Voucher found successfully.');
+            } elseif ($chkBarcode->count() > 0) {
+                $chkVoucher = Barcode::where('barcode', $vnumber)->get();
                 return view('voucher.search', compact('chkVoucher', 'vnumber'))->with('success', 'Voucher found successfully.');
             } else {
                 

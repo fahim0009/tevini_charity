@@ -87,14 +87,14 @@ use Illuminate\Support\Carbon;
 
                             @foreach ($chkVoucher as $transaction)
                             @php
-                                $tranId = \App\Models\Usertransaction::where('cheque_no', $transaction->cheque_no)->first();
+                                $tranId = \App\Models\Usertransaction::where('cheque_no', $vnumber)->first();
                             @endphp
                            
                             <tr>
                                     <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                     <td>
                                         @if ($tranId)
-                                        {{ $tranId->t_id }}
+                                        {{ $tranId->t_id ?? "" }}
                                         @endif
                                     </td>
                                     <td>

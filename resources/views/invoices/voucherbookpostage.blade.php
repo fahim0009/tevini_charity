@@ -110,7 +110,7 @@
                 @if ($user->profile_type == 'Company')
                 {{ $user->surname ?? ""   }} <br>
                 @endif
-                @if ($user->profile_type == 'Company' || $user->profile_type == null)    {{ $user->surname ?? ""   }} <br>
+                @if ($user->profile_type == null)    {{ $user->name ?? ""   }} <br>
                 @endif
                 {{ $user->houseno ?? ""   }} @if ($user->street) <br> @endif 
                 {{ $user->street ?? ""   }} @if ($user->address_third_line) <br> @endif 

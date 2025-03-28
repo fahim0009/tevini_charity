@@ -1315,7 +1315,7 @@ class OrderController extends Controller
         $order = Order::where('id',$id)->first();
         $user_id = $order->user_id;
         $user = User::where('id','=', $user_id)->first();
-        // dd();
+        // dd($user);
         $orderDtls = OrderHistory::where('order_id',  $id)->get();
         $pdf = PDF::loadView('invoices.voucherbookpostage', compact('user','order','orderDtls'));
         return $pdf->download('voucherbook_' . $order->id . '.pdf');

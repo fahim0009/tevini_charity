@@ -418,6 +418,60 @@ class ProcessVoucherController extends Controller
 
 
 
+    public function deleteProcessBarcode(Request $request)
+    {
+        try {
+            // Delete all processed barcodes where 'barcode' is not 'Not Found'
+            ProcessedBarcode::where('barcode', '!=', 'Not Found')->delete();
+
+            // Delete associated images from storage
+            $notReadableBarcodes = ProcessedBarcode::where('barcode', '!=', 'Not Found')->get();
+            foreach ($notReadableBarcodes as $notReadable) {
+                $imagePath = storage_path('app/public/barcodeimages/' . $notReadable->file);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath); // Delete the image file
+                }
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Processed barcodes deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteProcessBarcodeImage(Request $request)
+    {
+        try {
+            // Delete all processed barcodes where 'barcode' is not 'Not Found'
+            ProcessedBarcode::where('barcode', '=', 'Not Found')->delete();
+            // Delete associated images from storage
+            $notReadableBarcodes = ProcessedBarcode::where('barcode', '=', 'Not Found')->get();
+            foreach ($notReadableBarcodes as $notReadable) {
+                $imagePath = storage_path('app/public/barcodeimages/' . $notReadable->file);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath); // Delete the image file
+                }
+            }
+            return response()->json([
+                'status' => 200,
+                'message' => 'Processed barcodes Image deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 
 

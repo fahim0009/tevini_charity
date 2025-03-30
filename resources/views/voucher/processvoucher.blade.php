@@ -52,6 +52,7 @@
 
                                                 <div class="d-flex justify-content-end p-2">
                                                     <button class="btn btn-secondary" id="addToProcess">Add to process</button>
+                                                    <button class="btn btn-warning" id="deleteProcess">Delete process</button>
                                                 </div>
 
                                                 <table class="table table-bordered table-striped mt-2" id="readableBarcodeTable">
@@ -81,6 +82,9 @@
                                             </div>
                                             <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
                                                 
+                                                <div class="d-flex justify-content-end p-2">
+                                                    <button class="btn btn-warning" id="deleteProcessImage">Delete Voucher Image</button>
+                                                </div>
                                                 
                                                 <div class="image-gallery">
                                                     <div class="row">
@@ -667,6 +671,56 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
             error: function (xhr) {
                 console.log("Error response:", xhr.responseText);
                 alert("An error occurred while processing the barcodes.");
+            }
+            });
+        });
+
+        $('#deleteProcess').on('click', function (e) {
+            e.preventDefault();
+
+            if (!confirm("Are you sure you want to delete the selected processes?")) {
+            return;
+            }
+
+            $.ajax({
+            url: "{{URL::to('/admin/delete-process-voucher-list')}}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                console.log("Success:", response);
+                alert("Selected processes have been deleted successfully.");
+                location.reload();
+            },
+            error: function (xhr) {
+                console.log("Error response:", xhr.responseText);
+                alert("An error occurred while deleting the processes.");
+            }
+            });
+        });
+
+        $('#deleteProcessImage').on('click', function (e) {
+            e.preventDefault();
+
+            if (!confirm("Are you sure you want to delete images?")) {
+            return;
+            }
+
+            $.ajax({
+            url: "{{URL::to('/admin/delete-process-voucher-image-list')}}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                console.log("Success:", response);
+                alert("Selected processes have been deleted successfully.");
+                location.reload();
+            },
+            error: function (xhr) {
+                console.log("Error response:", xhr.responseText);
+                alert("An error occurred while deleting the processes.");
             }
             });
         });

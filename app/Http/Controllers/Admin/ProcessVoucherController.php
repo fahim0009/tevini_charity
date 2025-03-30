@@ -209,7 +209,7 @@ class ProcessVoucherController extends Controller
         return response()->json($barcodes);
     }
 
-    public function uploadAndExtract00(Request $request)
+    public function uploadAndExtract(Request $request)
     {
         try {
             // ✅ Set Ghostscript and Tesseract paths manually
@@ -256,6 +256,13 @@ class ProcessVoucherController extends Controller
                         'file' => basename($imagePath),
                         'voucher_number' => 'Image unreadable'
                     ];
+                    DB::table('processed_barcodes')->insert([
+                        'file' => $barcodes['file'],
+                        'barcode' => $barcodes['voucher_number'],
+                        'status' => 'Unreadable',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
                     continue;
                 }
 
@@ -343,20 +350,20 @@ class ProcessVoucherController extends Controller
                             ->pluck('barcode')
                             ->toArray();
 
-        return array_map(function ($barcode) use ($existingVouchers, $voucherNumbers) {
-            $barcodeCount = count($voucherNumbers);
-            return [
+        foreach ($barcodes as $barcode) {
+            DB::table('processed_barcodes')->insert([
                 'file' => $barcode['file'],
-                'barcodes' => $barcode['voucher_number'],
-                'barcodeCount' => $barcodeCount,
-                'status' => in_array($barcode['voucher_number'], $existingVouchers) ? 'Found' : 'Not Found'
-            ];
-        }, $barcodes);
+                'barcode' => $barcode['voucher_number'],
+                'status' => in_array($barcode['voucher_number'], $existingVouchers) ? 'Found' : 'Not Found',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
 
 
-    public function uploadAndExtract(Request $request)
+    public function uploadAndExtract_queue(Request $request)
     {
         try {
             $request->validate([

@@ -44,6 +44,13 @@ class BalanceTransferController extends Controller
         $request->validate([
             'accountno' => 'required|integer|exists:users,accountno',
             'amount' => 'required|numeric|min:0.01',
+        ], [
+            'accountno.required' => 'The account number is required.',
+            'accountno.integer' => 'The account number must be an integer.',
+            'accountno.exists' => 'The selected account number is invalid.',
+            'amount.required' => 'The transfer amount is required.',
+            'amount.numeric' => 'The transfer amount must be a number.',
+            'amount.min' => 'The transfer amount must be at least 0.01.',
         ]);
 
         if ($request->amount > $donorUpBalance) {

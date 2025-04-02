@@ -275,12 +275,17 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
+                                                            <!-- Image loader -->
+                                                            <div id='pdfloader' style='display:none ;'>
+                                                                <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+                                                            </div>
+
                                                             <div class="errmsg"></div>
                                                             <form action="#"  enctype="multipart/form-data" method="POST">
                                                                 @csrf
                                                                 <div class="form-group">
                                                                     <label for="pdfFile">Choose file</label>
-                                                                    <input type="file" class="form-control-file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                                                                    <input type="file" class="form-control-file" id="pdfFile" name="pdfFile[]" accept="application/pdf" multiple required>
                                                                     {{-- <input type="file" name="barcode_image[]" multiple  accept="image/*" required> --}}
                                                                 </div>
                                                                 
@@ -596,13 +601,22 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
         $('#uploadPdfSubmit').on('click', function (e) {
             e.preventDefault();
-            let formData = new FormData();
+            // $("#pdfloader").show();
 
-            var fileInput = document.querySelector('#pdfFile');
+            $('#uploadPdfSubmit').prop('disabled', true); // Disable the button
+            $('#uploadPdfSubmit').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...'); // Add spinner
+
+            let formData = new FormData();
+            let fileInput = document.querySelector('#pdfFile');
+
             if (fileInput.files.length > 0) {
-                formData.append("pdfFile", fileInput.files[0]);
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    formData.append("pdfFiles[]", fileInput.files[i]); // Append multiple files
+                }
             } else {
-                alert("Please select a PDF file.");
+                alert("Please select at least one PDF file.");
+                $("#pdfloader").hide();
+                $('#uploadPdfSubmit').prop('disabled', false); // Enable the button
                 return;
             }
 
@@ -615,6 +629,9 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                 contentType: false,
                 processData: false,
                 success: function (response) {
+
+                    $("#pdfloader").hide();
+                $('#uploadPdfSubmit').prop('disabled', false); // Enable the button
                     console.log("Success:", response);
                     $('.errmsg').html('<p style="color:green;">' + response.message + '</p>');
                     setTimeout(function () {
@@ -622,6 +639,8 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                     }, 3000);
                 },
                 error: function (xhr) {
+                    $("#pdfloader").hide();
+                    $('#uploadPdfSubmit').prop('disabled', false); // Enable the button
                     console.log("Error response:", xhr.responseText);
                     let errors = xhr.responseJSON ? xhr.responseJSON.errors : null;
                     if (errors) {
@@ -632,6 +651,9 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
                 }
             });
         });
+
+
+
 
         $('#addToProcess').on('click', function (e) {
             e.preventDefault();

@@ -97,7 +97,7 @@ class BalanceTransferController extends Controller
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $request->amount;
             $udtransaction->t_unq = time().rand(1,100);
-            $udtransaction->title ="Balance transfer send";
+            $udtransaction->title ="Funds send";
             $udtransaction->status =  1;
             $udtransaction->save();
 
@@ -108,7 +108,7 @@ class BalanceTransferController extends Controller
             $udtransaction->t_type = "In";
             $udtransaction->amount =  $request->amount;
             $udtransaction->t_unq = time().rand(1,100);
-            $udtransaction->title ="Balance transfer received";
+            $udtransaction->title = "Funds received";
             $udtransaction->status =  1;
             $udtransaction->save();
 
@@ -171,7 +171,7 @@ class BalanceTransferController extends Controller
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $amount;
             $udtransaction->t_unq = time().rand(1,100);
-            $udtransaction->title ="Balance transfer send";
+            $udtransaction->title ="Funds send";
             $udtransaction->status =  1;
             $udtransaction->save();
 
@@ -182,7 +182,7 @@ class BalanceTransferController extends Controller
             $udtransaction->t_type = "In";
             $udtransaction->amount =  $amount;
             $udtransaction->t_unq = time().rand(1,100);
-            $udtransaction->title ="Balance transfer received";
+            $udtransaction->title ="Funds received";
             $udtransaction->status =  1;
             $udtransaction->save();
 

@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
         <div class="title-section">
             <span class="iconify" data-icon="icon-park-outline:transaction"></span>
              <div class="mx-2">
-               Balance Transfer
+               Transfer funds
             </div>
         </div>
     </section>
@@ -104,7 +104,7 @@ use Illuminate\Support\Carbon;
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="5" class="text-center"> <p>No order found</p> </td>
+                                                <td colspan="5" class="text-center"> <p>No data found</p> </td>
                                             </tr>
                                             @endforelse
                                         </tbody>
@@ -130,10 +130,14 @@ use Illuminate\Support\Carbon;
                                         <tbody>
                                             @forelse ($receive as $data)
 
+                                            @php
+                                                $receivedFrom = \App\Models\User::where('id', $data->transfer_from)->first();
+                                            @endphp
+
                                             <tr>
                                                 <td>{{ $data->date ?? ""}} </td>
                                                 <td>{{ $data->accountno}}</td>
-                                                <td>{{ $data->received_from}}</td>
+                                                <td>{{ $receivedFrom->email ?? ""}}</td>
                                                 <td>£{{ $data->amount}}</td>
                                                 <td>@if($data->status =="0")
                                                     Pending
@@ -146,7 +150,7 @@ use Illuminate\Support\Carbon;
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="5" class="text-center"> <p>No order found</p> </td>
+                                                <td colspan="5" class="text-center"> <p>No data found</p> </td>
                                             </tr>
                                             @endforelse
                                         </tbody>

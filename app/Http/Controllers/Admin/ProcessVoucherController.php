@@ -212,6 +212,8 @@ class ProcessVoucherController extends Controller
     public function uploadAndExtractMultiplepdf(Request $request)
     {
         try {
+            // Set timeout ONLY for this function (30 mins = 1800 sec)
+            set_time_limit(3600);
             // ✅ Set Ghostscript and Tesseract paths manually
             putenv("MAGICK_HOME=C:\\Program Files\\gs\\gs10.05.0\\bin");
             putenv("PATH=" . getenv("MAGICK_HOME") . ";" . getenv("PATH"));

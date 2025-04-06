@@ -52,7 +52,7 @@ class ProcessVoucherController extends Controller
                 }
 
                 $pdf = new Pdf($pdfFullPath);
-                $pdf->setResolution(300); // Higher quality image from PDF
+                $pdf->setResolution(150); // Higher quality image from PDF
                 $numberOfPages = $pdf->getNumberOfPages();
                 $images = [];
 

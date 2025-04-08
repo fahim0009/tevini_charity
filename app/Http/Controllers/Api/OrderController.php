@@ -11,7 +11,7 @@ class OrderController extends Controller
 {
     public function userOrderview()
     {
-        $data = Order::where('user_id', Auth::user()->id)->orderBy('id','DESC')->get();
+        $data = Order::with('orderhistories','orderhistories.voucher')->where('user_id', Auth::user()->id)->orderBy('id','DESC')->get();
         
         $success['data'] = $data;
         return response()->json(['success'=>true,'response'=> $success], 200);

@@ -151,6 +151,13 @@ class TransactionController extends Controller
             ['pending','=', '0']
         ])->orderBy('id','DESC')->get();
 
+        $giftAid = Usertransaction::where([
+            ['created_at', '>=', $fromDate],
+            ['created_at', '<=', $toDate.' 23:59:59'],
+            ['user_id','=', auth()->user()->id],
+            ['status','=', '1']
+        ])->whereNotNull('gift')->orderby('id', 'DESC')->get();
+
 
 
         }else{
@@ -186,6 +193,8 @@ class TransactionController extends Controller
             ['user_id','=', auth()->user()->id],
             ['pending','=', '0']
         ])->orderBy('id','DESC')->get();
+
+        $giftAid = Usertransaction::where('user_id', auth()->user()->id)->where('status', 1)->whereNotNull('gift')->orderby('id', 'DESC')->get();
 
 
 

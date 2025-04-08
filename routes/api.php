@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\StandingDonationController;
 use App\Http\Controllers\Api\VoucherBookController;
 use App\Http\Controllers\Api\MaaserController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\FundTransferController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TDFTransactionController;
 use App\Http\Controllers\StripePaymentController;
@@ -119,6 +120,11 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     
     Route::post('stripe-top-up', [StripePaymentController::class, 'stripetopUpPost']);
+
+    // fund transfer api start
+    Route::get('fund-transfer', [FundTransferController::class, 'balanceTransfer']);
+    Route::post('fund-transfer', [FundTransferController::class, 'balanceTransferStore']);
+    // fund transfer api end
 
 });
 

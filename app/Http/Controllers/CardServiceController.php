@@ -1149,7 +1149,7 @@ class CardServiceController extends Controller
                         $utran->amount = $request->billAmt;
                         $utran->crdAcptLoc = $request->crdAcptLoc;
                         $utran->crdAcptID = $request->crdAcptID;
-                        $utran->title = "Tevini Card Payment";
+                        $utran->title = "Tevini Card Payment to ".$request->crdAcptLoc;
                         $utran->pending = 1;
                         $utran->status = 1;
                         $utran->save();
@@ -1162,7 +1162,7 @@ class CardServiceController extends Controller
                         $chtran->amount = $request->billAmt;
                         $chtran->crdAcptLoc = $request->crdAcptLoc;
                         $chtran->crdAcptID = $request->crdAcptID;
-                        $chtran->note = "Tevini Card Payment";
+                        $utran->title = "Tevini Card Payment to ".$request->crdAcptLoc;
                         $chtran->status = 1;
                         $chtran->save();
 

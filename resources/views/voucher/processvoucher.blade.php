@@ -526,7 +526,8 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
                     if (Array.isArray(seen) && seen.length) {
                         $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
-                        return;
+                        
+                        continue;
                     }
                     // check duplicate barcode 
 

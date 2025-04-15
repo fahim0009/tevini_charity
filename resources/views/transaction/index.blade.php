@@ -20,8 +20,8 @@ use Illuminate\Support\Carbon;
                   <button class="nav-link" id="nav-all" data-bs-toggle="tab" data-bs-target="#nav-transcationAll" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">All Transaction</button>
 
                 </div>
-              </nav>
-              <div class="tab-content" id="nav-tabContent">
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
                         <div class="col-md-12 my-3">
@@ -162,77 +162,77 @@ use Illuminate\Support\Carbon;
                         </div>
                     </div>
                 </div>
-            {{-- 2nd tab end  --}}
-            <div class="tab-pane fade" id="nav-transcationAll" role="tabpanel" aria-labelledby="nav-all">
-                <div class="row my-2">
-                    <div class="col-md-12 my-3">
+                {{-- 2nd tab end  --}}
+                <div class="tab-pane fade" id="nav-transcationAll" role="tabpanel" aria-labelledby="nav-all">
+                    <div class="row my-2">
                         <div class="col-md-12 my-3">
-                            <div class="container">
-                           <div class="row">
-                            <div class="col-md-9">
-                                <form class="form-inline" action="{{route('transaction_search')}}" method ="POST">
-                                    @csrf
-                                <div class="row">
+                            <div class="col-md-12 my-3">
+                                <div class="container">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <form class="form-inline" action="{{route('transaction_search')}}" method ="POST">
+                                        @csrf
+                                    <div class="row">
 
-                                    <div class="col-md-3">
-                                        <div class="form-group my-2">
-                                            <label for="fromDate"><small>Date From </small> </label>
-                                            <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
-                                          </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group my-2">
-                                            <label for="toDate"><small>Date To </small> </label>
-                                            <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
-                                          </div>
-                                    </div>
-                                    <div class="col-md-5 d-flex align-items-center">
-                                        <div class="form-group d-flex mt-4">
-                                          <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                        <div class="col-md-3">
+                                            <div class="form-group my-2">
+                                                <label for="fromDate"><small>Date From </small> </label>
+                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group my-2">
+                                                <label for="toDate"><small>Date To </small> </label>
+                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 d-flex align-items-center">
+                                            <div class="form-group d-flex mt-4">
+                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                            </div>
                                         </div>
                                     </div>
+                                </form>
                                 </div>
-                              </form>
-                            </div>
-                            </div>
+                                </div>
 
-                           </div>
+                            </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-12 mt-2 text-center">
-                        <div class="overflow">
-                            <table class="table table-custom shadow-sm bg-white" id="exampleall">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Transaction Id</th>
-                                        <th>Donor Name</th>
-                                        <th>Charity Name</th>
-                                        <th>Source</th>
-                                        <th>Note</th>
-                                        <th>Amount </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($alltransactions as $transaction)
-                                    <tr>
-                                            <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}} </td>
-                                            <td>{{ $transaction->t_id }}</td>
-                                            <td>@if($transaction->user_id){{ $transaction->user->name}}@endif</td>
-                                            <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif
-                                            @if($transaction->crdAcptID){{ $transaction->crdAcptLoc}}@endif
-                                            </td>
-                                            <td>{{ $transaction->name}}</td>
-                                            <td>{{ $transaction->note}}</td>
-                                            <td>£{{ $transaction->amount}}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <div class="col-md-12 mt-2 text-center">
+                            <div class="overflow">
+                                <table class="table table-custom shadow-sm bg-white" id="exampleall">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Transaction Id</th>
+                                            <th>Donor Name</th>
+                                            <th>Charity Name</th>
+                                            <th>Source</th>
+                                            <th>Note</th>
+                                            <th>Amount </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($alltransactions as $transaction)
+                                        <tr>
+                                                <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}} </td>
+                                                <td>{{ $transaction->t_id }}</td>
+                                                <td>@if($transaction->user_id){{ $transaction->user->name}}@endif</td>
+                                                <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif
+                                                @if($transaction->crdAcptID){{ $transaction->crdAcptLoc}}@endif
+                                                </td>
+                                                <td>{{ $transaction->name}}</td>
+                                                <td>{{ $transaction->note}}</td>
+                                                <td>£{{ $transaction->amount}}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     </div>

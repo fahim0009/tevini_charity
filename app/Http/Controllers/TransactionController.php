@@ -16,41 +16,41 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        $fromDate = $request->input('fromDate');
+        $toDate   = $request->input('toDate');
 
-        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
-            $fromDate = $request->input('fromDate');
-            $toDate   = $request->input('toDate');
+        $dateFilter = function ($query) use ($fromDate, $toDate) {
+            if (!empty($fromDate) && !empty($toDate)) {
+                $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+        };
 
+        $outtransactions = Transaction::with('charity')
+            ->where('t_type', 'Out')
+            ->select('id', 't_id', 'created_at', 'charity_id', 'crdAcptID', 'crdAcptLoc', 'name', 'note', 'amount')
+            ->where($dateFilter)
+            ->orderBy('id', 'DESC')
+            ->get();
 
+        $intransactions = Transaction::with('user')
+            ->where('t_type', 'In')
+            ->select('id', 't_id', 'created_at', 'user_id', 'name', 'amount')
+            ->where($dateFilter)
+            ->orderBy('id', 'DESC')
+            ->get();
 
-            $outtransactions = Transaction::where('t_type','=', 'Out')->where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-            ])->orderBy('id','DESC')->get();
-
-            $intransactions = Transaction::where('t_type','=', 'In')->where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-            ])->orderBy('id','DESC')->get();
-            $alltransactions = Transaction::orderBy('id','DESC')->where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-            ])->get();
-
-        }else{
-
-            $outtransactions = Transaction::where('t_type','=', 'Out')->orderBy('id','DESC')->get();
-            $intransactions = Transaction::where('t_type','=', 'In')->orderBy('id','DESC')->get();
-            $alltransactions = Transaction::orderBy('id','DESC')->get();
-
-        }
-
+        $alltransactions = Transaction::with(['user', 'charity'])
+            ->select('id', 't_id', 'created_at', 'user_id', 'charity_id', 'crdAcptID', 'crdAcptLoc', 'name', 'note', 'amount')
+            ->where($dateFilter)
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return view('transaction.index')
-        ->with('alltransactions',$alltransactions)
-        ->with('outtransactions',$outtransactions)
-        ->with('intransactions',$intransactions);
+            ->with('alltransactions', $alltransactions)
+            ->with('outtransactions', $outtransactions)
+            ->with('intransactions', $intransactions);
     }
+
 
     public function adminTransactionView()
     {

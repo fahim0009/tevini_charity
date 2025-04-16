@@ -71,7 +71,7 @@ class TransactionController extends Controller
         ])->orderBy('id','DESC')->get();
 
 
-        $giftAid = Usertransaction::where([
+        $giftAid = Usertransaction::with('user')->where([
             ['created_at', '>=', $fromDate],
             ['created_at', '<=', $toDate.' 23:59:59'],
             ['user_id','=', auth()->user()->id],
@@ -85,7 +85,7 @@ class TransactionController extends Controller
         $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
 
         
-        $giftAid = Usertransaction::where('user_id', auth()->user()->id)->where('status', 1)->whereNotNull('gift')->orderby('id', 'DESC')->get();
+        $giftAid = Usertransaction::with('user')->where('user_id', auth()->user()->id)->where('status', 1)->whereNotNull('gift')->orderby('id', 'DESC')->get();
 
         $alltransactions = Usertransaction::with(['charity:id,name'])->where([
             ['user_id','=', auth()->user()->id],

@@ -497,7 +497,7 @@ class DonorController extends Controller
 
     // report to multiple donor
 
-    public function multiUserreport(Request $request)
+    public function multiUserreport2(Request $request)
     {
         $checkAll = $request->checkAll;
         $donorIds = $request->donorIds;
@@ -664,6 +664,104 @@ class DonorController extends Controller
             return response()->json(['status'=> 300,'message'=>$message]);
 
 
+    }
+
+    public function multiUserreport(Request $request)
+    {
+
+        ini_set('max_execution_time', 1800); // 30 minutes
+        set_time_limit(1800);
+
+        $checkAll = $request->checkAll;
+        $donorIds = $request->donorIds;
+        $fromDate = $request->fromdate;
+        $toDate   = $request->todate;
+
+        if ($checkAll != 'all' && empty($donorIds)) {
+            return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select donor.')]);
+        }
+
+        if (empty($fromDate)) {
+            return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select From Date.')]);
+        }
+
+        if (empty($toDate)) {
+            return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select To Date.')]);
+        }
+
+        $contactmail = ContactMail::where('id', 1)->value('name');
+
+        $processUser = function ($user) use ($fromDate, $toDate, $contactmail) {
+            $tamount = Usertransaction::where('user_id', $user->id)
+                ->where('status', 1)
+                ->orderBy('id', 'DESC')
+                ->get();
+
+            $report = Usertransaction::where('user_id', $user->id)
+                ->where(function ($query) use ($fromDate, $toDate) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+                        ->where('status', 1);
+                })
+                ->orWhere(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)->where('pending', 0);
+                })
+                ->orderBy('id', 'DESC')
+                ->get();
+
+            $userTransactionBalance = Usertransaction::selectRaw('
+                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                    SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+                ')
+                ->where('user_id', $user->id)
+                ->where('status', 1)
+                ->orWhere(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)->where('pending', 1);
+                })
+                ->first();
+
+            $pdf = PDF::loadView('invoices.donor_report', compact('report', 'fromDate', 'toDate', 'user', 'tamount'));
+            $filePath = public_path('/invoices/Report#' . $user->id . '.pdf');
+            file_put_contents($filePath, $pdf->output());
+
+            $array = [
+                'cc' => $contactmail,
+                'userbalance' => number_format($userTransactionBalance->balance, 2),
+                'name' => $user->name,
+                'view' => 'mail.donorreport',
+                'subject' => 'Monthly statement',
+                'from' => 'info@tevini.co.uk',
+                'content' => 'Hi, Your donation report has been placed',
+                'file' => $filePath,
+                'file_name' => 'Report#' . $user->id . '.pdf',
+                'subjectsingle' => 'Report Placed - ' . $user->id,
+            ];
+
+            if ($user->email_verified_at) {
+                Mail::to($user->email)->queue(new DonerReport($array));
+            }
+        };
+
+        if ($checkAll == "all") {
+            User::where('is_type', 'user')->where('status', 1)->chunk(5, function ($users) use ($processUser) {
+                foreach ($users as $user) {
+                    $processUser($user);
+                }
+            });
+        } else {
+            foreach ($donorIds as $id) {
+                $user = User::find($id);
+                if ($user) {
+                    $processUser($user);
+                }
+            }
+        }
+
+        return response()->json(['status' => 300, 'message' => $this->alert('success', 'Mail sent successfully.')]);
+    }
+
+    private function alert($type, $message)
+    {
+        return "<div class='alert alert-$type'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>$message</b></div>";
     }
 
 

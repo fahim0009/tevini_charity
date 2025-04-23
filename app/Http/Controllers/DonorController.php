@@ -666,7 +666,7 @@ class DonorController extends Controller
 
     }
 
-    public function multiUserreport(Request $request)
+    public function multiUserreport_new(Request $request)
     {
 
         ini_set('max_execution_time', 1800); // 30 minutes
@@ -758,6 +758,43 @@ class DonorController extends Controller
 
         return response()->json(['status' => 300, 'message' => $this->alert('success', 'Mail sent successfully.')]);
     }
+
+    public function multiUserreport(Request $request)
+    {
+        $checkAll = $request->checkAll;
+        $donorIds = $request->donorIds;
+        $fromDate = $request->fromdate;
+        $toDate   = $request->todate;
+
+        if ($checkAll != 'all' && empty($donorIds)) {
+            return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select donor.')]);
+        }
+
+        if (empty($fromDate)) {
+            return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select From Date.')]);
+        }
+
+        if (empty($toDate)) {
+            return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select To Date.')]);
+        }
+
+        if ($checkAll == "all") {
+            
+            User::where('is_type', 'user')->where('status', 1)->chunk(100, function ($users) use ($fromDate, $toDate) {
+                foreach ($users as $user) {
+                    dispatch(new \App\Jobs\SendDonorReportJob($user->id, $fromDate, $toDate));
+                }
+            });
+            
+        } else {
+            foreach ($donorIds as $id) {
+                dispatch(new \App\Jobs\SendDonorReportJob($id, $fromDate, $toDate));
+            }
+        }
+
+        return response()->json(['status' => 300, 'message' => $this->alert('success', 'Mail sent successfully.')]);
+    }
+
 
     private function alert($type, $message)
     {

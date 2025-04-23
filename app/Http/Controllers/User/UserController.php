@@ -474,43 +474,36 @@ class UserController extends Controller
 
     public function verification($id)
     {
-        if (auth()->user()) {
-            if (! auth()->user()->hasVerifiedEmail()) {
-                auth()->user()->markEmailAsVerified();
-                event(new Verified(auth()->user()));
-    
-                $chkAccNo = User::where('id', auth()->user()->id)->first()->accountno;
-                if (empty($chkAccNo)) {
-                    do {
-                        $accountno = mt_rand(100000, 999999);
-                    } while (User::where('accountno', $accountno)->exists());
-    
-                    $user = User::find(auth()->user()->id);
-                    $user->accountno = $accountno;
-                    $user->save();
-                }
-            }
-            return redirect()->route('user.dashboard');
-        } else {
-            $chkAccNo = User::where('id', $id)->first()->accountno;
-            if (empty($chkAccNo)) {
-                do {
-                    $accountno = mt_rand(100000, 999999);
-                } while (User::where('accountno', $accountno)->exists());
+        $user = auth()->user() ?? User::find($id);
 
-                $user = User::find($id);
-                $user->accountno = $accountno;
-                $user->save();
-            }
-
-            $user = User::find($id);
-            if ($user && ! $user->hasVerifiedEmail()) {
-                $user->markEmailAsVerified();
-                event(new Verified($user));
-            }
-            return redirect()->route('login')->with('status', 'Email verified successfully. Please login to continue.');
+        if (! $user) {
+            return redirect()->route('login')->withErrors('User not found.');
         }
-        
-        
+
+        // Verify email if not already verified
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        // Generate unique account number if not already set
+        if (empty($user->accountno)) {
+            $user->accountno = $this->generateUniqueAccountNo();
+            $user->save();
+        }
+
+        // Redirect accordingly
+        return auth()->check()
+            ? redirect()->route('user.dashboard')
+            : redirect()->route('login')->with('status', 'Email verified successfully. Please login to continue.');
+    }
+
+    private function generateUniqueAccountNo()
+    {
+        do {
+            $accountno = mt_rand(100000, 999999);
+        } while (User::where('accountno', $accountno)->exists());
+
+        return $accountno;
     }
 }

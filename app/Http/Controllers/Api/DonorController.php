@@ -56,6 +56,28 @@ class DonorController extends Controller
             $success['message'] = 'You have to fill number of payment field!.';
             return response()->json(['success'=>false,'response'=> $success], 202);
         }
+
+        // donor balance
+        $userTransactionBalance = Usertransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', Auth::user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=',  Auth::user()->id],
+                ['pending','=', '1']
+            ])
+            ->first();
+        // donor balance end
+        $overdrownlimit = User::where('id', Auth::user()->id)->first()->overdrawn_amount;
+        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
+
+        if ($donorBlanacewithLimit < $request->amount) {
+            $success['message'] = 'You don\'t have sufficient balance for this donation.';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+        }
         
 
         $data = new Donation;

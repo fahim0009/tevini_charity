@@ -57,7 +57,7 @@ class TransactionController extends Controller
         return view('transaction.tranview');
     }
 
-    public function remittance(Request $request)
+    public function remittance_old(Request $request)
     {
 
 
@@ -96,6 +96,42 @@ class TransactionController extends Controller
         }
         return view('remittance.index',compact('remittance','total','fromDate','toDate','charity'));
     }
+
+    public function remittance(Request $request)
+    {
+        $fromDate = $request->input('fromdate');
+        $toDate = $request->input('todate');
+        $charityId = $request->input('charityid');
+
+        $query = Provoucher::query()->whereIn('status', ['1', '0']);
+
+        // Filter by charity if charityid is given
+        $charity = null;
+        if (!empty($charityId)) {
+            $query->where('charity_id', $charityId);
+            $charity = Charity::find($charityId);
+        }
+
+        // Filter by date range if both dates are provided
+        if (!empty($fromDate) && !empty($toDate)) {
+            $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+        }
+
+        $remittance = $query->orderBy('id', 'DESC')->get();
+
+        // Calculate total separately (only status = 1)
+        $totalQuery = Provoucher::query()->where('status', '1');
+        if (!empty($charityId)) {
+            $totalQuery->where('charity_id', $charityId);
+        }
+        if (!empty($fromDate) && !empty($toDate)) {
+            $totalQuery->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+        }
+        $total = $totalQuery->sum('amount');
+
+        return view('remittance.index', compact('remittance', 'total', 'fromDate', 'toDate', 'charity'));
+    }
+
 
     public function userTransactionShow(Request $request)
     {

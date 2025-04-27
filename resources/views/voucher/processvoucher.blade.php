@@ -526,17 +526,20 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
 
                     if (Array.isArray(seen) && seen.length) {
                         $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
+                        setTimeout(function() {
+                            $(".ermsg").html("");
+                        }, 3000);
+                        $("#barcode").val("");
                         return;
                     }
                     // check duplicate barcode 
-
                     $.ajax({
                     url: urlbr,
                     method: "POST",
                     data: {barcode:barcode},
 
                     success: function (d) {
-                        console.log(d);
+                        // console.log(d);
                         if (d.status == 303) {
 
                         }else if(d.status == 300){
@@ -680,8 +683,47 @@ var urld = "{{URL::to('/admin/pvoucher-draft')}}";
             },
             success: function (response) {
                 console.log("Success:", response);
+
+                response.orderDetails.forEach(function (orderDetail) {
+
+                    if ($('#donorid').val() === '') {
+
+                            $('#donorid').val(orderDetail.user_id); // Set default value for empty donorid field
+                            $('#donor_acc_num').val(orderDetail.user.accountno);
+                            $('#donor_acc_name').val(orderDetail.user.name);
+                            $('#donor_check').val(orderDetail.barcode);
+                            $('#d_amnt').val(orderDetail.amount);
+                        
+                        }else{
+                    
+                        var markup = `
+                            <tr class="item-row" style="position:relative;">
+                                <td width="200px" style="display:inline-flex;">
+                                    <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px; left: 4px; top: 81px;" onclick="removeRow(event)">X</div>
+                                </td>
+                                <td width="200px">
+                                    <input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="${orderDetail.user.accountno}" placeholder="Type Acc no...">
+                                </td>
+                                <td width="250px">
+                                    <input style="min-width:100px" type="text" name="donor_name[]" readonly class="form-control donorAcc" value="${orderDetail.user.name}">
+                                    <input type="hidden" name="donor[]" value="${orderDetail.user_id}" class="donorid">
+                                </td>
+                                <td width="250px">
+                                    <input style="min-width:100px" name="check[]" type="text" value="${orderDetail.barcode}" class="form-control check">
+                                </td>
+                                <td width="20px">
+                                    <input style="min-width:30px" name="amount[]" type="text" value="${orderDetail.amount}" class="amount form-control">
+                                </td>
+                                <td width="250px">
+                                    <input style="min-width:200px" name="note[]" type="text" value="" class="form-control note">
+                                </td>
+                                <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td>
+                            </tr>`;
+                        $("table #inner").append(markup);
+                    }
+                });
                 
-                $("table #inner ").append(response.data);
+                $("table #inner ").append(response.data2);
                 
                 setTimeout(function () {
                     $('#fullWidthModal').modal('hide');

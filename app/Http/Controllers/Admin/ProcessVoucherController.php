@@ -133,6 +133,109 @@ class ProcessVoucherController extends Controller
         }
     }
 
+    public function uploadAndExtractMultiplepdf2(Request $request)
+    {
+        try {
+            // Set timeout ONLY for this function (30 mins = 1800 sec)
+            set_time_limit(3600);
+            // ✅ Set Ghostscript and Tesseract paths manually
+            putenv("MAGICK_HOME=C:\\Program Files\\gs\\gs10.05.0\\bin");
+            putenv("PATH=" . getenv("MAGICK_HOME") . ";" . getenv("PATH"));
+            putenv("GS_PROG=C:\\Program Files\\gs\\gs10.05.0\\bin\\gswin64c.exe");
+            $tesseractPath = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"; 
+
+            // ✅ Validate Multiple PDF Uploads
+            $request->validate([
+                'pdfFiles.*' => 'required|mimes:pdf|max:40000' // Accept multiple files
+            ]);
+
+            $allBarcodes = []; // Store barcodes from all PDFs
+
+            foreach ($request->file('pdfFiles') as $pdfFile) {
+                // ✅ Store PDF File
+                $pdfPath = $pdfFile->store('public/pdfs');
+                $pdfFullPath = storage_path('app/' . $pdfPath);
+
+                // ✅ Ensure barcode images directory exists
+                $barcodeImagePath = storage_path('app/public/barcodeimages/');
+                if (!file_exists($barcodeImagePath)) {
+                    mkdir($barcodeImagePath, 0777, true);
+                }
+
+                // ✅ Convert PDF to Images
+                $pdf = new Pdf($pdfFullPath);
+                $numberOfPages = $pdf->getNumberOfPages();
+                $images = [];
+
+                for ($i = 1; $i <= $numberOfPages; $i++) {
+                    $imagePath = $barcodeImagePath . "page_{$i}_" . time() . ".jpg";
+                    $pdf->setPage($i)->saveImage($imagePath);
+                    $images[] = $imagePath;
+                }
+
+                // ✅ Extract Barcodes from Generated Images
+                $barcodes = [];
+
+                foreach ($images as $imagePath) {
+                    if (!$this->isValidImage($imagePath)) {
+                        $barcodes[] = [
+                            'file' => basename($imagePath),
+                            'voucher_number' => 'Image unreadable'
+                        ];
+                        DB::table('processed_barcodes')->insert([
+                            'file' => basename($imagePath),
+                            'barcode' => 'Image unreadable',
+                            'status' => 'Unreadable',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        continue;
+                    }
+
+                    // ✅ Extract text using Tesseract OCR
+                    try {
+                        $text = (new TesseractOCR($imagePath))
+                                    ->executable($tesseractPath)
+                                    ->lang('eng')
+                                    ->psm(6)
+                                    ->oem(1)
+                                    ->run();
+                    } catch (\Exception $e) {
+                        continue; // Skip this image if Tesseract fails
+                    }
+
+                    // ✅ Extract Voucher Number (Assuming Format: NO. XXXXXXX)
+                    preg_match('/NO\.\s*(\d{6,})/', $text, $matches);
+
+                    $barcodes[] = [
+                        'file' => basename($imagePath),
+                        'voucher_number' => !empty($matches[1]) ? $matches[1] : 'Not Found'
+                    ];
+                }
+
+                $processVoucher = $this->processVoucher($barcodes);
+
+                $allBarcodes[] = [
+                    'pdf' => $pdfFile->getClientOriginalName(),
+                    'barcodes' => $barcodes,
+                    'processVoucher' => $processVoucher
+                ];
+            }
+
+            return response()->json([
+                'message' => 'Barcode extraction successful',
+                'allBarcodes' => $allBarcodes
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 
     public function uploadAndExtractMultiplepdf(Request $request)
     {
@@ -313,21 +416,25 @@ class ProcessVoucherController extends Controller
         $processBarcode = ProcessedBarcode::where('barcode', '!=', 'Not Found')->get();
 
         $prop = '';
-        
+        $prop2 = '';
+        $orderDetails = []; // create an array to store all order details
             foreach ($processBarcode as $pdata){
                 $orderDtl = Barcode::where('barcode', '=', $pdata->barcode)->first();
 
                 if ($orderDtl) {
+                    if ($orderDtl) {
+                        $orderDetails[] = $orderDtl; // add each found orderDtl into the array
+                    }
                     // <!-- Single Property Start -->
                     $prop.= '<tr class="item-row"><td width = "200px"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'.$orderDtl->user->accountno.'" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="'.$orderDtl->user->name.'" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value="'.$orderDtl->user_id.'"  class="donorid"></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'.$pdata->barcode.'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="'.$orderDtl->amount.'" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
                 } else {
                     // <!-- Single Property Start -->
-                    $prop.= '<tr class="item-row"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value=""  class="donorid"></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'.$pdata->barcode.'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
+                    $prop2.= '<tr class="item-row"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="" placeholder="Type Acc no..."></td><td width="250px"><input style="min-width:100px" type="text" value="" readonly class="form-control donorAcc" value><input type="hidden" name="donor[]" value=""  class="donorid"></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'.$pdata->barcode.'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px" name="amount[]" type="text" value="" class="amount form-control" value></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" value></td><td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td></tr>';
                 }
                   
             }
 
-        return response()->json(['status'=> 300,'data'=>$prop]);
+        return response()->json(['status'=> 300,'data'=>$prop, 'data2'=>$prop2, 'orderDetails' => $orderDetails], 200);
     }
 
 

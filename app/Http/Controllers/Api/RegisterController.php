@@ -105,6 +105,9 @@ class RegisterController extends BaseController
 
                     $user = Auth::user(); 
                     $data = User::where('id', Auth::user()->id)->first(); 
+                    if ($data) {
+                        $data->balance = (string) $data->balance;
+                    }
                     $success['token'] =  $user->createToken('MyApp')->accessToken; 
                     $success['name'] =  $user->name;
                     $success['data'] =  $data;
@@ -114,6 +117,9 @@ class RegisterController extends BaseController
                 } elseif (Auth::attempt(['accountno' => $request->email, 'password' => $request->password])) {
                     $user = Auth::user(); 
                     $data = User::where('id', Auth::user()->id)->first(); 
+                    if ($data) {
+                        $data->balance = (string) $data->balance;
+                    }
                     $success['token'] =  $user->createToken('MyApp')->accessToken; 
                     $success['name'] =  $user->name;
                     $success['data'] =  $data;

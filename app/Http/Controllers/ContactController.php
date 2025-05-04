@@ -159,14 +159,16 @@ class ContactController extends Controller
         try {
 
 
-            Mail::mailer('gmail')->to($contactmail)->send(
-                new ContactUsMail(
-                    $request->name,
-                    $request->email,
-                    $request->subject,
-                    $request->message
-                )
-            );
+            Mail::mailer('gmail')->to($contactmail)
+                ->cc('info@tevini.co.uk')
+                ->send(
+                    new ContactUsMail(
+                        $request->name,
+                        $request->email,
+                        $request->subject,
+                        $request->message
+                    )
+                );
 
             $success = "<div class='alert alert-success alert-dismissible fade show' role='alert'>
                         Thanks for your message! We will get back to you soon :)

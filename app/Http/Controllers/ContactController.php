@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use App\Mail\ContactUsMail;
 
 class ContactController extends Controller
 {
@@ -48,7 +51,7 @@ class ContactController extends Controller
         return view('frontend.user.contact');
     }
 
-    public function visitorContact(Request $request)
+    public function visitorContact_old(Request $request)
     {
         $name = $request->name;
         $email = $request->email;
@@ -112,6 +115,7 @@ class ContactController extends Controller
         $message = $message.$visitor_message . "\r\n" ;//add message from the contact form to existing message(name of the client)
         $headers = "From: $from_email" . "\r\n" . "Reply-To: $email"  ;
         $a = mail( $mail_to_send_to, $subject, $message, $headers );
+
         
                 if ($a)
                 {
@@ -130,7 +134,54 @@ class ContactController extends Controller
                     exit();
 
                 }
-            }
+    }
+
+
+    public function visitorContact(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            $message = "<div class='alert alert-warning alert-dismissible fade show' role='alert'>".
+                        $validator->errors()->first().
+                        "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+
+        $contactmail = ContactMail::where('id', 1)->value('name') ?? 'info@tevini.co.uk';
+
+        try {
+
+
+            Mail::mailer('gmail')->to($contactmail)->send(
+                new ContactUsMail(
+                    $request->name,
+                    $request->email,
+                    $request->subject,
+                    $request->message
+                )
+            );
+
+            $success = "<div class='alert alert-success alert-dismissible fade show' role='alert'>
+                        Thanks for your message! We will get back to you soon :)
+                        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+
+            return response()->json(['status' => 200, 'message' => $success]);
+
+        } catch (\Exception $e) {
+            $error = "<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                    Problem with sending message! ({$e->getMessage()})
+                    <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+
+            return response()->json(['status' => 303, 'message' => $error]);
+        }
+    }
 
 
 }

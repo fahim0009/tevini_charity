@@ -202,6 +202,9 @@
             var url = "{{URL::to('/contact-submit')}}";
             $("#submit").click(function(){
 
+                var $button = $(this);
+                $button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...');
+
                     var name = $("#name").val();
                     var email = $("#email").val();
                     var subject = $("#subject").val();
@@ -212,9 +215,10 @@
                         method: "POST",
                         data: {name,email,subject,message},
                         success: function (d) {
+                            console.log(d);
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
-                            }else if(d.status == 300){
+                            }else if(d.status == 200){
                                 $(".ermsg").html(d.message);
                                 window.setTimeout(function(){location.reload()},2000)
                             }

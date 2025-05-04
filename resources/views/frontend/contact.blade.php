@@ -16,21 +16,22 @@
                         <div class="theme-para ">
                             Fill out the form below and we’ll get back to you as   soon as we can.
                         </div>
-                        <form action="" class="form-custom"> 
+                        <div class="ermsg"></div>
+                        <form class="form-custom" method="POST"> 
                             <div class="form-group">
-                                <input class="form-control" type="text" placeholder="Name"> 
+                                <input class="form-control" type="text" id="name" placeholder="Name"> 
                             </div>
                             <div class="form-group">
-                                <input class="form-control" type="text" placeholder="Email"> 
+                                <input class="form-control" type="text" id="email" placeholder="Email"> 
                             </div>
                             <div class="form-group">
-                                <input class="form-control" type="text" placeholder="Subject"> 
+                                <input class="form-control" type="text" id="subject" placeholder="Subject"> 
                             </div>
                             <div class="form-group">
-                                <textarea class="form-control" rows="3" placeholder="Message"></textarea> 
+                                <textarea class="form-control" rows="3" id="message" placeholder="Message"></textarea> 
                             </div>
                             <div class="form-group">
-                                <a href="#" class="btn-theme bg-primary">Send</a>
+                                <button type="button"  id="submit" class="btn-theme bg-primary">Send</button>
                             </div>
                         </form>
                     </div>
@@ -123,8 +124,8 @@
 </section>
 
 
-{{-- 
-<section class="introBanner py-5">
+
+{{-- <section class="introBanner py-5">
     <div class="col-md-12 ">
         <div class="col-md-6 px-3 mx-auto text-center f-flex align-items-center justify-content-center flex-column">
             <h1>Contact us</h1>
@@ -184,6 +185,9 @@
        </div>
     </div>
 </section> --}}
+
+
+
 @endsection
 
 @section('script')
@@ -198,10 +202,11 @@
             var url = "{{URL::to('/contact-submit')}}";
             $("#submit").click(function(){
 
-                    var name= $("#name").val();
-                    var email= $("#email").val();
-                    var subject= $("#subject").val();
-                    var message= $("#message").val();
+                    var name = $("#name").val();
+                    var email = $("#email").val();
+                    var subject = $("#subject").val();
+                    var message = $("#message").val();
+
                     $.ajax({
                         url: url,
                         method: "POST",

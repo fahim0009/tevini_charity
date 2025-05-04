@@ -58,7 +58,7 @@ class ContactController extends Controller
         $emailValidation = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\.[a-zA-Z.]{2,10}$/";
 
         if(empty($name)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            $message ="<div class='alert alert-warning alert-dismissible fade show' role='alert'>
             Please fill name field, thank you!
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -66,7 +66,7 @@ class ContactController extends Controller
         }
         
         if(empty($email)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            $message ="<div class='alert alert-warning alert-dismissible fade show' role='alert'>
             Please fill email field, thank you!
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -75,7 +75,7 @@ class ContactController extends Controller
 
         if(!preg_match($emailValidation,$email)){
 	    
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            $message ="<div class='alert alert-warning alert-dismissible fade show' role='alert'>
             Your mail ".$email." is not valid mail. Please wirite a valid mail, thank you!
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -84,7 +84,7 @@ class ContactController extends Controller
         }
         
         if(empty($visitor_subject)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            $message ="<div class='alert alert-warning alert-dismissible fade show' role='alert'>
             Please fill subject field, thank you!
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -92,7 +92,7 @@ class ContactController extends Controller
         }
 
         if(empty($visitor_message)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+            $message ="<div class='alert alert-warning alert-dismissible fade show' role='alert'>
             Please write your query in message field, thank you!
             <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -123,7 +123,7 @@ class ContactController extends Controller
 
                 } else {
 
-                    $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                    $message ="<div class='alert alert-warning alert-dismissible fade show' role='alert'>
                     Problem with sending message !
                     <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
                     return response()->json(['status'=> 303,'message'=>$message]);

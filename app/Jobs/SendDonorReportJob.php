@@ -21,12 +21,14 @@ class SendDonorReportJob implements ShouldQueue
     protected $userId;
     protected $fromDate;
     protected $toDate;
+    protected $checkAll;
 
-    public function __construct($userId, $fromDate, $toDate)
+    public function __construct($userId, $fromDate, $toDate, $checkAll)
     {
         $this->userId = $userId;
         $this->fromDate = $fromDate;
         $this->toDate = $toDate;
+        $this->$checkAll = $checkAll;
     }
 
     public function handle()
@@ -86,12 +88,14 @@ class SendDonorReportJob implements ShouldQueue
             'subjectsingle' => 'Report Placed - ' . $user->id,
         ];
 
-        if ($user->email_verified_at) {
-            // Mail::to($user->email)->queue(new DonerReport($array));
+        if ($this->checkAll == "all") {
+            if ($user->email_verified_at) {
+                Mail::to($user->email)->send(new DonerReport($array));
+            }
+        } else {
             Mail::to($user->email)->send(new DonerReport($array));
-
         }
-
+        
         \Log::info("Sending mail to " . $user->email);
 
     }

@@ -780,15 +780,15 @@ class DonorController extends Controller
 
         if ($checkAll == "all") {
             
-            User::where('is_type', 'user')->where('status', 1)->chunk(100, function ($users) use ($fromDate, $toDate) {
+            User::where('is_type', 'user')->where('status', 1)->chunk(100, function ($users) use ($fromDate, $toDate, $checkAll) {
                 foreach ($users as $user) {
-                    dispatch(new \App\Jobs\SendDonorReportJob($user->id, $fromDate, $toDate));
+                    dispatch(new \App\Jobs\SendDonorReportJob($user->id, $fromDate, $toDate, $checkAll));
                 }
             });
             
         } else {
             foreach ($donorIds as $id) {
-                dispatch(new \App\Jobs\SendDonorReportJob($id, $fromDate, $toDate));
+                dispatch(new \App\Jobs\SendDonorReportJob($id, $fromDate, $toDate, $checkAll));
             }
         }
 

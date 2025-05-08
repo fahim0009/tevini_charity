@@ -345,14 +345,14 @@ class VoucherBookController extends Controller
 
             $contactmail = ContactMail::where('id', 1)->first()->name;
 
-            $array['subject'] = 'Order place to Tevini';
+            $array['subject'] = 'Voucher books order confirmation';
             $array['from'] = 'info@tevini.co.uk';
             $array['cc'] = $contactmail;
             $array['name'] = $user->name;
             $array['client_no'] = $user->accountno;
             $email = $user->email;
             $array['order_id'] = $order->id;
-            $array['orderid'] = $order;
+            $array['orderid'] = $order->order_id;
             $array['delivery_option'] = $delivery_opt;
 
 

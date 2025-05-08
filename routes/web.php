@@ -69,10 +69,6 @@ Route::post('/email/resend-verification', function (Request $request) {
 
 Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verification'])->name('verification.verify');
 
-// Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-//     $request->fulfill();
-//     return redirect('/home'); // Or wherever you want to redirect after verification
-// })->middleware(['auth', 'signed'])->name('verification.verify');
 
 // user part start
 Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function(){
@@ -236,13 +232,14 @@ Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
 
 
+// for app safariviewcontroller
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);
 Route::get('make-donation-success', [DonorController::class, 'makeDonationAppMessage'])->name('onlinedonation.appview');
 // standing donation 
 Route::post('make-online-donation', [DonorController::class, 'userOnlineDonationStore'])->name('onlinedonation.store');
+// for app safariviewcontroller
 
-
-// api
+// api for campaign
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
 Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
 Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');

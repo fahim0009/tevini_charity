@@ -243,12 +243,20 @@ use app\Models\Provoucher;
                         @endphp
                     </tr>
                     @endif
-                    <tr>
+
+
+                    <tr style="font-size: 12px;">
                         <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                        <td>{{$data->title}} </td>
-                        <td>{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
-                        <td style="width: 10%">@if($data->charity_id){{ $data->charity->name}}@endif
-                            @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif</td>
+
+                        <td style="width: 10%">{{$data->title}} </td>
+                        
+                        <td style="width: 10%">{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
+                        <td style="width: 10%">
+
+                            @if($data->charity_id){{ $data->charity->name}}@endif
+                            @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
+                        
+                        </td>
                         <td>@if($data->pending == "0") Pending @endif</td>
 
                             @if($data->t_type == "In")
@@ -273,6 +281,8 @@ use app\Models\Provoucher;
                             @endif
 
                     </tr>
+
+
                 @endforeach
                     <tr>
                     <td></td>

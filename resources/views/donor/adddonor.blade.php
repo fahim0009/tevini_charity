@@ -464,6 +464,12 @@ window.onload = (event) => {
 
 
 // report sent to all donor
+
+$(".getDid").click(function(){
+    $("#checkAll").prop('checked', false);
+});
+
+
 var url = "{{URL::to('/admin/reportall')}}";
 $("#sentRpt").click(function(){
     $("#loading").show();

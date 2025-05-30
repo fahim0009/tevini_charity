@@ -145,12 +145,73 @@ use Illuminate\Support\Carbon;
                                         @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
                                     </span>
                                     <span class="fs-16 txt-secondary">{{$data->title}}</span>
+
+                                    <button type="button" id="donatemodal" class="btn-theme bg-secondary" data-bs-toggle="modal" data-bs-target="#tranModal{{$data->id}}">
+                                        View Details
+                                    </button>
+
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="tranModal{{$data->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                        <div class="modal-content" style="background-color: #fdf3ee;">
+                                            <div class="modal-header">
+                                            <h1 class="modal-title fs-5 txt-secondary" id="exampleModalLabel">Transaction</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                            
+                                                <table class="table table-borderless">
+                                                    <tr>
+                                                        <td>Date</td>
+                                                        <td>:</td>
+                                                        <td id="t_date">{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Transaction Id</td>
+                                                        <td>:</td>
+                                                        <td id="t_id">{{$data->t_id}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Donation Type</td>
+                                                        <td>:</td>
+                                                        <td id="t_donation_type">{{$data->title}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Charity Name</td>
+                                                        <td>:</td>
+                                                        <td id="t_charity">@if($data->charity_id){{ $data->charity->name}}@endif</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Donate_by</td>
+                                                        <td>:</td>
+                                                        <td id="t_donate_by">{{$data->donation_by}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Amount</td>
+                                                        <td>:</td>
+                                                        <td id="t_amount">£{{number_format($data->amount, 2) }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Comment</td>
+                                                        <td>:</td>
+                                                        <td id="t_comment">{{$data->note}}</td>
+                                                    </tr>
+                                                </table>
+
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+
+
+
                                 </div>
                             </td>
                             <td class="fs-16 txt-secondary">{{$data->donation_by}}</td>
                                 @if($data->t_type == "In")
                                     @if($data->commission != 0)
-                                        <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
+                                        <td>£{{ number_format($data->amount + $data->commission, 2) }} </td>
                                         <td></td>
                                         <td class="fs-16 txt-secondary">
                                             @if ($data->title == "Voucher")
@@ -201,6 +262,13 @@ use Illuminate\Support\Carbon;
                                 @endif
 
                         </tr>
+
+
+                        
+                        
+
+
+                        
                     @endforeach
                      <tr>
                         <td></td>
@@ -407,5 +475,7 @@ use Illuminate\Support\Carbon;
     </div>
 </div>
 </div>
+
+
 
 @endsection

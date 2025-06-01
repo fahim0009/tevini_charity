@@ -135,114 +135,98 @@ class TransactionController extends Controller
 
     public function userTransactionShow(Request $request)
     {
+        $userId = auth()->id();
+        $fromDate = $request->input('fromDate');
+        $toDate = $request->input('toDate') ? $request->input('toDate') . ' 23:59:59' : null;
 
-        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
-            $fromDate = $request->input('fromDate');
-            $toDate   = $request->input('toDate');
+        $hasDateRange = $fromDate && $toDate;
 
-        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-        ])->where('status','=', '1')->orderBy('id','DESC')->get();
+        // Total amount transactions
+        $tamount = Usertransaction::where('user_id', $userId)
+            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->where('status', 1)
+            ->orderByDesc('id')
+            ->get();
 
-        $alltransactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // All transactions
+        $alltransactions = Usertransaction::where('user_id', $userId)
+            ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
+                $query->where('status', 1);
+                if ($hasDateRange) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate]);
+                }
+            })
+            ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
+                $query->where('user_id', $userId)
+                    ->where('pending', 1);
+                if ($hasDateRange) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate]);
+                }
+            })
+            ->orderByDesc('id')
+            ->get();
 
-        $intransactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'In'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
+        // In Transactions
+        $intransactions = Usertransaction::where('user_id', $userId)
+            ->where('t_type', 'In')
+            ->where('status', 1)
+            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->orderByDesc('id')
+            ->get();
 
-        $outtransactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // Out Transactions
+        $outtransactions = Usertransaction::where('user_id', $userId)
+            ->where('t_type', 'Out')
+            ->where(function ($query) {
+                $query->where('status', 1);
+            })
+            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
+                $query->where('user_id', $userId)
+                    ->where('t_type', 'Out')
+                    ->where('pending', 1);
 
-        $pending_transactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
-        ])->orderBy('id','DESC')->get();
+                if ($hasDateRange) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate]);
+                }
+            })
+            ->orderByDesc('id')
+            ->get();
 
-        $giftAid = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->whereNotNull('gift')->orderby('id', 'DESC')->get();
+        // Pending Transactions
+        $pending_transactions = Usertransaction::where('user_id', $userId)
+            ->where('t_type', 'Out')
+            ->where('pending', 0)
+            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->orderByDesc('id')
+            ->get();
 
+        // Gift Aid Transactions
+        $giftAid = Usertransaction::where('user_id', $userId)
+            ->where('status', 1)
+            ->whereNotNull('gift')
+            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->orderByDesc('id')
+            ->get();
 
-
-        }else{
-
-        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
-
-        $alltransactions = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
-
-        $intransactions = Usertransaction::where([
-            ['t_type','=', 'In'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
-
-        $outtransactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
-
-        $pending_transactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
-        ])->orderBy('id','DESC')->get();
-
-        $giftAid = Usertransaction::where('user_id', auth()->user()->id)->where('status', 1)->whereNotNull('gift')->orderby('id', 'DESC')->get();
-
-
-
-        }
-
-
-        return view('frontend.user.transaction')
-        ->with('alltransactions',$alltransactions)
-        ->with('intransactions',$intransactions)
-        ->with('tamount',$tamount)
-        ->with('outtransactions',$outtransactions)
-        ->with('pending_transactions',$pending_transactions);
+        return view('frontend.user.transaction', compact(
+            'alltransactions',
+            'intransactions',
+            'tamount',
+            'outtransactions',
+            'pending_transactions',
+            'giftAid'
+        ));
     }
 
     public function donorTransaction(Request $request, $id)

@@ -132,7 +132,38 @@ use Illuminate\Support\Carbon;
                                             <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                             <td>{{$data->t_id}} </td>
                                             <td>{{$data->title}} </td>
-                                            <td>{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
+                                            <td>
+                                                @if ($data->cheque_no)
+                                                    <!-- Modal -->
+                                                    <button type="button" class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" data-bs-toggle="modal" data-bs-target="#chequeModal{{$data->id}}">
+                                                        {{$data->cheque_no}} 
+                                                    </button>
+                                                    <div class="modal fade" id="chequeModal{{$data->id}}" tabindex="-1" aria-labelledby="chequeModalLabel{{$data->id}}" aria-hidden="true">
+                                                      <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                          <div class="modal-header">
+                                                            <h5 class="modal-title" id="chequeModalLabel{{$data->id}}">Cheque Details</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                          </div>
+                                                          <div class="modal-body">
+                                                            <p><strong>Cheque Number:</strong> {{$data->cheque_no}}</p>
+                                                            @if($data->barcode_image)
+                                                              <img src="{{ asset($data->barcode_image) }}" alt="Cheque Image" class="img-fluid">
+                                                            @else
+                                                              <p>No cheque image available.</p>
+                                                            @endif
+                                                          </div>
+                                                          <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                @endif
+                                                
+                                                @if($data->crdAcptID){{ $data->crdAcptID}}@endif
+
+                                            </td>
                                             <td>@if($data->charity_id){{ $data->charity->name}}@endif
                                                 @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
                                             </td>

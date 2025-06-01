@@ -247,92 +247,82 @@ class TransactionController extends Controller
 
     public function donorTransaction(Request $request, $id)
     {
+        $user = User::findOrFail($id); // fail-safe
+        $fromDate = $request->input('fromDate');
+        $toDate = $request->input('toDate') ? $request->input('toDate') . ' 23:59:59' : null;
 
-        $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
-        $user = User::find($id);
+        // Base transaction query
+        $baseQuery = Usertransaction::where('user_id', $id);
 
-        $donor_id = $user->id;
-        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
-            $fromDate = $request->input('fromDate');
-            $toDate   = $request->input('toDate');
-             $report = Usertransaction::where([
-                 ['user_id','=', $id],
-                 ['created_at', '>=', $fromDate],
-                 ['created_at', '<=', $toDate.' 23:59:59'],
-                 ['status','=', '1']
-             ])->orwhere([
-                 ['user_id','=', $id],
-                 ['created_at', '>=', $fromDate],
-                 ['created_at', '<=', $toDate.' 23:59:59'],
-                 ['pending','=', '0']
-                 ])->orderBy('id','DESC')->get();
+        // Get total amount transactions
+        $totalTransactions = $baseQuery->where('status', '1')
+                                    ->orderByDesc('id')
+                                    ->get();
 
-            $intransactions = Usertransaction::where([
-            ['t_type','=', 'In'],
-            ['user_id','=', $id],
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // Transaction filters
+        $reportQuery = Usertransaction::where('user_id', $id)
+            ->where(function ($query) use ($fromDate, $toDate) {
+                if ($fromDate && $toDate) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate])
+                        ->where('status', '1');
+                } else {
+                    $query->where('status', '1');
+                }
+            })->orWhere(function ($query) use ($id, $fromDate, $toDate) {
+                $query->where('user_id', $id);
+                if ($fromDate && $toDate) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate])
+                        ->where('pending', '0');
+                } else {
+                    $query->where('pending', '0');
+                }
+            });
 
-            $outtransactions = Usertransaction::where([
-                ['t_type','=', 'Out'],
-                ['user_id','=', $id],
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['status','=', '1']
-            ])->orwhere([
-                ['t_type','=', 'Out'],
-                ['user_id','=', $id],
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['pending','=', '0']
-                ])->orderBy('id','DESC')->get();
+        $report = $reportQuery->orderByDesc('id')->get();
 
-         }else{
+        // In Transactions
+        $inTransactions = Usertransaction::where('t_type', 'In')
+            ->where('user_id', $id)
+            ->when($fromDate && $toDate, function ($query) use ($fromDate, $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->where('status', '1')
+            ->orderByDesc('id')
+            ->get();
 
-             $report = Usertransaction::where([
-                 ['user_id','=', $id],
-                 ['status','=', '1']
-                 ])->orwhere([
-                ['user_id','=', $id],
-                ['pending','=', '0']
-                ])->orderBy('id','DESC')->get();
+        // Out Transactions
+        $outTransactionsQuery = Usertransaction::where('t_type', 'Out')
+            ->where('user_id', $id)
+            ->where(function ($query) use ($fromDate, $toDate) {
+                if ($fromDate && $toDate) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate])
+                        ->where('status', '1');
+                } else {
+                    $query->where('status', '1');
+                }
+            })->orWhere(function ($query) use ($id, $fromDate, $toDate) {
+                $query->where('t_type', 'Out')
+                    ->where('user_id', $id);
+                if ($fromDate && $toDate) {
+                    $query->whereBetween('created_at', [$fromDate, $toDate]);
+                }
+                $query->where('pending', '0');
+            });
 
-                $intransactions = Usertransaction::where([
-                    ['t_type','=', 'In'],
-                    ['user_id','=', $id],
-                    ['status','=', '1']
-                ])->orderBy('id','DESC')->get();
+        $outTransactions = $outTransactionsQuery->orderByDesc('id')->get();
 
-                $outtransactions = Usertransaction::where([
-                    ['t_type','=', 'Out'],
-                    ['user_id','=', $id],
-                    ['status','=', '1']
-                ])->orwhere([
-                    ['t_type','=', 'Out'],
-                    ['user_id','=', $id],
-                    ['pending','=', '0']
-                    ])->orderBy('id','DESC')->get();
-
-
-             $fromDate = "";
-             $toDate   = "";
-         }
-
-
-
-        return view('donor.transaction')
-        ->with('intransactions',$intransactions)
-        ->with('outtransactions',$outtransactions)
-        ->with('report',$report)
-        ->with('fromDate',$fromDate)
-        ->with('toDate',$toDate)
-        ->with('user',$user)
-        ->with('donor_id',$id)
-        ->with('tamount',$tamount);
-
+        return view('donor.transaction', [
+            'intransactions' => $inTransactions,
+            'outtransactions' => $outTransactions,
+            'report' => $report,
+            'fromDate' => $fromDate ?? '',
+            'toDate' => $request->input('toDate') ?? '',
+            'user' => $user,
+            'donor_id' => $id,
+            'tamount' => $totalTransactions,
+        ]);
     }
+
 
     public function charityTransaction(Request $request, $id)
     {

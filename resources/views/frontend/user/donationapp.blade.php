@@ -270,8 +270,106 @@
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
                     <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
-                    {{-- <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary"> --}}
-                    <button class="btn-theme bg-primary" type="submit">Make a donation</button>
+                    <!-- Confirm Donation Modal -->
+                    <div class="modal fade" id="confirmDonationModal" tabindex="-1" aria-labelledby="confirmDonationModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="confirmDonationModalLabel">Confirm Your Donation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Beneficiary</dt>
+                                        <dd class="col-sm-8" id="modal_charity"></dd>
+
+                                        <dt class="col-sm-4">Amount</dt>
+                                        <dd class="col-sm-8" id="modal_amount"></dd>
+
+                                        <dt class="col-sm-4">Anonymous Donation</dt>
+                                        <dd class="col-sm-8" id="modal_ano_donation"></dd>
+
+                                        <dt class="col-sm-4">Standing Order</dt>
+                                        <dd class="col-sm-8" id="modal_standard"></dd>
+
+                                        <dt class="col-sm-4">Payments Type</dt>
+                                        <dd class="col-sm-8" id="modal_payments_type"></dd>
+
+                                        <dt class="col-sm-4">Number of Payments</dt>
+                                        <dd class="col-sm-8" id="modal_number_payments"></dd>
+
+                                        <dt class="col-sm-4">Starting</dt>
+                                        <dd class="col-sm-8" id="modal_starting"></dd>
+
+                                        <dt class="col-sm-4">Interval</dt>
+                                        <dd class="col-sm-8" id="modal_interval"></dd>
+
+                                        <dt class="col-sm-4">Total</dt>
+                                        <dd class="col-sm-8" id="modal_totalamt"></dd>
+
+                                        <dt class="col-sm-4">Notes to charity</dt>
+                                        <dd class="col-sm-8" id="modal_charitynote"></dd>
+
+                                        <dt class="col-sm-4">My Notes</dt>
+                                        <dd class="col-sm-8" id="modal_mynote"></dd>
+                                    </dl>
+                                    <div class="alert alert-warning mt-3" id="modal_confirm_donation" style="display:none;">
+                                        You must confirm that this donation is for charitable purposes only.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit</button>
+                                    <button type="button" class="btn btn-primary" id="modalConfirmBtn">Confirm & Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-theme bg-primary" type="button" id="openConfirmModalBtn">Make a donation</button>
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                            // Bootstrap 5 modal instance
+                            var confirmModal = new bootstrap.Modal(document.getElementById('confirmDonationModal'));
+
+                            document.getElementById('openConfirmModalBtn').addEventListener('click', function(e) {
+                                    // Fill modal fields with form values
+                                    var charitySelect = document.getElementById('charity_id');
+                                    var charityText = charitySelect.options[charitySelect.selectedIndex] ? charitySelect.options[charitySelect.selectedIndex].text : '';
+                                    document.getElementById('modal_charity').textContent = charityText;
+
+                                    document.getElementById('modal_amount').textContent = document.getElementById('amount').value + ' GBP';
+                                    document.getElementById('modal_ano_donation').textContent = document.getElementById('ano_donation').checked ? 'Yes' : 'No';
+                                    document.getElementById('modal_standard').textContent = document.getElementById('standard').checked ? 'Yes' : 'No';
+
+                                    var paymentsType = document.getElementById('payments_type');
+                                    document.getElementById('modal_payments_type').textContent = paymentsType ? paymentsType.options[paymentsType.selectedIndex].text : '';
+                                    document.getElementById('modal_number_payments').textContent = document.getElementById('number_payments').value;
+                                    document.getElementById('modal_starting').textContent = document.getElementById('starting').value;
+                                    var interval = document.getElementById('interval');
+                                    document.getElementById('modal_interval').textContent = interval ? interval.options[interval.selectedIndex].text : '';
+                                    document.getElementById('modal_totalamt').textContent = document.getElementById('totalamt').value + ' GBP';
+
+                                    document.getElementById('modal_charitynote').textContent = document.getElementById('charitynote').value;
+                                    document.getElementById('modal_mynote').textContent = document.getElementById('mynote').value;
+
+                                    // Confirm donation checkbox
+                                    var confirmDonation = document.getElementById('confirm_donation').checked;
+                                    document.getElementById('modal_confirm_donation').style.display = confirmDonation ? 'none' : 'block';
+
+                                    confirmModal.show();
+                            });
+
+                            document.getElementById('modalConfirmBtn').addEventListener('click', function() {
+                                    // Only submit if confirm_donation is checked
+                                    if(document.getElementById('confirm_donation').checked) {
+                                            document.getElementById('DonationForm').submit();
+                                    } else {
+                                            document.getElementById('modal_confirm_donation').style.display = 'block';
+                                    }
+                            });
+                    });
+                    </script>
                 </div>
             </div>
         </div>

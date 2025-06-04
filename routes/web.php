@@ -232,7 +232,7 @@ Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])
 Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
 
 
-// for app safariviewcontroller
+// for app safariviewcontroller its for test,
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);
 Route::get('make-donation-success', [DonorController::class, 'makeDonationAppMessage'])->name('onlinedonation.appview');
 // standing donation 

@@ -109,6 +109,10 @@
                     </div>
                 </section>
                 @endif
+                <section class="px-4">
+                    <div class="row my-3" id="errorMessage">
+                    </div>
+                </section>
 
                 @if (isset($errors))
                     @if ($errors->any())
@@ -242,7 +246,7 @@
                             <div class="d-flex  ">
                                 <input type="checkbox" name="confirm_donation" id="confirm_donation" required class="form-check" style="width: 56px;" {{ old('confirm_donation') == "on" ?  "checked": "" }}>
                                  <div
-                                    class="txt-secondary fs-16">I confirm that this donation is for
+                                    class="txt-secondary fs-16" for="confirm_donation">I confirm that this donation is for
                                     charitable purposes only, I will not benefit directly or indirectly by
                                     way of goods or services from the donation.</div>
                             </div>
@@ -272,7 +276,7 @@
                     <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
                     <!-- Confirm Donation Modal -->
                     <div class="modal fade" id="confirmDonationModal" tabindex="-1" aria-labelledby="confirmDonationModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
+                        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="confirmDonationModalLabel">Confirm Your Donation</h5>
@@ -280,50 +284,74 @@
                                 </div>
                                 <div class="modal-body">
                                     <dl class="row">
-                                        <dt class="col-sm-4">Beneficiary</dt>
-                                        <dd class="col-sm-8" id="modal_charity"></dd>
+                                        <dt class="col-sm-4 col-6">Beneficiary</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_charity"></dd>
 
-                                        <dt class="col-sm-4">Amount</dt>
-                                        <dd class="col-sm-8" id="modal_amount"></dd>
+                                        <dt class="col-sm-4 col-6">Amount</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_amount"></dd>
 
-                                        <dt class="col-sm-4">Anonymous Donation</dt>
-                                        <dd class="col-sm-8" id="modal_ano_donation"></dd>
+                                        <dt class="col-sm-4 col-6">Anonymous Donation</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_ano_donation"></dd>
 
-                                        <dt class="col-sm-4">Standing Order</dt>
-                                        <dd class="col-sm-8" id="modal_standard"></dd>
+                                        <dt class="col-sm-4 col-6">Standing Order</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_standard"></dd>
 
-                                        <dt class="col-sm-4">Payments Type</dt>
-                                        <dd class="col-sm-8" id="modal_payments_type"></dd>
+                                        <dt class="col-sm-4 col-6">Payments Type</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_payments_type"></dd>
 
-                                        <dt class="col-sm-4">Number of Payments</dt>
-                                        <dd class="col-sm-8" id="modal_number_payments"></dd>
+                                        <dt class="col-sm-4 col-6">Number of Payments</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_number_payments"></dd>
 
-                                        <dt class="col-sm-4">Starting</dt>
-                                        <dd class="col-sm-8" id="modal_starting"></dd>
+                                        <dt class="col-sm-4 col-6">Starting</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_starting"></dd>
 
-                                        <dt class="col-sm-4">Interval</dt>
-                                        <dd class="col-sm-8" id="modal_interval"></dd>
+                                        <dt class="col-sm-4 col-6">Interval</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_interval"></dd>
 
-                                        <dt class="col-sm-4">Total</dt>
-                                        <dd class="col-sm-8" id="modal_totalamt"></dd>
+                                        <dt class="col-sm-4 col-6">Total</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_totalamt"></dd>
 
-                                        <dt class="col-sm-4">Notes to charity</dt>
-                                        <dd class="col-sm-8" id="modal_charitynote"></dd>
+                                        <dt class="col-sm-4 col-6">Notes to charity</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_charitynote"></dd>
 
-                                        <dt class="col-sm-4">My Notes</dt>
-                                        <dd class="col-sm-8" id="modal_mynote"></dd>
+                                        <dt class="col-sm-4 col-6">My Notes</dt>
+                                        <dd class="col-sm-8 col-6" id="modal_mynote"></dd>
                                     </dl>
                                     <div class="alert alert-warning mt-3" id="modal_confirm_donation" style="display:none;">
                                         You must confirm that this donation is for charitable purposes only.
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit</button>
-                                    <button type="button" class="btn btn-primary" id="modalConfirmBtn">Confirm & Submit</button>
+                                <div class="modal-footer flex-column flex-sm-row">
+                                    <button type="button" class="btn btn-secondary w-100 w-sm-auto mb-2 mb-sm-0 me-0 me-sm-2" data-bs-dismiss="modal">Edit</button>
+                                    <button type="button" class="btn btn-primary w-100 w-sm-auto" id="modalConfirmBtn">Confirm & Submit</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <style>
+                        @media (max-width: 576px) {
+                            #confirmDonationModal .modal-dialog {
+                                max-width: 98vw;
+                                margin: 0.5rem auto;
+                            }
+                            #confirmDonationModal .modal-content {
+                                border-radius: 0.5rem;
+                            }
+                            #confirmDonationModal .modal-body {
+                                padding: 1rem;
+                            }
+                            #confirmDonationModal .row > dt,
+                            #confirmDonationModal .row > dd {
+                                font-size: 0.95rem;
+                                padding-left: 0.5rem;
+                                padding-right: 0.5rem;
+                            }
+                            #confirmDonationModal .modal-footer {
+                                flex-direction: column;
+                                gap: 0.5rem;
+                            }
+                        }
+                    </style>
 
                     <button class="btn-theme bg-primary" type="button" id="openConfirmModalBtn">Make a donation</button>
 
@@ -363,9 +391,15 @@
                             document.getElementById('modalConfirmBtn').addEventListener('click', function() {
                                     // Only submit if confirm_donation is checked
                                     if(document.getElementById('confirm_donation').checked) {
+                                            confirmModal.hide();
+                                            document.getElementById('loader').style.display = 'block';
                                             document.getElementById('DonationForm').submit();
                                     } else {
                                             document.getElementById('modal_confirm_donation').style.display = 'block';
+                                            confirmModal.hide();
+                                            document.getElementById('errorMessage').innerHTML = '<div class="alert alert-danger" >Please fill all necessary field!!!</div>';
+                                            document.getElementById('errorMessage').style.display = 'block';
+
                                     }
                             });
                     });

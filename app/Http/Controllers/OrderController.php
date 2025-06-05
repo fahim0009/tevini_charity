@@ -825,7 +825,7 @@ class OrderController extends Controller
     }
 
 
-    public function pvoucherStore_Old(Request $request)
+    public function pvoucherStore(Request $request)
     {
         $charity_id= $request->charityId;
         $donor_ids = $request->donorIds;
@@ -964,7 +964,7 @@ class OrderController extends Controller
 
     }
 
-    public function pvoucherStore(Request $request)
+    public function pvoucherStore_new(Request $request)
     {
         $charityId = $request->charityId;
         $donorIds = $request->donorIds;

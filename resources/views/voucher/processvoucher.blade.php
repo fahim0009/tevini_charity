@@ -392,6 +392,7 @@
                     data: {charityId,donorIds,donorAccs,chqNos,amts,notes,waitings},
 
                     success: function (d) {
+                        console.log(d);
                         if (d.status == 303) {
                             $(".ermsg").html(d.message);
                             pagetop();

@@ -40,4 +40,8 @@ class Usertransaction extends Model
       public function campaign(){
         return $this->belongsTo('App\Models\Campaign');
       }
+
+      public function standingdonationDetail(){
+        return $this->belongsTo('App\Models\StandingdonationDetail', 'standing_donationdetails_id');
+      }
 }

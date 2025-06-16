@@ -56,6 +56,7 @@
                                                     <th>Date</th>
                                                     <th>Image</th>
                                                     <th>Barcode</th>
+                                                    <th>Delete</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -68,6 +69,10 @@
                                                         </a>
                                                     </td>
                                                     <td>{{ $readblebarcode->barcode }}</td>
+                                                    <td>
+                                                        
+                                                        <a id="deleteBtn" rid="{{$readblebarcode->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
+                                                    </td>
                                                 </tr>
                                                 @endforeach
                                             </tbody>
@@ -731,6 +736,30 @@
                     console.log("Error response:", xhr.responseText);
                     alert("An error occurred while deleting the processes.");
                 }
+            });
+        });
+
+        // Delete single readable barcode row
+        $('#readableBarcodeTable').on('click', '#deleteBtn', function(e) {
+            e.preventDefault();
+            var rid = $(this).attr('rid');
+            if (!confirm("Are you sure you want to delete this barcode?")) {
+            return;
+            }
+            $.ajax({
+            url: "{{ URL::to('/admin/delete-processed-single-barcode') }}",
+            type: "POST",
+            data: {
+                id: rid,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                alert("Barcode deleted successfully.");
+                location.reload();
+            },
+            error: function(xhr) {
+                alert("An error occurred while deleting the barcode.");
+            }
             });
         });
     });

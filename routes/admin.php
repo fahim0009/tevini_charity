@@ -183,6 +183,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/add-to-process', [ProcessVoucherController::class, 'addToProcessBarcode'])->name('addToProcessBarcode');
     Route::post('/delete-process-voucher-list', [ProcessVoucherController::class, 'deleteProcessBarcode'])->name('delete-process-voucher-list');
     Route::post('/delete-process-voucher-image-list', [ProcessVoucherController::class, 'deleteProcessBarcodeImage'])->name('delete-process-voucher-image-list');
+    Route::post('/delete-processed-single-barcode', [ProcessVoucherController::class, 'deleteProcessSingleBarcode']);
 
 
     Route::get('/voucher-order', [OrderController::class, 'orderVoucher'])->name('ordervoucher');

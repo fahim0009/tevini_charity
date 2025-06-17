@@ -244,7 +244,7 @@
                 <div class="form-group ">
                     <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
                     
-                    <button type="button" id="donatemodal" class="btn-theme bg-secondary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <button type="button" id="donatemodal" class="btn-theme bg-secondary">
                         Make Donation
                     </button>
                     {{-- <input type="button" id="addBtn" value="Make Donation" class="btn-theme bg-primary"> --}}
@@ -300,6 +300,23 @@
 
         // donatemodal transfer modal show
         $("#donatemodal").click(function(){
+
+            if (!$('#charity_id').val()) {
+                alert('Please select a charity.');
+                return;
+            }
+
+            if (!$('#amount').val()) {
+                alert('Please fill amount field.');
+                return;
+            }
+
+            if (!$('#confirm_donation').is(':checked')) {
+                alert('Please confirm that this donation is for charitable purposes only.');
+                return;
+            }
+
+
             var i = $("#charity_id").val();
             values=i.split('|');
             account_id=values[0];
@@ -349,6 +366,7 @@
             $("#d_starting").html(starting);
             $("#d_nymber").html(number_payments);
                     
+            $('#exampleModal').modal('show');
 
         });
         // donatemodal transfer modal end

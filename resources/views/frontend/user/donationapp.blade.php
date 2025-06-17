@@ -246,9 +246,9 @@
                             <div class="d-flex  ">
                                 <input type="checkbox" name="confirm_donation" id="confirm_donation" required class="form-check" style="width: 56px;" {{ old('confirm_donation') == "on" ?  "checked": "" }}>
                                  <div
-                                    class="txt-secondary fs-16" for="confirm_donation">I confirm that this donation is for
-                                    charitable purposes only, I will not benefit directly or indirectly by
-                                    way of goods or services from the donation.</div>
+                                    class="txt-secondary fs-16" for="confirm_donation" style="cursor:pointer;"
+                                    onclick="document.getElementById('confirm_donation').click();"
+                                    >I confirm that this donation is for charitable purposes only, I will not benefit directly or indirectly by way of goods or services from the donation.</div>
                             </div>
                         </div>
                     </div>
@@ -361,6 +361,33 @@
                             var confirmModal = new bootstrap.Modal(document.getElementById('confirmDonationModal'));
 
                             document.getElementById('openConfirmModalBtn').addEventListener('click', function(e) {
+
+                                var charitySelect = document.getElementById('charity_id');
+                                var amountInput = document.getElementById('amount');
+                                var confirmDonation = document.getElementById('confirm_donation');
+
+                                // Validate charity selection
+                                if (!charitySelect.value) {
+                                    alert('Please select a charity.');
+                                    charitySelect.focus();
+                                    return;
+                                }
+
+                                // Validate amount
+                                if (!amountInput.value || isNaN(amountInput.value) || Number(amountInput.value) <= 0) {
+                                    alert('Please enter a valid donation amount.');
+                                    amountInput.focus();
+                                    return;
+                                }
+
+                                // Validate confirmation checkbox
+                                if (!confirmDonation.checked) {
+                                    alert('You must confirm that this donation is for charitable purposes only.');
+                                    confirmDonation.focus();
+                                    return;
+                                }
+
+
                                     // Fill modal fields with form values
                                     var charitySelect = document.getElementById('charity_id');
                                     var charityText = charitySelect.options[charitySelect.selectedIndex] ? charitySelect.options[charitySelect.selectedIndex].text : '';

@@ -287,7 +287,6 @@
                                 </tr>
                             </table>
                             <div>
-                                
                                 <div class="row">
                                     <div class="col-md-12">
                                         <label for="barcode">*** Please click this field if scanner not working.</label>
@@ -419,8 +418,6 @@
             var notes = $("input[name='note[]']").map(function() { return $(this).val(); }).get();
             var waitings = $("select[name='waiting[]']").map(function() { return $(this).val(); }).get();
 
-            console.log(donorNms);
-
             $.ajax({
                 url: urld,
                 method: "POST",
@@ -472,23 +469,43 @@
         });
 
         // Prevent scrolling to bottom when focusing #barcode
-        $("body").on("blur", "input", function() {
-            if (!clicked.is(".donor") && !clicked.is(".check") && !clicked.is(".amount") && !clicked.is(".note") && !clicked.is(".waiting") && !clicked.is("span#select2-charity_list-container.select2-selection__rendered")) {
+        $("body").on("blur", "input, select", function() {
+            if (!clicked.is(".donor") && 
+                !clicked.is(".check") && 
+                !clicked.is(".amount") && 
+                !clicked.is(".note") && 
+                !clicked.is(".waiting") && 
+                !clicked.is(".charitylist") && 
+                !clicked.closest(".select2-container").length) {
                 $("#barcode").focus({ preventScroll: true });
             }
         });
 
-        $('#charity_list').on("select2:selecting", function(e) {
+        $("body").on("blur", ".donor, .check, .amount, .note, select[name='waiting[]']", function() {
+            setTimeout(() => $("#barcode").focus({ preventScroll: true }), 0);
+        });
+
+        $('#charity_list').on("select2:select", function(e) {
             $("#barcode").focus({ preventScroll: true });
         });
 
         // Focus on barcode input on load
         $("#barcode").focus();
 
+        $("#barcode").on("input", function(event) {
+            var value = $(this).val();
+            if (value.endsWith("\n") || value.endsWith("\r")) { // Detect scanner newline
+                console.log("Scanner input detected:", value); // Debug
+                $(this).val(value.trim()); // Remove newline
+                $(this).trigger("change"); // Manually trigger change event
+            }
+        });
+
         // Barcode handling
         var urlbr = "{{ URL::to('/admin/barcode') }}";
-        $("#barcode").change(function() {
+        $("#barcode").change(function(event) {
             event.preventDefault();
+            console.log("Barcode change event triggered, value:", $(this).val()); // Debug
             var barcode = $(this).val();
 
             // Check for duplicate barcode
@@ -497,11 +514,13 @@
             var seen = check.filter((s => v => s.has(v) || !s.add(v))(new Set));
 
             if (Array.isArray(seen) && seen.length) {
-                $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
+                console.log("Duplicate barcode detected:", seen); // Debug
+                $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>×</a><b>This voucher number has already been scanned.</b></div>");
                 setTimeout(function() {
                     $(".ermsg").html("");
                 }, 3000);
                 $("#barcode").val("");
+                $("#barcode").focus(); // Ensure focus
                 return;
             }
 
@@ -510,6 +529,7 @@
                 method: "POST",
                 data: { barcode: barcode },
                 success: function(d) {
+                    console.log("Barcode AJAX success:", d); // Debug
                     if (d.status == 300) {
                         if ($('#donorid').val() === '') {
                             $('#donorid').val(d.donorid);
@@ -527,7 +547,7 @@
                                         <input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="${d.donoracc}" placeholder="Type Acc no...">
                                     </td>
                                     <td width="250px">
-                                        <input style="min-width:100px" type="text" value="${d.donorname}" name="donor_name[]" readonly class="form-control donorAcc">
+                                        <input style="min-width:100px" type="text" value="${d.donorname}" readonly class="form-control donorAcc">
                                         <input type="hidden" name="donor[]" value="${d.donorid}" class="donorid">
                                     </td>
                                     <td width="250px">
@@ -550,10 +570,13 @@
                         }
                         $("#barcode").val("");
                         net_total();
+                        $("#barcode").focus(); // Ensure focus after processing
                     }
                 },
                 error: function(d) {
-                    console.log(d);
+                    console.log("Barcode AJAX error:", d); // Debug
+                    $("#barcode").val("");
+                    $("#barcode").focus(); // Ensure focus on error
                 }
             });
         });
@@ -562,6 +585,7 @@
 
         $("body").delegate(".amount", "keyup", function(event) {
             net_total();
+            $("#barcode").focus({ preventScroll: true }); // Ensure focus returns to barcode
         });
 
         function net_total() {

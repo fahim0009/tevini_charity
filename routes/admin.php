@@ -326,4 +326,10 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // get users account delete request
     Route::get('/user-delete-request', [AdminController::class, 'getUserDeleteRequest'])->name('allUserDeleteReq');
 
+
+    // barcode delete
+    Route::get('/barcode-delete', [VouchersController::class, 'getBarcode'])->name('admin.getBarcode');
+    Route::post('/barcode-delete', [VouchersController::class, 'getBarcode'])->name('admin.getBarcodeSearch');
+    Route::post('/all-barcode-delete', [VouchersController::class, 'deleteBarcode'])->name('admin.deleteBarcode');
+
 });

@@ -49,4 +49,65 @@ class VouchersController extends Controller
             return view('voucher.search');
         }
     }
+
+    public function getBarcode(Request $request)
+    {
+        if ($request->isMethod('post')) {
+
+            $request->validate([
+                'from_barcode_number' => 'required|string|max:255',
+                'to_barcode_number' => 'required|string|max:255',
+            ]);
+    
+
+            $from_barcode_number = $request->from_barcode_number;
+            $to_barcode_number = $request->to_barcode_number;
+            
+            $chkBarcode = Barcode::whereBetween('barcode', [$from_barcode_number, $to_barcode_number])->get();
+
+
+
+            if ($chkBarcode->count() > 0) {
+                
+                return view('voucher.deletebarcode', compact('chkBarcode','from_barcode_number', 'to_barcode_number'))->with('success', 'Barcode found successfully.');
+            } else {
+                
+                return redirect()->back()->with(['error' => 'Voucher not found.']);
+            }
+            
+        }else{
+            return view('voucher.deletebarcode');
+        }
+        
+    }
+
+    public function deleteBarcode(Request $request)
+    {
+        $request->validate([
+            'from_barcode_number' => 'required|string|max:255',
+            'to_barcode_number' => 'required|string|max:255',
+        ]);
+
+        $from = $request->from_barcode_number;
+        $to = $request->to_barcode_number;
+
+        $barcodes = Barcode::whereBetween('barcode', [$from, $to]);
+
+        if ($barcodes->count() > 0) {
+            $deleted = $barcodes->delete();
+            return response()->json([
+                'success' => true,
+                'deleted' => $deleted,
+                'message' => 'Barcodes deleted successfully.'
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No barcodes found to delete.'
+            ]);
+        }
+    }
+
+
+
 }

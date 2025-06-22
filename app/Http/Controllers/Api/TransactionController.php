@@ -16,6 +16,12 @@ class TransactionController extends Controller
     public function userTransactionShow(Request $request)
     {
 
+        
+        $userId = auth()->id();
+        $fromDate = $request->input('fromDate');
+        $toDate = $request->input('toDate') ? $request->input('toDate') . ' 23:59:59' : null;
+        $hasDateRange = $fromDate && $toDate;
+
         if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
             $fromDate = $request->input('fromDate');
             $toDate   = $request->input('toDate');
@@ -87,13 +93,25 @@ class TransactionController extends Controller
         
         $giftAid = Usertransaction::with('user')->where('user_id', auth()->user()->id)->where('status', 1)->whereNotNull('gift')->orderby('id', 'DESC')->get();
 
-        $alltransactions = Usertransaction::with(['charity:id,name'])->where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // All transactions
+        $alltransactions = Usertransaction::with([
+            'charity:id,name',
+            'standingdonationDetail.standingDonation:id,charitynote,mynote',
+            'donation:id,charitynote,mynote',
+            'campaign:id,campaign_title'
+        ])
+        ->where('user_id', $userId)
+        ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
+            $query->where('status', 1)
+                ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
+        })
+        ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
+            $query->where('user_id', $userId)
+                ->where('pending', 1)
+                ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
+        })
+        ->orderByDesc('id')
+        ->get();
 
             // dd($alltransactions);
 

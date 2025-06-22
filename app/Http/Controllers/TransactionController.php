@@ -151,22 +151,26 @@ class TransactionController extends Controller
             ->get();
 
         // All transactions
-        $alltransactions = Usertransaction::where('user_id', $userId)
-            ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
-                $query->where('status', 1);
-                if ($hasDateRange) {
-                    $query->whereBetween('created_at', [$fromDate, $toDate]);
-                }
-            })
-            ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
-                $query->where('user_id', $userId)
-                    ->where('pending', 1);
-                if ($hasDateRange) {
-                    $query->whereBetween('created_at', [$fromDate, $toDate]);
-                }
-            })
-            ->orderByDesc('id')
-            ->get();
+        $alltransactions = Usertransaction::with([
+            'charity:id,name',
+            'standingdonationDetail.standingDonation:id,charitynote,mynote',
+            'donation:id,charitynote,mynote',
+            'campaign:id,campaign_title'
+        ])
+        ->where('user_id', $userId)
+        ->whereNotNull('donation_id')
+        ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
+            $query->where('status', 1)
+                ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
+        })
+        ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
+            $query->where('user_id', $userId)
+                ->where('pending', 1)
+                ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
+        })
+        ->orderByDesc('id')
+        ->get();
+
 
         // In Transactions
         $intransactions = Usertransaction::where('user_id', $userId)

@@ -44,4 +44,8 @@ class Usertransaction extends Model
       public function standingdonationDetail(){
         return $this->belongsTo('App\Models\StandingdonationDetail', 'standing_donationdetails_id');
       }
+
+      public function donation(){
+        return $this->belongsTo('App\Models\Donation', 'donation_id');
+      }
 }

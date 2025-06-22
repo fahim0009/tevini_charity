@@ -48,4 +48,16 @@ class Usertransaction extends Model
       public function donation(){
         return $this->belongsTo('App\Models\Donation', 'donation_id');
       }
+
+      public function standingDonation()
+      {
+        return $this->hasOneThrough(
+          'App\Models\StandingDonation',
+          'App\Models\StandingdonationDetail',
+          'id', // Foreign key on StandingdonationDetail table...
+          'id', // Foreign key on StandingDonation table...
+          'standing_donationdetails_id', // Local key on Usertransaction table...
+          'standing_donation_id' // Local key on StandingdonationDetail table...
+        );
+      }
 }

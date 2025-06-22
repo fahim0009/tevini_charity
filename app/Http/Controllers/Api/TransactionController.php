@@ -95,6 +95,7 @@ class TransactionController extends Controller
 
         // All transactions
         $alltransactions = Usertransaction::with([
+            'standingDonation',
             'charity:id,name',
             'standingdonationDetail.standingDonation:id,charitynote,mynote',
             'donation:id,charitynote,mynote',

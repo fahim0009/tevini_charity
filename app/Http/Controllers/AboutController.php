@@ -7,6 +7,7 @@ use App\Models\AboutContent;
 use App\Models\AboutHelp;
 use App\Models\CompanyDetail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AboutController extends Controller
 {
@@ -197,6 +198,8 @@ class AboutController extends Controller
         return response()->json($responseArray,200);
     }
 
-
     
+
+
+
 }

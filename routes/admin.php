@@ -19,6 +19,7 @@ use App\Http\Controllers\QpayBalanceController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ProductFeeController;
 use App\Http\Controllers\Admin\CardProfileController;
+use App\Http\Controllers\Admin\CompanyDetailController;
 use App\Http\Controllers\Admin\SpendProfileController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TDFTransactionController;
@@ -66,7 +67,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::resource('master','App\Http\Controllers\Admin\MasterController');
     //code master end
     //company details
-    Route::resource('company-detail','App\Http\Controllers\Admin\CompanyDetailController');
+    Route::resource('company-detail', CompanyDetailController::class);
+    
     //company details end
     //slider
     Route::resource('sliders','App\Http\Controllers\Admin\SliderController');

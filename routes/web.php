@@ -38,7 +38,6 @@ use App\Http\Controllers\User\UserController;
 */
 // cache clear
 Route::get('/clear', function() {
-    DB::table('company_details')->update(['app_version' => '1.2.21']);
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
     Artisan::call('config:cache');
@@ -54,6 +53,8 @@ Route::get('/queue-work', function() {
 
 // use mobile app
 Route::get('app-version', [AboutController::class, 'appVersion']);
+
+
  
 Route::post('/email/resend-verification', function (Request $request) {
     $user = Auth::user();

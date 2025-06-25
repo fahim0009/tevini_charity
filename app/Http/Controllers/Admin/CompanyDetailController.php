@@ -159,6 +159,7 @@ class CompanyDetailController extends Controller
         $company->google_play_link= $request->google_play_link;
         $company->google_appstore_link= $request->google_appstore_link;
         $company->tawkto= $request->tawkto;
+        $company->app_version= $request->app_version;
 
         if ($company->save()) {
 

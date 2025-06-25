@@ -5,7 +5,7 @@
 @section('content')
 
 
-    <main class="app-content">
+    <main class="app-content container">
         <div class="app-title">
             <div>
               <h1><i class="fa fa-edit"></i> Company Details</h1>
@@ -18,7 +18,7 @@
             </ul>
           </div>
 {{-- form start  --}}
-      <div class="row">
+      <div class="  row">
           <div class="col-md-12">
             <div class="tile">
               <div class="row">
@@ -143,6 +143,10 @@
                         <label for="tawkto">Tawkto</label>
                         <input type="text" id="tawkto" value="@if (!empty($company->tawkto)){{$company->tawkto}}@endif" name="tawkto" class="form-control">
                     </div>
+                    <div class="form-group">
+                        <label for="app_version">App version</label>
+                        <input type="text" id="app_version" value="@if (!empty($company->app_version)){{$company->app_version}}@endif" name="app_version" class="form-control">
+                    </div>
 
 
                   </form>
@@ -203,6 +207,7 @@
                 form_data.append("google_play_link", $("#google_play_link").val());
                 form_data.append("google_appstore_link", $("#google_appstore_link").val());
                 form_data.append("tawkto", $("#tawkto").val());
+                form_data.append("app_version", $("#app_version").val());
 
 
                 $.ajax({
@@ -257,6 +262,7 @@
                 form_data.append("google_play_link", $("#google_play_link").val());
                 form_data.append("google_appstore_link", $("#google_appstore_link").val());
                 form_data.append("tawkto", $("#tawkto").val());
+                form_data.append("app_version", $("#app_version").val());
                 form_data.append('_method', 'put');
 
                     // alert(name);

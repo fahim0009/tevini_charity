@@ -42,33 +42,33 @@ class AboutController extends Controller
     }
 
     public function aboutHelpStore(Request $request)
-        {
-            
-            $data = new AboutHelp;
-            $data->title= $request->title;
-            if ($request->image) {
-            
-            $request->validate([
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ]);
-            $rand = mt_rand(100000, 999999);
-            $imageName = time(). $rand .'.'.$request->image->extension();
-            $request->image->move(public_path('images'), $imageName);
-            $data->image= $imageName;
-            }
-            
-            $data->description= $request->description;
-
-
-            if ($data->save()) {
-                $message ="Charity Created Successfully";
-                return back()->with('message', $message);
-            }
-            else{
-                $error ="Server problem";
-                return back()->with('error', $error);
-            }
+    {
+        
+        $data = new AboutHelp;
+        $data->title= $request->title;
+        if ($request->image) {
+        
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+        $rand = mt_rand(100000, 999999);
+        $imageName = time(). $rand .'.'.$request->image->extension();
+        $request->image->move(public_path('images'), $imageName);
+        $data->image= $imageName;
         }
+        
+        $data->description= $request->description;
+
+
+        if ($data->save()) {
+            $message ="Charity Created Successfully";
+            return back()->with('message', $message);
+        }
+        else{
+            $error ="Server problem";
+            return back()->with('error', $error);
+        }
+    }
 
 
         public function abouthelpedit($id)
@@ -196,4 +196,7 @@ class AboutController extends Controller
         ]; 
         return response()->json($responseArray,200);
     }
+
+
+    
 }

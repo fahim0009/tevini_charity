@@ -985,13 +985,8 @@ class OrderController extends Controller
             return $this->errorResponse("Voucher $cheque is entered more than once.");
         }
 
-        // Check for already processed cheque numbers
+        // Get already processed cheque numbers
         $existingCheques = Provoucher::pluck('cheque_no')->toArray();
-        foreach ($chequeNos as $chequeNo) {
-            if (in_array($chequeNo, $existingCheques)) {
-                return $this->errorResponse("Voucher number $chequeNo is already processed.");
-            }
-        }
 
         // Check for cancelled vouchers
         foreach ($chequeNos as $chequeNo) {
@@ -1017,7 +1012,14 @@ class OrderController extends Controller
             return $this->errorResponse('Failed to save voucher batch.');
         }
 
+        $processedVouchers = 0;
+
         foreach ($donorIds as $index => $donorId) {
+            // Skip if cheque number already processed
+            if (in_array($chequeNos[$index], $existingCheques)) {
+                continue;
+            }
+
             $user = User::find($donorId);
             if (!$user) continue;
 
@@ -1067,13 +1069,20 @@ class OrderController extends Controller
                     $this->updateCardBalance($user->CreditProfileId, $user->name, -$amount);
                 }
             }
+
+            $processedVouchers++;
         }
 
         Draft::truncate();
 
+        if ($processedVouchers === 0) {
+            $batch->delete();
+            return $this->errorResponse('No new vouchers were processed.');
+        }
+
         return response()->json([
             'status' => 300,
-            'message' => $this->successMessage('Voucher processed successfully.'),
+            'message' => $this->successMessage("Successfully processed $processedVouchers voucher(s)."),
             'charity_id' => $charityId,
             'batch_id' => $batch->id,
         ]);

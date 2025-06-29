@@ -79,6 +79,7 @@ use Illuminate\Support\Carbon;
                                 <th>Transaction Id</th>
                                 <th>Charity Name</th>
                                 <th>Donor Name</th>
+                                <th>Donor Account</th>
                                 <th>Amount </th>
                                 <th>Status </th>
                             </tr>
@@ -107,6 +108,7 @@ use Illuminate\Support\Carbon;
 
                                     </td>
                                     <td>{{ $transaction->user->name}}</td>
+                                    <td>{{ $transaction->user->accountno ?? ''}}</td>
                                     <td>£{{ $transaction->amount}}</td>
                                     
                                     <td>

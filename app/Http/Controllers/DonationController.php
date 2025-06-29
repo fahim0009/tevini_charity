@@ -365,6 +365,7 @@ class DonationController extends Controller
             ['donor_id','=', Auth::user()->id],
             ['income_slot','=', '0']
         ])->orderBy('id','DESC')->get();
+
         return view('frontend.user.onnoffdonationdetails',compact('donation'));
     }
 

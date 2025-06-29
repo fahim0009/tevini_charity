@@ -24,6 +24,7 @@
                             <th scope="col">Income by</th>
                             <th scope="col">Income Amount</th>
                             <th scope="col">Donation Amount</th>
+                            <th scope="col">Description</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -34,6 +35,7 @@
                                 <td class="fs-16 txt-secondary">One-Off</td>
                                 <td class="fs-16 txt-secondary">{{$data->income_amount}}</td>
                                 <td class="fs-16 txt-secondary"> {{$data->donation_amount}}</td>
+                                <td class="fs-16 txt-secondary"> {{$data->income_title}}</td>
                             </tr>
                         @endforeach
     

@@ -25,9 +25,11 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Admin\ProcessVoucherController;
+use App\Http\Controllers\Admin\TextMessageController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
+use App\Http\Controllers\OTPController;
 use App\Http\Controllers\User\UserController;
 
 //admin part start
@@ -120,6 +122,12 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     Route::get('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview');
     Route::post('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview_search');
+
+    // test message 
+    Route::post('/text-message/{id}', [OTPController::class, 'sendText'])->name('admin.donor.sendtext');
+
+
+
 
     // frontend
     Route::get('/about-help', [AboutController::class, 'aboutHelp'])->name('about.help');

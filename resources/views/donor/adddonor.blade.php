@@ -191,12 +191,12 @@
                                                 <small>Top Up</small>
                                             </a>
                                             <!-- Send Text Message Button -->
-                                            <button type="button" class="btn btn-secondary mb-1 d-block w-100" data-bs-toggle="modal" data-bs-target="#sendTextModal">
+                                            <button type="button" class="btn btn-secondary mb-1 d-block w-100" data-bs-toggle="modal" data-bs-target="#sendTextModal{{$user->id}}">
                                                 <small>Message</small>
                                             </button>
 
                                             <!-- Send Text Message Modal -->
-                                            <div class="modal fade" id="sendTextModal" tabindex="-1" aria-labelledby="sendTextModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="sendTextModal{{$user->id}}" tabindex="-1" aria-labelledby="sendTextModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <div class="modal-content">
                                                         <div class="modal-header">

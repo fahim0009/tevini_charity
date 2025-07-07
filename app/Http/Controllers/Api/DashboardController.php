@@ -244,29 +244,22 @@ class DashboardController extends Controller
     {
 
         // donor balance
-        $gettrans = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-        ])->orderBy('id','DESC')->get();
-
-        $donorUpBalance = 0;
-
-        foreach ($gettrans as $key => $tran) {
-            if ($tran->t_type == "In") {
-                $donorUpBalance = $donorUpBalance + $tran->amount;
-            }elseif ($tran->t_type == "Out") {
-                $donorUpBalance = $donorUpBalance - $tran->amount;
-            } else {
-                # code...
-            }
-        }
+        $userTransactionBalance = UserTransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where([
+                ['user_id','=', auth()->user()->id],
+                ['status','=', '1']
+            ])->orwhere([
+                ['user_id','=', auth()->user()->id],
+                ['pending','=', '1']
+            ])
+            ->first();
         // donor balance end
 
         $data = [
-                    'balance' => number_format($donorUpBalance, 2)
+                    'balance' => number_format($userTransactionBalance->balance, 2)
                 ];
         
         if($data == null){

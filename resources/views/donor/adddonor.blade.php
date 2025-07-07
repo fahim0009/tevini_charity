@@ -154,11 +154,31 @@
                             <tbody>
                                 @foreach ($users as $user)
                                     @php
-                                        $pending_transactions = $user->transactions ? $user->transactions->where('t_type', 'Out')->where('pending', 0)->sum('amount') : 0;
-                                        $donorUpBalance = $user->transactions ? $user->transactions->reduce(function ($carry, $tran) {
-                                            return $carry + ($tran->t_type == 'In' ? $tran->amount : ($tran->t_type == 'Out' ? -$tran->amount : 0));
-                                        }, 0) : 0;
-                                    @endphp
+                                        $pending_transactions = \App\Models\Usertransaction::where([
+                                                                    ['t_type','=', 'Out'],
+                                                                    ['user_id','=', $user->id],
+                                                                    ['pending','=', '0']
+                                                                ])->sum('amount');
+
+                                        $gettrans = \App\Models\Usertransaction::where([
+                                                ['user_id','=', $user->id],
+                                                ['status','=', '1']
+                                            ])->orwhere([
+                                                ['user_id','=', $user->id],
+                                                ['pending','=', '1']
+                                            ])->orderBy('id','DESC')->get();
+
+                                            $donorUpBalance = 0;
+                                            foreach ($gettrans as $key => $tran) {
+                                            if ($tran->t_type == "In") {
+                                                $donorUpBalance = $donorUpBalance + $tran->amount;
+                                            }elseif ($tran->t_type == "Out") {
+                                                $donorUpBalance = $donorUpBalance - $tran->amount;
+                                            } else {
+                                                # code...
+                                            }
+                                        }
+                                    @endphp 
                                     <tr>
                                         <td><input class="form-check-input getDid" type="checkbox" name="donorIds[]" value="{{ $user->id }}"></td>
                                         <td>{{ $user->id }}</td>
@@ -171,11 +191,9 @@
                                         <td>{{ $user->town }}</td>
                                         <td>
                                             @if ($user->accountno)
-                                            {{ $user->accountno ?? '' }}
-                                                
+                                                {{ $user->accountno ?? '' }}
                                             @else
-                                            <button type="button" user-id="{{ $user->id }}" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal">add</button>
-                                                
+                                                <button type="button" user-id="{{ $user->id }}" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal">add</button>
                                             @endif
                                         </td>
                                         <td>£{{ number_format($donorUpBalance, 2) }}</td>
@@ -190,12 +208,9 @@
                                             <a class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" href="{{ route('topup', [$user->id, 0]) }}" target="_blank">
                                                 <small>Top Up</small>
                                             </a>
-                                            <!-- Send Text Message Button -->
                                             <button type="button" class="btn btn-secondary mb-1 d-block w-100" data-bs-toggle="modal" data-bs-target="#sendTextModal{{$user->id}}">
                                                 <small>Message</small>
                                             </button>
-
-                                            <!-- Send Text Message Modal -->
                                             <div class="modal fade" id="sendTextModal{{$user->id}}" tabindex="-1" aria-labelledby="sendTextModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <div class="modal-content">

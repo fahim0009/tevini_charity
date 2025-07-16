@@ -121,7 +121,7 @@ use Illuminate\Support\Carbon;
                                             <td></td>
                                             <td></td>
                                             <td></td>
-                                            <td>-£{{$data->commission}}</td>
+                                            <td>-£{{ number_format($data->commission, 2) }}</td>
                                             <td>£{{ number_format($tbalance, 2) }}</td>
                                             @php
                                             $tbalance = $tbalance + $data->commission;
@@ -356,6 +356,8 @@ use Illuminate\Support\Carbon;
                                             <th>Date</th>
                                             <th>Transaction Id</th>
                                             <th>Donor Name</th>
+                                            <th>Note</th>
+                                            <th>Donate By</th>
                                             <th>Source</th>
                                             <th>Gift Amount</th>
                                         </tr>
@@ -369,8 +371,10 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $gift->id }}</span>{{Carbon::parse($gift->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $gift->t_id }}</td>
                                             <td>{{$gift->user->name ?? ""}}</td>
+                                            <td>{{$gift->note}}</td>
+                                            <td>{{$gift->donation_by}}</td>
                                             <td>{{ $gift->source}}</td>
-                                            <td>£{{ $gift->amount}}</td>
+                                            <td>£{{ $gift->amount + $gift->commission }}</td>
                                         </tr>
                                         @endforeach
                                     </tbody>

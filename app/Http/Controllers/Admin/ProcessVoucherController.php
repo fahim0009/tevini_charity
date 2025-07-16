@@ -31,13 +31,19 @@ use Illuminate\Support\Facades\Http; // Add at top
 class ProcessVoucherController extends Controller
 {
     
-
-
-    public function uploadAndExtractMultiplepdf_old(Request $request)
+    public function uploadAndExtractMultiplepdf2(Request $request)
     {
         try {
+            // ⏳ Extend execution time to 1 hour
             set_time_limit(3600);
 
+            // ✅ Set Ghostscript and Tesseract paths
+            putenv("MAGICK_HOME=C:\\Program Files\\gs\\gs10.05.0\\bin");
+            putenv("PATH=" . getenv("MAGICK_HOME") . ";" . getenv("PATH"));
+            putenv("GS_PROG=C:\\Program Files\\gs\\gs10.05.0\\bin\\gswin64c.exe");
+            $tesseractPath = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe";
+
+            // ✅ Validate uploaded files
             $request->validate([
                 'pdfFiles.*' => 'required|mimes:pdf|max:40000'
             ]);
@@ -45,16 +51,18 @@ class ProcessVoucherController extends Controller
             $allBarcodes = [];
 
             foreach ($request->file('pdfFiles') as $pdfFile) {
+                // ✅ Store PDF
                 $pdfPath = $pdfFile->store('public/pdfs');
                 $pdfFullPath = storage_path('app/' . $pdfPath);
 
+                // ✅ Ensure image output folder exists
                 $barcodeImagePath = storage_path('app/public/barcodeimages/');
                 if (!file_exists($barcodeImagePath)) {
                     mkdir($barcodeImagePath, 0777, true);
                 }
 
+                // ✅ Convert PDF to images
                 $pdf = new Pdf($pdfFullPath);
-                $pdf->setResolution(300); // Higher quality image from PDF
                 $numberOfPages = $pdf->getNumberOfPages();
                 $images = [];
 
@@ -64,6 +72,7 @@ class ProcessVoucherController extends Controller
                     $images[] = $imagePath;
                 }
 
+                // ✅ Extract barcodes
                 $barcodes = [];
 
                 foreach ($images as $imagePath) {
@@ -82,134 +91,33 @@ class ProcessVoucherController extends Controller
                         continue;
                     }
 
-                    // ✅ OCR API Call
-                    $apiKey = 'K85230915088957'; // <-- Put your API Key here
-
-                    $imageData = file_get_contents($imagePath);
-
-                    $response = Http::attach(
-                        'file', $imageData, basename($imagePath)
-                    )->post('https://api.ocr.space/parse/image', [
-                        'apikey' => $apiKey,
-                        'language' => 'eng',
-                        'isOverlayRequired' => false,
-                    ]);
-
-                    $result = $response->json();
-
-                    if (isset($result['ParsedResults'][0]['ParsedText'])) {
-                        $text = $result['ParsedResults'][0]['ParsedText'];
-                    } else {
-                        $text = null;
-                    }
-
-                    preg_match('/NO\.\s*(\d{6,})/', $text, $matches);
-
-                    $barcodes[] = [
-                        'file' => basename($imagePath),
-                        'voucher_number' => !empty($matches[1]) ? $matches[1] : 'Not Found'
-                    ];
-                }
-
-                $processVoucher = $this->processVoucher($barcodes);
-
-                $allBarcodes[] = [
-                    'pdf' => $pdfFile->getClientOriginalName(),
-                    'barcodes' => $barcodes,
-                    'processVoucher' => $processVoucher
-                ];
-            }
-
-            return response()->json([
-                'message' => 'Barcode extraction successful',
-                'allBarcodes' => $allBarcodes
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Something went wrong',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function uploadAndExtractMultiplepdf2(Request $request)
-    {
-        try {
-            // Set timeout ONLY for this function (30 mins = 1800 sec)
-            set_time_limit(3600);
-            // ✅ Set Ghostscript and Tesseract paths manually
-            putenv("MAGICK_HOME=C:\\Program Files\\gs\\gs10.05.0\\bin");
-            putenv("PATH=" . getenv("MAGICK_HOME") . ";" . getenv("PATH"));
-            putenv("GS_PROG=C:\\Program Files\\gs\\gs10.05.0\\bin\\gswin64c.exe");
-            $tesseractPath = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"; 
-
-            // ✅ Validate Multiple PDF Uploads
-            $request->validate([
-                'pdfFiles.*' => 'required|mimes:pdf|max:40000' // Accept multiple files
-            ]);
-
-            $allBarcodes = []; // Store barcodes from all PDFs
-
-            foreach ($request->file('pdfFiles') as $pdfFile) {
-                // ✅ Store PDF File
-                $pdfPath = $pdfFile->store('public/pdfs');
-                $pdfFullPath = storage_path('app/' . $pdfPath);
-
-                // ✅ Ensure barcode images directory exists
-                $barcodeImagePath = storage_path('app/public/barcodeimages/');
-                if (!file_exists($barcodeImagePath)) {
-                    mkdir($barcodeImagePath, 0777, true);
-                }
-
-                // ✅ Convert PDF to Images
-                $pdf = new Pdf($pdfFullPath);
-                $numberOfPages = $pdf->getNumberOfPages();
-                $images = [];
-
-                for ($i = 1; $i <= $numberOfPages; $i++) {
-                    $imagePath = $barcodeImagePath . "page_{$i}_" . time() . ".jpg";
-                    $pdf->setPage($i)->saveImage($imagePath);
-                    $images[] = $imagePath;
-                }
-
-                // ✅ Extract Barcodes from Generated Images
-                $barcodes = [];
-
-                foreach ($images as $imagePath) {
-                    if (!$this->isValidImage($imagePath)) {
-                        $barcodes[] = [
-                            'file' => basename($imagePath),
-                            'voucher_number' => 'Image unreadable'
-                        ];
-                        DB::table('processed_barcodes')->insert([
-                            'file' => basename($imagePath),
-                            'barcode' => 'Image unreadable',
-                            'status' => 'Unreadable',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                        continue;
-                    }
-
-                    // ✅ Extract text using Tesseract OCR
                     try {
                         $text = (new TesseractOCR($imagePath))
-                                    ->executable($tesseractPath)
-                                    ->lang('eng')
-                                    ->psm(6)
-                                    ->oem(1)
-                                    ->run();
+                            ->executable($tesseractPath)
+                            ->lang('eng')
+                            ->psm(6)
+                            ->oem(1)
+                            ->run();
                     } catch (\Exception $e) {
-                        continue; // Skip this image if Tesseract fails
+                        continue; // Skip if Tesseract fails
                     }
 
-                    // ✅ Extract Voucher Number (Assuming Format: NO. XXXXXXX)
-                    preg_match('/NO\.\s*(\d{6,})/', $text, $matches);
+                    // ✅ Try to match "NO." format
+                    if (preg_match('/NO\.\s*(\d{6,})/', $text, $matches)) {
+                        $voucherNumber = $matches[1];
+                    }
+                    // ✅ If not found, match any 8-digit number
+                    elseif (preg_match('/\b\d{8}\b/', $text, $matches)) {
+                        $voucherNumber = $matches[0];
+                    }
+                    // ✅ If still not found
+                    else {
+                        $voucherNumber = 'Not Found';
+                    }
 
                     $barcodes[] = [
                         'file' => basename($imagePath),
-                        'voucher_number' => !empty($matches[1]) ? $matches[1] : 'Not Found'
+                        'voucher_number' => $voucherNumber
                     ];
                 }
 
@@ -234,6 +142,7 @@ class ProcessVoucherController extends Controller
             ], 500);
         }
     }
+
 
 
 
@@ -309,14 +218,22 @@ class ProcessVoucherController extends Controller
                         continue;
                     }
 
-                    // ✅ Extract voucher number (example: NO. 123456 or NO:123456)
-                    preg_match('/NO[.:]?\s*(\d{5,})/i', $text, $matches);
-
-                    $voucher = !empty($matches[1]) ? $matches[1] : 'Not Found';
+                    // ✅ Try to match "NO." format
+                    if (preg_match('/NO\.\s*(\d{6,})/', $text, $matches)) {
+                        $voucherNumber = $matches[1];
+                    }
+                    // ✅ If not found, match any 8-digit number
+                    elseif (preg_match('/\b\d{8}\b/', $text, $matches)) {
+                        $voucherNumber = $matches[0];
+                    }
+                    // ✅ If still not found
+                    else {
+                        $voucherNumber = 'Not Found';
+                    }
 
                     $barcodes[] = [
                         'file' => basename($imagePath),
-                        'voucher_number' => $voucher
+                        'voucher_number' => $voucherNumber
                     ];
                 }
 

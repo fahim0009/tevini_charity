@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ContactMail;
+use App\Mail\ContactUsMail;
+use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
@@ -54,28 +56,30 @@ class ContactController extends Controller
 
       
 
-        $contactmail = ContactMail::where('id', 1)->first()->name;
+        $contactmail = ContactMail::where('id', 1)->value('name') ?? 'info@tevini.co.uk';
 
-	    $mail_to_send_to = $contactmail;
-	    
-        $from_email = "info@tevini.co.uk";
-        $subject= "New message from Tevini";
+        try {
+            
+            Mail::mailer('gmail')->to($contactmail)
+                ->cc('info@tevini.co.uk')
+                ->send(
+                    new ContactUsMail(
+                        $name,
+                        $email,
+                        $visitor_subject,
+                        $visitor_message
+                    )
+                );
 
-        $message= "\r\n" . "Name: $name" . "\r\n". "Subject: $visitor_subject" . "\r\n"; //get recipient name in contact form
-        $message = $message.$visitor_message . "\r\n" ;//add message from the contact form to existing message(name of the client)
-        $headers = "From: $from_email" . "\r\n" . "Reply-To: $email"  ;
-        $a = mail( $mail_to_send_to, $subject, $message, $headers );
-        
-                if ($a)
-                {
-                    $success['message'] = 'Message send successfully.';
-                    return response()->json(['success'=>true,'response'=> $success], 200);
+                
+            $success['message'] = 'Message send successfully.';
+            return response()->json(['success'=>true,'response'=> $success], 200);
 
-                } else {
+        } catch (\Throwable $th) {
+            $success['message'] = 'Problem with sending message !';
+            return response()->json(['success'=>false,'response'=> $success], 202);
+        }
 
-                    $success['message'] = 'Problem with sending message !';
-                    return response()->json(['success'=>false,'response'=> $success], 202);
 
-                }
-            }
+        }
 }

@@ -215,7 +215,7 @@ use app\Models\Provoucher;
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>transaction type</th>
+                        <th>Transaction type</th>
                         <th>Voucher Number</th>
                         <th>Charity Name</th>
                         <th>Status</th>
@@ -247,14 +247,15 @@ use app\Models\Provoucher;
 
                     <tr style="font-size: 12px;">
                         <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-
-                        <td style="width: 10%">{{$data->title}} </td>
+                        <td style="width: 10%">{{ implode(' ', array_slice(explode(' ', $data->title), 0, 3)) }}</td>
                         
-                        <td style="width: 10%">{{$data->cheque_no}} @if($data->crdAcptID){{ $data->crdAcptID}}@endif</td>
+                        <td style="width: 10%">{{$data->cheque_no}} </td>
                         <td style="width: 10%">
 
                             @if($data->charity_id){{ $data->charity->name}}@endif
-                            @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
+                            @if($data->crdAcptID)
+                                {{ explode('~', $data->crdAcptLoc)[0] }}
+                            @endif
                         
                         </td>
                         <td>@if($data->pending == "0") Pending @endif</td>

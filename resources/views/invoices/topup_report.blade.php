@@ -17,9 +17,19 @@
 	 padding: 25px;
 }
  .wrapper .heading .title {
-	 text-align: right;
+	 text-align: center;
 	 font-weight: 600;
 	 font-size: 2.1rem;
+	 text-transform: uppercase;
+	 font-family: monospace;
+	 letter-spacing: 1px;
+	 color: #436784;
+}
+
+ .wrapper .heading .sub-title {
+	 text-align: center;
+	 font-weight: 600;
+	 font-size: 1.1rem;
 	 text-transform: uppercase;
 	 font-family: monospace;
 	 letter-spacing: 1px;
@@ -37,6 +47,16 @@
 	 font-size: 16px;
 	 font-family: sans-serif;
 }
+
+ .wrapper .heading .subHead .center {
+	 text-align: center;
+	 color: #436784;
+	 text-transform: capitalize;
+	 line-height: 1.3;
+	 font-size: 16px;
+	 font-family: sans-serif;
+}
+
  .wrapper .heading .subHead .right {
 	 text-align: right;
 	 color: #436784;
@@ -51,6 +71,7 @@
 }
  .wrapper .tableData {
 	 margin-top: 100px;
+	 margin-bottom: 100px;
 	 min-width: 400px;
 	 overflow-x: auto;
 }
@@ -75,9 +96,14 @@
 	 text-transform: capitalize;
 }
  .wrapper .tableData table tr:nth-child(even) {
-	 background: #436784 14;
+	 /* background: #436784 14; */
 }
- 
+ .footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #003056;
+}
  
    </style>
 </head>
@@ -87,26 +113,40 @@
     <div class="wrapper">
 
         <div class="heading">
-            <div class="title">
-                {{$title}}
-            </div>
             <div class="subHead">
-                <div class="left">
-                    Tevini Limited <br>
+                <div class="center">
+                    <div class="logo">
+                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/front/images/logo.svg'))) }}" width="120px" style="display:inline-block;"  alt="Tevini Limited"/>   
+                    </div>
+                    
+                    <div class="title">
+                        {{$title}}
+                    </div>
+
+                    <div class="sub-title">
+                        Tevini Limited
+                    </div>
                     Registered charity no. 282079 <br>
-                    5A Holmdale Terrace<br>
+                    5A Holmdale Terrace,
                     N156PP
 
                 </div>
+            </div>
+
+
+            <div class="subHead">
+                <div class="left">
+
+                    <b> Date:</b>	{{$donationDate}} <br>
+                    <b> Donation By:</b>	{{$donationBy}}
+
+                </div>
+
                 <div class="right">
-                    Date: <b>@php echo date('d-m-Y'); @endphp</b> <br>
-                    Receipt <b>#@php echo(rand(100,999));  @endphp</b>
+                    <b> Receipt #:</b>	{{$utransaction->t_id}}
 
                 </div>
             </div>
-            <p class="donated">
-               <b> Donation By:</b>	{{$donationBy}}
-            </p>
         </div>
 
         <div class="tableData">
@@ -124,7 +164,7 @@
                </thead>
                <tbody>
                 <tr>
-                    <td>@php echo date('d-m-Y'); @endphp</td>
+                    <td>{{$donationDate}}</td>
                     <td></td>
                     <td></td>
                     <td>{{$source}}</td>
@@ -133,16 +173,22 @@
                     <td>£{{$balance}}</td>
                 </tr>
                 <tr> 
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td><b>Total</b></td>
+                    <td colspan="6"><b>Total Donated:</b></td>
                     <td><b>£{{$balance}}</b></td>
                 </tr>
                </tbody>
             </table>
+        </div>
+
+        <div class="donation-details">
+            <p>Thank you for your generous support!</p>
+            <p>Your support helps us to continue our mission and make a meaningful difference.</p>
+            <p>*This receipt acknowledges that no goods or service provided in exchange for this donation.*</p>
+        </div>
+        
+        <div class="footer">
+            
+            <p>Contact: info@tevini.co.uk | www.tevini.co.uk</p>
         </div>
 
     </div>

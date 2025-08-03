@@ -196,14 +196,14 @@
                                                 <button type="button" user-id="{{ $user->id }}" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal">add</button>
                                             @endif
                                         </td>
-                                        <td>£{{ number_format($donorUpBalance, 2) }}</td>
+                                        <td>{{ $donorUpBalance < 0 ? '-' : '' }}£{{ number_format(abs($donorUpBalance), 2) }}</td>
                                         <td>
                                             £{{ number_format($user->overdrawn_amount, 2) }}
                                             <a overdrawn-id="{{ $user->id }}" class="overdrawn" data-bs-toggle="modal" data-bs-target="#exampleModal2">
                                                 <i class="fa fa-edit" style="color: #2094f3; font-size: 16px;"></i>
                                             </a>
                                         </td>
-                                        <td>£{{ number_format($pending_transactions, 2) }}</td>
+                                        <td>{{ $pending_transactions < 0 ? '-' : '' }}£{{ number_format(abs($pending_transactions), 2) }}</td>
                                         <td>
                                             <a class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" href="{{ route('topup', [$user->id, 0]) }}" target="_blank">
                                                 <small>Top Up</small>

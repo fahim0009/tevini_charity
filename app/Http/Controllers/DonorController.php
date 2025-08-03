@@ -276,8 +276,9 @@ class DonorController extends Controller
 
                 $balance = $request->gbalance;
                 $source = $request->source;
+                $donationDate = $request->source;
                 $title = "DONATION RECEIPT";
-                $pdf = PDF::loadView('invoices.topup_report', compact('balance','source','user','donationBy','title'));
+                $pdf = PDF::loadView('invoices.topup_report', compact('balance','source','user','donationBy','title','utransaction','donationDate'));
                 $output = $pdf->output();
                 file_put_contents(public_path().'/invoices/'.'Donation-report#'.$user->id.'.pdf', $output);
                 $array['file'] = public_path().'/invoices/Donation-report#'.$user->id.'.pdf';
@@ -291,6 +292,8 @@ class DonorController extends Controller
                 $array['gbalance'] = $request->gbalance;
                 $array['commission'] = $request->commission;
                 $array['source'] = $request->source;
+                $array['date'] = $request->date;
+                $array['transaction'] = $utransaction;
 
                 Mail::to($email)
                 ->cc($contactmail)

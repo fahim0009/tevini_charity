@@ -105,6 +105,10 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group my-2">
+                                    <label for=""><small>Date </small> </label>
+                                    <input class="form-control mr-sm-2" type="date" value="{{ date('Y-m-d')}}" name="date" id="date" required>
+                                </div>
+                                <div class="form-group my-2">
                                     <label for=""><small>Amount </small> </label>
                                     <input class="form-control mr-sm-2" type="text" value="@if($amount != 0){{$amount}}@endif" name="gbalance" id="gbalance" required placeholder="Amount">
                                 </div>

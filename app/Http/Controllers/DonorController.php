@@ -1769,40 +1769,39 @@ class DonorController extends Controller
     {
 
         $donationids = $request->donation_ids;
+        $charityids = $request->charity_ids;
 
         foreach ($donationids as $key => $did) {
-            $donation = Donation::where('id',$did)->first();
-            $user_id = $donation->user_id;
-            $charity_id = $donation->charity_id;
-            $balance = $donation->amount;
-            $user = User::where('id',$user_id)->first();
-            $charity = Charity::where('id',$charity_id)->first();
-            
-            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $order = Donation::find($did);
+            $order->status = 1;
+            $order->save(); 
+        }
 
-            $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
+        foreach ($charityids as $key => $cid) {
+            
+            $donations = Donation::whereIn('id', $donationids)->where('charity_id', $cid)->get();
+
+            $charity = Charity::where('id', $cid)->first();
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+            $email = $charity->email;
+
+            $pdf = PDF::loadView('invoices.donations_report_charity', compact('charity','donations'));
             $output = $pdf->output();
             file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
+
             $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
             $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
             $array['cc'] = $contactmail;
             $array['charity'] = $charity;
-            $array['user'] = $user;
-            $email = $charity->email;
 
             Mail::to($email)
-            ->cc($contactmail)
             ->send(new DonationreportCharity($array));
-
-            $order = Donation::find($did);
-            $order->status = 1;
-            $order->save();
-        
-
+            Mail::to($contactmail)
+            ->send(new DonationreportCharity($array));
+            
         }
-
-        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";
-        return response()->json(['status'=> 300,'message'=>$message]);
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
         
     }
 

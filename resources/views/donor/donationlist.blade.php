@@ -183,19 +183,26 @@ $(document).ready(function() {
 
     $('#completeBtn').on('click', function() {
         var selected = [];
+        var charity = [];
         $('.donation-checkbox:checked').each(function() {
             selected.push($(this).val());
+            charity.push($(this).data('charity'));
         });
 
+        let uniqueCharities = [...new Set(charity)];
         console.log(selected);
 
         if (selected.length > 0) {
             $("#loading").show();
-            $.post("{{ URL::to('/admin/donation-complete') }}", { donation_ids: selected })
+            $.post("{{ URL::to('/admin/donation-complete') }}", { 
+                donation_ids: selected,
+                charity_ids: uniqueCharities
+            })
                 .done(function(d) {
+                    console.log(d);
                     if (d.status == 300) {
                         $(".ermsg").html(d.message);
-                        setTimeout(() => location.reload(), 500);
+                        // setTimeout(() => location.reload(), 500);
                     }
                 })
                 .always(() => $("#loading").hide())

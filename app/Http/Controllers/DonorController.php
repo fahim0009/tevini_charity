@@ -1679,7 +1679,8 @@ class DonorController extends Controller
         $donation = Donation::where([
             ['status','=','0']
         ])->get();
-        return view('donor.donationlist',compact('donation'));
+        $charities = $donation->pluck('charity')->unique('id')->values();
+        return view('donor.donationlist',compact('donation','charities'));
     }
 
     public function donationRecord()
@@ -1759,6 +1760,50 @@ class DonorController extends Controller
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
+    }
+
+
+     // donation complete
+
+    public function donationComplete(Request $request)
+    {
+
+        $donationids = $request->donation_ids;
+
+        foreach ($donationids as $key => $did) {
+            $donation = Donation::where('id',$did)->first();
+            $user_id = $donation->user_id;
+            $charity_id = $donation->charity_id;
+            $balance = $donation->amount;
+            $user = User::where('id',$user_id)->first();
+            $charity = Charity::where('id',$charity_id)->first();
+            
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
+            $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
+            $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
+            $array['cc'] = $contactmail;
+            $array['charity'] = $charity;
+            $array['user'] = $user;
+            $email = $charity->email;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new DonationreportCharity($array));
+
+            $order = Donation::find($did);
+            $order->status = 1;
+            $order->save();
+        
+
+        }
+
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
+        
     }
 
     // stripe

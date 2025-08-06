@@ -186,6 +186,7 @@ class DonorController extends Controller
 
     public function topupStore(Request $request)
     {
+
         if(empty($request->gbalance)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount fill.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);

@@ -202,7 +202,7 @@ $(document).ready(function() {
                     console.log(d);
                     if (d.status == 300) {
                         $(".ermsg").html(d.message);
-                        // setTimeout(() => location.reload(), 500);
+                        setTimeout(() => location.reload(), 500);
                     }
                 })
                 .always(() => $("#loading").hide())

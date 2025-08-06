@@ -100,7 +100,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-inline" method="POST" action="{{ route('topup.store') }}"  enctype="multipart/form-data">
+                    <div class="form-inline">
                             @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -264,6 +264,7 @@ $("#topBal").click(function(){
 
     $("#loading").show();
 
+    var date = $("#date").val();
     var topupid = $("#topupid").val();
     var balance = $("#balance").val();
     var commission = $("#commission").val();
@@ -280,7 +281,7 @@ $("#topBal").click(function(){
         $.ajax({
             url: url,
             method: "POST",
-            data: {topupid,balance,commission,source,gbalance,note,receipt,donationBy,gift,cleargift},
+            data: {topupid,balance,commission,source,gbalance,note,receipt,donationBy,gift,cleargift,date},
 
             success: function (d) {
                 if (d.status == 303) {

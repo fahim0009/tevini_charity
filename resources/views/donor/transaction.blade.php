@@ -324,6 +324,7 @@ use Illuminate\Support\Carbon;
                                             <th>Transaction Id</th>
                                             <th>Charity Name</th>
                                             <th>Voucher Number</th>
+                                            <th>Note</th>
                                             <th>Status</th>
                                             <th>Amount</th>
                                         </tr>
@@ -334,6 +335,7 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $transaction->id }}</span>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
+                                            <td>{{ $transaction->note}}</td>
                                             <td>{{ $transaction->cheque_no}}</td>
                                             <td>@if($transaction->pending == "0") Pending @endif</td>
                                             <td>£{{ $transaction->amount}}</td>

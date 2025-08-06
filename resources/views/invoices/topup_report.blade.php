@@ -137,7 +137,7 @@
             <div class="subHead">
                 <div class="left">
 
-                    <b> Date:</b>	{{$donationDate}} <br>
+                    <b> Date:</b>{{ date('d-m-Y', strtotime($donationDate))}} <br>
                     <b> Donation By:</b>	{{$donationBy}}
 
                 </div>
@@ -164,7 +164,7 @@
                </thead>
                <tbody>
                 <tr>
-                    <td>{{$donationDate}}</td>
+                    <td>{{ date('d-m-Y', strtotime($donationDate))}}</td>
                     <td></td>
                     <td></td>
                     <td>{{$source}}</td>
@@ -172,12 +172,48 @@
                     <td></td>
                     <td>£{{ number_format($balance, 2)}}</td>
                 </tr>
-                <tr> 
-                    <td colspan="6"><b>Total Donated:</b></td>
-                    <td><b>£{{ number_format($balance, 2)}}</b></td>
+
+                <tr style="border: 0px;">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
+
+                <tr style="border: 0px;">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+
+                <tr style="border: 0px;">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+
+
+                
                </tbody>
+               <tfoot>
+                    <tr style="border: 2 px solid #003056;"> 
+                        <td colspan="6" style="text-align: left"><b>Total Donated:</b></td>
+                        <td><b>£{{ number_format($balance, 2)}}</b></td>
+                    </tr>
+               </tfoot>
             </table>
+
         </div>
 
         <div class="donation-details">

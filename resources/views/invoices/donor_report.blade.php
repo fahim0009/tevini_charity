@@ -179,7 +179,7 @@ use app\Models\Provoucher;
                     <tr>
                         <td colspan="4" style="width:60%">{{$user->name}}</td>
                         <td></td>
-                        <td style="width:30%">Balance: £{{ number_format($tbalance, 2) }}</td>
+                        <td style="width:30%">Balance: {{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                     </tr>
 
                     <tr>
@@ -219,6 +219,8 @@ use app\Models\Provoucher;
                         <th>Voucher Number</th>
                         <th>Charity Name</th>
                         <th>Status</th>
+                        <th>Note</th>
+                        <th>Donate By</th>
                         <th>Credit</th>
                         <th>Debit</th>
                         <th>Balance</th>
@@ -229,15 +231,17 @@ use app\Models\Provoucher;
             <tbody>
                   @foreach ($report as $data)
                     @if($data->commission != 0)
-                    <tr>
+                    <tr style="font-size: 12px;">
                         <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
                         <td>Commission</td>
                         <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
+                        <td></td>
+                        <td></td>
                         <td>-£{{$data->commission}}</td>
-                        <td>£{{ number_format($tbalance, 2) }}</td>
+                        <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                         @php
                         $tbalance = $tbalance + $data->commission;
                         @endphp
@@ -259,23 +263,25 @@ use app\Models\Provoucher;
                         
                         </td>
                         <td>@if($data->pending == "0") Pending @endif</td>
+                        <td>{{$data->note ?? ""}} </td>
+                        <td>{{$data->donation_by ?? ""}} </td>
 
                             @if($data->t_type == "In")
                                 @if($data->commission != 0)
                                     <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
                                     <td></td>
-                                    <td> £{{ number_format($tbalance, 2) }} </td>
+                                    <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                                     @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
                                 @else
                                     <td>£{{number_format($data->amount, 2)}} </td>
                                     <td></td>
-                                    <td> £{{ number_format($tbalance, 2) }} </td>
+                                    <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                                     @php $tbalance = $tbalance - $data->amount; @endphp
                                 @endif
                             @elseif($data->t_type == "Out")
                                 <td></td>
                                 <td>-£{{number_format($data->amount, 2) }}</td>
-                                    <td> £{{ number_format($tbalance, 2) }} </td>
+                                    <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                                     @if($data->pending != "0")
                                     @php  $tbalance = $tbalance + $data->amount;  @endphp
                                     @endif
@@ -286,15 +292,17 @@ use app\Models\Provoucher;
 
                 @endforeach
                     <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>Previous Balance</td>
-                    <td>£{{ number_format($tbalance, 2) }}</td>
-                </tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>Previous Balance</td>
+                        <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
+                    </tr>
             </tbody>
         </table>
         </div>

@@ -116,7 +116,7 @@
             <div class="subHead">
                 <div class="center">
                     <div class="logo">
-                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/front/images/logo.svg'))) }}" width="120px" style="display:inline-block;"  alt="Tevini Limited"/>   
+                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logo.svg'))) }}" width="120px" style="display:inline-block;"  alt="Tevini Limited"/>   
                     </div>
                     
                     <div class="title">
@@ -170,11 +170,11 @@
                     <td>{{$source}}</td>
                     <td></td>
                     <td></td>
-                    <td>£{{$balance}}</td>
+                    <td>£{{ number_format($balance, 2)}}</td>
                 </tr>
                 <tr> 
                     <td colspan="6"><b>Total Donated:</b></td>
-                    <td><b>£{{$balance}}</b></td>
+                    <td><b>£{{ number_format($balance, 2)}}</b></td>
                 </tr>
                </tbody>
             </table>

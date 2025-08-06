@@ -276,7 +276,7 @@ class DonorController extends Controller
 
                 $balance = $request->gbalance;
                 $source = $request->source;
-                $donationDate = $request->source;
+                $donationDate = $request->date;
                 $title = "DONATION RECEIPT";
                 $pdf = PDF::loadView('invoices.topup_report', compact('balance','source','user','donationBy','title','utransaction','donationDate'));
                 $output = $pdf->output();
@@ -1671,7 +1671,8 @@ class DonorController extends Controller
             ['standing_order','=', 'false'],
             ['status','=','0']
         ])->get();
-        return view('donor.donationlist',compact('donation'));
+        $charities = $donation->pluck('charity')->unique('id')->values();
+        return view('donor.donationlist',compact('donation','charities'));
     }
 
     public function pendingdonationlist()

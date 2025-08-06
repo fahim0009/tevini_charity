@@ -116,7 +116,7 @@
             <div class="subHead">
                 <div class="center">
                     <div class="logo">
-                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logo.svg'))) }}" width="120px" style="display:inline-block;"  alt="Tevini Limited"/>   
+                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logo.png'))) }}" width="120px" style="display:inline-block;"  alt="Tevini Limited"/>   
                     </div>
                     
                     <div class="title">

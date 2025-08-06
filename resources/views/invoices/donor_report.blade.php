@@ -11,74 +11,86 @@ use app\Models\Provoucher;
    <style>
        @page { margin: 10px; }
     body { margin: 10px; }
- * {
-	 margin: 0;
-	 padding: 0;
-}
- .wrapper {
-	 max-width: 960px;
-	 margin: 0 auto;
-	 box-shadow: rgba(0, 0, 0, 0.04) -1px 2px 20px 15px;
-	 padding: 15px;
-}
- .wrapper .heading .title {
-	 text-align: right;
-	 font-weight: 600;
-	 font-size: 2.1rem;
-	 text-transform: uppercase;
-	 font-family: monospace;
-	 letter-spacing: 1px;
-	 color: #436784;
-}
- .wrapper .heading .subHead {
-	 margin: 20px 0;
-	 display: flex;
-	 justify-content: space-between;
-}
- .wrapper .heading .subHead .left {
-	 color: #436784;
-	 text-transform: capitalize;
-	 line-height: 1.3;
-	 font-size: 16px;
-	 font-family: sans-serif;
-}
- .wrapper .heading .subHead .right {
-	 text-align: right;
-	 color: #436784;
-	 text-transform: capitalize;
-	 line-height: 1.3;
-	 font-size: 16px;
-	 font-family: sans-serif;
-}
- .wrapper .heading .donated {
-	 color: #436784;
-	 font-family: sans-serif;
-}
- .wrapper .tableData {
-	 margin-top: 100px;
-	 min-width: 400px;
-	 overflow-x: auto;
-}
- .wrapper .tableData table {
-	 width: 100%;
-	 text-align: center;
-	 border-collapse: collapse;
-}
- .wrapper .tableData table tr th {
-	 background-color: #436784;
-	 color: azure;
-	 padding: 2px;
-	 font-family: sans-serif;
-	 border-right: 1px solid #fff;
-}
- .wrapper .tableData table tr {
-	 border-bottom: 1px solid #ebebeb;
-}
- .wrapper .tableData table tr td {
-	 padding: 2px;
-	 color: #625f5f;
-	 text-transform: capitalize;
-}
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    .wrapper {
+        max-width: 960px;
+        margin: 0 auto;
+        box-shadow: rgba(0, 0, 0, 0.04) -1px 2px 20px 15px;
+        padding: 15px;
+    }
+    .wrapper .heading .title {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        font-family: monospace;
+        letter-spacing: 1px;
+        color: #436784;
+    }
+    .wrapper .heading .subHead {
+        margin: 20px 0;
+        display: flex;
+        justify-content: space-between;
+    }
+    .wrapper .heading .subHead .left {
+        color: #436784;
+        text-transform: capitalize;
+        line-height: 1.3;
+        font-size: 16px;
+        font-family: sans-serif;
+    }
+    .wrapper .heading .subHead .right {
+        text-align: right;
+        color: #436784;
+        text-transform: capitalize;
+        line-height: 1.3;
+        font-size: 16px;
+        font-family: sans-serif;
+    }
+    .wrapper .heading .subHead .center {
+        text-align: center;
+        color: #436784;
+        text-transform: capitalize;
+        line-height: 1.3;
+        font-size: 16px;
+        font-family: sans-serif;
+    }
+    .wrapper .heading .donated {
+        color: #436784;
+        font-family: sans-serif;
+    }
+    .wrapper .tableData {
+        margin-top: 50px;
+        min-width: 400px;
+        overflow-x: auto;
+    }
+    .wrapper .tableData table {
+        width: 100%;
+        text-align: center;
+        border-collapse: collapse;
+    }
+    .wrapper .tableData table tr th {
+        background-color: #436784;
+        color: azure;
+        padding: 2px;
+        font-family: sans-serif;
+        border-right: 1px solid #fff;
+    }
+    .wrapper .tableData table tr {
+        border-bottom: 1px solid #ebebeb;
+    }
+    .wrapper .tableData table tr td {
+        padding: 2px;
+        color: #625f5f;
+        text-transform: capitalize;
+    }
+
+    .text-right{
+        text-align: right;
+    }
  /* .wrapper .tableData table tr:nth-child(even) {
 	 background: #436784 14;
 } */
@@ -87,24 +99,42 @@ use app\Models\Provoucher;
 </head>
 <body>
     <div class="wrapper">
+
+
+
         <div class="heading">
-            <div class="title">
-                Donor report
+            <div class="subHead">
+                <div class="center">
+                    <div class="logo">
+                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logo.png'))) }}" width="120px" style="display:inline-block;"  alt="Tevini Limited"/>   
+                    </div>
+                    
+                    <div class="title">
+                        Donor report
+                    </div>
+
+                    <div class="sub-title">
+                        Tevini Limited
+                    </div>
+                    Registered charity no. 282079 <br>
+                    5A Holmdale Terrace,
+                    N156PP
+
+                </div>
             </div>
+
+
             <div class="subHead">
                 <div class="left">
-                    Tevini Limited <br>
-                    Registered charity no. 282079 <br>
-                    5A Holmdale Terracer<br>
-                    N156PP
+
+                    <b> Date:</b>	{{date('d-m-Y')}} <br>
 
                 </div>
 
                 <div class="right">
-                    Date: <b>@php echo date('d-m-Y'); @endphp </b> <br>
                     Receipt <b>#@php echo(rand(100,999));  @endphp</b>
-                </div>
 
+                </div>
             </div>
 
             <?php
@@ -137,10 +167,10 @@ use app\Models\Provoucher;
                 }
                 @endphp
 
-    @endforeach
+            @endforeach
 
               {{-- total balance cal  --}}
-              @foreach ($tamount as $data)
+                @foreach ($tamount as $data)
                     @if($data->commission != 0)
                         @php
                         $tbalance = $tbalance - $data->commission;
@@ -167,49 +197,25 @@ use app\Models\Provoucher;
                     @endphp
                 @endforeach
 
+            <div class="subHead">
+                <div class="left">
+                    <h3>Account Summery</h3>
+                    <p>
+                        Name: {{$user->name}}<br>
+                        Address: {{$user->street}} {{$user->town}}<br>
+                        Balance: {{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}<br>
+                        Money In: £{{ number_format($amountin, 2) }}<br>
+                        Money Out: £{{ number_format($amountout, 2) }}<br>
+                        Pending Amount: £{{ number_format($pending, 2) }}
+                    </p>
 
-            <table style="width:100%">
-                <tbody>
-                    <tr>
-                        <td colspan="4" style="width:60%"></td>
-                        <td></td>
-                        <td style="width:30%"><h3>Account Summery</h3></td>
-                    </tr>
+                </div>
 
-                    <tr>
-                        <td colspan="4" style="width:60%">{{$user->name}}</td>
-                        <td></td>
-                        <td style="width:30%">Balance: {{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
-                    </tr>
-
-                    <tr>
-                        <td colspan="4" style="width:60%">{{$user->street}}</td>
-                        <td></td>
-                        <td style="width:30%">Money In: £{{ number_format($amountin, 2) }}</td>
-                    </tr>
-
-                    <tr>
-                        <td colspan="4" style="width:60%">{{$user->town}}</td>
-                        <td></td>
-                        <td style="width:30%">Money Out: £{{ number_format($amountout, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" style="width:60%"></td>
-                        <td></td>
-                        <td style="width:30%">Pending Amount: £{{ number_format($pending, 2) }}</td>
-                    </tr>
-                    
-                </tbody>
-            </table>
-
-            {{-- <p class="donated">
-                <p>{{$user->name}}</p>
-                <p>{{$user->street}}</p>
-                <p>{{$user->town}}</p>
-            </p> --}}
-
-
+            </div>
         </div>
+
+
+
         <div class="tableData">
             <table>
                 <thead>
@@ -240,8 +246,8 @@ use app\Models\Provoucher;
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td>-£{{$data->commission}}</td>
-                        <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
+                        <td class="text-right">-£{{$data->commission}}</td>
+                        <td class="text-right">{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                         @php
                         $tbalance = $tbalance + $data->commission;
                         @endphp
@@ -268,20 +274,20 @@ use app\Models\Provoucher;
 
                             @if($data->t_type == "In")
                                 @if($data->commission != 0)
-                                    <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
+                                    <td class="text-right">£ {{ number_format($data->amount + $data->commission, 2) }} </td>
                                     <td></td>
-                                    <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
+                                    <td class="text-right">{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                                     @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
                                 @else
-                                    <td>£{{number_format($data->amount, 2)}} </td>
+                                    <td class="text-right">£{{number_format($data->amount, 2)}} </td>
                                     <td></td>
-                                    <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
+                                    <td class="text-right">{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                                     @php $tbalance = $tbalance - $data->amount; @endphp
                                 @endif
                             @elseif($data->t_type == "Out")
                                 <td></td>
-                                <td>-£{{number_format($data->amount, 2) }}</td>
-                                    <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
+                                <td class="text-right">-£{{number_format($data->amount, 2) }}</td>
+                                <td class="text-right">{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                                     @if($data->pending != "0")
                                     @php  $tbalance = $tbalance + $data->amount;  @endphp
                                     @endif
@@ -301,7 +307,7 @@ use app\Models\Provoucher;
                         <td></td>
                         <td></td>
                         <td>Previous Balance</td>
-                        <td>{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
+                        <td class="text-right">{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
                     </tr>
             </tbody>
         </table>

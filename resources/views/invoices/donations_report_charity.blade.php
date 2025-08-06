@@ -133,7 +133,7 @@ use app\Models\Provoucher;
                     <td>{{$donation->created_at->format('d/m/Y')}}</td>
                     <td>{{$donation->user->name}}</td>
                     <td>{{$donation->charitynote}}</td>
-                    <td>{{$donation->amount}}</td>
+                    <td>{{ number_format($donation->amount, 2)}}</td>
                 </tr> 
                 @endforeach            
                   
@@ -141,7 +141,7 @@ use app\Models\Provoucher;
             <tfoot>
                 <tr>
                     <td colspan="3" style="text-align: right; font-weight: bold;">Total Amount:</td>
-                    <td>£{{ $donations->sum('amount') }}</td>
+                    <td>£{{ number_format($donations->sum('amount'), 2)}}</td>
                 </tr>
             </tfoot>
         </table>

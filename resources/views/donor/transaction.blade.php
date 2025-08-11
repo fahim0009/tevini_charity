@@ -167,7 +167,10 @@ use Illuminate\Support\Carbon;
                                             <td>@if($data->charity_id){{ $data->charity->name}}@endif
                                                 @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
                                             </td>
-                                            <td>{{$data->note}}</td>
+                                            <td>
+                                                {{$data->donation_id ? $data->donation->mynote : $data->note }} <br>
+                                                {{$data->donation_id ? $data->donation->charitynote : ''}}
+                                            </td>
                                             <td>{{$data->donation_by}}</td>
                                             <td>@if($data->pending == "0") Pending @endif</td>
 
@@ -335,7 +338,12 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $transaction->id }}</span>{{Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $transaction->t_id }}</td>
                                             <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
-                                            <td>{{ $transaction->note}}</td>
+                                            
+                                            <td>
+                                                {{$transaction->donation_id ? $transaction->donation->mynote : $transaction->note }} <br>
+                                                {{$transaction->donation_id ? $transaction->donation->charitynote : ''}}
+                                            </td>
+
                                             <td>{{ $transaction->cheque_no}}</td>
                                             <td>@if($transaction->pending == "0") Pending @endif</td>
                                             <td>£{{ $transaction->amount}}</td>
@@ -373,7 +381,12 @@ use Illuminate\Support\Carbon;
                                             <td><span style="display:none;">{{ $gift->id }}</span>{{Carbon::parse($gift->created_at)->format('d/m/Y')}}</td>
                                             <td>{{ $gift->t_id }}</td>
                                             <td>{{$gift->user->name ?? ""}}</td>
-                                            <td>{{$gift->note}}</td>
+                                            
+                                            <td>
+                                                {{$gift->donation_id ? $gift->donation->mynote : $gift->note }} <br>
+                                                {{$gift->donation_id ? $gift->donation->charitynote : ''}}
+                                            </td>
+
                                             <td>{{$gift->donation_by}}</td>
                                             <td>{{ $gift->source}}</td>
                                             <td>£{{ $gift->amount + $gift->commission }}</td>

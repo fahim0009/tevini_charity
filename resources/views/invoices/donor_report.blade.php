@@ -119,7 +119,6 @@ use app\Models\Provoucher;
                     Registered charity no. 282079 <br>
                     5A Holmdale Terrace,
                     N156PP
-
                 </div>
             </div>
 
@@ -127,12 +126,15 @@ use app\Models\Provoucher;
             <div class="subHead">
                 <div class="left">
 
-                    <b> Date:</b>	{{date('d-m-Y')}} <br>
+                    {{-- <b> Date:</b>	{{date('d-m-Y')}} <br> --}}
+                    <b>Date:
+                    {{ \Carbon\Carbon::parse($fromDate)->format('d/m/y') }} -
+                    {{ \Carbon\Carbon::parse($toDate)->format('d/m/y') }}</b>
 
                 </div>
 
                 <div class="right">
-                    Receipt <b>#@php echo(rand(100,999));  @endphp</b>
+                    Receipt <b>#@php echo(rand(100,999));  @endphp</b> <br> 
 
                 </div>
             </div>
@@ -269,7 +271,12 @@ use app\Models\Provoucher;
                         
                         </td>
                         <td>@if($data->pending == "0") Pending @endif</td>
-                        <td>{{$data->note ?? ""}} </td>
+                        
+                                            <td>
+                                                {{$data->donation_id ? $data->donation->mynote : $data->note }} <br>
+                                                {{$data->donation_id ? $data->donation->charitynote : ''}}
+                                            </td>
+                                            
                         <td>{{$data->donation_by ?? ""}} </td>
 
                             @if($data->t_type == "In")

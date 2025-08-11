@@ -79,6 +79,8 @@ class SendDonorReportJob implements ShouldQueue
             'cc' => $contactmail,
             'userbalance' => number_format($userTransactionBalance->balance, 2),
             'name' => $user->name,
+            'fromDate' => $this->fromDate,
+            'toDate' => $this->toDate,
             'view' => 'mail.donorreport',
             'subject' => 'Monthly statement',
             'from' => 'info@tevini.co.uk',

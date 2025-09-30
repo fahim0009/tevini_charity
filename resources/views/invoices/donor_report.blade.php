@@ -204,6 +204,7 @@ use app\Models\Provoucher;
                     <h3>Account Summery</h3>
                     <p>
                         Name: {{$user->name}}<br>
+                        Account No: {{$user->accountno}}<br>
                         Address: {{$user->street}} {{$user->town}}<br>
                         Balance: {{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}<br>
                         Money In: £{{ number_format($amountin, 2) }}<br>

@@ -271,7 +271,11 @@ use app\Models\Provoucher;
                             @endif
                         
                         </td>
-                        <td>@if($data->pending == "0") Pending @endif</td>
+                        <td>@if($data->pending == "0") Pending @endif
+                            @if ($data->provoucher)
+                                {{ $data->provoucher->expired == "Yes" ? 'Expired' : '' }}
+                            @endif
+                        </td>
                         
                                             <td>
                                                 {{$data->donation_id ? $data->donation->mynote : $data->note }} <br>

@@ -23,6 +23,7 @@ class Provoucher extends Model
       'voucher_type',
       'amount',
       'note',
+      'expired',
       'status',
 
       'updated_by',
@@ -39,5 +40,11 @@ class Provoucher extends Model
             return null;
             }
         });
+      }
+
+      
+      public function transaction()
+      {
+          return $this->belongsTo(Usertransaction::class, 'tran_id', 'id');
       }
 }

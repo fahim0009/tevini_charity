@@ -60,4 +60,12 @@ class Usertransaction extends Model
           'standing_donation_id' // Local key on StandingdonationDetail table...
         );
       }
+
+
+      public function provoucher()
+      {
+          return $this->hasOne(Provoucher::class, 'tran_id', 'id');
+      }
+
+
 }

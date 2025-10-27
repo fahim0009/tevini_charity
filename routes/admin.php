@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\TextMessageController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
+use App\Http\Controllers\ExpiredVoucherController;
 use App\Http\Controllers\OTPController;
 use App\Http\Controllers\User\UserController;
 
@@ -205,6 +206,12 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/waiting-vouchercancel', [OrderController::class, 'watingvoucherCancel']);
     Route::post('/waiting-vouchermail', [OrderController::class, 'watingvoucherMail']);
     Route::post('/waiting-voucherimgadd', [OrderController::class, 'watingvoucherImageadd']);
+
+
+    // expired voucher 
+    Route::get('/expired-voucher', [ExpiredVoucherController::class, 'getExpiredVoucher'])->name('expiredVoucher');
+
+
 
     Route::post('/pvcancel', [OrderController::class, 'pvCancel']);
     Route::get('/single-order/{id}', [OrderController::class, 'singleOrder'])->name('singleorder');

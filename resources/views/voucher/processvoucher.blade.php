@@ -125,6 +125,7 @@
                                         <th>Amount</th>
                                         <th>Note</th>
                                         <th>Waiting</th>
+                                        <th>Expired</th>
                                     </tr>
                                 </thead>
                                 <tbody id="inner">
@@ -161,6 +162,12 @@
                                                 <option value="Yes" @if(isset($voucher->waiting) && $voucher->waiting == "Yes") selected @endif>Yes</option>
                                             </select>
                                         </td>
+                                        <td width="150px">
+                                            <select name="expired[]" class="form-control">
+                                                <option value="No" @if(isset($voucher->expired) && $voucher->expired == "No") selected @endif>No</option>
+                                                <option value="Yes" @if(isset($voucher->expired) && $voucher->expired == "Yes") selected @endif>Yes</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                     @else
                                     <tr class="item-row" style="position:relative;">
@@ -187,6 +194,12 @@
                                             <select name="waiting[]" class="form-control">
                                                 <option value="No" @if(isset($voucher->waiting) && $voucher->waiting == "No") selected @endif>No</option>
                                                 <option value="Yes" @if(isset($voucher->waiting) && $voucher->waiting == "Yes") selected @endif>Yes</option>
+                                            </select>
+                                        </td>
+                                        <td width="150px">
+                                            <select name="expired[]" class="form-control">
+                                                <option value="No" @if(isset($voucher->expired) && $voucher->expired == "No") selected @endif>No</option>
+                                                <option value="Yes" @if(isset($voucher->expired) && $voucher->expired == "Yes") selected @endif>Yes</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -219,6 +232,12 @@
                                         </td>
                                         <td width="150px">
                                             <select name="waiting[]" class="form-control" id="d_waiting">
+                                                <option value="No">No</option>
+                                                <option value="Yes">Yes</option>
+                                            </select>
+                                        </td>
+                                        <td width="150px">
+                                            <select name="expired[]" class="form-control" id="d_expired">
                                                 <option value="No">No</option>
                                                 <option value="Yes">Yes</option>
                                             </select>
@@ -359,6 +378,12 @@
                             <option value="Yes">Yes</option>
                         </select>
                     </td>
+                    <td width="150px">
+                        <select name="expired[]" class="form-control">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </td>
                 </tr>`;
             $("table #inner").append(markup);
         });
@@ -378,11 +403,12 @@
             var amts = $("input[name='amount[]']").map(function() { return $(this).val(); }).get();
             var notes = $("input[name='note[]']").map(function() { return $(this).val(); }).get();
             var waitings = $("select[name='waiting[]']").map(function() { return $(this).val(); }).get();
+            var expireds = $("select[name='expired[]']").map(function() { return $(this).val(); }).get();
 
             $.ajax({
                 url: url,
                 method: "POST",
-                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings },
+                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings, expireds },
                 success: function(d) {
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);
@@ -418,13 +444,15 @@
             var amts = $("input[name='amount[]']").map(function() { return $(this).val(); }).get();
             var notes = $("input[name='note[]']").map(function() { return $(this).val(); }).get();
             var waitings = $("select[name='waiting[]']").map(function() { return $(this).val(); }).get();
+            var expireds = $("select[name='expired[]']").map(function() { return $(this).val(); }).get();
 
-            console.log(donorNms);
+
+            console.log(expireds);
 
             $.ajax({
                 url: urld,
                 method: "POST",
-                data: { charityId, donorIds, donorNms, donorAccs, chqNos, amts, notes, waitings },
+                data: { charityId, donorIds, donorNms, donorAccs, chqNos, amts, notes, waitings, expireds },
                 success: function(d) {
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);
@@ -538,6 +566,12 @@
                                     </td>
                                     <td width="250px">
                                         <input style="min-width:200px" name="note[]" type="text" class="form-control note">
+                                    </td>
+                                    <td width="150px">
+                                        <select name="waiting[]" class="form-control">
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
                                     </td>
                                     <td width="150px">
                                         <select name="waiting[]" class="form-control">
@@ -678,6 +712,13 @@
                                         <input style="min-width:200px" name="note[]" type="text" class="form-control note">
                                     </td>
                                     <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td>
+                                    
+                                    <td width="150px">
+                                        <select name="waiting[]" class="form-control">
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                    </td>
                                 </tr>`;
                             $("table #inner").append(markup);
                         }

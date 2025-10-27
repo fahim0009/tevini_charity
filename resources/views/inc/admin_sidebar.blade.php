@@ -90,6 +90,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ (request()->is('admin/expired-voucher*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('expiredVoucher') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Expired Vouchers
+                </a>
+            </li>
+
             <li class="nav-item {{ (request()->is('admin/order*')) ? 'active' : '' }}">
                 <a href="#">
                     <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>

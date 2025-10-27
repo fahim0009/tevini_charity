@@ -763,6 +763,7 @@ class OrderController extends Controller
         $amounts = $request->amts;
         $notes = $request->notes;
         $waitings = $request->waitings;
+        $expireds = $request->expireds;
 
 
         $check_chqs = Provoucher::all();
@@ -813,6 +814,7 @@ class OrderController extends Controller
                 $pvsr->amount = $amounts[$key];
                 $pvsr->note = $notes[$key];
                 $pvsr->waiting = $waitings[$key];
+                $pvsr->expired = $expireds[$key];
                 $pvsr->status = 1;
                 $pvsr->save();
                 }
@@ -973,6 +975,7 @@ class OrderController extends Controller
         $amounts = $request->amts;
         $notes = $request->notes;
         $waitings = $request->waitings;
+        $expireds = $request->expireds;
 
         if (empty($charityId)) {
             return $this->errorResponse('Please select a charity first.');
@@ -1053,6 +1056,7 @@ class OrderController extends Controller
             $voucher->amount = $amount;
             $voucher->note = $notes[$index];
             $voucher->waiting = $waitings[$index];
+            $voucher->expired = $expireds[$index];
             $voucher->status = $isPending ? 0 : 1;
             $voucher->tran_id = $transaction->id;
             $voucher->save();

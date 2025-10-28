@@ -25,7 +25,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Admin\ProcessVoucherController;
-use App\Http\Controllers\Admin\TextMessageController;
+use App\Http\Controllers\Admin\CredentialController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
@@ -56,7 +56,6 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::put('agent-register/{id}','App\Http\Controllers\Admin\AdminController@agentupdate');
     Route::get('agent-register/{id}', 'App\Http\Controllers\Admin\AdminController@agentdestroy');
     // certificate update
-    // Route::post('image-upload', 'App\Http\Controllers\Admin\AdminController@agentCertificateUpdate')->name('image.upload.post');
     //agent registration end
     //user registration
     Route::get('user-register','App\Http\Controllers\Admin\AdminController@userindex');
@@ -349,5 +348,11 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/barcode-delete', [VouchersController::class, 'getBarcode'])->name('admin.getBarcode');
     Route::post('/barcode-delete', [VouchersController::class, 'getBarcode'])->name('admin.getBarcodeSearch');
     Route::post('/all-barcode-delete', [VouchersController::class, 'deleteBarcode'])->name('admin.deleteBarcode');
+
+    
+    Route::post('/new-information', [CredentialController::class, 'newUserCredentialStore'])->name('newUserCredentialStore');
+    Route::put('/user-email/update/{id}', [CredentialController::class, 'update'])->name('useremail.update');
+    Route::delete('/user-email/delete/{id}', [CredentialController::class, 'destroy'])->name('useremail.destroy');
+
 
 });

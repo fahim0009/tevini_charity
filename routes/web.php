@@ -70,6 +70,8 @@ Route::post('/email/resend-verification', function (Request $request) {
 
 Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verification'])->name('verification.verify');
 
+Route::get('/verify-email/{token}', [UserController::class, 'verifyEmail'])->name('verify.email');
+
 
 // user part start
 Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function(){

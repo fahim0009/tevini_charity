@@ -22,6 +22,8 @@ use App\Mail\TDFTransfer;
 use App\Models\AccDelRequest;
 use App\Models\ContactMail;
 use App\Models\UserDetail;
+use Illuminate\Support\Str;
+use App\Mail\VerifyEmailMail;
 
 class UserController extends Controller
 {
@@ -88,6 +90,12 @@ class UserController extends Controller
         $date = \Carbon\Carbon::now();
         $currentMonthName = $date->format('F'); // July
         $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
+
+        // delete unverified email requests older than 24 hours
+        UserDetail::where('user_id', Auth::id())
+            ->whereNull('email_verified_at')
+            ->where('created_at', '<', now()->subHours(24))
+            ->delete();
 
         return view('frontend.user.profile', compact('profile_data','currentyramount','totalamount','lastMonthName','currentMonthName'));
     }
@@ -476,16 +484,36 @@ class UserController extends Controller
     
     public function emailAccountStore(Request $request)
     {
+
+
+        UserDetail::where('user_id', Auth::id())
+            ->whereNull('email_verified_at')
+            ->where('email', '=', $request->newemail)
+            ->delete();
+
+
+        $request->validate([
+            'newemail' => 'required|email|unique:user_details,email',
+        ], [
+            'newemail.required' => 'Please enter a new email address.',
+            'newemail.email'    => 'Please provide a valid email address.',
+            'newemail.unique'   => 'This email is already in use. Please choose another.',
+        ]);
+
         $data = new UserDetail();
         $data->user_id = Auth::id();
-        $data->date = Date::now()->format('Y-m-d');
+        $data->date = now()->format('Y-m-d');
         $data->email = $request->newemail;
-        if ($data->save()) {
-            $message = "New email added successfully.";
-            return redirect()->route('user.profile')->with(['status' => 200, 'message' => $message]);
-        } else {
-            return back()->with(['status' => 303, 'message' => 'Server Error!!']);
-        }
+        $data->verification_token = Str::random(64);
+        $data->save();
+
+        // Send verification email
+        Mail::to($data->email)->send(new VerifyEmailMail($data));
+
+        return redirect()->route('user.profile')->with([
+            'status' => 200,
+            'message' => 'Verification link sent to your email. Please verify to activate.',
+        ]);
     }
 
 
@@ -494,6 +522,10 @@ class UserController extends Controller
 
         $request->validate([
             'upemail' => 'required|email|max:255|unique:user_details,email,' . $request->userDetailId,
+        ], [
+            'newemail.required' => 'Please enter a new email address.',
+            'newemail.email'    => 'Please provide a valid email address.',
+            'newemail.unique'   => 'This email is already in use. Please choose another.',
         ]);
 
         $data = UserDetail::findOrFail($request->userDetailId);
@@ -549,4 +581,40 @@ class UserController extends Controller
 
         return $accountno;
     }
+
+
+    public function verifyEmail($token)
+    {
+        $userDetail = UserDetail::where('verification_token', $token)->first();
+
+        if (!$userDetail) {
+
+            if (auth()->user()) {
+                return redirect()->route('user.profile')->with(['status' => 404, 'message' => 'Invalid verification link.']);
+            }else if(auth('charity')->user()){
+                return redirect()->route('charity.profile')->with(['status' => 404, 'message' => 'Invalid verification link.']);
+            }else {
+                return redirect()->route('login')->with(['message' => 'Invalid verification link.']);
+            }
+            
+        }
+
+        $userDetail->email_verified_at = now();
+        $userDetail->verification_token = null;
+        $userDetail->save();
+
+
+        if (auth()->user()) {
+            return redirect()->route('user.profile')->with(['status' => 200, 'message' => 'Email verified successfully!']);
+        }else if(auth('charity')->user()){
+            return redirect()->route('charity.profile')->with(['status' => 200, 'message' => 'Email verified successfully!']);
+        } else {
+            return redirect()->route('login')->with(['message' => 'Email verified successfully! Please login to continue.']);
+        }
+        
+
+    }
+
+
+
 }

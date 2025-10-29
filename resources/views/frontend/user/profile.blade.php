@@ -188,7 +188,7 @@
     <div class="container">
         <div class="row">
             <div class="pagetitle pb-2">
-                New Email Address
+                Email Address
             </div>
         </div>
         <div class="row mt-2">
@@ -197,6 +197,19 @@
                 <section class="px-4">
                     <div class="row my-3">
                         <div class="alert alert-success" id="statusMessage">{{ session()->get('message') }}</div>
+                    </div>
+                </section>
+                @endif
+                @if ($errors->any())
+                <section class="px-4">
+                    <div class="row my-3">
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
                 </section>
                 @endif
@@ -251,7 +264,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (\App\Models\UserDetail::where('user_id', Auth::user()->id)->get() as $data)
+                        @foreach (\App\Models\UserDetail::where('user_id', Auth::user()->id)->whereNotNull('email_verified_at')->get() as $data)
                             
                         <tr>
                             <td>{{ $data->date }}</td>

@@ -11,6 +11,8 @@ use App\Models\Usertransaction;
 use App\Models\Provoucher;
 use App\Models\Batchprov;
 use App\Models\Draft;
+use Illuminate\Support\Str;
+use App\Mail\VerifyEmailMail;
 
 use PDF;
 use Illuminate\Http\Request;
@@ -811,14 +813,41 @@ class CharityController extends Controller
         
     public function emailAccountStore(Request $request)
     {
+
+
+        
+        UserDetail::where('user_id', auth('charity')->user()->id)
+            ->whereNull('email_verified_at')
+            ->where('email', '=', $request->newemail)
+            ->delete();
+
+
+        $request->validate([
+            'newemail' => 'required|email|unique:user_details,email',
+        ], [
+            'newemail.required' => 'Please enter a new email address.',
+            'newemail.email'    => 'Please provide a valid email address.',
+            'newemail.unique'   => 'This email is already in use. Please choose another.',
+        ]);
+
+
+
+
         $charity_id = auth('charity')->user()->id;
         $data = new UserDetail();
         $data->charity_id = $charity_id;
         $data->date = Date::now()->format('Y-m-d');
         $data->email = $request->newemail;
+        $data->verification_token = Str::random(64);
         if ($data->save()) {
-            $message = "New email added successfully.";
-            return redirect()->route('charity.profile')->with(['status' => 200, 'message' => $message]);
+
+        Mail::to($data->email)->send(new VerifyEmailMail($data));
+
+        return redirect()->route('charity.profile')->with([
+            'status' => 200,
+            'message' => 'Verification link sent to your email. Please verify to activate.',
+        ]);
+
         } else {
             return back()->with(['status' => 303, 'message' => 'Server Error!!']);
         }

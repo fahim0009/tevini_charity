@@ -18,6 +18,12 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         @endif
+                        @if(session()->has('message'))
+                            <div class="alert alert-success alert-dismissible fade show alert-custom" role="alert">
+                                {{ session()->get('message') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
                     </div>
                   <div class="col-lg-8 d-flex align-items-center justify-content-center">
                       <img src="{{ asset('assets/front/images/log in page 1.svg') }}" alt="" class="w-100">

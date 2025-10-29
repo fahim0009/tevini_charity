@@ -20,6 +20,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Date;
 
 use App\Mail\CharitypayReport;
 use App\Mail\CharitylinkRequest;
@@ -27,7 +28,7 @@ use App\Mail\DonationReport;
 use App\Mail\InstantReport;
 use App\Mail\UrgentRequest;
 use App\Models\CharityLink;
-
+use App\Models\UserDetail;
 
 class CharityController extends Controller
 {
@@ -805,5 +806,47 @@ class CharityController extends Controller
 
             return redirect()->back()->with('success', 'Mail send successfully.');
     }
+
+
+        
+    public function emailAccountStore(Request $request)
+    {
+        $charity_id = auth('charity')->user()->id;
+        $data = new UserDetail();
+        $data->charity_id = $charity_id;
+        $data->date = Date::now()->format('Y-m-d');
+        $data->email = $request->newemail;
+        if ($data->save()) {
+            $message = "New email added successfully.";
+            return redirect()->route('charity.profile')->with(['status' => 200, 'message' => $message]);
+        } else {
+            return back()->with(['status' => 303, 'message' => 'Server Error!!']);
+        }
+    }
+
+
+    public function emailAccountUpdate(Request $request)
+    {
+
+        $request->validate([
+            'upemail' => 'required|email|max:255|unique:user_details,email,' . $request->userDetailId,
+        ]);
+
+        $data = UserDetail::findOrFail($request->userDetailId);
+        $data->email = $request->upemail;
+        $data->save();
+
+        $message = "Email updated successfully.";
+        return redirect()->route('charity.profile')->with(['status' => 200, 'message' => $message]);
+    }
+
+    public function emaildestroy($id)
+    {
+        $data = UserDetail::findOrFail($id);
+        $data->delete();
+        $message = "Email deleted successfully.";
+        return redirect()->route('charity.profile')->with(['status' => 200, 'message' => $message]);
+    }
+
 
 }

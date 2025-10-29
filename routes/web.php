@@ -301,6 +301,11 @@ Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
     
     Route::get('/pending-voucher', [CharityController::class, 'pendingVoucher'])->name('charity.pendingvoucher');
 
+    
+    Route::post('new-email-account', [CharityController::class, 'emailAccountStore'])->name('charity.emailAccountStore');
+    Route::post('email-account-update', [CharityController::class, 'emailAccountUpdate'])->name('charity.emailAccountUpdate');
+    Route::delete('user-email/delete/{id}', [CharityController::class, 'emaildestroy'])->name('charity.emailDestroy');
+
 
 
 });

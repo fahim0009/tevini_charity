@@ -492,7 +492,6 @@ class UserController extends Controller
     public function emailAccountUpdate(Request $request)
     {
 
-        // dd($request->all());
         $request->validate([
             'upemail' => 'required|email|max:255|unique:user_details,email,' . $request->userDetailId,
         ]);

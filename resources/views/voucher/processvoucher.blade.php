@@ -574,7 +574,7 @@
                                         </select>
                                     </td>
                                     <td width="150px">
-                                        <select name="waiting[]" class="form-control">
+                                        <select name="expired[]" class="form-control">
                                             <option value="No">No</option>
                                             <option value="Yes">Yes</option>
                                         </select>

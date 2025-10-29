@@ -9,7 +9,7 @@
                 My profile
             </div>
 
-            @if(session()->has('message'))
+            @if(session()->has('message') && session()->get('status') != 200)
             <section class="px-4">
                 <div class="row my-3">
                     <div class="alert alert-success" id="successMessage">{{ session()->get('message') }}</div>
@@ -183,6 +183,102 @@
 </section> 
 
 
+
+<section class="additional-info py-4">
+    <div class="container">
+        <div class="row">
+            <div class="pagetitle pb-2">
+                New Email Address
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-lg-10 mx-auto">
+                @if(session()->has('status') && session()->get('status') == 200)
+                <section class="px-4">
+                    <div class="row my-3">
+                        <div class="alert alert-success" id="statusMessage">{{ session()->get('message') }}</div>
+                    </div>
+                </section>
+                @endif
+                <form action="{{route('emailAccountStore')}}" method="POST" id="storeForm">
+                    @csrf
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group mb-2">
+                                <label for="note">Email</label>
+                                <input type="email" class="form-control" id="newemail" name="newemail">
+                                
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group mt-2">
+                                <button class="btn-theme bg-primary" type="submit">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <form action="{{route('emailAccountUpdate')}}" method="POST" id="updateForm">
+                    @csrf
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group mb-2">
+                                <label for="note">Email</label>
+                                <input type="email" class="form-control" id="upemail" name="upemail">
+                                <input type="hidden" class="form-control" id="userDetailId" name="userDetailId">
+                                
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group mt-2">
+                                <button class="btn-theme bg-primary" type="submit">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="row mt-2">
+            <div class="col-lg-10 mx-auto">
+                <table class="table datatable table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (\App\Models\UserDetail::where('user_id', Auth::user()->id)->get() as $data)
+                            
+                        <tr>
+                            <td>{{ $data->date }}</td>
+                            <td>{{ $data->email }}</td>
+                            <td>
+                                <button data-udid="{{$data->id}}" data-email="{{$data->email}}" class="btn-theme bg-primary emaileditBtn" >Edit</button>
+
+                                <form action="{{ route('useremailDestroy', $data->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this email?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-theme bg-secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+
+    </div>
+</section>
+
+
+
 <section class="additional-info py-4">
     <div class="container">
         <div class="row">
@@ -203,7 +299,7 @@
                 <form action="{{route('account.deleteRequest')}}" method="POST">
                     @csrf
                     <div class="row">
-                        <div class="col-lg-6">
+                        <div class="col-lg-12">
                             <div class="form-group mb-3">
                                 <label for="note">Note</label>
                                 
@@ -277,6 +373,23 @@
         //     $("#editBtn").hide();
         //     $("#updateBtn").show();
         // });
+
+        
+        $("#updateForm").hide();
+
+        $("body").delegate(".emaileditBtn","click",function(event){
+            event.preventDefault();
+            let udid = $(this).data('udid');
+            let email = $(this).data('email');
+            $('#upemail').val(email);
+            $('#userDetailId').val(udid);
+
+
+
+
+            $("#updateForm").show();
+            $("#storeForm").hide();
+        });
 
 })
 

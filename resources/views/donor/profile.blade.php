@@ -200,7 +200,7 @@
                                                     <form action="{{ route('useremail.destroy', $data->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this email?');">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                        <button type="submit" class="btn btn-sm btn-warning mr-1">Delete</button>
                                                     </form>
                                                 </td>
                                             </tr>

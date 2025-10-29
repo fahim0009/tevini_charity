@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Date;
 use App\Mail\TDFTransfer;
 use App\Models\AccDelRequest;
 use App\Models\ContactMail;
+use App\Models\UserDetail;
 
 class UserController extends Controller
 {
@@ -471,6 +472,49 @@ class UserController extends Controller
             return back()->with(['status' => 303, 'message' => 'Server Error!!']);
         }
     }
+
+    
+    public function emailAccountStore(Request $request)
+    {
+        $data = new UserDetail();
+        $data->user_id = Auth::id();
+        $data->date = Date::now()->format('Y-m-d');
+        $data->email = $request->newemail;
+        if ($data->save()) {
+            $message = "New email added successfully.";
+            return redirect()->route('user.profile')->with(['status' => 200, 'message' => $message]);
+        } else {
+            return back()->with(['status' => 303, 'message' => 'Server Error!!']);
+        }
+    }
+
+
+    public function emailAccountUpdate(Request $request)
+    {
+
+        // dd($request->all());
+        $request->validate([
+            'upemail' => 'required|email|max:255|unique:user_details,email,' . $request->userDetailId,
+        ]);
+
+        $data = UserDetail::findOrFail($request->userDetailId);
+        $data->email = $request->upemail;
+        $data->save();
+
+        $message = "Email updated successfully.";
+        return redirect()->route('user.profile')->with(['status' => 200, 'message' => $message]);
+    }
+
+    public function destroy($id)
+    {
+        $data = UserDetail::findOrFail($id);
+        $data->delete();
+        $message = "Email deleted successfully.";
+        return redirect()->route('user.profile')->with(['status' => 200, 'message' => $message]);
+    }
+
+
+
 
     public function verification($id)
     {

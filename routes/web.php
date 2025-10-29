@@ -81,6 +81,9 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::put('image/{id}', [UserController::class, 'userImageUpload']);
     Route::post('profile', [UserController::class, 'updateprofile'])->name('user.update');
     Route::post('profile-delete-request', [UserController::class, 'profileDeleteRequest'])->name('account.deleteRequest');
+    Route::post('new-email-account', [UserController::class, 'emailAccountStore'])->name('emailAccountStore');
+    Route::post('email-account-update', [UserController::class, 'emailAccountUpdate'])->name('emailAccountUpdate');
+    Route::delete('user-email/delete/{id}', [UserController::class, 'destroy'])->name('useremailDestroy');
     // profile end
 
 

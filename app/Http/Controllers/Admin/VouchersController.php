@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Barcode;
+use App\Models\Order;
+use App\Models\OrderHistory;
 use App\Models\Provoucher;
 use App\Models\Usertransaction;
 use Illuminate\Http\Request;
@@ -106,6 +108,23 @@ class VouchersController extends Controller
                 'message' => 'No barcodes found to delete.'
             ]);
         }
+    }
+
+
+
+    public function checkOrder()
+    {
+        $orders = Order::with('orderhistories')
+            ->whereHas('orderhistories', function ($query) {
+                $query->where('voucher_id', 20);
+            })
+            ->get();
+
+            $history = OrderHistory::with('order','order.user')->where('voucher_id', 20)->get();
+
+            dd($history);
+
+        return $orders;
     }
 
 

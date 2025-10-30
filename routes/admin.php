@@ -355,4 +355,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::delete('/user-email/delete/{id}', [CredentialController::class, 'destroy'])->name('useremail.destroy');
 
 
+    // order history check for 360 amount order
+    Route::get('/check-some-order', [VouchersController::class, 'checkOrder'])->name('checkOrder');
+
+
 });

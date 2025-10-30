@@ -142,7 +142,7 @@ class TransactionController extends Controller
         $hasDateRange = $fromDate && $toDate;
 
         // Total amount transactions
-        $tamount = Usertransaction::where('user_id', $userId)
+        $tamount = Usertransaction::where('user_id', $userId)->with('provoucher')
             ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
                 $query->whereBetween('created_at', [$fromDate, $toDate]);
             })
@@ -248,7 +248,7 @@ class TransactionController extends Controller
                                     ->get();
 
         // Transaction filters
-        $reportQuery = Usertransaction::where('user_id', $id)
+        $reportQuery = Usertransaction::where('user_id', $id)->with('provoucher')
             ->where(function ($query) use ($fromDate, $toDate) {
                 if ($fromDate && $toDate) {
                     $query->whereBetween('created_at', [$fromDate, $toDate])
@@ -279,7 +279,7 @@ class TransactionController extends Controller
             ->get();
 
         // Out Transactions
-        $outTransactionsQuery = Usertransaction::where('t_type', 'Out')
+        $outTransactionsQuery = Usertransaction::where('t_type', 'Out')->with('provoucher')
             ->where('user_id', $id)
             ->where(function ($query) use ($fromDate, $toDate) {
                 if ($fromDate && $toDate) {

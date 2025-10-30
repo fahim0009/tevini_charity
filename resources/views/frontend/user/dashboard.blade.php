@@ -8,7 +8,7 @@
         ])->orwhere([
             ['user_id','=', auth()->user()->id],
             ['pending','=', '1']
-            ])->orderBy('id','DESC')->limit(5)->get();
+            ])->orderBy('id','DESC')->with('provoucher')->limit(5)->get();
 
 
     $tamount = \App\Models\Usertransaction::where([
@@ -295,8 +295,14 @@ use Illuminate\Support\Carbon;
                                 <td class="fs-16 txt-secondary">
                                     £{{ number_format($tbalance, 2) }}
                                 </td>
-                                @if($data->pending != "0")
+                                {{-- @if($data->pending != "0")
                                 @php  $tbalance = $tbalance + $data->amount;  @endphp
+                                @endif --}}
+
+                                @if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes"))
+                                    @php
+                                        $tbalance += $data->amount;
+                                    @endphp
                                 @endif
 
                             @endif

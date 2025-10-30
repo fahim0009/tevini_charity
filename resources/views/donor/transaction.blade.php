@@ -172,27 +172,36 @@ use Illuminate\Support\Carbon;
                                                 {{$data->donation_id ? $data->donation->charitynote : ''}}
                                             </td>
                                             <td>{{$data->donation_by}}</td>
-                                            <td>@if($data->pending == "0") Pending @endif</td>
+                                            <td>@if($data->pending == "0") Pending @endif <br>
+                                                @if ($data->provoucher)
+                                                    {{ $data->provoucher->expired == "Yes" ? 'Expired' : '' }}
+                                                @endif
+                                            </td>
 
                                                 @if($data->t_type == "In")
                                                     @if($data->commission != 0)
                                                         <td>£ {{ number_format($data->amount + $data->commission, 2) }} </td>
                                                         <td></td>
-                                                        <td> £{{ number_format($tbalance, 2) }} </td>
+                                                        <td> £{{ number_format($tbalance, 2) }}</td>
                                                         @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
                                                     @else
                                                         <td>£{{number_format($data->amount, 2)}} </td>
                                                         <td></td>
-                                                        <td> £{{ number_format($tbalance, 2) }} </td>
+                                                        <td> £{{ number_format($tbalance, 2) }}</td>
                                                         @php $tbalance = $tbalance - $data->amount; @endphp
                                                     @endif
                                                 @elseif($data->t_type == "Out")
                                                     <td></td>
                                                     <td>-£{{number_format($data->amount, 2) }}</td>
                                                      <td> £{{ number_format($tbalance, 2) }} </td>
-                                                     @if($data->pending != "0")
-                                                     @php  $tbalance = $tbalance + $data->amount;  @endphp
-                                                     @endif
+                                                     
+                                                        @if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes"))
+                                                            @php
+                                                                $tbalance += $data->amount;
+                                                            @endphp
+                                                        @endif
+
+
                                                 @endif
 
                                         </tr>
@@ -345,7 +354,10 @@ use Illuminate\Support\Carbon;
                                             </td>
 
                                             <td>{{ $transaction->cheque_no}}</td>
-                                            <td>@if($transaction->pending == "0") Pending @endif</td>
+                                            <td>@if($transaction->pending == "0") Pending @endif  <br>
+                                                @if ($transaction->provoucher)
+                                                    {{ $transaction->provoucher->expired == "Yes" ? 'Expired' : '' }}
+                                                @endif</td>
                                             <td>£{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach

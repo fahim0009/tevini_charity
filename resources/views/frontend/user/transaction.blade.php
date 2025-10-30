@@ -194,6 +194,13 @@ use Illuminate\Support\Carbon;
                                                         <td id="t_donate_by">{{$data->donation_by}}</td>
                                                     </tr>
                                                     @endif
+                                                    @if ($data->provoucher)
+                                                    <tr>
+                                                        <td>Status</td>
+                                                        <td>:</td>
+                                                        <td>{{ $data->provoucher->expired == "Yes" ? 'Expired' : '' }}</td>
+                                                    </tr>
+                                                    @endif
                                                     <tr>
                                                         <td>Amount</td>
                                                         <td>:</td>
@@ -275,9 +282,18 @@ use Illuminate\Support\Carbon;
                                         @endif
                                     </td>
                                      <td> £{{ number_format($tbalance, 2) }} </td>
-                                     @if($data->pending != "0")
+                                     {{-- @if($data->pending != "0")
                                      @php  $tbalance = $tbalance + $data->amount;  @endphp
-                                     @endif
+                                     @endif --}}
+
+                                     @if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes"))
+                                        @php
+                                            $tbalance += $data->amount;
+                                        @endphp
+                                    @endif
+
+
+
                                 @endif
 
                         </tr>

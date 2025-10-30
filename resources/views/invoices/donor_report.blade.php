@@ -271,7 +271,7 @@ use app\Models\Provoucher;
                             @endif
                         
                         </td>
-                        <td>@if($data->pending == "0") Pending @endif
+                        <td>@if($data->pending == "0") Pending @endif <br>
                             @if ($data->provoucher)
                                 {{ $data->provoucher->expired == "Yes" ? 'Expired' : '' }}
                             @endif
@@ -300,8 +300,10 @@ use app\Models\Provoucher;
                                 <td></td>
                                 <td class="text-right">-£{{number_format($data->amount, 2) }}</td>
                                 <td class="text-right">{{ $tbalance < 0 ? '-' : '' }}£{{ number_format(abs($tbalance), 2) }}</td>
-                                    @if($data->pending != "0")
-                                    @php  $tbalance = $tbalance + $data->amount;  @endphp
+                                    @if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes"))
+                                        @php
+                                            $tbalance += $data->amount;
+                                        @endphp
                                     @endif
                             @endif
 

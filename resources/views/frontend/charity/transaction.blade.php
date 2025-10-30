@@ -127,6 +127,13 @@ use Illuminate\Support\Carbon;
                                                                         <td id="t_donate_by">{{$transaction->donation_by}}</td>
                                                                     </tr>
                                                                     @endif
+                                                                    @if ($transaction->provoucher)
+                                                                    <tr>
+                                                                        <td>Status</td>
+                                                                        <td>:</td>
+                                                                        <td>{{ $transaction->provoucher->expired == "Yes" ? 'Expired' : '' }}</td>
+                                                                    </tr>
+                                                                    @endif
                                                                     <tr>
                                                                         <td>Amount</td>
                                                                         <td>:</td>

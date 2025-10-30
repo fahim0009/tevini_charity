@@ -378,7 +378,7 @@ class CharityController extends Controller
                 ['t_type','=', 'Out'],
                 ['charity_id','=', auth('charity')->user()->id],
                 ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
+            ])->with('provoucher')->orderBy('id','DESC')->get();
 
             $outtransactions = Transaction::where([
                 ['created_at', '>=', $fromDate],
@@ -402,7 +402,7 @@ class CharityController extends Controller
                 ['t_type','=', 'Out'],
                 ['charity_id','=', auth('charity')->user()->id],
                 ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
+            ])->with('provoucher')->orderBy('id','DESC')->get();
 
             $outtransactions= Transaction::where([
                 ['t_type','=', 'Out'],

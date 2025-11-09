@@ -76,9 +76,10 @@ use Illuminate\Support\Carbon;
             <div class="tab-pane fade show active" id="transaction" role="tabpanel"
                 aria-labelledby="transaction-tab">
                 <div class="data-container">
-                      <table class="table table-theme mt-4" id="">
+                      <table class="table table-theme mt-4 w-100" id="exampleAll">
                     <thead>
                         <tr>
+                            <th scope="col" style="display: none">ID</th>
                             <th scope="col">Date</th>
                             <th scope="col">Description</th>
                             <th scope="col">Donate By</th>
@@ -125,6 +126,7 @@ use Illuminate\Support\Carbon;
                         @foreach ($alltransactions as $data)
                         @if($data->commission != 0)
                         <tr>
+                            <td class="fs-16 txt-secondary" style="display: none">{{ $data->id }}</td>
                             <td class="fs-16 txt-secondary">{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
                             <td>Commission</td>
                             <td></td>
@@ -138,6 +140,7 @@ use Illuminate\Support\Carbon;
                         </tr>
                         @endif
                         <tr>
+                            <td class="fs-16 txt-secondary" style="display: none">{{ $data->id }}</td>
                             <td class="fs-16 txt-secondary">{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                             <td>
                                 <div class="d-flex flex-column">
@@ -306,6 +309,7 @@ use Illuminate\Support\Carbon;
                         
                     @endforeach
                      <tr>
+                        <td style="display: none"></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -323,9 +327,11 @@ use Illuminate\Support\Carbon;
             <div class="tab-pane fade" id="moneyIn" role="tabpanel" aria-labelledby="moneyIn-tab">
                     {{-- transaction in  --}}
                     <div class="data-container">
-                        <table class="table table-theme mt-4"  id="exampleIn">
+                        <table class="table table-theme mt-4 w-100"  id="exampleIn">
                               <thead>
                                   <tr>
+
+                                    <th style="display: none">ID</th>
                                     <th>Date</th>
                                     <th>Description</th>
                                     <th>Comments</th>
@@ -337,6 +343,7 @@ use Illuminate\Support\Carbon;
                               <tbody>
                                 @foreach ($intransactions as $transaction)
                                 <tr>
+                                    <td class="fs-16 txt-secondary" style="display: none">{{ $transaction->id }}</td>
                                     <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
                                     <td>
                                         <div class="d-flex flex-column">
@@ -369,9 +376,10 @@ use Illuminate\Support\Carbon;
             {{-- Transaction out  --}}
             <div class="tab-pane fade" id="moneyOut" role="tabpanel" aria-labelledby="moneyOut-tab">
                 <div class="data-container">
-                    <table class="table table-theme mt-4" id="exampleOut">
+                    <table class="table table-theme mt-4 w-100" id="exampleOut">
                           <thead>
                               <tr>
+                                <th style="display: none">ID</th>
                                 <th>Date</th>
                                 <th>Description</th>
                                 <th>Comments</th>
@@ -382,6 +390,7 @@ use Illuminate\Support\Carbon;
                           <tbody>
                             @foreach ($outtransactions as $transaction)
                             <tr>
+                                <td class="fs-16 txt-secondary" style="display: none">{{ $transaction->id }}</td>
                                 <td class="fs-16 txt-secondary">{{ Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
                                 <td>
                                     <div class="d-flex flex-column">

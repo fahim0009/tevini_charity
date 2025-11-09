@@ -240,7 +240,7 @@ $('#exampleAll').DataTable({
 });
 
 // datatable in
-$('#exampleOut').DataTable({
+$('#exampleOut2').DataTable({
     pageLength: 25,
     "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
     responsive: true,
@@ -281,6 +281,17 @@ $('#exampleOut').DataTable({
         }
     ]
 });
+
+$('#exampleOut').DataTable({
+    pageLength: 25,
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+    responsive: true,
+    columnDefs: [
+        { targets: 0, visible: false, searchable: false, type: "num" } // force numeric sort
+    ],
+    order: [[0, 'desc']],
+});
+
 
 
 

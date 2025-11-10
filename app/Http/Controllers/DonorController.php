@@ -1640,6 +1640,19 @@ class DonorController extends Controller
             ['user_id','=', auth()->user()->id]
         ])->get();
 
+        $data = Usertransaction::with('donation','standingDonations')
+                ->where(function($q) {
+                    $q->whereNotNull('donation_id')
+                    ->orWhereNotNull('standing_donationdetails_id');
+                })
+                ->where('status', 1)
+                ->where('user_id', auth()->user()->id)
+                ->latest()->limit(5)
+                ->get();    
+
+                // dd($data);
+
+
         return view('frontend.user.donationrecord')
         ->with('donation',$donation);
     }

@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
             <a href="{{ route('user.standingrecord') }}"><button type="button" class="btn btn-success">back</button></a>
         </div>
     </section>
-  <section class="px-4">
+  <section class="">
     <div class="row  my-3">
 
         <div class="col-md-12">
@@ -21,9 +21,9 @@ use Illuminate\Support\Carbon;
                           <section class="px-4"  id="contentContainer">
                             <div class="row my-3">
                                 <div class="stsermsg"></div>
-                                <div class="col-md-12 mt-2 text-center">
-                                    <div class="overflow">
-                                        <table class="table table-custom shadow-sm bg-white" id="example">
+                                <div class="col-md-12 mt-2 text-center  shadow-sm">
+                                    <div class="overflow pt-3">
+                                        <table class="table " id="example">
                                             <thead>
                                                 <tr>
                                                     <th>Date</th>

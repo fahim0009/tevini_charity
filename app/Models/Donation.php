@@ -16,4 +16,8 @@ class Donation extends Model
       public function charity(){
         return $this->belongsTo('App\Models\Charity');
       }
+
+      public function usertransaction(){
+        return $this->hasOne('App\Models\Usertransaction');
+      }
 }

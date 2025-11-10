@@ -709,7 +709,7 @@ class DonationController extends Controller
     {
 
         $singleStddonation = StandingdonationDetail::where([
-            ['id','=', $id],
+            ['standing_donation_id','=', $id],
             ['user_id','=', auth()->user()->id]
         ])->orderBy('id','DESC')->get();
 

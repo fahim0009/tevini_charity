@@ -4,13 +4,86 @@
 @php
 use Illuminate\Support\Carbon;
 @endphp
+
+<style>
+    /* Base wrapper */
+    .switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+    }
+
+    /* Hide default checkbox */
+    .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    }
+
+    /* The slider (background) */
+    .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+    }
+
+    /* The circle knob */
+    .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .switch {
+        border: 0px !important;
+    }
+
+    /* Checked state */
+    .switch input:checked + .slider {
+    background-color: #18988b;
+    }
+
+    /* Move knob when checked */
+    .switch input:checked + .slider:before {
+    transform: translateX(22px);
+    }
+
+    /* Optional glowing effect on active state */
+    .switch input:checked + .slider {
+    box-shadow: 0 0 10px rgba(24,152,139,0.5);
+    }
+
+    .switch input:checked + .slider:before {
+        animation: pulse 0.6s ease;
+        }
+
+        @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(24,152,139,0.6); }
+        70% { box-shadow: 0 0 0 8px rgba(24,152,139,0); }
+        100% { box-shadow: 0 0 0 0 rgba(24,152,139,0); }
+        }
+
+</style>
+
+
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
             <span class="iconify" data-icon="icomoon-free:profile"></span> <div class="mx-2">Standing Donation records </div>
         </div>
     </section>
-  <section class="px-4">
+  <section class="">
     <div class="row  my-3">
 
         <div class="col-md-12">
@@ -20,9 +93,9 @@ use Illuminate\Support\Carbon;
                           <section class="px-4"  id="contentContainer">
                             <div class="row my-3">
                                 <div class="stsermsg"></div>
-                                <div class="col-md-12 mt-2 text-center">
-                                    <div class="overflow">
-                                        <table class="table table-custom shadow-sm bg-white" id="example">
+                                <div class="col-md-12 mt-2 text-center shadow-sm">
+                                    <div class="overflow pt-3">
+                                        <table class="table" id="example">
                                             <thead>
                                                 <tr>
                                                     <th>Date</th>
@@ -54,11 +127,18 @@ use Illuminate\Support\Carbon;
                                                         <td>
                                                             <a href="{{ route('user.singlestanding', $data->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
                                                         </td>
-                                                        <td style="text-align: center">
+                                                        {{-- <td style="text-align: center">
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input standingdnstatus" type="checkbox" role="switch"  data-id="{{$data->id}}" @if ($data->status == 1) checked @endif >
                                                             </div>
+                                                        </td> --}}
+                                                        <td style="text-align: center">
+                                                            <label class="switch">
+                                                                <input type="checkbox" class="standingdnstatus" data-id="{{ $data->id }}"  @if ($data->status == 1) checked @endif>
+                                                                <span class="slider"></span>
+                                                            </label>
                                                         </td>
+
 
                                                     </tr>
                                                 @empty

@@ -166,18 +166,55 @@
                                         </td>
                                         <td>
                                         <div class="d-flex justify-content-center align-items-center flex-column text-white">
-                                             <a class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1" href="{{ route('charity.pay',$user->id) }}" target="blank">
-                                         Pay </a>
-                                        <a class=" text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1" href="{{ route('charity.topup',$user->id) }}" target="blank">
-                                        Top up </a>
+                                            <a class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1" href="{{ route('charity.pay',$user->id) }}" target="blank">
+                                                Pay 
+                                            </a>
+                                            
+
+                                            <a class=" text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1" href="{{ route('charity.topup',$user->id) }}" target="blank">
+                                                Top up 
+                                            </a>
                                         </div>
                                         <div class="text-center">
+
+                                            <!-- Icon that triggers modal -->
+                                            @if ($user->bank_statement)
+                                                <a href="#" data-bs-toggle="modal" data-bs-target="#fileModal{{$user->id}}">
+                                                <i class="fa fa-file" style="color: #4D617E; font-size:16px;"></i>
+                                                </a>
+                                            @endif
+
+                                            <!-- Modal -->
+                                            <div class="modal fade" id="fileModal{{$user->id}}" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="fileModalLabel">Bank  Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                
+                                                <div class="modal-body">
+                                                    <img src="{{asset('images/'. $user->bank_statement)}}" alt="Bank Document" style="width: 100%">
+                                                </div>
+                                                
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+
+                                                </div>
+                                            </div>
+                                            </div>
+
 
                                             <a href="{{ route('charityemail', $user->id)}}"><i class="fa fa-envelope-o" style="color: #4D617E;font-size:16px;"></i></a>
 
                                             <a href="{{ route('charity.tranview', $user->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
-                                        <a href="{{ route('charity.edit', encrypt($user->id))}}"><i class="fa fa-edit" style="color: #2196f3;font-size:16px;"></i></a>
-                                        <a id="deleteBtn" rid="{{$user->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
+
+                                            <a href="{{ route('charity.edit', encrypt($user->id))}}"><i class="fa fa-edit" style="color: #2196f3;font-size:16px;"></i></a>
+
+                                            <a id="deleteBtn" rid="{{$user->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
+
                                         </div>
                                         </td>
                                     </tr>

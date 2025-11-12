@@ -180,31 +180,44 @@
                                             <!-- Icon that triggers modal -->
                                             @if ($user->bank_statement)
                                                 <a href="#" data-bs-toggle="modal" data-bs-target="#fileModal{{$user->id}}">
-                                                <i class="fa fa-file" style="color: #4D617E; font-size:16px;"></i>
+                                                    <i class="fa fa-file" style="color: #4D617E; font-size:16px;"></i>
                                                 </a>
                                             @endif
 
                                             <!-- Modal -->
-                                            <div class="modal fade" id="fileModal{{$user->id}}" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="fileModalLabel">Bank  Details</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                
-                                                <div class="modal-body">
-                                                    <img src="{{asset('images/'. $user->bank_statement)}}" alt="Bank Document" style="width: 100%">
-                                                </div>
-                                                
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                </div>
+                                            <div class="modal fade" id="fileModal{{$user->id}}" tabindex="-1" aria-labelledby="fileModalLabel{{$user->id}}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content">
 
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="fileModalLabel{{$user->id}}">Bank Details</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+
+                                                        <div class="modal-body" style="text-align: center;">
+                                                            @php
+                                                                $filePath = asset('images/' . $user->bank_statement);
+                                                                $extension = pathinfo($user->bank_statement, PATHINFO_EXTENSION);
+                                                            @endphp
+
+                                                            @if (in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']))
+                                                                <img src="{{ $filePath }}" alt="Bank Document" style="width: 100%; border-radius: 8px;">
+                                                            @elseif (strtolower($extension) == 'pdf')
+                                                                <iframe src="{{ $filePath }}" width="100%" height="600px" style="border: none;"></iframe>
+                                                            @else
+                                                                <p>Unsupported file format. <a href="{{ $filePath }}" target="_blank">Click here to download.</a></p>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="modal-footer">
+                                                            <a href="{{ $filePath }}" target="_blank" class="btn btn-primary">Open in new tab</a>
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                        </div>
+
+                                                    </div>
                                                 </div>
                                             </div>
-                                            </div>
+
 
 
                                             <a href="{{ route('charityemail', $user->id)}}"><i class="fa fa-envelope-o" style="color: #4D617E;font-size:16px;"></i></a>

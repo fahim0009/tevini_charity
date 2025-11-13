@@ -103,69 +103,14 @@
         }
 
     function removeRow(event) {
-            event.target.parentElement.parentElement.remove();
-                            net_total();
+        event.target.parentElement.parentElement.remove();
+        net_total();
     }
 </script>
 <script>
     $(document).ready(function () {
         //header for csrf-token is must in laravel
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-
-        var url = "{{URL::to('/charity/pvoucher-store')}}";
-
-
-        $("body").delegate("#addvoucher","click",function(event){
-            event.preventDefault();
-
-            $("#loading").show();    
-
-            var charityId = $("select[name='charity']").val();
-
-            var donorIds = $("input[name='donor[]']")
-            .map(function(){return $(this).val();}).get();
-
-            var donorAccs = $("input[name='donor_acc[]']")
-            .map(function(){return $(this).val();}).get();
-
-            var chqNos = $("input[name='check[]']")
-            .map(function(){return $(this).val();}).get();
-
-            var amts = $("input[name='amount[]']")
-            .map(function(){return $(this).val();}).get();
-
-            var notes = $("input[name='note[]']")
-            .map(function(){return $(this).val();}).get();
-
-            var waitings = $("select[name='waiting[]']")
-            .map(function(){return $(this).val();}).get();  
-
-            $.ajax({
-                url: url,
-                method: "POST",
-                data: {donorIds,donorAccs,chqNos,amts,notes,waitings},
-
-                success: function (d) {
-                    if (d.status == 303) {
-                        $(".ermsg").html(d.message);
-                        pagetop();
-                    }else if(d.status == 300){
-                        $(".ermsg").html(d.message);
-                        pagetop();
-                        window.setTimeout(function(){window.location.href="https://www.tevini.co.uk/charity/process-voucher/"+d.batch_id},2000)
-                    }
-                },
-                complete:function(d){
-                    $("#loading").hide();
-                },
-                error: function (d) {
-                    console.log(d);
-                }
-            });
-
-        });
-
-
 
         // foucs when click anywhere
         $(document).on("mousedown", function(e) {
@@ -188,85 +133,130 @@
         // get barcode data
         var urlbr = "{{URL::to('/charity-barcode')}}";
 
-                $("#barcode").change(function(){
-		            event.preventDefault();
-                    var barcode = $(this).val();
+        $("#barcode").change(function(){
+            event.preventDefault();
+            var barcode = $(this).val();
 
-                    
-                    // check duplicate barcode 
-                    var check = $("input[name='check[]']")
-                        .map(function(){return $(this).val();}).get();
-                        
-                    check.push(barcode);
-                    seen = check.filter((s => v => s.has(v) || !s.add(v))(new Set));
+            
+            // check duplicate barcode 
+            var check = $("input[name='check[]']")
+                .map(function(){return $(this).val();}).get();
+                
+            check.push(barcode);
+            seen = check.filter((s => v => s.has(v) || !s.add(v))(new Set));
 
-                    if (Array.isArray(seen) && seen.length) {
-                        $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
+            if (Array.isArray(seen) && seen.length) {
+                $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
+                setTimeout(function() {
+                    $(".ermsg").html("");
+                }, 3000);
+                $("#barcode").val("");
+                return;
+            }
+            // check duplicate barcode 
+
+
+
+            $.ajax({
+                url: urlbr,
+                method: "POST",
+                data: {barcode:barcode},
+
+                success: function (d) {
+                    console.log(d);
+                    if (d.status == 303) {
+                        $(".ermsg").html(d.message);
                         setTimeout(function() {
                             $(".ermsg").html("");
                         }, 3000);
                         $("#barcode").val("");
-                        return;
-                    }
-                    // check duplicate barcode 
+                    }else if(d.status == 300){
+                        var markup =
+                        '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..." readonly></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" ><input type="hidden" readonly name="donor[]" value="'+d.donorid+'"  class="donorid" ></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check" ></td> <td width="20px"><input style="min-width:30px; front-size:13px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" readonly ></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" readonly value><input name="waiting[]" type="hidden" class="form-control" readonly value="No"></td></tr>';
+                    $("table #inner ").append(markup);
 
-
-
-                    $.ajax({
-                        url: urlbr,
-                        method: "POST",
-                        data: {barcode:barcode},
-
-                        success: function (d) {
-                            console.log(d);
-                            if (d.status == 303) {
-                                $(".ermsg").html(d.message);
-                                setTimeout(function() {
-                                    $(".ermsg").html("");
-                                }, 3000);
-                                $("#barcode").val("");
-                            }else if(d.status == 300){
-                                var markup =
-                                '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..." readonly></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" ><input type="hidden" readonly name="donor[]" value="'+d.donorid+'"  class="donorid" ></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check"  readonly></td> <td width="20px"><input style="min-width:30px; front-size:13px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" readonly ></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" readonly value><input name="waiting[]" type="hidden" class="form-control" readonly value="No"></td></tr>';
-                            $("table #inner ").append(markup);
-
-                            $("#barcode").val("");
-                            net_total();
-                            }
-                        },
-                        error: function (d) {
-                            console.log(d);
-                        }
-                    });
-
-                });
-
-                net_total();
-
-                $("body").delegate(".amount","keyup",function(event){
-
+                    $("#barcode").val("");
                     net_total();
-                });
-
-                function net_total(){
-                    var total = 0;
-                    $('.amount').each(function(){
-                        total += ($(this).val()-0);
-                    })
-                    $('#total').val(total.toFixed(2));
+                    }
+                },
+                error: function (d) {
+                    console.log(d);
                 }
-
+            });
 
         });
 
+        net_total();
+
+        $("body").delegate(".amount","keyup",function(event){
+
+            net_total();
+        });
+
+        function net_total(){
+            var total = 0;
+            $('.amount').each(function(){
+                total += ($(this).val()-0);
+            })
+            $('#total').val(total.toFixed(2));
+        }
 
 
-
-
-
-
-
+    });
 
 </script>
+
+<script>
+$(document).ready(function () {
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+
+    var url = "{{ URL::to('/charity/pvoucher-store') }}";
+
+    $("body").delegate("#addvoucher","click",function(event){
+        event.preventDefault();
+        $("#loading").show();
+
+        var donorIds  = $("input[name='donor[]']").map(function(){return $(this).val();}).get();
+        var donorAccs = $("input[name='donor_acc[]']").map(function(){return $(this).val();}).get();
+        var chqNos    = $("input[name='check[]']").map(function(){return $(this).val();}).get();
+        var amts      = $("input[name='amount[]']").map(function(){return $(this).val();}).get();
+        var notes     = $("input[name='note[]']").map(function(){return $(this).val();}).get();
+        var waitings  = $("select[name='waiting[]']").map(function(){return $(this).val();}).get();
+
+        $.ajax({
+            url: url,
+            method: "POST",
+            data: {
+                'donorIds[]': donorIds,
+                'donorAccs[]': donorAccs,
+                'chqNos[]': chqNos,
+                'amts[]': amts,
+                'notes[]': notes,
+                'waitings[]': waitings
+            },
+            success: function (d) {
+                if (d.status == 303) {
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                } else if (d.status == 300) {
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                    setTimeout(function() {
+                        window.location.href = "{{ route('charity.instreport', '') }}/" + d.batch_id;
+                    }, 2000);
+                }
+            },
+            complete:function(){
+                $("#loading").hide();
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+            }
+        });
+    });
+});
+</script>
+
+
 
 @endsection

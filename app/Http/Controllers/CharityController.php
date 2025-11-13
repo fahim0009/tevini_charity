@@ -548,7 +548,7 @@ class CharityController extends Controller
         ->with('donors',$donors);
     }
 
-    public function pvoucherStore(Request $request)
+    public function pvoucherStore_old(Request $request)
     {
         $charity_id= auth('charity')->user()->id;
         $donor_ids = $request->donorIds;
@@ -690,6 +690,141 @@ class CharityController extends Controller
         }
 
     }
+
+    public function pvoucherStore(Request $request)
+    {
+        $charity_id = auth('charity')->user()->id ?? null;
+
+        // Safely retrieve array inputs (avoid null errors)
+        $donor_ids  = $request->donorIds ?? [];
+        $donor_accs = $request->donorAccs ?? [];
+        $chqs       = $request->chqNos ?? [];
+        $amounts    = $request->amts ?? [];
+        $notes      = $request->notes ?? [];
+        $waitings   = $request->waitings ?? [];
+
+        // Validation: Charity must be selected
+        if (empty($charity_id)) {
+            return response()->json([
+                'status' => 303,
+                'message' => "<div class='alert alert-danger'><b>Please select a charity first.</b></div>"
+            ]);
+        }
+
+        // Validation: Must have at least one cheque number
+        if (empty($chqs) || !is_array($chqs)) {
+            return response()->json([
+                'status' => 303,
+                'message' => "<div class='alert alert-danger'><b>No vouchers found. Please scan vouchers first.</b></div>"
+            ]);
+        }
+
+        // Check duplicate cheque numbers in current submission
+        foreach (array_count_values($chqs) as $key => $val) {
+            if ($val > 1) {
+                return response()->json([
+                    'status' => 303,
+                    'message' => "<div class='alert alert-danger'><b>Voucher {$key} is entered more than once.</b></div>"
+                ]);
+            }
+        }
+
+        // Check already processed cheques in DB
+        $existing_cheques = Provoucher::pluck('cheque_no')->toArray();
+        foreach ($chqs as $chq) {
+            if (in_array($chq, $existing_cheques)) {
+                return response()->json([
+                    'status' => 303,
+                    'message' => "<div class='alert alert-danger'><b>Voucher number {$chq} is already processed.</b></div>"
+                ]);
+            }
+        }
+
+        // Check for empty required fields
+        foreach ($donor_ids as $key => $donor_id) {
+            if (empty($donor_id) || empty($donor_accs[$key]) || empty($chqs[$key]) || empty($amounts[$key])) {
+                return response()->json([
+                    'status' => 303,
+                    'message' => "<div class='alert alert-danger'><b>Please fill all required fields.</b></div>"
+                ]);
+            }
+        }
+
+        // Create new batch
+        $batch = new Batchprov();
+        $batch->charity_id = $charity_id;
+        $batch->status = 0;
+        $batch->save();
+
+        // Loop donors
+        foreach ($donor_ids as $key => $donor_id) {
+            $user = User::find($donor_id);
+            $u_bal = $user->balance ?? 0;
+            $overdrawn = $user->overdrawn_amount ?? 0;
+            $limitChk = $u_bal + $overdrawn;
+
+            // Create user transaction
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = time() . "-" . $donor_id;
+            $utransaction->user_id = $donor_id;
+            $utransaction->charity_id = $charity_id;
+            $utransaction->t_type = "Out";
+            $utransaction->amount = $amounts[$key];
+            $utransaction->cheque_no = $chqs[$key];
+            $utransaction->title = "Voucher";
+
+            if ($limitChk < $amounts[$key]) {
+                $utransaction->pending = 0; // pending transaction
+                $utransaction->status = 0;  // pending status
+            } else {
+                $utransaction->pending = 1; // complete
+                $utransaction->status = 1;  // complete
+            }
+            $utransaction->save();
+
+            // Save into provoucher
+            $pvsr = new Provoucher();
+            $pvsr->charity_id = $charity_id;
+            $pvsr->user_id = $donor_id;
+            $pvsr->batch_id = $batch->id;
+            $pvsr->donor_acc = $donor_accs[$key];
+            $pvsr->cheque_no = $chqs[$key];
+            $pvsr->amount = $amounts[$key];
+            $pvsr->note = $notes[$key];
+            $pvsr->waiting = "No";
+            $pvsr->status = ($limitChk < $amounts[$key]) ? 0 : 1;
+            $pvsr->tran_id = $utransaction->id;
+            $pvsr->save();
+
+            // Update charity and user balances if complete
+            if ($limitChk >= $amounts[$key]) {
+                $charity = Charity::find($charity_id);
+                $charity->increment('balance', $amounts[$key]);
+
+                $user->decrement('balance', $amounts[$key]);
+
+                // Update card balance if user has CreditProfileId
+                if (!empty($user->CreditProfileId)) {
+                    Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $user->CreditProfileId,
+                            'CreditProfileName' => $user->name,
+                            'AvailableBalance' => 0 - $amounts[$key],
+                            'comment' => 'Pending Voucher Balance update',
+                        ]);
+                }
+            }
+        }
+
+        // Final response
+        return response()->json([
+            'status' => 300,
+            'message' => "<div class='alert alert-success'><b>Voucher processed successfully.</b></div>",
+            'charity_id' => $charity_id,
+            'batch_id' => $batch->id
+        ]);
+    }
+
 
     public function instReport($id)
     {

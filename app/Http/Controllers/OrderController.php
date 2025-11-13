@@ -1055,8 +1055,8 @@ class OrderController extends Controller
             $voucher->cheque_no = $chequeNos[$index];
             $voucher->amount = $amount;
             $voucher->note = $notes[$index];
-            $voucher->waiting = $waitings[$index];
-            $voucher->expired = $expireds[$index];
+            $voucher->waiting = $waitings[$index] ?? 'No';
+            $voucher->expired = $expireds[$index] ?? 'No';
             $voucher->status = $isPending ? 0 : 1;
             $voucher->tran_id = $transaction->id;
             $voucher->save();

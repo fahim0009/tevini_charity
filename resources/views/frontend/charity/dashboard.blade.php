@@ -45,7 +45,7 @@ use Illuminate\Support\Carbon;
                 <input type="hidden" id="charityname" name="charityname" value="{{auth('charity')->user()->name}}">
                 <input type="hidden" id="charityamnt" name="charityamnt" value="{{auth('charity')->user()->balance}}">
                 <input type="hidden" id="charityid" name="charityid" value="{{auth('charity')->user()->id}}">
-                <button type="submit" class="btn-theme bg-primary d-block fs-14 txt-theme fw-bold">URGENT REQUEST</button>
+                <button type="submit" class="btn-theme bg-primary d-block fs-14 text-white  fw-bold">URGENT REQUEST</button>
             </form>
         </div>
     </div>

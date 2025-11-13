@@ -26,8 +26,8 @@ use Illuminate\Support\Carbon;
               <div class="tab-content" id="nav-tabContent">
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
-                        <div class="col-md-12 my-3">
-                            <div class="container">
+                        <div class="col-md-12 my-3  shadow">
+                            <div class="container p-3">
                            <div class="row">
                             <div class="col-md-9">
                                 <form class="form-inline" action="{{route('tran_charity_dashboard_search')}}" method ="POST">
@@ -58,9 +58,9 @@ use Illuminate\Support\Carbon;
 
                            </div>
                         </div>
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                        <div class="col-md-12 mt-2 text-center  shadow">
+                            <div class="overflow mt-4">
+                                <table class="table" id="example">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
@@ -197,44 +197,42 @@ use Illuminate\Support\Carbon;
                 {{-- transaction in  --}}
                 <div class="tab-pane fade" id="nav-transcationIn" role="tabpanel" aria-labelledby="nav-profile-tab">
                     <div class="row my-2">
-                        <div class="col-md-12 my-3">
-                            <div class="col-md-12 my-3">
-                                <div class="container">
-                               <div class="row">
-                                <div class="col-md-9">
+                        <div class="col-md-12 my-3  shadow">
+                            <div class="container p-3">
+                            <div class="row">
+                            <div class="col-md-9">
 
-                                <form class="form-inline" action="{{route('tran_charity_dashboard_search')}}" method ="POST">
-                                    @csrf
-                                    <div class="row">
+                            <form class="form-inline" action="{{route('tran_charity_dashboard_search')}}" method ="POST">
+                                @csrf
+                                <div class="row">
 
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for="fromDate"><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for="toDate"><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5 d-flex align-items-center">
-                                            <div class="form-group d-flex mt-4">
-                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                            </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group my-2">
+                                            <label for="fromDate"><small>Date From </small> </label>
+                                            <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
                                         </div>
                                     </div>
-                                </form>
+                                    <div class="col-md-3">
+                                        <div class="form-group my-2">
+                                            <label for="toDate"><small>Date To </small> </label>
+                                            <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 d-flex align-items-center">
+                                        <div class="form-group d-flex mt-4">
+                                        <button class="text-white btn-theme ml-1" type="submit">Search</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                </div>
+                            </form>
+                            </div>
+                            </div>
 
-                               </div>
                             </div>
                         </div>
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="exampleIn">
+                        <div class="col-md-12 mt-2 text-center  shadow">
+                            <div class="overflow p-3">
+                                <table class="table" id="exampleIn">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
@@ -267,7 +265,7 @@ use Illuminate\Support\Carbon;
             {{-- Pending Transaction  --}}
             <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
 
-                <div class="data-container">
+                <div class="data-container pt-3">
                     <table class="table table-theme mt-4" id="exampleOut">
                           <thead>
                               <tr>

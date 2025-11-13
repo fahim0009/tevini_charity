@@ -57,7 +57,7 @@
                                 <td colspan="1">
                                     <div class="row">
                                         <div class="col-md-6 my-2">
-                                            <button class="text-white btn-theme ml-1 mb-4" id="addvoucher" type="button">Process Voucher</button>
+                                            <button class="text-white btn-theme bg-primary d-block fs-14 fw-bold" id="addvoucher" type="button">Process Voucher</button>
                                         </div>
                                     </div>
                                 </td>
@@ -65,7 +65,7 @@
                         </table>
 
                         <div>
-                            <div class="row" style="opacity:0">
+                            <div class="row"  style="opacity:0">
                                 <div class="col-md-1">
                                     <input style="min-width: 200px;" id="barcode"  type="text" class="form-control">
                                 </div>
@@ -202,6 +202,10 @@
 
                     if (Array.isArray(seen) && seen.length) {
                         $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher number has already been scanned.</b></div>");
+                        setTimeout(function() {
+                            $(".ermsg").html("");
+                        }, 3000);
+                        $("#barcode").val("");
                         return;
                     }
                     // check duplicate barcode 
@@ -217,6 +221,10 @@
                             console.log(d);
                             if (d.status == 303) {
                                 $(".ermsg").html(d.message);
+                                setTimeout(function() {
+                                    $(".ermsg").html("");
+                                }, 3000);
+                                $("#barcode").val("");
                             }else if(d.status == 300){
                                 var markup =
                                 '<tr class="item-row" style="position:realative;"><td width = "200px" style="display:inline-flex;"><div style="color: white;  user-select:none;  padding: 5px;    background: red;    width: 45px;    display: flex;    align-items: center; margin-right:5px;   justify-content: center;    border-radius: 4px;   left: 4px;    top: 81px;" onclick="removeRow(event)" >X</div></td><td width="200px"><input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="'+d.donoracc+'" placeholder="Type Acc no..." readonly></td><td width="250px"><input style="min-width:100px" type="text" value="'+d.donorname+'" readonly class="form-control donorAcc" ><input type="hidden" readonly name="donor[]" value="'+d.donorid+'"  class="donorid" ></td><td width="250px"><input style="min-width:100px" name="check[]" type="text" value="'+barcode+'" class="form-control check"  readonly></td> <td width="20px"><input style="min-width:30px; front-size:13px" name="amount[]" type="text" value="'+d.amount+'" class="amount form-control" readonly ></td><td width="250px"><input style="min-width:200px" name="note[]" type="text" class="form-control note" readonly value><input name="waiting[]" type="hidden" class="form-control" readonly value="No"></td></tr>';

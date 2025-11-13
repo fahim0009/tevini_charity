@@ -14,10 +14,10 @@ use Illuminate\Support\Carbon;
         <div class="col-md-12 ">
             
               
-            <div class="row my-2">
-                <div class="col-md-12 mt-2 text-center">
-                    <div class="overflow">
-                        <table class="table table-custom shadow-sm bg-white" id="example">
+            <div class="row my-2 shadow">
+                <div class="col-md-12 mt-4 text-center">
+                    <div class="overflow ">
+                        <table class="table " id="example">
                             <thead>
                                 <tr>
                                     <th>Date</th>

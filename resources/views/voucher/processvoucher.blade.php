@@ -417,10 +417,11 @@
                         $(".ermsg").html(d.message);
                         pagetop();
                         window.setTimeout(function() {
-                            window.location.href = "https://www.tevini.co.uk/admin/process-voucher/" + d.batch_id;
+                            window.location.href = "{{ route('instreport', ':id') }}".replace(':id', d.batch_id);
                         }, 2000);
                     }
                 },
+
                 complete: function() {
                     $("#loading").hide();
                 },
@@ -538,6 +539,7 @@
                 method: "POST",
                 data: { barcode: barcode },
                 success: function(d) {
+                    $("#barcode").val("");
                     if (d.status == 300) {
                         if ($('#donorid').val() === '') {
                             $('#donorid').val(d.donorid);
@@ -714,7 +716,7 @@
                                     <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td>
                                     
                                     <td width="150px">
-                                        <select name="waiting[]" class="form-control">
+                                        <select name="expired[]" class="form-control">
                                             <option value="No">No</option>
                                             <option value="Yes">Yes</option>
                                         </select>

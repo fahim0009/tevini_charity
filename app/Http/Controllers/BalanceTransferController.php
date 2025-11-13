@@ -16,7 +16,6 @@ class BalanceTransferController extends Controller
     {
         $data = BalanceTransfer::where('transfer_from', Auth::user()->id)->orderBy('id','DESC')->get();
         $receive = BalanceTransfer::where('transfer_to', Auth::user()->id)->orderBy('id','DESC')->get();
-        // dd($data);
         return view('frontend.user.transferbalance', compact('data', 'receive'));
 
     }

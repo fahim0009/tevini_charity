@@ -76,7 +76,6 @@ class UserController extends Controller
     public function updateprofileImage(Request $request)
     {
 
-        // dd($request->all());
         $userdata = Auth::user();
         $userdata->name = Auth::user()->name;
         $userdata->surname = Auth::user()->surname;

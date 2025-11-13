@@ -60,7 +60,6 @@ class UserController extends Controller
                         )
                         ->get();
 
-                        // dd($items );
 
         $currentyramount = 0;
         foreach ($currentyr as $data2){
@@ -134,7 +133,6 @@ class UserController extends Controller
                         )
                         ->get();
 
-                        // dd($items );
 
         $currentyramount = 0;
         foreach ($currentyr as $data2){

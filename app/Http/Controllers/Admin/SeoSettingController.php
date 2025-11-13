@@ -17,7 +17,7 @@ class SeoSettingController extends Controller
     public function index()
     {
         $seo = SeoSetting::all()->first();
-        // dd($company); exit();
+        
         return view('seo.index',compact('seo'));
     }
 

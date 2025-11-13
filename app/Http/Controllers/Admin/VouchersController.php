@@ -122,8 +122,6 @@ class VouchersController extends Controller
 
             $history = OrderHistory::with('order','order.user')->where('voucher_id', 20)->get();
 
-            dd($history);
-
         return $orders;
     }
 

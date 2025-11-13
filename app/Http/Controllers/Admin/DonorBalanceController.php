@@ -23,7 +23,7 @@ class DonorBalanceController extends Controller
                         ->get();
 
 
-        // dd($data);
+                        
         return view('donorbalance.index')
         ->with('data',$data);
     }

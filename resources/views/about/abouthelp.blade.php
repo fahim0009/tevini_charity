@@ -172,15 +172,13 @@
                 data:{
                 },
                 success: function(d){
-                    console.log(d);
                     if(d.success) {
                         success("Deleted Successfully!!");
-                        //alert(d.message);
                         location.reload();
                     }
                 },
                 error:function(d){
-                    console.log(d);
+                        alert(d.message);
                 }
             });
         });

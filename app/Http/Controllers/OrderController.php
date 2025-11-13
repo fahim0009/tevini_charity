@@ -96,7 +96,7 @@ class OrderController extends Controller
             ->groupBy('voucher_id')
             ->get();
         
-        // dd($orderhistories);
+            
         $cart = VoucherCart::where('user_id', Auth::user()->id)->get();
         return view('frontend.user.voucharbookedit', compact('data','cart','orderhistories'));
     }
@@ -118,7 +118,7 @@ class OrderController extends Controller
             ->get();
         
         $donor_id = $data->user_id;
-        // dd($data);
+        
         return view('donor.voucherorderedit', compact('data','donor_id','orderhistories'));
     }
 
@@ -1486,7 +1486,6 @@ class OrderController extends Controller
         $order = Order::where('id',$id)->first();
         $user_id = $order->user_id;
         $user = User::where('id','=', $user_id)->first();
-        // dd($user);
         $orderDtls = OrderHistory::where('order_id',  $id)->get();
         $pdf = PDF::loadView('invoices.voucherbookpostage', compact('user','order','orderDtls'));
         return $pdf->download('voucherbook_' . $order->id . '.pdf');

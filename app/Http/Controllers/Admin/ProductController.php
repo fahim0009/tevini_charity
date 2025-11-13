@@ -22,8 +22,7 @@ class ProductController extends Controller
                 ]);
             
             $data = $response->json();
-            // return $data;
-            // dd($data);
+            
             return view('product.index', compact('data'));
         } catch (\Exception $e) {
             // Handle exception
@@ -73,7 +72,7 @@ class ProductController extends Controller
         $startDate = $request->fromDate;
         $endDate = $request->endDate;
 
-        // dd($cardProxyId);
+        
         try {
             $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
                 ->get('https://tevini.api.qcs-uk.com/api/cardService/v1/transaction/cardProxyId/'.$cardProxyId.'/startDate/'.$startDate.'/endDate/'.$endDate.'', [
@@ -81,8 +80,7 @@ class ProductController extends Controller
                 ]);
 
             $data = $response->json();
-            // return $data;
-            // dd($data);
+            
             return view('cardservice.transaction', compact('data'));
         } catch (\Exception $e) {
             // Handle exception

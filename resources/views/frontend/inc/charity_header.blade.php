@@ -4,7 +4,7 @@
             <iconify-icon class="icon" icon="ic:baseline-search"></iconify-icon>
             <input type="text" class="inputSearch" placeholder="Search">
         </label>
-        <div class="txt-theme fs-16">Account Number: <span class="fw-bold">{{auth('charity')->user()->acc_no}}</span> </div>
+        <div class="txt-theme fs-16">Account Number: <span class="fw-bold">{{ auth('charity')->user()->acc_no ?? '' }}</span> </div>
     </div>
     <div class="items position-relative d-flex justify-content-end align-items-center">
         <div class="dropdown account">

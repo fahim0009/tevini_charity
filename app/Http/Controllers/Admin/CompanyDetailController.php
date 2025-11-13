@@ -17,7 +17,7 @@ class CompanyDetailController extends Controller
     public function index()
     {
         $company = CompanyDetail::all()->first();
-        // dd($company); exit();
+        
         return view('admin.companydetails.index',compact('company'));
     }
 

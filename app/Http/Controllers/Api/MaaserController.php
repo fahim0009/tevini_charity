@@ -234,7 +234,6 @@ class MaaserController extends Controller
     public function store(Request $request)
     {
         
-        // dd($request->all());
 
         $alldata = json_decode($request->alldata, true); 
 

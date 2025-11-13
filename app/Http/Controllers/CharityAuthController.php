@@ -39,7 +39,7 @@ class CharityAuthController extends Controller
             if(Auth::guard('charities')->attempt(['email' => $request->email, 'password' => $request->password]))
             {
                 // return redirect()->intended(route('admin.dashboard'));
-                dd('view');
+                return 'working...';
             }
 
         }else{

@@ -1195,7 +1195,7 @@ class DonorController extends Controller
 
     public function userDonationStore(Request $request)
     {
-        // dd($request->all());
+        
         $userid = $request->userid;
 
         if(empty($request->charity_id)){
@@ -1650,7 +1650,7 @@ class DonorController extends Controller
                 ->latest()->limit(5)
                 ->get();    
 
-                // dd($data);
+                
 
 
         return view('frontend.user.donationrecord')

@@ -44,7 +44,6 @@ class TransactionController extends Controller
             ])->orderBy('id','DESC')->get();
 
             
-            // dd($alltransactions);
 
         $intransactions = Usertransaction::where([
             ['created_at', '>=', $fromDate],
@@ -114,7 +113,6 @@ class TransactionController extends Controller
         ->orderByDesc('id')
         ->get();
 
-            // dd($alltransactions);
 
         $intransactions = Usertransaction::where([
             ['t_type','=', 'In'],

@@ -122,8 +122,6 @@ class DashboardController extends Controller
             ['t_type','=', 'In']
             ])->orderBy('id','DESC')->sum('amount');
 
-            // dd($tinAmt);
-
         $toutAmt = Usertransaction::where([
             ['user_id','=', auth()->user()->id],
             ['status','=', '1'],
@@ -134,8 +132,6 @@ class DashboardController extends Controller
             ['t_type','=', 'Out']
             ])->orderBy('id','DESC')->sum('amount');
 
-            // dd($toutAmt-$tinAmt);
-            //3267.68
 
         $latestbalance = $tinAmt - $toutAmt;
 
@@ -184,7 +180,6 @@ class DashboardController extends Controller
     {
         
         $data = Charity::where('id', $id)->first(); 
-        // dd($data);
         $pending_transactions = Usertransaction::where([
             ['t_type','=', 'Out'],
             ['charity_id','=', $id],

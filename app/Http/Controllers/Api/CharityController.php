@@ -238,7 +238,6 @@ class CharityController extends Controller
     public function closecharityLink(Request $request)
     {
         $user = User::where('id', auth()->user()->id)->first();
-        // dd($user);
         $values = CharityLink::where('email', Auth::user()->email)->update(['donor_notification'=>"1"]);
         
         $success['message'] = 'Donation request close Successfully.';

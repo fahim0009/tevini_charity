@@ -252,8 +252,6 @@ class CardServiceController extends Controller
                 
     //     $data = $response->json();
 
-    //     // dd($data);
-
     //     return view('frontend.user.card.applyforcard', compact('data'));
     // }
 
@@ -652,7 +650,6 @@ class CardServiceController extends Controller
             $ldate = date('Y-m-d H:i:s');
             $updated_at = $chkorder->created_at;
             $updated_at->addDays(12); 
-            // dd($cardsts);
 
             if (empty($cardsts)) {
                 if ($ldate < $updated_at) {

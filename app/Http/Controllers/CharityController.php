@@ -294,6 +294,11 @@ class CharityController extends Controller
 
     public function charityDashboard()
     {
+        $charity = auth('charity')->user();
+
+        if (!$charity) {
+            return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
+        }
 
         return view('frontend.charity.dashboard');
     }
@@ -367,6 +372,13 @@ class CharityController extends Controller
     
     public function charityTransaction(Request $request)
     {
+        $charity = auth('charity')->user();
+
+        if (!$charity) {
+            return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
+        }
+
+        $charityId = $charity->id;
 
         if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
             $fromDate = $request->input('fromDate');
@@ -375,56 +387,52 @@ class CharityController extends Controller
             $intransactions = Usertransaction::where([
                 ['created_at', '>=', $fromDate],
                 ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type','=', 'Out'],
-                ['charity_id','=', auth('charity')->user()->id],
-                ['status','=', '1']
+                ['t_type', '=', 'Out'],
+                ['charity_id', '=', $charityId],
+                ['status', '=', '1']
             ])->with('provoucher')->orderBy('id','DESC')->get();
 
             $outtransactions = Transaction::where([
                 ['created_at', '>=', $fromDate],
                 ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type','=', 'Out'],
-                ['charity_id','=', auth('charity')->user()->id],
-                ['status','=', '1']
+                ['t_type', '=', 'Out'],
+                ['charity_id', '=', $charityId],
+                ['status', '=', '1']
             ])->orderBy('id','DESC')->get();
 
             $pending_transactions = Usertransaction::where([
                 ['created_at', '>=', $fromDate],
                 ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type','=', 'Out'],
-                ['charity_id','=', auth('charity')->user()->id],
-                ['pending','=', '0']
+                ['t_type', '=', 'Out'],
+                ['charity_id', '=', $charityId],
+                ['pending', '=', '0']
             ])->orderBy('id','DESC')->get();
 
-        }else{
-
+        } else {
             $intransactions = Usertransaction::where([
-                ['t_type','=', 'Out'],
-                ['charity_id','=', auth('charity')->user()->id],
-                ['status','=', '1']
+                ['t_type', '=', 'Out'],
+                ['charity_id', '=', $charityId],
+                ['status', '=', '1']
             ])->with('provoucher')->orderBy('id','DESC')->get();
 
-            $outtransactions= Transaction::where([
-                ['t_type','=', 'Out'],
-                ['charity_id','=', auth('charity')->user()->id],
-                ['status','=', '1']
+            $outtransactions = Transaction::where([
+                ['t_type', '=', 'Out'],
+                ['charity_id', '=', $charityId],
+                ['status', '=', '1']
             ])->orderBy('id','DESC')->get();
 
             $pending_transactions = Usertransaction::where([
-                ['t_type','=', 'Out'],
-                ['charity_id','=', auth('charity')->user()->id],
-                ['pending','=', '0']
+                ['t_type', '=', 'Out'],
+                ['charity_id', '=', $charityId],
+                ['pending', '=', '0']
             ])->orderBy('id','DESC')->get();
-
-
         }
 
-        return view('frontend.charity.transaction')
-        ->with('intransactions',$intransactions)
-        ->with('outtransactions',$outtransactions)
-        ->with('pending_transactions',$pending_transactions);
-
+        return view('frontend.charity.transaction', compact(
+            'intransactions', 'outtransactions', 'pending_transactions'
+        ));
     }
+
 
     public function charityLink()
     {

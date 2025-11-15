@@ -22,45 +22,50 @@ class CampaignController extends Controller
                 })
                 ->when(request()->input('charity'), function ($query, $charity) {
                     return $query->where('charity_id', $charity);
-                })
+                })->limit(10)
                 ->get();
 
 
+                // dd( $data );
 
         return view('campaign.index', compact('data'));
     }
 
-    public function campaignData(Request $request)
-{
-    $query = Campaign::with('charity')->orderBy('id', 'DESC');
+    
 
-    return DataTables::of($query)
-        ->addIndexColumn()
-        ->addColumn('charity', function ($row) {
-            return $row->charity->name ?? '';
-        })
-        ->addColumn('start', function ($row) {
-            return $row->start_date ? \Carbon\Carbon::parse($row->start_date)->format('d-m-Y') : '';
-        })
-        ->addColumn('end', function ($row) {
-            return $row->end_date ? \Carbon\Carbon::parse($row->end_date)->format('d-m-Y') : '';
-        })
-        ->addColumn('actions', function ($row) {
-            return '
-                <a href="'.route('campaign.donor_list', $row->id).'">
-                    <i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i>
-                </a>
-                <a href="'.route('campaign.edit', encrypt($row->id)).'">
-                    <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>
-                </a>
-                <a id="deleteBtn" rid="'.$row->id.'">
-                    <i class="fa fa-trash-o" style="color: red;font-size:16px;"></i>
-                </a>
-            ';
-        })
-        ->rawColumns(['actions'])
-        ->make(true);
-}
+    public function campaignData(Request $request)
+    {
+        $query = Campaign::with('charity');
+
+        if ($request->campaign) {
+            $query->where('id', $request->campaign);
+        }
+
+        if ($request->charity) {
+            $query->where('charity_id', $request->charity);
+        }
+
+        return DataTables::of($query)
+            ->addColumn('charity', function ($row) {
+                return $row->charity->name ?? '';
+            })
+            ->addColumn('actions', function ($row) {
+                return '
+                    <a href="'.route('campaign.donor_list', $row->id).'">
+                        <i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i>
+                    </a>
+                    <a href="'.route('campaign.edit', encrypt($row->id)).'">
+                        <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>
+                    </a>
+                    <a id="deleteBtn" rid="'.$row->id.'">
+                        <i class="fa fa-trash-o" style="color:red;font-size:16px;"></i>
+                    </a>
+                ';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
 
 
     public function store(Request $request)

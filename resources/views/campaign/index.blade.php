@@ -115,45 +115,36 @@
 
                     
                     <div class="col-md-12">
-                        <form class="form-inline" action="{{route('campaign.search')}}" method="POST">
-                            @csrf         
-
+                        <form id="filterForm">
                             <div class="row justify-content-center">
 
                                 <div class="col-md-4">
-                                    <div class="form-group my-2">
-                                        <label for="campaign"><small>Campaign</small> </label>
-                                        <select name="campaign" id="campaign" class="form-control select2">
-                                            <option value="">Select</option>
-                                            @foreach ($data as $item)
-                                            <option value="{{$item->id}}" {{ old('campaign') == $item->id ? 'selected' : '' }}>{{$item->campaign_title}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                    <label><small>Campaign</small></label>
+                                    <select name="campaign" id="campaign" class="form-control select2">
+                                        <option value="">Select</option>
+                                        @foreach (\App\Models\Campaign::orderBy('id','DESC')->get() as $item)
+                                            <option value="{{$item->id}}">{{$item->campaign_title}}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <div class="col-md-4">
-                                    <div class="form-group my-2">
-                                        <label for="charity"><small>Charity</small> </label>
-                                        <select name="charity" id="charity" class="form-control select2">
-                                            <option value="">Select</option>
-                                            @foreach (\App\Models\Charity::orderby('id', 'DESC')->get() as $item)
-                                            <option value="{{$item->id}}" {{ old('charity') == $item->id ? 'selected' : '' }}>{{$item->name}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                    <label><small>Charity</small></label>
+                                    <select name="charity" id="charity" class="form-control select2">
+                                        <option value="">Select</option>
+                                        @foreach (\App\Models\Charity::orderBy('id','DESC')->get() as $item)
+                                            <option value="{{$item->id}}">{{$item->name}}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <div class="col-md-4 d-flex align-items-center">
-                                    <div class="form-group d-flex mt-4">
-                                    <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                    </div>
+                                    <button class="text-white btn-theme mt-4" id="filterBtn" type="button">Search</button>
                                 </div>
 
                             </div>
-
-
                         </form>
+
                     </div>
 
 
@@ -224,25 +215,36 @@
         var table = $('#campaignTable').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "{{ route('campaign.data') }}",
+            ajax: {
+                url: "{{ route('campaign.data') }}",
+                data: function (d) {
+                    d.campaign = $('#campaign').val();
+                    d.charity = $('#charity').val();
+                }
+            },
             columns: [
-                {data: 'id', name: 'id'},
-                {data: 'charity', name: 'charity.name'},
-                {data: 'campaign_title', name: 'campaign_title'},
-                {data: 'hash_code', name: 'hash_code'},
+                {data: 'id'},
+                {data: 'charity'},
+                {data: 'campaign_title'},
+                {data: 'hash_code'},
                 {
                     data: 'return_url',
-                    name: 'return_url',
                     render: function (data, type, row) {
-                        return data + 
-                        ' <a campaign-id="'+row.id+'" class="url" data-bs-toggle="modal" data-bs-target="#exampleModal2"><i class="fa fa-edit" style="color:#2094f3;font-size:16px;"></i></a>';
+                        return data +
+                            ' <a campaign-id="'+row.id+'" class="url" data-bs-toggle="modal" data-bs-target="#exampleModal2"><i class="fa fa-edit" style="color:#2094f3;font-size:16px;"></i></a>';
                     }
                 },
-                {data: 'start', name: 'start'},
-                {data: 'end', name: 'end'},
-                {data: 'actions', name: 'actions', orderable: false, searchable: false}
+                {data: 'start_date'},
+                {data: 'end_date'},
+                {data: 'actions', orderable: false, searchable: false},
             ]
         });
+
+        // reload table on filter button click
+        $('#filterBtn').click(function () {
+            table.ajax.reload();
+        });
+
 
     });
 

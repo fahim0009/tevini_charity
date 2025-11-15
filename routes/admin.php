@@ -252,6 +252,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // Campaign
     Route::get('/campaign', [CampaignController::class, 'index'])->name('campaign');
+    Route::get('/admin/campaign/data', [CampaignController::class, 'campaignData'])->name('campaign.data');
     Route::post('/campaign', [CampaignController::class, 'index'])->name('campaign.search');
     Route::post('/add-campaign', [CampaignController::class, 'store'])->name('campaign.store');
     Route::get('/edit-campaign/{id}/edit', [CampaignController::class, 'edit'])->name('campaign.edit');

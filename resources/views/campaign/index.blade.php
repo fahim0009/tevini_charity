@@ -160,7 +160,7 @@
 
                     <div class="col-md-12 mt-2 text-center">
                         <div class="overflow">
-                            <table class="table table-donor shadow-sm bg-white" id="example3">
+                            <table class="table table-donor shadow-sm bg-white" id="campaignTable">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -173,38 +173,8 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @forelse ($data as $key => $item)
-                                        <tr>
-                                            <td>{{$item->id}}</td>
-                                            <td>{{$item->charity->name }}</td>
-                                            <td>{{$item->campaign_title}}</td>
-                                            <td>{{$item->hash_code}}</td>
-                                            <td>{{$item->return_url}}
-                                                <a campaign-id="{{$item->id}}" class="url" data-bs-toggle="modal" data-bs-target="#exampleModal2">
-                                                    <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>
-                                                </a>
-                                            </td>
-                                            <td>
-                                                @if ($item->start_date)
-                                                {{ \Carbon\Carbon::parse($item->start_date)->format('d-m-Y') ?? '' }}
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if ($item->end_date)
-                                                {{ \Carbon\Carbon::parse($item->end_date)->format('d-m-Y') ?? '' }}
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <a href="{{route('campaign.donor_list', $item->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
-                                                <a href="{{ route('campaign.edit', encrypt($item->id))}}"><i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i></a>
-                                                <a id="deleteBtn" rid="{{$item->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                    @endforelse
-                                </tbody>
                             </table>
+
                         </div>
                     </div>
                 </div>
@@ -249,15 +219,31 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
-    $(document).ready(function() {
-        $('#example3').DataTable({
-            "order": [[0, "desc"]],
-            "pageLength": 50,
-            dom: 'Bfrtip',
-            buttons: [
-            'pdf'
+    $(function () {
+
+        var table = $('#campaignTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('campaign.data') }}",
+            columns: [
+                {data: 'id', name: 'id'},
+                {data: 'charity', name: 'charity.name'},
+                {data: 'campaign_title', name: 'campaign_title'},
+                {data: 'hash_code', name: 'hash_code'},
+                {
+                    data: 'return_url',
+                    name: 'return_url',
+                    render: function (data, type, row) {
+                        return data + 
+                        ' <a campaign-id="'+row.id+'" class="url" data-bs-toggle="modal" data-bs-target="#exampleModal2"><i class="fa fa-edit" style="color:#2094f3;font-size:16px;"></i></a>';
+                    }
+                },
+                {data: 'start', name: 'start'},
+                {data: 'end', name: 'end'},
+                {data: 'actions', name: 'actions', orderable: false, searchable: false}
             ]
         });
+
     });
 
 window.onload = (event) => {
@@ -322,10 +308,11 @@ window.onload = (event) => {
 
 
         //add url
-        $(".url").click(function(){
-		var campaignid = $(this).attr("campaign-id");
-        $('#campaignid').val(campaignid);
-	    });
+        $(document).on("click", ".url", function () {
+            var campaignid = $(this).attr("campaign-id");
+            $('#campaignid').val(campaignid);
+        });
+
 
         var c_url = "{{URL::to('/admin/update-url')}}";
         $("#campaignBtn").click(function(){

@@ -9,6 +9,7 @@ use App\Models\ContactMail;
 use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Yajra\DataTables\Facades\DataTables;
 use PDF;
 
 class CampaignController extends Controller
@@ -28,6 +29,38 @@ class CampaignController extends Controller
 
         return view('campaign.index', compact('data'));
     }
+
+    public function campaignData(Request $request)
+{
+    $query = Campaign::with('charity')->orderBy('id', 'DESC');
+
+    return DataTables::of($query)
+        ->addIndexColumn()
+        ->addColumn('charity', function ($row) {
+            return $row->charity->name ?? '';
+        })
+        ->addColumn('start', function ($row) {
+            return $row->start_date ? \Carbon\Carbon::parse($row->start_date)->format('d-m-Y') : '';
+        })
+        ->addColumn('end', function ($row) {
+            return $row->end_date ? \Carbon\Carbon::parse($row->end_date)->format('d-m-Y') : '';
+        })
+        ->addColumn('actions', function ($row) {
+            return '
+                <a href="'.route('campaign.donor_list', $row->id).'">
+                    <i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i>
+                </a>
+                <a href="'.route('campaign.edit', encrypt($row->id)).'">
+                    <i class="fa fa-edit" style="color: #2094f3;font-size:16px;"></i>
+                </a>
+                <a id="deleteBtn" rid="'.$row->id.'">
+                    <i class="fa fa-trash-o" style="color: red;font-size:16px;"></i>
+                </a>
+            ';
+        })
+        ->rawColumns(['actions'])
+        ->make(true);
+}
 
 
     public function store(Request $request)
@@ -127,7 +160,7 @@ class CampaignController extends Controller
         $cmpn = Campaign::find($request->campaignid);
         $cmpn->return_url = $request->campaignurl;
         if($cmpn->save()){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Overdrawn amount update successfully.</b></div>";
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Url update successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
         }
 

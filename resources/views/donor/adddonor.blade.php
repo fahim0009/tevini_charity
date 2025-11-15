@@ -120,8 +120,8 @@
                         <label class="form-check-label" for="todate">Date To</label>
                         <input type="date" id="todate" name="todate" class="form-control">
                     </div>
-                    <button class="btn btn-primary rounded-pill" id="sentRpt" type="button">Send Mail</button>
-                    <a href="{{ route('admin.donor.email') }}" class="btn btn-success rounded-pill">Custom Mail</a>
+                    <button class="btn btn-primary mt-3" id="sentRpt" type="button">Send Mail</button>
+                    <a href="{{ route('admin.donor.email') }}" class="btn btn-success mt-3">Custom Mail</a>
                 </div>
 
                 <!-- Loader -->
@@ -141,110 +141,18 @@
                                     <th></th>
                                     <th>Sl</th>
                                     <th>Name</th>
-                                    <th style="min-width:160px">Email</th>
+                                    <th>Email</th>
                                     <th>Phone</th>
-                                    <th>Address</th>
+                                    <th>Town</th>
                                     <th>Account</th>
                                     <th>Balance</th>
                                     <th>Overdrawn</th>
-                                    <th>Pending Amount</th>
+                                    <th>Pending</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach ($users as $user)
-                                    @php
-                                        $pending_transactions = \App\Models\Usertransaction::where([
-                                                                    ['t_type','=', 'Out'],
-                                                                    ['user_id','=', $user->id],
-                                                                    ['pending','=', '0']
-                                                                ])->sum('amount');
-
-                                        $gettrans = \App\Models\Usertransaction::where([
-                                                ['user_id','=', $user->id],
-                                                ['status','=', '1']
-                                            ])->orwhere([
-                                                ['user_id','=', $user->id],
-                                                ['pending','=', '1']
-                                            ])->orderBy('id','DESC')->get();
-
-                                            $donorUpBalance = 0;
-                                            foreach ($gettrans as $key => $tran) {
-                                            if ($tran->t_type == "In") {
-                                                $donorUpBalance = $donorUpBalance + $tran->amount;
-                                            }elseif ($tran->t_type == "Out") {
-                                                $donorUpBalance = $donorUpBalance - $tran->amount;
-                                            } else {
-                                                # code...
-                                            }
-                                        }
-                                    @endphp 
-                                    <tr>
-                                        <td><input class="form-check-input getDid" type="checkbox" name="donorIds[]" value="{{ $user->id }}"></td>
-                                        <td>{{ $user->id }}</td>
-                                        <td>
-                                            {{ $user->name }} {{ $user->surname }}
-                                            <i class="fa fa-{{ $user->email_verified_at ? 'check-circle' : 'times-circle' }}" style="color: {{ $user->email_verified_at ? 'green' : 'red' }};"></i>
-                                        </td>
-                                        <td>{{ $user->email }}</td>
-                                        <td>{{ $user->phone }}</td>
-                                        <td>{{ $user->town }}</td>
-                                        <td>
-                                            @if ($user->accountno)
-                                                {{ $user->accountno ?? '' }}
-                                            @else
-                                                <button type="button" user-id="{{ $user->id }}" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal">add</button>
-                                            @endif
-                                        </td>
-                                        <td>{{ $donorUpBalance < 0 ? '-' : '' }}£{{ number_format(abs($donorUpBalance), 2) }}</td>
-                                        <td>
-                                            £{{ number_format($user->overdrawn_amount, 2) }}
-                                            <a overdrawn-id="{{ $user->id }}" class="overdrawn" data-bs-toggle="modal" data-bs-target="#exampleModal2">
-                                                <i class="fa fa-edit" style="color: #2094f3; font-size: 16px;"></i>
-                                            </a>
-                                        </td>
-                                        <td>{{ $pending_transactions < 0 ? '-' : '' }}£{{ number_format(abs($pending_transactions), 2) }}</td>
-                                        <td>
-                                            <a class="text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1 d-block text-center" href="{{ route('topup', [$user->id, 0]) }}" target="_blank">
-                                                <small>Top Up</small>
-                                            </a>
-                                            <button type="button" class="btn btn-secondary mb-1 d-block w-100" data-bs-toggle="modal" data-bs-target="#sendTextModal{{$user->id}}">
-                                                <small>Message</small>
-                                            </button>
-                                            <div class="modal fade" id="sendTextModal{{$user->id}}" tabindex="-1" aria-labelledby="sendTextModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="sendTextModalLabel">Send Text Message</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <form action="{{ route('admin.donor.sendtext', $user->id) }}" method="POST">
-                                                            @csrf
-                                                            <div class="modal-body">
-                                                                <div class="mb-3">
-                                                                    <label for="textMessage" class="form-label">Message</label>
-                                                                    <textarea class="form-control" id="textMessage" name="message" rows="4" required></textarea>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                                <button type="submit" class="btn btn-primary">Send</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="py-1 text-center d-flex gap-2 justify-content-center">
-                                                <a href="{{ route('sendemail', $user->id) }}"><i class="fa fa-envelope-o" style="color: #4D617E; font-size: 16px;"></i></a>
-                                                <a href="{{ route('donor.profile', $user->id) }}"><i class="fa fa-eye" style="color: #09a311; font-size: 16px;"></i></a>
-                                                <a href="{{ route('donor.edit', encrypt($user->id)) }}"><i class="fa fa-edit" style="color: #2094f3; font-size: 16px;"></i></a>
-                                                <a id="deleteBtn" rid="{{ $user->id }}"><i class="fa fa-trash-o" style="color: red; font-size: 16px;"></i></a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
                         </table>
+
                     </div>
                     <!-- Pagination Links -->
                     <div class="mt-3">
@@ -439,25 +347,30 @@ $(document).ready(function () {
 
     // DataTables Initialization
     $('#donorexample').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('donors.data') }}",
         pageLength: 25,
-        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        responsive: true,
-        order: [[1, 'desc']],
-        dom: '<"html5buttons"B>lTfgitp',
-        buttons: [
-            { extend: 'copy' },
-            { extend: 'excel', title: 'Report' },
-            {
-                extend: 'print',
-                exportOptions: { stripHtml: false },
-                title: "<p style='text-align:center;'>Data:<br>Report</p>",
-                customize: function(win) {
-                    $(win.document.body).addClass('white-bg').css('font-size', '10px');
-                    $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
-                }
-            }
+
+        columns: [
+            { data: 'id', render: function(id){
+                return `<input type="checkbox" class="form-check-input getDid" value="${id}">`;
+            }},
+            { data: 'id' },
+            { data: 'fullname', name: 'fullname' },
+            { data: 'email' },
+            { data: 'phone' },
+            { data: 'town' },
+            { data: 'accountno' },
+            { data: 'balance' },
+            { data: 'overdrawn_amount' },
+            { data: 'pending' },
+            { data: 'action', orderable: false, searchable: false }
         ]
     });
+
+
+
 });
 </script>
 @endsection

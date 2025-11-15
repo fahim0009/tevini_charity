@@ -36,7 +36,7 @@ class DonorController extends Controller
         return view('donor.index');
     }
 
-    public function addDonor()
+    public function addDonor2()
     {
         $users = User::where('is_type', 'user')
             ->select('id', 'name', 'surname', 'email', 'phone', 'accountno', 'town', 'balance', 'overdrawn_amount', 'email_verified_at')
@@ -48,6 +48,55 @@ class DonorController extends Controller
 
         return view('donor.adddonor', compact('users'));
     }
+
+    public function addDonor()
+    {
+        return view('donor.adddonor');
+    }
+
+    public function donorData()
+    {
+        $users = User::where('is_type','user')
+            ->select('id','name','surname','email','phone','accountno','town','balance','overdrawn_amount','email_verified_at')
+            ->withSum(['usertransaction as balance_in' => function($q){
+                $q->where('t_type','In')->where('status',1);
+            }], 'amount')
+            ->withSum(['usertransaction as balance_out' => function($q){
+                $q->where('t_type','Out')->where('status',1);
+            }], 'amount')
+            ->withSum(['usertransaction as pending_out' => function($q){
+                $q->where('t_type','Out')->where('pending',0);
+            }], 'amount');
+
+        return datatables()->eloquent($users)
+            ->addColumn('balance', function($u){
+                $value = $u->balance_in - $u->balance_out;
+                return '£' . number_format($value, 2);
+            })
+            ->addColumn('overdrawn_amount', function($u){
+                return '£' . number_format($u->overdrawn_amount, 2);
+            })
+            ->addColumn('pending', function ($u) {
+                return '£' . number_format($u->pending_out ?? 0, 2);
+            })
+            ->addColumn('fullname', function($u){
+                return $u->name.' '.$u->surname.
+                    ' <i class="fa fa-'.($u->email_verified_at ? 'check-circle' : 'times-circle').'" 
+                        style="color:'.($u->email_verified_at ? 'green' : 'red').'"></i>';
+            })
+            ->addColumn('action', function($u){
+                return view('donor.partials.action', compact('u'))->render();
+            })
+            ->rawColumns(['fullname','action'])
+            ->make(true);
+    }
+
+
+
+
+
+
+
 
     public function donorStore(Request $request)
     {

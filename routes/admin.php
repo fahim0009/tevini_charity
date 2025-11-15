@@ -87,6 +87,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     // donor details
     Route::get('/donor', [DonorController::class, 'addDonor'])->name('donor');
+    Route::get('/admin/donors/data', [DonorController::class, 'donorData'])->name('donors.data');
+
     Route::post('/add-donor', [DonorController::class, 'donorStore'])->name('donor.store');
     Route::get('/edit-donor/{id}/edit', [DonorController::class, 'donorEdit'])->name('donor.edit');
     Route::post('/edit-donor/{id}', [DonorController::class, 'donorUpdate'])->name('donor.update');

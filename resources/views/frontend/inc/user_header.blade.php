@@ -10,7 +10,7 @@
         <div class="dropdown account">
             <div class="d-flex align-items-center  dropdown-toggle" type="button" id="dropdownMenuButton1"
                 data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="txt-theme fw-bold fs-16 me-2">{{auth()->user()->name}}</span>
+                <span class="txt-theme fw-bold fs-16 me-2">{{auth()->user()->name ?? ''}}</span>
                 <iconify-icon class="fs-2" icon="mdi:user-circle-outline"></iconify-icon>
             </div>
             <ul class="dropdown-menu  " aria-labelledby="dropdownMenuButton1">

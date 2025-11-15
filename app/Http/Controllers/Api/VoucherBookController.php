@@ -200,18 +200,20 @@ class VoucherBookController extends Controller
                     SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
                 ')
                 ->where([
-                    ['user_id','=', auth()->user()->id],
-                    ['status','=', '1']
-                ])->orwhere([
-                    ['user_id','=', auth()->user()->id],
-                    ['pending','=', '1']
+                    ['user_id', '=', auth()->user()->id],
+                    ['status', '=', '1']
+                ])
+                ->orWhere([
+                    ['user_id', '=', auth()->user()->id],
+                    ['pending', '=', '1']
                 ])
                 ->first();
-            // donor balance end
 
-            $u_bal = number_format($userTransactionBalance->balance, 2);
-            $overdrawn = (User::where('id',Auth::user()->id)->first()->overdrawn_amount);
+            $u_bal = (float) $userTransactionBalance->balance;
+            $overdrawn = (float) User::where('id', Auth::id())->value('overdrawn_amount');
+
             $limitChk = $u_bal + $overdrawn;
+
 
             if($limitChk < $prepaid_amount ){
                 $success['message'] = 'Overdrawn limit exceed..';

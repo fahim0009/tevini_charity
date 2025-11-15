@@ -295,7 +295,6 @@ class CharityController extends Controller
     public function charityDashboard()
     {
         $charity = auth('charity')->user();
-
         if (!$charity) {
             return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
         }
@@ -305,6 +304,11 @@ class CharityController extends Controller
 
     public function profileShow()
     {
+        
+        $charity = auth('charity')->user();
+        if (!$charity) {
+            return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
+        }
         return view('frontend.charity.profile');
     }
 
@@ -436,6 +440,12 @@ class CharityController extends Controller
 
     public function charityLink()
     {
+        
+        $charity = auth('charity')->user();
+        if (!$charity) {
+            return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
+        }
+
         return view('frontend.charity.link');
     }
 
@@ -545,6 +555,12 @@ class CharityController extends Controller
 
     public function processVoucher()
     {
+        
+        $charity = auth('charity')->user();
+        if (!$charity) {
+            return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
+        }
+        
         $charities = Charity::all();
         $donors = User::where([
             ['is_type', '=', 'user'],

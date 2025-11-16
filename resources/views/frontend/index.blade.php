@@ -44,8 +44,8 @@
   }
   .containerrr {
       border-radius: 3px;
-      background-color: white;
-      color: #626262;
+      color: #4e4b5c;
+      font-weight: 600;
       margin-bottom: 10px;
       padding: 10px;
       overflow: hidden;
@@ -55,7 +55,7 @@
       right: 0;
       position: fixed;
       padding: 20px;
-      background-color: #fff;
+      background-color: #e8e1d9;
       bottom: -10px;
       width: 100%;
       -webkit-box-shadow: 2px 2px 19px 6px #00000029;
@@ -412,17 +412,17 @@
 <div id="cookiebarBox" class="os-animation" data-os-animation="fadeIn" >
     <div class="containerrr risk-dismiss " style="display: flex;" >
           <div class="container">
-            <div class="row">
+            <div class="row bleesed">
                 <div class="col-md-9">
-                <p class="text-left">
+                <p class="para  text-left">
                <h1 class="d-inline text-primary"><span class="iconify" data-icon="iconoir:half-cookie"></span> </h1>
                {{-- {{ App\Models\Cookie::where('id','=', 1)->first()->description }} --}}
-               Like most websites, this site uses cookies to assist with navigation and your ability to provide feedback, analyse your use of products and services so that we can improve them, assist with our personal promotional and marketing efforts and provide consent from third parties.
+               <p>Like most websites, this site uses cookies to assist with navigation and your ability to provide feedback, analyse your use of products and services so that we can improve them, assist with our personal promotional and marketing efforts and provide consent from third parties.</p>
             </p>
 
                 </div>
                 <div class="col-md-3 d-flex align-items-center justify-content-center">
-                    <a id="cookieBoxok" class="btn btn-sm btn-primary my-3 px-4 text-center" data-cookie="risk">Accept</a>
+                    <a id="cookieBoxok" class="btn-theme bg-secondary" data-cookie="risk">Accept</a>
                 </div>
             </div>
           </div>

@@ -2069,12 +2069,45 @@ public function watingvoucherCancel(Request $request)
         ->with('orders',$orders);
     }
 
-    public function completeOrder()
+
+    public function completeOrder(Request $request)
     {
-        $orders = Order::where('status','1')->orderBy('id','DESC')->get();
-        return view('voucher.order')
-        ->with('orders',$orders);
+        if ($request->ajax()) {
+
+            $orders = Order::with('user')
+                ->select('id','user_id','order_id','amount','status','created_at')
+                ->where('status', '1')
+                ->orderBy('id', 'DESC'); 
+
+            return DataTables::eloquent($orders)
+                ->addColumn('donor', function ($order) {
+                    if ($order->user->profile_type == 'Company') {
+                        return $order->user->surname;
+                    }
+                    return $order->user->name;
+                })
+                ->addColumn('status_text', function ($order) {
+                    return $order->status == 1 ? 'Complete' : '';
+                })
+                ->addColumn('barcode', function ($order) {
+                    return '<a href="'.route('barcode',$order->id).'"><i class="fa fa-eye"></i></a>';
+                })
+                ->addColumn('action', function ($order) {
+                    return '
+                    <a href="'.route('singleorder',$order->id).'"><i class="fa fa-eye"></i></a>
+                    <a href="'.route('donor.vorderEdit',$order->id).'"><i class="fa fa-edit"></i></a>
+                    ';
+                })
+                ->editColumn('created_at', function ($order) {
+                    return $order->created_at->format('d/m/Y');
+                })
+                ->rawColumns(['barcode','action'])
+                ->make(true);
+        }
+
+        return view('voucher.order');
     }
+
 
 
     public function cancelOrder()

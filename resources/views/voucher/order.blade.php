@@ -55,7 +55,7 @@
                         </div>
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                <table class="table table-custom shadow-sm bg-white" id="completeTable">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
@@ -67,44 +67,9 @@
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-
-                                        @forelse ($orders as $order)
-
-                                        <tr>
-                                            <td>{{ $order->created_at}} </td>
-                                            <td>{{ $order->order_id}} </td>
-                                            <td>
-                                                @if ($order->user->profile_type == 'Company')
-                                                {{ $order->user->surname }}
-                                                @else
-                                                {{ $order->user->name }}
-                                                @endif
-                                            </td>
-                                            <td>£{{ $order->amount}}</td>
-                                            <td>@if($order->status =="0")
-                                                Pending
-                                                @elseif($order->status =="1")
-                                                Complete
-                                                @elseif($order->status =="3")
-                                                Cancel
-                                                @endif
-                                            </td>
-                                            <td><a href="{{ route('barcode',$order->id) }}"> <i class="fa fa-eye"></i></a></td>
-                                            <td>
-                                                <a href="{{ route('singleorder',$order->id) }}"> <i class="fa fa-eye"></i></a>
-                                                <a href="{{ route('donor.vorderEdit',$order->id) }}"> <i class="fa fa-edit"></i></a>
-                                            </td>
-                                        </tr>
-                                        @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center"> <p>No order found</p> </td>
-                                        </tr>
-                                        @endforelse
-
-
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
+
                             </div>
                         </div>
                     </div>
@@ -113,4 +78,38 @@
     </div>
   </section>
 </div>
+@endsection
+
+@section('script')
+
+<script>
+    $(document).ready(function() {
+
+    if ($.fn.DataTable.isDataTable('#completeTable')) {
+        $('#completeTable').DataTable().clear().destroy();
+    }
+
+    $('#completeTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('completeorder') }}", // Your route
+            type: "GET",
+        },
+        columns: [
+            { data: 'created_at', name: 'created_at' },
+            { data: 'order_id', name: 'order_id' },
+            { data: 'donor', name: 'donor' },
+            { data: 'amount', name: 'amount' },
+            { data: 'status_text', name: 'status_text' },
+            { data: 'barcode', name: 'barcode', orderable: false, searchable: false },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 50
+    });
+
+});
+
+</script>
+    
 @endsection

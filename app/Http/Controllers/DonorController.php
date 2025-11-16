@@ -24,6 +24,7 @@ use App\Mail\DonorCustomMail;
 use App\Mail\TDFTransfer;
 use App\Models\ExpectedGiftAid;
 use App\Models\TdfTransaction;
+use Yajra\DataTables\Facades\DataTables;
 use PDF;
 use Hash;
 use Auth;
@@ -1741,12 +1742,32 @@ class DonorController extends Controller
         return view('donor.donationlist',compact('donation','charities'));
     }
 
-    public function donationRecord()
+    public function donationRecord(Request $request)
     {
-        $donation = Donation::where([
-            ['status','!=','0']
-        ])->orderBy('id','DESC')->get();
-        return view('donor.record',compact('donation'));
+        if ($request->ajax()) {
+
+            $query = Donation::with(['user', 'charity'])
+                    ->where('status', '!=', 0)
+                    ->orderBy('id', 'DESC');
+
+            return DataTables::of($query)
+                ->addColumn('donor', fn($d) => $d->user->name)
+                ->addColumn('beneficiary', fn($d) => $d->charity->name)
+                ->addColumn('anonymous', fn($d) => $d->ano_donation == "true" ? 'Yes' : 'No')
+                ->addColumn('standing', fn($d) => $d->standing_order == "true" ? 'Yes' : 'No')
+                ->addColumn('date', fn($d) => $d->created_at->format('d/m/Y'))
+                ->addColumn('status_label', function ($d) {
+                    if ($d->status == 1) {
+                        return '<button class="btn btn-sm btn-success">Confirm</button>';
+                    } elseif ($d->status == 3) {
+                        return '<button class="btn btn-sm btn-danger">Cancel</button>';
+                    }
+                })
+                ->rawColumns(['status_label'])
+                ->make(true);
+        }
+
+        return view('donor.record');
     }
 
 

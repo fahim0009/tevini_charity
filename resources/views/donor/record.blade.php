@@ -29,64 +29,22 @@
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
                     <div class="table-responsive">
-                        <table class="table table-custom shadow-sm bg-white" id="example">
+
+                        <table class="table table-custom shadow-sm bg-white" id="donationTable">
                             <thead>
                                 <tr>
                                     <th>Date</th>
                                     <th>Donor</th>
                                     <th>Beneficiary</th>
-                                    <th>amount</th>
-                                    <th>Annonymous Donation</th>
+                                    <th>Amount</th>
+                                    <th>Anonymous Donation</th>
                                     <th>Standing Order</th>
-                                    <th>Starting</th>
-                                    <th>Interval</th>
                                     <th>Note</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php
-                                $n = 1;
-                                ?>
-                                @forelse ($donation as $data)
-                                    <tr>
-                                        <td><span style="display:none;">{{ $data->id }}</span>{{$data->created_at->format('d/m/Y')}}</td>
-                                        <td>{{$data->user->name}}</td>
-                                        <td>{{$data->charity->name}}</td>
-                                        <td>{{$data->amount}}</td>
-                                        <td>@if ($data->ano_donation == "true")
-                                            Yes
-                                        @else
-                                            No
-                                        @endif</td>
-                                        <td>@if ($data->standing_order == "true")
-                                            Yes
-                                        @else
-                                            No
-                                        @endif</td>
-                                        <td>{{$data->starting}}</td>
-                                        <td>{{$data->interval}}</td>
-                                        <td>{{$data->mynote}}</td>
-                                        <td>
-                                            @if($data->status =="1")
-                                            <button type="button" class="btn btn-sm btn-success">Confirm</button>
-                                            @elseif($data->status =="3")
-                                            <button type="button" class="btn btn-danger">Cancel</button>
-                                            @endif
-                                        </td>
-
-                                    </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="12" class="text-center">No record found</td>
-                                </tr>
-                                @endforelse
-
-
-
-
-                            </tbody>
                         </table>
+
                     </div>
                     </div>
                 </div>
@@ -102,5 +60,25 @@
 
 @section('script')
 
+<script>
+$(function () {
+    $('#donationTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('donationrecord') }}",
+        columns: [
+            { data: 'date', name: 'date' },
+            { data: 'donor', name: 'donor' },
+            { data: 'beneficiary', name: 'beneficiary' },
+            { data: 'amount', name: 'amount' },
+            { data: 'anonymous', name: 'anonymous' },
+            { data: 'standing', name: 'standing' },
+            { data: 'mynote', name: 'mynote' },
+            { data: 'status_label', name: 'status_label', orderable: false, searchable: false }
+        ],
+        pageLength: 50
+    });
+});
+</script>
 
 @endsection

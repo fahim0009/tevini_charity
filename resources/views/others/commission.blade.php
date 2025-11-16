@@ -16,43 +16,10 @@ use Illuminate\Support\Carbon;
 
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
-                        <div class="col-md-12 my-3">
-                           <div class="row">
-                            <div class="col-md-9">
-                                <form class="form-inline">
-                                    <div class="row">
-                                        <div class="col-md-5 d-flex align-items-center">
-                                            <div class="form-group d-flex mt-4">
-                                                <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-                                                <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                              </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for=""><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                              </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for=""><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" type="date" placeholder="Search" aria-label="Search">
-                                              </div>
-                                        </div>
-                                    </div>
-                                  </form>
-                            </div>
-                            <div class="col-md-3 d-flex align-items-center justify-content-center">
-                                <div>
-                                    {{-- <button title="Download" class="my-2 btn btn-sm btn-info text-white">Download PDF</button>
-                                    <button title="Download" class="my-2 btn btn-sm btn-secondary">Download excel</button> --}}
-                                </div>
-                            </div>
-                           </div>
-                        </div>
+                        
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                <table class="table table-custom shadow-sm bg-white" id="commissionTable">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
@@ -60,20 +27,7 @@ use Illuminate\Support\Carbon;
                                             <th>Commission</th>
                                             </tr>
                                     </thead>
-                                    <tbody>
-
-                                        @foreach ($commissions as $c)
-
-                                        <tr>
-                                                <td><span style="display:none;">{{ $c->id }}</span>{{ Carbon::parse($c->created_at)->format('d/m/Y')}}</td>
-                                                <td>{{ $c->user->name }}</td>
-                                                <td>£{{ $c->commission}}</td>
-
-                                        </tr>
-                                        @endforeach
-
-
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
@@ -83,4 +37,23 @@ use Illuminate\Support\Carbon;
     </div>
   </section>
 </div>
+@endsection
+
+@section('script')
+<script>
+$(function () {
+    $('#commissionTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('commission') }}",
+        columns: [
+            { data: 'date', name: 'date' },
+            { data: 'donor', name: 'donor' },
+            { data: 'amount', name: 'amount' }
+        ],
+        pageLength: 50
+    });
+});
+</script>
+
 @endsection

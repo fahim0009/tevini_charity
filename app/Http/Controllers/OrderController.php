@@ -2119,10 +2119,27 @@ public function watingvoucherCancel(Request $request)
 
 
 
-    public function commission()
+    public function commission(Request $request)
     {
-        $commissions = Commission::orderBy('id','DESC')->get();
-        return view('others.commission', compact('commissions'));
+        if ($request->ajax()) {
+
+            $query = Commission::with('user')->orderBy('id', 'DESC');
+
+            return DataTables::of($query)
+                ->addColumn('date', function($c){
+                    return $c->created_at->format('d/m/Y');
+                })
+                ->addColumn('donor', function($c){
+                    return $c->user->name;
+                })
+                ->addColumn('amount', function($c){
+                    return '£' . $c->commission;
+                })
+                ->rawColumns(['amount'])
+                ->make(true);
+        }
+
+        return view('others.commission');
     }
 
 

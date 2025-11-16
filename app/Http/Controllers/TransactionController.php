@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\Donation;
 use App\Models\User;
+use Yajra\DataTables\Facades\DataTables;
 
 class TransactionController extends Controller
 {
@@ -97,7 +98,7 @@ class TransactionController extends Controller
         return view('remittance.index',compact('remittance','total','fromDate','toDate','charity'));
     }
 
-    public function remittance(Request $request)
+    public function remittance2(Request $request)
     {
         $fromDate = $request->input('fromdate');
         $toDate = $request->input('todate');
@@ -130,6 +131,94 @@ class TransactionController extends Controller
         $total = $totalQuery->sum('amount');
 
         return view('remittance.index', compact('remittance', 'total', 'fromDate', 'toDate', 'charity'));
+    }
+
+    public function remittance(Request $request)
+    {
+        $fromDate = $request->input('fromdate');
+        $toDate = $request->input('todate');
+        $charityId = $request->input('charityid');
+
+        // BUILD MAIN QUERY
+        $query = Provoucher::query()
+            ->whereIn('status', ['1', '0'])
+            ->with('charity')
+            ->orderBy('id', 'DESC');
+
+        // FILTERS
+        $charity = null;
+
+        if (!empty($charityId)) {
+            $query->where('charity_id', $charityId);
+            $charity = Charity::find($charityId);
+        }
+
+        if (!empty($fromDate) && !empty($toDate)) {
+            $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+        }
+
+        // AJAX REQUEST FOR DATATABLE
+        if ($request->ajax()) {
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('date', fn($d) => $d->created_at->format('d/m/Y'))
+                ->addColumn('description', fn($d) => 'Vouchers')
+                ->addColumn('voucher', fn($d) => $d->cheque_no)
+                ->addColumn('amount', fn($d) => '£' . number_format($d->amount, 2))
+                ->addColumn('balance', function ($d) use ($fromDate, $toDate, $charityId) {
+
+                    $balanceQuery = Provoucher::query()
+                        ->where('status', 1);
+
+                    if (!empty($charityId)) {
+                        $balanceQuery->where('charity_id', $charityId);
+                    }
+                    if (!empty($fromDate) && !empty($toDate)) {
+                        $balanceQuery->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+                    }
+
+                    $balance = $balanceQuery->sum('amount');
+
+                    return '£' . number_format($balance, 2);
+                })
+                ->addColumn('notes', fn($d) => $d->note)
+                ->addColumn('status_text', function ($d) {
+
+                    if ($d->status == 1) return "COMPLETE";
+                    if ($d->status == 0 && $d->waiting == "Yes") return "AWAITING CONFIRMATION";
+                    if ($d->status == 0 && $d->waiting == "No") return "PENDING";
+                    if ($d->status == 3) return "CANCEL";
+
+                    return "";
+                })
+                ->rawColumns(['amount'])
+                ->make(true);
+        }
+
+        // NORMAL BLADE LOAD
+        $remittance = $query->get();
+
+        // TOTAL
+        $totalQuery = Provoucher::query()
+            ->where('status', '1');
+
+        if (!empty($charityId)) {
+            $totalQuery->where('charity_id', $charityId);
+        }
+        if (!empty($fromDate) && !empty($toDate)) {
+            $totalQuery->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+        }
+
+        $total = $totalQuery->sum('amount');
+
+        return view('remittance.index', compact(
+            'remittance',
+            'total',
+            'fromDate',
+            'toDate',
+            'charity'
+        ));
     }
 
 

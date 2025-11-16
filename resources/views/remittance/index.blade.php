@@ -4,6 +4,8 @@
 use Illuminate\Support\Carbon;
 use app\Models\Provoucher;
 @endphp
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
+
 <div class="rightSection" id="section-to-print">
 
     <div class="dashboard-content">
@@ -40,7 +42,7 @@ use app\Models\Provoucher;
                                 @csrf
                                 <div class="form-group my-2 mx-1 flex-fill">
                                     <label for=""><small>Select Charity </small> </label>
-                                    <select name="charity" id="charity" required class="form-control no-print charity">
+                                    <select name="charity" id="charity" required class="form-control no-print charity select2">
                                         <option value>Select</option>
                                         @foreach (\App\Models\Charity::all() as $user)
                                         <option value="{{$user->id}}|{{$user->name}}|{{$user->address}}">{{$user->name}}</option>
@@ -60,8 +62,13 @@ use app\Models\Provoucher;
                                 <input type="hidden" name="charityid" id="charityid" class="charityid">
 
                                 <div class="form-group my-2 mx-1 flex-fill">
-                                    <button class="text-white btn-theme no-print ml-1 mt-4"  class="btn" name="search" title="Search" type="submit">Search</button>
+                                    <button type="button" id="searchBtn" class="text-white btn-theme no-print ml-1 mt-4">
+                                        Search
+                                    </button>
                                 </div>
+
+                                
+
 
                            </form>
                         </div>
@@ -77,7 +84,8 @@ use app\Models\Provoucher;
                         @if ($fromDate !="")
                             <h5 class="text-center my-3">From {{ $fromDate }} to {{ $toDate }}</h5>
                         @endif
-                        <table class="table table-custom statement shadow-sm bg-white">
+                        <table class="table table-custom statement shadow-sm bg-white" id="remittanceTable">
+
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -90,49 +98,8 @@ use app\Models\Provoucher;
                                 </tr>
                             </thead>
 
-                            <tbody>
-                                @php
-                                    $total = $total;
-                                    $tbalance = 0;
-                                @endphp
-                                @foreach ($remittance as $data)
+                            <tbody></tbody>
 
-                                    <tr>
-                                        <td>{{ Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
-                                        <td>Vouchers </td>
-                                        <td>{{$data->cheque_no}}</td>
-                                        <td> £{{ number_format($data->amount, 2) }}</td>
-
-                                        @if($data->status == 1)
-                                        <td> £{{ number_format($total+$tbalance, 2) }} </td>
-                                        <?php $tbalance = $tbalance - $data->amount;?>
-                                        @elseif($data->status == 0)
-                                        <td> £{{ number_format($total+$tbalance, 2) }} </td>
-                                        @endif
-
-                                        <td>
-                                        <!--Acc: No: {{$data->donor_acc}}; <br>-->
-                                            <!--Voucher No:*****-->
-                                           {{$data->note}}
-                                        </td>
-                                        <td>
-                                            @if($data->status == 1)
-                                            COMPLETE
-                                            @elseif($data->status == 0 && $data->waiting == "Yes")
-                                            AWAITING CONFIRMATION
-                                            @elseif($data->status == 0 && $data->waiting == "No")
-                                            PENDING
-                                            @elseif($data->status == 3)
-                                            CANCEL
-                                            @endif
-                                        </td>
-                                    </tr>
-
-                                @endforeach
-
-
-
-                            </tbody>
                         </table>
                         <h6 class="text-center my-4">
                             THANK YOU. Your account is now in credit and the statement is for your
@@ -172,6 +139,58 @@ use app\Models\Provoucher;
                 $('#charityid').val(id);
             });
 
+            $('#charity').on('change', function(){
+                var parts = this.value.split("|");
+                $('#charityid').val(parts[0]);
+            });
+
+
     });
 </script>
+
+<script>
+$(document).ready(function () {
+
+    $('#remittanceTable').DataTable({
+        processing: true,
+        serverSide: true,
+        searching: true,
+        ordering: true,
+        pageLength: 25,
+        ajax: {
+            url: "{{ route('remittance') }}",
+            type: "GET",
+            data: function (d) {
+                d.fromdate = $('#fromdate').val();
+                d.todate = $('#todate').val();
+                d.charityid = $('#charityid').val();
+            }
+        },
+        columns: [
+            { data: 'date', name: 'date' },
+            { data: 'description', name: 'description' },
+            { data: 'voucher', name: 'voucher' },
+            { data: 'amount', name: 'amount' },
+            { data: 'balance', name: 'balance', orderable: false },
+            { data: 'notes', name: 'notes' },
+            { data: 'status_text', name: 'status_text' },
+        ]
+    });
+
+    $('#searchBtn').on('click', function () {
+        $('#remittanceTable').DataTable().ajax.reload();
+    });
+
+
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
+<script>
+    $('#charity').select2({
+      width: '100%',
+      placeholder: "Select an Option",
+      allowClear: true
+    });
+
+  </script>
 @endsection

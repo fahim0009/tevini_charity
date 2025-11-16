@@ -166,7 +166,7 @@
                         <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
                             data-bs-parent="#faqAccordion">
                             <div class="accordion-body">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora quos fugiat nostrum voluptas quas laboriosam explicabo harum illo deleniti cupiditate optio hic iure, quae officia.
+                                We charge a commission of 5% on any deposit. However, for larger deposits, we’re happy to offer a reduced commission rate — please contact us to discuss a customized rate based on your deposit amount.
                             </div>
                         </div>
                     </div>
@@ -180,7 +180,7 @@
                         <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
                             data-bs-parent="#faqAccordion">
                             <div class="accordion-body">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora quos fugiat nostrum voluptas quas laboriosam explicabo harum illo deleniti cupiditate optio hic iure, quae officia.
+                                You can easily check your account balance through our online portal or the Tevini App at any time. In addition, you’ll also receive a monthly statement showing all your deposits, withdrawals, and current balance.
                             </div>
                         </div>
                     </div>
@@ -194,7 +194,7 @@
                         <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
                             data-bs-parent="#faqAccordion">
                             <div class="accordion-body">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora quos fugiat nostrum voluptas quas laboriosam explicabo harum illo deleniti cupiditate optio hic iure, quae officia.
+                                Yes, you can. We’ve partnered with The Donors Fund in the USA to make international giving possible. For more details or to set up an overseas donation, please get in touch with our team.
                             </div>
                         </div>
                     </div>
@@ -208,7 +208,7 @@
                         <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
                             data-bs-parent="#faqAccordion">
                             <div class="accordion-body">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora quos fugiat nostrum voluptas quas laboriosam explicabo harum illo deleniti cupiditate optio hic iure, quae officia.
+                                Donations are usually processed and reach the recipient on the same working day. In some cases, it may take up to one additional business day for the funds to be received.
                             </div>
                         </div>
                     </div>

@@ -92,12 +92,6 @@ class DonorController extends Controller
     }
 
 
-
-
-
-
-
-
     public function donorStore(Request $request)
     {
         $email=User::where('email', $request->email)->count();

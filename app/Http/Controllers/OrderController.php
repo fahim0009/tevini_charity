@@ -1220,6 +1220,7 @@ class OrderController extends Controller
             ['status', '=', '1']
         ])->get();
 
+
         return view('voucher.processvoucher')
         ->with('charities',$charities)
         ->with('donors',$donors);
@@ -1227,48 +1228,32 @@ class OrderController extends Controller
 
 
 
-    public function completeVoucher(Request $request, $id = Null)
+    public function completeVoucher(Request $request, $id = null)
     {
-        
         $donorid = $id;
+
         if ($request->ajax()) {
 
+            $cvouchers = Provoucher::select(
+                'id','user_id','charity_id','created_at',
+                'amount','note','cheque_no','completed_date'
+            )
+            ->where('status', 1)
+            ->when($request->id, function($q) use ($request){
+                $q->where('user_id', $request->id);
+            })
+            ->orderBy('id','DESC');   // 🚀 Leave as Query (no get())
 
-            if ($request->id) {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->where('user_id', $request->id)->orderBy('id','DESC')->get();
-            } else {
-                $cvouchers = Provoucher::select('id','user_id','charity_id','created_at','amount','note','cheque_no','completed_date')->where('status','=', '1')->orderBy('id','DESC')->limit(20000)->get();
-            }
-
-            return DataTables::of($cvouchers)
-                ->addColumn('charity', function ($row) {
-                    return $row->charity_id ? $row->charity->name : '';
-                })
-                ->addColumn('user', function ($row) {
-                    return $row->user ? $row->user->name : ' ';
-                })
-                
-                ->editColumn('cheque_no', function ($row) {
-                    return $row->cheque_no ? $row->cheque_no : ' ';
-                })
-                ->editColumn('note', function ($row) {
-                    return $row->note ? $row->note : ' ';
-                })
-                ->editColumn('amount', function ($row) {
-                    return $row->amount ? $row->amount : ' ';
-                })
-                ->editColumn('created_at', function ($row) {
-                    return $row->created_at ? $row->created_at->format('m/d/Y'): ' ';
-                })
-                ->editColumn('completed_date', function ($row) {
-                    return $row->completed_date ? $row->completed_date : ' ';
-                })
+            return DataTables::eloquent($cvouchers)
+                ->addColumn('charity', fn($row) => $row->charity->name ?? '')
+                ->addColumn('user', fn($row) => $row->user->name ?? '')
+                ->editColumn('created_at', fn($row) => $row->created_at?->format('d/m/Y'))
                 ->make(true);
         }
-        
-        return view('voucher.completevoucher', compact('donorid'));
 
+        return view('voucher.completevoucher', compact('donorid'));
     }
+
 
     public function waitingVoucher()
     {

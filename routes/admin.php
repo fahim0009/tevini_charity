@@ -141,7 +141,10 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/about-content/{id}', [AboutController::class, 'aboutcontentedit'])->name('aboutcontent.edit');
     Route::post('/about-content/{id}', [AboutController::class, 'aboutcontentupdate'])->name('aboutcontent.update');
     Route::get('/donor-giving', [DonorController::class, 'adminDonorGiving'])->name('donorgiving');
+
     Route::get('/charity-list', [CharityController::class, 'index'])->name('charitylist');
+    Route::get('/admin/charity-data', [CharityController::class, 'getData'])->name('charity.data');
+
     Route::post('/add-charity', [CharityController::class, 'store'])->name('charity.store');
     Route::get('/add-charity/{id}/edit', [CharityController::class, 'edit'])->name('charity.edit');
     Route::post('/add-charity/{id}', [CharityController::class, 'update'])->name('charity.update');

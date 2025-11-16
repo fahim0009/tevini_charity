@@ -1,28 +1,24 @@
 @extends('layouts.admin')
-
 @section('content')
 
-
-
+<style>
+    a {
+        text-decoration: none;
+    }
+</style>
 <div class="rightSection">
-
     <div class="dashboard-content">
-
         <section class="profile purchase-status">
             <div class="title-section">
                 <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
                 <div class="mx-2">Charity List </div>
             </div>
         </section>
-
         <section class="profile purchase-status">
             <div class="title-section">
                 <button id="newBtn" type="button" class="btn btn-info">Add New</button>
             </div>
         </section>
-
-
-
         @if(session()->has('message'))
         <section class="px-4">
             <div class="row my-3">
@@ -37,7 +33,6 @@
             </div>
         </section>
         @endif
-
 
         <section class="px-4"  id="addThisFormContainer">
             <div class="row justify-content-md-center my-3">
@@ -119,7 +114,7 @@
 
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
-                        <table class="table table-custom shadow-sm bg-white" id="example">
+                        <table class="table table-custom shadow-sm bg-white" id="charityTable">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -132,157 +127,46 @@
                                     <th>Balance</th>
                                     <th>Pending</th>
                                     <th>Status</th>
-                                    <th>Action </th>
+                                    <th>Bank</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @forelse ($users as $user)
-
-
-                                @php
-                                    $pending_transactions = \App\Models\Usertransaction::where([
-                                            ['t_type','=', 'Out'],
-                                            ['charity_id','=', $user->id],
-                                            ['pending','=', '0']
-                                        ])->sum('amount');
-                                @endphp
-
-
-
-                                    <tr>
-                                        <td>{{$user->name}}</td>
-                                        <td>{{$user->email}}</td>
-                                        <td>{{$user->number}}</td>
-                                        <td>{{$user->address}}</td>
-                                        <td>{{$user->town}}</td>
-                                        <td>{{$user->post_code}}</td>
-                                        <td>{{$user->acc_no}}</td>
-                                        <td>£{{number_format($user->balance, 2)  ?? '0.00'}}</td>
-                                        <td>£{{number_format($pending_transactions, 2)}}</td>
-                                        <td style="text-align: center">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input campaignstatus" type="checkbox" role="switch"  data-id="{{$user->id}}" id="campaignstatus" @if ($user->status == 1) checked @endif >
-                                            </div>
-                                        </td>
-                                        <td>
-                                        <div class="d-flex justify-content-center align-items-center flex-column text-white">
-                                            <a class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1" href="{{ route('charity.pay',$user->id) }}" target="blank">
-                                                Pay 
-                                            </a>
-                                            
-
-                                            <a class=" text-decoration-none bg-dark text-white py-1 px-3 rounded mb-1" href="{{ route('charity.topup',$user->id) }}" target="blank">
-                                                Top up 
-                                            </a>
-                                        </div>
-                                        <div class="text-center">
-
-                                            <!-- Icon that triggers modal -->
-                                            @if ($user->bank_statement)
-                                                <a href="#" data-bs-toggle="modal" data-bs-target="#fileModal{{$user->id}}">
-                                                    <i class="fa fa-file" style="color: #4D617E; font-size:16px;"></i>
-                                                </a>
-                                            @endif
-
-                                            <!-- Modal -->
-                                            <div class="modal fade" id="fileModal{{$user->id}}" tabindex="-1" aria-labelledby="fileModalLabel{{$user->id}}" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered modal-lg">
-                                                    <div class="modal-content">
-
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="fileModalLabel{{$user->id}}">Bank Details</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-
-                                                        <div class="modal-body" style="text-align: center;">
-                                                            @php
-                                                                $filePath = asset('images/' . $user->bank_statement);
-                                                                $extension = pathinfo($user->bank_statement, PATHINFO_EXTENSION);
-                                                            @endphp
-
-                                                            @if (in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']))
-                                                                <img src="{{ $filePath }}" alt="Bank Document" style="width: 100%; border-radius: 8px;">
-                                                            @elseif (strtolower($extension) == 'pdf')
-                                                                <iframe src="{{ $filePath }}" width="100%" height="600px" style="border: none;"></iframe>
-                                                            @else
-                                                                <p>Unsupported file format. <a href="{{ $filePath }}" target="_blank">Click here to download.</a></p>
-                                                            @endif
-                                                        </div>
-
-                                                        <div class="modal-footer">
-                                                            <a href="{{ $filePath }}" target="_blank" class="btn btn-primary">Open in new tab</a>
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
-
-                                            <a href="{{ route('charityemail', $user->id)}}"><i class="fa fa-envelope-o" style="color: #4D617E;font-size:16px;"></i></a>
-
-                                            <a href="{{ route('charity.tranview', $user->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
-
-                                            <a href="{{ route('charity.edit', encrypt($user->id))}}"><i class="fa fa-edit" style="color: #2196f3;font-size:16px;"></i></a>
-
-                                            <a id="deleteBtn" rid="{{$user->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
-
-                                        </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                @endforelse
-
-
-
-
-                            </tbody>
                         </table>
+
                     </div>
                 </div>
             </div>
         </section>
-
-
     </div>
 </div>
 
 
-@endsection
+<div class="modal fade" id="bankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
 
+            <div class="modal-header">
+                <h5 class="modal-title">Bank Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="bankModalBody" style="text-align:center;">
+            </div>
+
+            <div class="modal-footer">
+                <a href="#" id="openInTab" target="_blank" class="btn btn-primary">Open in new tab</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+@endsection
 @section('script')
-<script>
-    $(function() {
-      $('.campaignstatus').change(function() {
-        var url = "{{URL::to('/admin/active-charity')}}";
-          var status = $(this).prop('checked') == true ? 1 : 0;
-          var id = $(this).data('id');
-           console.log(id);
-          $.ajax({
-              type: "GET",
-              dataType: "json",
-              url: url,
-              data: {'status': status, 'id': id},
-              success: function(d){
-                // console.log(data.success)
-                if (d.status == 303) {
-                        pagetop();
-                        $(".stsermsg").html(d.message);
-                        window.setTimeout(function(){location.reload()},2000)
-                    }else if(d.status == 300){
-                        pagetop();
-                        $(".stsermsg").html(d.message);
-                        window.setTimeout(function(){location.reload()},2000)
-                    }
-                },
-                error: function (d) {
-                    console.log(d);
-                }
-          });
-      })
-    })
-</script>
 <script>
     $(document).ready(function () {
 
@@ -301,47 +185,102 @@
         });
 
         function clearform(){
-                $('#createThisForm')[0].reset();
-            }
+            $('#createThisForm')[0].reset();
+        }
 
-            setTimeout(function() {
-                $('#successMessage').fadeOut('fast');
-                $('#errMessage').fadeOut('fast');
-            }, 3000);
+        setTimeout(function() {
+            $('#successMessage').fadeOut('fast');
+            $('#errMessage').fadeOut('fast');
+        }, 3000);
 
 
 
-        var url = "{{URL::to('/admin/add-charity/delete')}}";
-        // Delete
-        $("#contentContainer").on('click','#deleteBtn', function(){
-            if(!confirm('Sure?')) return;
-            codeid = $(this).attr('rid');
-            info_url = url + '/'+codeid;
-            $.ajax({
-                url:info_url,
-                method: "GET",
-                type: "DELETE",
-                data:{
-                },
-                success: function(d){
-                    console.log(d);
-                    if(d.success) {
-                        success("Deleted Successfully!!");
-                        //alert(d.message);
-                        location.reload();
-                    }
-                },
-                error:function(d){
-                    console.log(d);
-                }
-            });
-        });
-        // Delete
+
 
     });
 
+</script>
 
+<script>
+    $(document).ready(function () {
 
+    $("#charityTable").DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('charity.data') }}",
+        columns: [
+            { data: 'name', name: 'name' },
+            { data: 'email', name: 'email' },
+            { data: 'number', name: 'number' },
+            { data: 'address', name: 'address' },
+            { data: 'town', name: 'town' },
+            { data: 'post_code', name: 'post_code' },
+            { data: 'acc_no', name: 'acc_no' },
+            { data: 'balance', name: 'balance', orderable:false, searchable:false },
+            { data: 'pending', name: 'pending', orderable:false, searchable:false },
+            { data: 'status', name: 'status', orderable:false, searchable:false },
+            { data: 'bank', name: 'bank', orderable:false, searchable:false },
+            { data: 'action', name: 'action', orderable:false, searchable:false },
+        ]
+    });
+
+    // Campaign Status
+    $(document).on('change','.campaignstatus',function(){
+        var url = "{{URL::to('/admin/active-charity')}}";
+        var status = $(this).prop('checked') ? 1 : 0;
+        var id = $(this).data('id');
+
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: url,
+            data: {'status': status, 'id': id},
+            success: function(d){
+                $(".stsermsg").html(d.message);
+            }
+        });
+    });
+
+    // Delete row
+    $(document).on('click','.deleteBtn', function () {
+        if (!confirm('Sure?')) return;
+        var id = $(this).attr('rid');
+
+        $.ajax({
+            url: "/admin/add-charity/delete/" + id,
+            type: "GET",
+            success: function(res){
+                $('#charityTable').DataTable().ajax.reload();
+            }
+        });
+    });
+
+});
+
+$(document).on('click', '.openBankModal', function(e) {
+    e.preventDefault();
+
+    let file = $(this).data('file');
+    let fileUrl = "/images/" + file;
+    let ext = file.split('.').pop().toLowerCase();
+    let html = "";
+
+    if (['jpg','jpeg','png','gif','bmp','webp'].includes(ext)) {
+        html = `<img src="${fileUrl}" style="width:100%;border-radius:8px;">`;
+    }
+    else if (ext === 'pdf') {
+        html = `<iframe src="${fileUrl}" width="100%" height="600px" style="border:none;"></iframe>`;
+    }
+    else {
+        html = `<p>Unsupported file format. 
+                   <a href="${fileUrl}" target="_blank">Click here to download</a>
+                </p>`;
+    }
+
+    $("#bankModalBody").html(html);
+    $("#openInTab").attr("href", fileUrl);
+    $("#bankModal").modal("show");
+});
 
 
 </script>

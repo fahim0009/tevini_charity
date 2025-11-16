@@ -22,6 +22,7 @@ use App\Mail\DonationReport;
 use App\Mail\DonationstandingReport;
 use App\Mail\DonerReport;
 use App\Mail\DonationreportCharity;
+use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Auth;
 use Illuminate\Support\Facades\Http;
@@ -503,8 +504,35 @@ class DonationController extends Controller
 
     }
 
-    public function donationStanding()
+    public function donationStanding(Request $request)
     {
+        if ($request->ajax()) {
+            $query = StandingDonation::with(['user', 'charity'])->orderBy('id', 'desc');
+
+            return DataTables::of($query)
+                ->addColumn('donor', fn($d) => $d->user->name)
+                ->addColumn('beneficiary', fn($d) => $d->charity->name)
+                ->addColumn('amount', fn($d) => $d->amount)
+                ->addColumn('anonymous', fn($d) => $d->ano_donation == "true" ? 'Yes' : 'No')
+                ->addColumn('payments', function ($d) {
+                    return $d->payments == 1 ? $d->number_payments : "Continuous payments";
+                })
+                ->addColumn('view', function ($d) {
+                    return '<a href="'.route('singlestanding', $d->id).'">
+                                <i class="fa fa-eye" style="color:#09a311;font-size:16px;"></i>
+                            </a>';
+                })
+                ->addColumn('status_switch', function ($d) {
+                    $checked = $d->status == 1 ? 'checked' : '';
+                    return '<div class="form-check form-switch">
+                                <input class="form-check-input standingdnstatus" type="checkbox"
+                                    data-id="'.$d->id.'" '.$checked.' >
+                            </div>';
+                })
+                ->editColumn('created_at', fn($row) => $row->created_at?->format('d/m/Y'))
+                ->rawColumns(['view', 'status_switch'])
+                ->make(true);
+        }
         $donation = StandingDonation::all();
         return view('donor.standing',compact('donation'));
     }

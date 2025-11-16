@@ -21,67 +21,25 @@
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
                         <div class="table-responsive">
-                        <table class="table table-custom shadow-sm bg-white" id="example">
+                        <table class="table table-custom shadow-sm bg-white" id="standingTable">
                             <thead>
                                 <tr>
                                     <th>Date</th>
                                     <th>Donor</th>
                                     <th>Beneficiary</th>
-                                    <th>amount</th>
-                                    <th>Annonymous Donation</th>
+                                    <th>Amount</th>
+                                    <th>Anonymous</th>
                                     <th>Starting</th>
                                     <th>Interval</th>
-                                    <th>Number of Payments</th>
+                                    <th>Payments</th>
                                     <th>Charity Note</th>
                                     <th>Note</th>
                                     <th>View</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php
-                                $n = 1;
-                                ?>
-                                @forelse ($donation as $data)
-                                    <tr>
-                                        <td>{{$data->created_at}}</td>
-                                        <td>{{$data->user->name}}</td>
-                                        <td>{{$data->charity->name}}</td>
-                                        <td>{{$data->amount}}</td>
-                                        <td>@if ($data->ano_donation == "true")
-                                            Yes
-                                        @else
-                                            No
-                                        @endif</td>
-                                        <td>{{$data->starting}}</td>
-                                        <td>{{$data->interval}}</td>
-                                        @if ($data->payments == 1)
-                                        <td>{{$data->number_payments}}</td>
-                                        @else
-                                        <td>Continuous payments</td>
-                                        @endif
-                                        <td>{{$data->charitynote}}</td>
-                                        <!--<td> <a href="{{ route('topup',[$data->user->id,$data->amount]) }}" target="blank">-->
-                                        <!--    <button type="button" class="btn btn-success">Add</button></a> </td>-->
-                                        <td>{{$data->mynote}}</td>
-                                        <td>
-                                            <a href="{{ route('singlestanding', $data->id)}}"><i class="fa fa-eye" style="color: #09a311;font-size:16px;"></i></a>
-                                        </td>
-                                        <td style="text-align: center">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input standingdnstatus" type="checkbox" role="switch"  data-id="{{$data->id}}" @if ($data->status == 1) checked @endif >
-                                            </div>
-                                        </td>
-
-                                    </tr>
-                                @empty
-                                @endforelse
-
-
-
-
-                            </tbody>
                         </table>
+
                     </div>
                     </div>
                 </div>
@@ -96,40 +54,47 @@
 @endsection
 
 @section('script')
+
+
 <script>
  $(document).ready(function () {
-//header for csrf-token is must in laravel
- $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        //header for csrf-token is must in laravel
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    $(function() {
-      $('.standingdnstatus').change(function() {
-        var url = "{{URL::to('/admin/active-standingdonation')}}";
-          var status = $(this).prop('checked') == true ? 1 : 0;
-          var id = $(this).data('id');
+        $('#standingTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('donationstanding') }}",
+            columns: [
+                { data: 'created_at', name: 'created_at' },
+                { data: 'donor', name: 'donor' },
+                { data: 'beneficiary', name: 'beneficiary' },
+                { data: 'amount', name: 'amount' },
+                { data: 'anonymous', name: 'anonymous' },
+                { data: 'starting', name: 'starting' },
+                { data: 'interval', name: 'interval' },
+                { data: 'payments', name: 'payments' },
+                { data: 'charitynote', name: 'charitynote' },
+                { data: 'mynote', name: 'mynote' },
+                { data: 'view', name: 'view', orderable:false, searchable:false },
+                { data: 'status_switch', name: 'status_switch', orderable:false, searchable:false }
+            ],
+            pageLength: 50
+        });
 
-          $.ajax({
-              url: url,
-              method: "POST",
-              data: {'status': status, 'id': id},
-              success: function(d){
-                if (d.status == 303) {
-                        pagetop();
-                        $(".stsermsg").html(d.message);
-                        window.setTimeout(function(){location.reload()},2000)
-                    }else if(d.status == 300){
-                        pagetop();
-                        $(".stsermsg").html(d.message);
-                        window.setTimeout(function(){location.reload()},2000)
-                    }
-                },
-                error: function (d) {
-                    console.log(d);
-                }
-          });
-      })
-    })
+        // ON STATUS CHANGE
+        $(document).on('change', '.standingdnstatus', function () {
+            var url = "{{URL::to('/admin/active-standingdonation')}}";
+            var status = $(this).prop('checked') ? 1 : 0;
+            var id = $(this).data('id');
+
+            $.post(url, {status:status, id:id}, function(d){
+                $('.stsermsg').html(d.message);
+            });
+        });
 
 });
 </script>
+
 
 @endsection

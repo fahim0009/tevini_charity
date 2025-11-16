@@ -33,13 +33,13 @@
                                   All Select
                                 </label>
                             </div>
-                            <button class="btn btn-primary rounded-pill" id="vsrComplete" type="button">Complete</button>
-                            <button class="btn btn-danger rounded-pill" id="vsrCancel" type="button">Cancel</button>
+                            <button class="btn btn-primary" id="vsrComplete" type="button">Complete</button>
+                            <button class="btn btn-danger" id="vsrCancel" type="button">Cancel</button>
                         </div>
 
                         <div class="col-md-12 mt-2 text-center">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                <table class="table table-custom shadow-sm bg-white" id="pendingTable">
                                     <thead>
                                         <tr>
                                             <th></th>
@@ -52,30 +52,9 @@
                                             <th>Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-
-                                        @foreach ($cvouchers as $voucher)
-
-                                        <tr>
-                                                <td><input class="form-check-input getvid" type="checkbox" name="voucherId[]" charity_id="{{ $voucher->charity_id }}" value="{{ $voucher->id }}"></td>
-                                                <td><span style="display:none;">{{ $voucher->id }}</span>{{ $voucher->created_at->format('d/m/Y')}} </td>
-                                                <td>{{ $voucher->charity->name}} </td>
-                                                <td>{{ $voucher->user->name }}</td>
-                                                <td>{{ $voucher->cheque_no}}</td>
-                                                <td>{{ $voucher->note}}</td>
-                                                <td>£{{ $voucher->amount}}</td>
-                                                <td>
-                                                @if($voucher->status == "0") Pending @endif
-                                                @if($voucher->status == "1") Complete @endif
-                                                @if($voucher->status == "3") Cancel @endif
-                                                </td>
-
-                                        </tr>
-                                        @endforeach
-
-
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
+
                             </div>
                         </div>
                     </div>
@@ -185,5 +164,40 @@ $("#vsrCancel").click(function(){
 
 
 });
+</script>
+
+<script>
+$(function () {
+    if (!$.fn.DataTable.isDataTable('#pendingTable')) {
+        initDT();
+    }
+});
+
+function initDT() {
+    $('#pendingTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('pendingvoucher') }}",
+            data: { id: "{{ $donor_id ?? '' }}" }
+        },
+        pageLength: 100,
+        columns: [
+            { data: 'checkbox', orderable: false, searchable: false },
+            { data: 'created_at' },
+            { data: 'charity' },
+            { data: 'donor' },
+            { data: 'cheque_no' },
+            { data: 'note' },
+            { data: 'amount' },
+            { data: 'status' }
+        ],
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ]
+    });
+}
+
+
 </script>
 @endsection

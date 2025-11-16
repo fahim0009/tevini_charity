@@ -1264,26 +1264,41 @@ class OrderController extends Controller
     }
 
 
-    public function pendingVoucher($id = null)
+    public function pendingVoucher(Request $request, $id = null)
     {
-        
-        if ($id) {
-            $cvouchers = Provoucher::where([
-                ['waiting', '=', 'No'],
-                ['status', '=', '0']
-            ])->where('user_id', $id)->orderBy('id','DESC')->get();
-        } else {
-            $cvouchers = Provoucher::where([
-                ['waiting', '=', 'No'],
-                ['status', '=', '0']
-            ])->orderBy('id','DESC')->get();
-        }
-        
-        
-        return view('voucher.pendingvoucher')
-        ->with('cvouchers',$cvouchers)->with('donor_id',$id);
+        if ($request->ajax()) {
 
+            $cvouchers = Provoucher::with(['charity','user'])
+                ->select('id','user_id','charity_id','created_at','amount','note','cheque_no','status')
+                ->where('waiting', 'No')
+                ->where('status', '0')
+                ->when($id, function($q) use ($id){
+                    $q->where('user_id', $id);
+                })
+                ->orderBy('id','DESC');  // NO ->get()
+
+            return DataTables::eloquent($cvouchers)
+                ->addColumn('checkbox', function ($row) {
+                    return '<input class="form-check-input getvid" type="checkbox" 
+                            name="voucherId[]" 
+                            value="'.$row->id.'" 
+                            charity_id="'.$row->charity_id.'">';
+                })
+                ->rawColumns(['checkbox']) // allow HTML checkboxes
+                ->addColumn('charity', fn($row) => $row->charity->name ?? '')
+                ->addColumn('donor', fn($row) => $row->user->name ?? '')
+                ->editColumn('created_at', fn($row) => $row->created_at->format('d/m/Y'))
+                ->editColumn('status', function($row){
+                    return $row->status == 0 ? "Pending" : "";
+                })
+                ->make(true);
+        }
+
+        return view('voucher.pendingvoucher', [
+            'donor_id' => $id,
+        ]);
     }
+
 
 
 

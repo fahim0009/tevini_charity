@@ -359,6 +359,10 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/new-information', [CredentialController::class, 'newUserCredentialStore'])->name('newUserCredentialStore');
     Route::put('/user-email/update/{id}', [CredentialController::class, 'update'])->name('useremail.update');
     Route::delete('/user-email/delete/{id}', [CredentialController::class, 'destroy'])->name('useremail.destroy');
+    Route::post('/useremail-store', [CredentialController::class, 'charityEmailStore'])->name('useremail.store');
+    Route::post('/useremail-update', [CredentialController::class, 'charityEmailupdate'])->name('charityemail.update');
+
+
 
 
     // order history check for 360 amount order

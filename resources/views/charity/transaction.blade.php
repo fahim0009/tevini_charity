@@ -24,9 +24,14 @@ use Illuminate\Support\Carbon;
 
                   <button class="nav-link" id="nav-pendingVoucher-tab" data-bs-toggle="tab" data-bs-target="#nav-pendingVoucher" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Pending Voucher</button>
 
+                  
+                  <button class="nav-link" id="nav-email-tab" data-bs-toggle="tab" data-bs-target="#nav-email" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Email</button>
+
                 </div>
               </nav>
               <div class="tab-content" id="nav-tabContent">
+
+
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
                         <div class="col-md-12 my-3">
@@ -259,6 +264,92 @@ use Illuminate\Support\Carbon;
                     </div>
                 </div>
 
+                
+                <div class="tab-pane fade" id="nav-email" role="tabpanel" aria-labelledby="nav-email-tab">
+                    <div class="row my-2">
+
+                        <section class="profile purchase-status">
+                            <div class="title-section">
+                                <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                                <div class="mx-2">More email account</div>
+                            </div>
+                        </section>
+
+                        <section class="card m-3">
+                            <div class="row  my-3 mx-0 ">
+                                <div class="col-md-12 ">
+
+                                    <div class="errmsg"></div>
+
+                                    <div class="col-md-12" id="emailCreateForm">
+                                        <form class="form-inline" method="POST">
+                                            @csrf         
+
+                                            <div class="row justify-content-center">
+
+                                                <div class="col-md-4">
+                                                    <div class="form-group my-2">
+                                                        <label for="newemail"><small>Email</small> </label>
+                                                        <input class="form-control mr-sm-2" id="newemail" name="newemail" type="email"  value="">
+                                                        <input id="charity_id" name="charity_id" type="hidden"  value="{{$id}}">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-4 d-flex align-items-center">
+                                                    <div class="form-group d-flex mt-4">
+                                                        <input type="hidden" id="update_id" value="">
+                                                        <button class="text-white btn-theme ml-1" id="addBtn" type="button">Add</button>
+                                                        <button class="text-white btn-theme ml-1 d-none" id="updateBtn" type="button">Update</button>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="col-md-12 mt-2 text-center">
+                            <div class="overflow">
+                                
+                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Email</th>
+                                            <th>Action </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        @foreach (\App\Models\UserDetail::where('charity_id', $id)->get() as $data)
+                                            <tr>
+                                                <td>{{ $data->date }}</td>
+                                                <td>{{ $data->email }}</td>
+                                                <td class="text-right">
+                                                    <button data-udid="{{$data->id}}" data-email="{{$data->email}}" class="btn btn-sm btn-primary mr-1 editBtn" >Edit</button>
+
+                                                    <form action="{{ route('useremail.destroy', $data->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this email?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-warning mr-1">Delete</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
               </div>
         </div>
     </div>
@@ -284,24 +375,6 @@ use Illuminate\Support\Carbon;
             buttons: [
                 {extend: 'copy'},
                 {extend: 'excel', title: title},
-                // {extend: 'pdfHtml5',
-                // title: 'Report',
-                // orientation : 'portrait',
-                //     header:true,
-                //     customize: function ( doc ) {
-                //         doc.content.splice(0, 1, {
-                //                 text: [
-
-                //                            { text: data+'\n',bold:true,fontSize:12 },
-                //                            { text: title+'\n',bold:true,fontSize:15 }
-
-                //                 ],
-                //                 margin: [0, 0, 0, 12],
-                //                 alignment: 'center'
-                //             });
-                //         doc.defaultStyle.alignment = 'center'
-                //     }
-                // },
                 {extend: 'print',
                 exportOptions: {
                 stripHtml: false
@@ -318,6 +391,116 @@ use Illuminate\Support\Carbon;
                 }
             ]
         });
+
+
+
     });
 </script>
+
+<script>
+$(document).ready(function(){
+
+    // -------------------
+    // Add Email (AJAX)
+    // -------------------
+    $("#addBtn").click(function(e){
+        e.preventDefault();
+
+        var email = $("#newemail").val();
+        var charity_id = $("#charity_id").val();
+
+        $.ajax({
+            url: "{{ route('useremail.store') }}",
+            type: "POST",
+            data: {
+                email: email,
+                charity_id: charity_id,
+                _token: "{{ csrf_token() }}"
+            },
+            success: function(res){
+
+                if(res.status == 200){                    
+                    $(".errmsg").html(`<div class="alert alert-success">${res.message}</div>`);
+
+                    $("#example tbody").prepend(`
+                        <tr id="row_${res.data.id}">
+                            <td>${res.data.date}</td>
+                            <td class="email_${res.data.id}">${res.data.email}</td>
+                            <td class="text-right">
+                                <button data-id="${res.data.id}" data-email="${res.data.email}" class="btn btn-sm btn-primary mr-1 editBtn">Edit</button>
+                                <form action="/useremail/${res.data.id}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-warning mr-1">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    `);
+
+                    $("#newemail").val("");
+                }
+            }
+        });
+    });
+
+    // -------------------
+    // Get Edit Data
+    // -------------------
+    $("body").on("click", ".editBtn", function(){
+
+        var id = $(this).data("udid");
+        var email = $(this).data("email");
+
+        $("#update_id").val(id);
+        $("#newemail").val(email);
+
+        // Switch form buttons
+        $("#addBtn").addClass("d-none");
+        $("#updateBtn").removeClass("d-none");
+
+    });
+
+    // -------------------
+    // Update Email (AJAX)
+    // -------------------
+    $("#updateBtn").click(function(e){
+        e.preventDefault();
+
+        var id = $("#update_id").val();
+        var email = $("#newemail").val();
+
+        $.ajax({
+            url: "{{ route('charityemail.update') }}",
+            type: "POST",
+            data: {
+                id: id,
+                email: email,
+                _token: "{{ csrf_token() }}"
+            },
+            success: function(res){
+
+                if(res.status == 200){
+                    $(".errmsg").html(`<div class="alert alert-success">${res.message}</div>`);
+
+                    // Update email in table row
+                    $(".email_" + id).text(email);
+
+                    // reset form
+                    $("#newemail").val("");
+                    $("#update_id").val("");
+
+                    $("#updateBtn").addClass("d-none");
+                    $("#addBtn").removeClass("d-none");
+                }
+            }
+        });
+
+    });
+
+});
+</script>
+
+
+
+
 @endsection

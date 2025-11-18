@@ -25,9 +25,6 @@ class CampaignController extends Controller
                 })->limit(10)
                 ->get();
 
-
-                // dd( $data );
-
         return view('campaign.index', compact('data'));
     }
 

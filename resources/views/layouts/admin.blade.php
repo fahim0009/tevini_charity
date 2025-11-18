@@ -14,6 +14,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/slick.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/animate.min.css') }}" />
     <link rel="stylesheet" href="{{URL::to('assets/vendor/font-awesome/css/font-awesome.min.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{{URL::to('/css/datatables.min.css')}}">
     <link href="{{URL::to('/css/common.css')}}" rel="stylesheet">
 

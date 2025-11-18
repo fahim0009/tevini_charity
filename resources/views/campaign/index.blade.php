@@ -1,10 +1,109 @@
 @extends('layouts.admin')
 
 @section('content')
-
-
-
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet"/>
+
+<style>
+    /* Main Theme Color */
+:root {
+    --primary-color: #4d617e;
+    --primary-hover: #3a4b63;
+}
+
+/* Button Group Styling */
+div.dt-buttons {
+    gap: 8px !important;
+}
+
+.btn-export {
+    background-color: var(--primary-color) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 6px !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(77, 97, 126, 0.2) !important;
+}
+
+.btn-export:hover {
+    background-color: var(--primary-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(77, 97, 126, 0.3) !important;
+}
+
+.btn-export i {
+    margin-right: 6px;
+}
+
+/* Table Styling */
+#campaignTable {
+    font-size: 0.94rem;
+}
+
+#campaignTable thead th {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border: none !important;
+    padding: 12px 8px !important;
+}
+
+#campaignTable tbody tr {
+    transition: all 0.2s ease;
+}
+
+#campaignTable tbody tr:hover {
+    background-color: #f1f5f9 !important;
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+#campaignTable tbody td {
+    padding: 12px 8px !important;
+    vertical-align: middle;
+    border-bottom: 1px solid #eef2f7;
+}
+
+/* Striped rows with subtle colors */
+#campaignTable tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+/* Search & Length Menu */
+.dataTables_filter input,
+.dataTables_length select {
+    border-radius: 6px !important;
+    border: 1px solid #d1dbe4 !important;
+}
+
+.dataTables_filter input:focus,
+.dataTables_length select:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(77, 97, 126, 0.15) !important;
+}
+
+/* Pagination */
+.dataTables_paginate .paginate_button {
+    border-radius: 6px !important;
+    margin: 0 3px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
+.dataTables_info {
+    font-weight: 500;
+    color: #64748b;
+}
+</style>
 
 <div class="rightSection">
 
@@ -26,10 +125,6 @@
         </section>
         
         @endif 
-
-        
-
-
 
         @if(session()->has('message'))
         <section class="px-4">
@@ -206,52 +301,184 @@
 
 @section('script')
 
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script>
-    $(function () {
 
-        var table = $('#campaignTable').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: "{{ route('campaign.data') }}",
-                data: function (d) {
-                    d.campaign = $('#campaign').val();
-                    d.charity = $('#charity').val();
-                }
+$(document).ready(function () {
+
+    var table = $('#campaignTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: "<'row'<'col-sm-12 col-md-6 d-flex align-items-center'B><'col-sm-12 col-md-6'f>>" +
+             "<'row'<'col-sm-12'tr>>" +
+             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                className: 'btn-export btn-sm',
+                title: 'Campaign Report',
+                messageTop: 'Detailed Campaign Data Export'
             },
-            columns: [
-                {data: 'id'},
-                {data: 'charity'},
-                {data: 'campaign_title'},
-                {data: 'hash_code'},
-                {
-                    data: 'return_url',
-                    render: function (data, type, row) {
-                        return data +
-                            ' <a campaign-id="'+row.id+'" class="url" data-bs-toggle="modal" data-bs-target="#exampleModal2"><i class="fa fa-edit" style="color:#2094f3;font-size:16px;"></i></a>';
-                    }
-                },
-                {data: 'start_date'},
-                {data: 'end_date'},
-                {data: 'actions', orderable: false, searchable: false},
+            {
+    extend: 'pdfHtml5',
+    text: '<i class="fas fa-file-pdf"></i> PDF',
+    className: 'btn-export btn-sm',
+    title: 'Campaign Report',
+    orientation: 'landscape',
+    pageSize: 'A4',
+    exportOptions: { 
+        columns: ':not(:last-child)',
+        // This modifier will help wrap long text in HTML before PDF conversion
+        modifier: {
+            page: 'current'
+        }
+    },
+    customize: function (doc) {
+        // === 1. Header Styling ===
+        doc.defaultStyle.alignment = 'center';
+        doc.defaultStyle.fontSize = 9;
+
+        doc.content.splice(0, 1, {
+            margin: [0, 0, 0, 20],
+            alignment: 'center',
+            text: [
+                { text: 'Tevini\n', fontSize: 14, bold: true, color: '#4d617e' },
+                { text: 'Campaign Report', fontSize: 18, bold: true, color: '#2c3e50' }
             ]
         });
 
-        // reload table on filter button click
-        $('#filterBtn').click(function () {
-            table.ajax.reload();
+        // === 2. Find the table ===
+        let tableNode = doc.content.find(node => node.table);
+        if (!tableNode) return;
+
+        // === 3. Set proper column widths (adjusted for better balance) ===
+                        tableNode.table.widths = ['5%', '10%', '15%', '40%', '20%', '5%', '5%'];
+
+        // === 4. CRITICAL: Force long text (especially hash) to wrap using zero-width spaces ===
+        // This scans every cell in the table body and breaks long strings
+        tableNode.table.body.forEach((row, rowIndex) => {
+            if (rowIndex === 0) return; // Skip header row
+
+            row.forEach((cell, colIndex) => {
+                if (cell && typeof cell === 'object' && cell.text && typeof cell.text === 'string') {
+                    let text = cell.text;
+
+                    // Target column index 3 (0-based) = 4th column = Hash Code
+                    if (colIndex === 3) {
+                        // Insert zero-width space every 16 characters in hash-like strings
+                        text = text.replace(/([a-f0-9]{16})(?=[a-f0-9])/gi, '$1\u200B');
+                        // Also make font slightly smaller and allow wrapping
+                        cell.fontSize = 7.5;
+                        cell.lineHeight = 1.2;
+                    }
+
+                    // Optional: Also wrap very long URLs (column 4)
+                    if (colIndex === 4 && text.length > 50) {
+                        text = text.replace(/(.{40})(?=.)/g, '$1\u200B');
+                        cell.fontSize = 7;
+                    }
+
+                    cell.text = text;
+                }
+            });
         });
 
+        // === 5. Table styling & layout ===
+        tableNode.layout = {
+            hLineWidth: () => 0.5,
+            vLineWidth: () => 0,
+            hLineColor: () => '#ddd',
+            paddingLeft: () => 6,
+            paddingRight: () => 6,
+            paddingTop: () => 8,
+            paddingBottom: () => 8
+        };
 
+        // Header style
+        doc.styles.tableHeader = {
+            bold: true,
+            fontSize: 9,
+            color: 'white',
+            fillColor: '#4d617e',
+            alignment: 'center'
+        };
+
+        // Ensure all body cells allow wrapping
+        doc.styles.tableBodyEven = { fontSize: 8, alignment: 'center' };
+        doc.styles.tableBodyOdd = { fontSize: 8, alignment: 'center' };
+
+        doc.pageMargins = [30, 70, 30, 50];
+    }
+},
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print',
+                className: 'btn-export btn-sm',
+                title: 'Campaign Report'
+            },
+            {
+                extend: 'copy',
+                text: '<i class="fas fa-copy"></i> Copy',
+                className: 'btn-export btn-sm'
+            }
+        ],
+        ajax: {
+            url: "{{ route('campaign.data') }}",
+            data: function (d) {
+                d.campaign = $('#campaign').val();
+                d.charity = $('#charity').val();
+            }
+        },
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        language: {
+            processing: "<div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Loading...</span></div>",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ campaigns",
+            paginate: {
+                next: '<i class="fas fa-chevron-right"></i>',
+                previous: '<i class="fas fa-chevron-left"></i>'
+            }
+        },
+        columns: [
+            { data: 'id', width: "5%" },
+            { data: 'charity', width: "12%" },
+            { data: 'campaign_title', width: "23%" },
+            { data: 'hash_code', width: "15%" },
+            {
+                data: 'return_url',
+                width: "25%",
+                render: function (data, type, row) {
+                    return '<div class="d-flex align-items-center justify-content-between">' +
+                        '<span class="text-truncate me-2" style="max-width: 180px;" title="' + data + '">' + data + '</span>' +
+                        ' <a href="javascript:void(0)" campaign-id="' + row.id + '" class="url text-primary" data-bs-toggle="modal" data-bs-target="#exampleModal2">' +
+                        '<i class="fas fa-edit fa-fw"></i></a></div>';
+                }
+            },
+            { data: 'start_date', width: "10%" },
+            { data: 'end_date', width: "10%" },
+            { data: 'actions', orderable: false, searchable: false, width: "8%" }
+        ],
+        drawCallback: function () {
+            // Re-style length menu and search box on every draw
+            $('.dataTables_length select').addClass('form-select form-select-sm shadow-sm');
+            $('.dataTables_filter input').addClass('form-control form-control-sm shadow-sm').attr('placeholder', 'Search campaigns...');
+        }
     });
 
-window.onload = (event) => {
-   let k = document.getElementById("example_wrapper");
-   k.classList.add('px-0');
-};
+    // Initialize styling on first load
+    table.buttons().container().addClass('mb-3');
+
+    $('#filterBtn').on('click', function () {
+        table.draw();  // This forces DataTables to make a new AJAX request with current filter values
+    });
+
+
+
+});
+</script>
+<script>
+    
 
 
     $(document).ready(function () {

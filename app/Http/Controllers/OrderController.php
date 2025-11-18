@@ -1267,15 +1267,15 @@ class OrderController extends Controller
     public function pendingVoucher(Request $request, $id = null)
     {
         if ($request->ajax()) {
-
+            $id = $request->id;
             $cvouchers = Provoucher::with(['charity','user'])
                 ->select('id','user_id','charity_id','created_at','amount','note','cheque_no','status')
                 ->where('waiting', 'No')
                 ->where('status', '0')
-                ->when($id, function($q) use ($id){
+                ->when($request->id, function($q) use ($id){
                     $q->where('user_id', $id);
                 })
-                ->orderBy('id','DESC');  // NO ->get()
+                ->orderBy('id','DESC');  
 
             return DataTables::eloquent($cvouchers)
                 ->addColumn('checkbox', function ($row) {
@@ -1284,7 +1284,7 @@ class OrderController extends Controller
                             value="'.$row->id.'" 
                             charity_id="'.$row->charity_id.'">';
                 })
-                ->rawColumns(['checkbox']) // allow HTML checkboxes
+                ->rawColumns(['checkbox']) 
                 ->addColumn('charity', fn($row) => $row->charity->name ?? '')
                 ->addColumn('donor', fn($row) => $row->user->name ?? '')
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d/m/Y'))

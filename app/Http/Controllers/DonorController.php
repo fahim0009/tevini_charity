@@ -75,7 +75,9 @@ class DonorController extends Controller
                 return '£' . number_format($value, 2);
             })
             ->addColumn('overdrawn_amount', function($u){
-                return '£' . number_format($u->overdrawn_amount, 2);
+                return '£' . number_format($u->overdrawn_amount, 2). '<a overdrawn-id="'.$u->id.'" class="overdrawn" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                                                <i class="fa fa-edit" style="color: #2094f3; font-size: 16px;"></i>
+                                            </a>';
             })
             ->addColumn('pending', function ($u) {
                 return '£' . number_format($u->pending_out ?? 0, 2);
@@ -88,7 +90,7 @@ class DonorController extends Controller
             ->addColumn('action', function($u){
                 return view('donor.partials.action', compact('u'))->render();
             })
-            ->rawColumns(['fullname','action'])
+            ->rawColumns(['overdrawn_amount', 'fullname','action'])
             ->make(true);
     }
 

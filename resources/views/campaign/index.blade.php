@@ -120,7 +120,7 @@ div.dt-buttons {
         
         <section class="profile purchase-status">
             <div class="title-section">
-                <button id="newBtn" type="button" class="btn btn-info">Add New</button>
+                <button id="newBtn" type="button" class="btn btn-export btn-sm">Add New</button>
             </div>
         </section>
         
@@ -234,7 +234,7 @@ div.dt-buttons {
                                 </div>
 
                                 <div class="col-md-4 d-flex align-items-center">
-                                    <button class="text-white btn-theme mt-4" id="filterBtn" type="button">Search</button>
+                                    <button class="btn-export btn-sm mt-3" id="filterBtn" type="button">Search</button>
                                 </div>
 
                             </div>

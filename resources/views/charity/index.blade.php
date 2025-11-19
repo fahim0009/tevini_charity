@@ -204,26 +204,6 @@
 <script>
     $(document).ready(function () {
 
-    $("#charityTable").DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: "{{ route('charity.data') }}",
-        columns: [
-            { data: 'name', name: 'name' },
-            { data: 'email', name: 'email' },
-            { data: 'number', name: 'number' },
-            { data: 'address', name: 'address' },
-            { data: 'town', name: 'town' },
-            { data: 'post_code', name: 'post_code' },
-            { data: 'acc_no', name: 'acc_no' },
-            { data: 'balance', name: 'balance', orderable:false, searchable:false },
-            { data: 'pending', name: 'pending', orderable:false, searchable:false },
-            { data: 'status', name: 'status', orderable:false, searchable:false },
-            { data: 'bank', name: 'bank', orderable:false, searchable:false },
-            { data: 'action', name: 'action', orderable:false, searchable:false },
-        ]
-    });
-
     // Campaign Status
     $(document).on('change','.campaignstatus',function(){
         var url = "{{URL::to('/admin/active-charity')}}";
@@ -283,5 +263,148 @@ $(document).on('click', '.openBankModal', function(e) {
 });
 
 
+</script>
+
+<script>
+$(document).ready(function() {
+    var data = 'Tevini';
+    var title = 'Charity report';
+
+    // destroy existing instance if any (avoids reinitialise error)
+    if ($.fn.DataTable.isDataTable('#charityTable')) {
+        $('#charityTable').DataTable().clear().destroy();
+    }
+
+    $('#charityTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('charity.data') }}",
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        responsive: true,
+        columnDefs: [{ type: 'date', targets: [1] }], 
+        order: [[1, 'desc']], 
+        dom: '<"html5buttons"B>lTfgitp',
+        buttons: [
+            { extend: 'copy', exportOptions: { columns: ':not(:last-child)' } },
+            {
+                extend: 'excel',
+                title: title,
+                messageTop: data,
+                exportOptions: { columns: ':not(:last-child)' }
+            },
+            {
+                extend: 'pdfHtml5',
+                title: 'Report',
+                orientation: 'portrait',
+                pageSize: 'A4',
+                header: true,
+                exportOptions: { columns: ':not(:nth-last-child(-n+3))' },
+                customize: function (doc) {
+                    // Custom title (unchanged)
+                    doc.content.splice(0, 1, {
+                        text: [
+                            { text: data + '\n', bold: true, fontSize: 12 },
+                            { text: title + '\n', bold: true, fontSize: 15 }
+                        ],
+                        margin: [0, 0, 0, 12],
+                        alignment: 'center'
+                    });
+
+                    // Center the document default style (unchanged)
+                    doc.defaultStyle.alignment = 'center';
+
+                    // Find the table node
+                    var tableNode = null;
+                    for (var i = 0; i < doc.content.length; i++) {
+                        if (doc.content[i] && doc.content[i].table) {
+                            tableNode = doc.content[i];
+                            break;
+                        }
+                    }
+
+                    if (tableNode) {
+                        var widths = ['15%', '16%', '10%', '17%', '10%', '8%', '8%', '8%', '8%'];
+                        tableNode.table.widths = widths;
+
+                        tableNode.layout = {
+                            hLineWidth: function (i, node) {
+                                return 0.5; 
+                            },
+                            vLineWidth: function (i, node) {
+                                return 0; 
+                            },
+                            hLineColor: function (i, node) {
+                                return '#aaa';
+                            },
+                            vLineColor: function (i, node) {
+                                return '#aaa';
+                            },
+                            paddingLeft: function (i, node) { return 2; },
+                            paddingRight: function (i, node) { return 2; },
+                            paddingTop: function (i, node) { return 4; },
+                            paddingBottom: function (i, node) { return 4; }
+                        };
+
+                        
+                        if (!doc.styles) doc.styles = {};
+                        doc.styles.tableHeader = {
+                            bold: true,
+                            fontSize: 8,
+                            color: 'white', 
+                            fillColor: '#4d617e', 
+                            alignment: 'center',
+                            margin: [0, 0, 0, 0]
+                        };
+                        doc.styles.tableBodyEven = {
+                            fontSize: 7,
+                            color: '#4d617e', 
+                            fillColor: '#f8f9fa', 
+                            alignment: 'center',
+                            margin: [0, 0, 0, 0]
+                        };
+                        doc.styles.tableBodyOdd = {
+                            fontSize: 7,
+                            color: '#4d617e', 
+                            fillColor: 'white', 
+                            alignment: 'center',
+                            margin: [0, 0, 0, 0]
+                        };
+
+                        doc.pageMargins = [20, 60, 20, 40]; // [left, top, right, bottom]
+                    }
+                }
+            },
+            {
+                extend: 'print',
+                title: "<p style='text-align:center;'>" + data + "<br>" + title + "</p>",
+                header: true,
+                exportOptions: { columns: ':not(:last-child)' },
+                customize: function (win) {
+                    $(win.document.body).addClass('white-bg');
+                    $(win.document.body).css('font-size', '10px');
+                    $(win.document.body).find('table')
+                        .addClass('compact')
+                        .css('font-size', 'inherit');
+                }
+            }
+        ],
+        columns: [
+            { data: 'name', name: 'name' },
+            { data: 'email', name: 'email' },
+            { data: 'number', name: 'number' },
+            { data: 'address', name: 'address' },
+            { data: 'town', name: 'town' },
+            { data: 'post_code', name: 'post_code' },
+            { data: 'acc_no', name: 'acc_no' },
+            { data: 'balance', name: 'balance', orderable:false, searchable:false },
+            { data: 'pending', name: 'pending', orderable:false, searchable:false },
+            { data: 'status', name: 'status', orderable:false, searchable:false },
+            { data: 'bank', name: 'bank', orderable:false, searchable:false },
+            { data: 'action', name: 'action', orderable:false, searchable:false },
+        ]
+    });
+
+});
 </script>
 @endsection

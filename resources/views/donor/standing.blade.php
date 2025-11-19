@@ -79,8 +79,60 @@
                 { data: 'view', name: 'view', orderable:false, searchable:false },
                 { data: 'status_switch', name: 'status_switch', orderable:false, searchable:false }
             ],
-            pageLength: 50
+
+            pageLength: 50,
+
+            // ⭐ Add Buttons Here
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'copyHtml5',
+                    exportOptions: {
+                        columns: ':not(:last-child):not(:nth-last-child(2))' 
+                    }
+                },
+                {
+                    extend: 'csvHtml5',
+                    exportOptions: {
+                        columns: ':not(:last-child):not(:nth-last-child(2))'
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    exportOptions: {
+                        columns: ':not(:last-child):not(:nth-last-child(2))'
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    title: "Standing Donation Report",
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: ':not(:last-child):not(:nth-last-child(2))'
+                    },
+                    customize: function(doc) {
+                        doc.styles.tableHeader = {
+                            bold: true,
+                            fontSize: 9,
+                            fillColor: '#4d617e',
+                            color: 'white',
+                            alignment: 'center'
+                        };
+                        doc.defaultStyle.fontSize = 8;
+                        doc.defaultStyle.alignment = 'center';
+                        doc.pageMargins = [20, 40, 20, 30];
+                    }
+                },
+                {
+                    extend: 'print',
+                    exportOptions: {
+                        columns: ':not(:last-child):not(:nth-last-child(2))'
+                    }
+                }
+            ]
         });
+
 
         // ON STATUS CHANGE
         $(document).on('change', '.standingdnstatus', function () {

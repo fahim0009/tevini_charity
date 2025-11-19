@@ -2100,6 +2100,7 @@ public function watingvoucherCancel(Request $request)
 
         return view('voucher.order_new');
     }
+    
     public function completeOrder(Request $request)
     {
         if ($request->ajax()) {
@@ -2137,6 +2138,8 @@ public function watingvoucherCancel(Request $request)
 
         return view('voucher.order');
     }
+
+
     public function cancelOrder(Request $request)
     {
         if ($request->ajax()) {

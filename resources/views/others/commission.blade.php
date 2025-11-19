@@ -40,8 +40,11 @@ use Illuminate\Support\Carbon;
 @endsection
 
 @section('script')
+
+
 <script>
 $(function () {
+
     $('#commissionTable').DataTable({
         processing: true,
         serverSide: true,
@@ -51,9 +54,46 @@ $(function () {
             { data: 'donor', name: 'donor' },
             { data: 'amount', name: 'amount' }
         ],
-        pageLength: 50
+        pageLength: 50,
+
+        // ⭐ Add Buttons
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copyHtml5'
+            },
+            {
+                extend: 'csvHtml5'
+            },
+            {
+                extend: 'excelHtml5'
+            },
+            {
+                extend: 'pdfHtml5',
+                title: "Commission Report",
+                orientation: 'portrait',
+                pageSize: 'A4',
+                customize: function (doc) {
+                    doc.styles.tableHeader = {
+                        bold: true,
+                        fontSize: 9,
+                        fillColor: '#4d617e',
+                        color: 'white',
+                        alignment: 'center'
+                    };
+                    doc.defaultStyle.fontSize = 8;
+                    doc.defaultStyle.alignment = 'center';
+                    doc.pageMargins = [20, 40, 20, 30];
+                }
+            },
+            {
+                extend: 'print'
+            }
+        ]
     });
+
 });
 </script>
+
 
 @endsection

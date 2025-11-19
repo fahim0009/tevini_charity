@@ -9,7 +9,7 @@
              <div class="mx-2">
                  {{ (request()->is('admin/order/new')) ? 'New Order' : '' }}
                  {{ (request()->is('admin/order/complete')) ? 'Complete Order' : '' }}
-                 {{ (request()->is('admin/order/cencle')) ? 'Cencle Order' : '' }}
+                 {{ (request()->is('admin/order/cancel')) ? 'Cancel Order' : '' }}
                 </div>
         </div>
     </section>
@@ -82,8 +82,10 @@
 
 @section('script')
 
+
+
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
 
     if ($.fn.DataTable.isDataTable('#completeTable')) {
         $('#completeTable').DataTable().clear().destroy();
@@ -92,24 +94,90 @@
     $('#completeTable').DataTable({
         processing: true,
         serverSide: true,
+
+        // 🔥 Required for buttons
+        dom: '<"html5buttons"B>lTfgitp',
+
         ajax: {
-            url: "{{ route('completeorder') }}", // Your route
+            url: "{{ route('completeorder') }}",
             type: "GET",
         },
+
         columns: [
             { data: 'created_at', name: 'created_at' },
             { data: 'order_id', name: 'order_id' },
             { data: 'donor', name: 'donor' },
             { data: 'amount', name: 'amount' },
             { data: 'status_text', name: 'status_text' },
-            { data: 'barcode', name: 'barcode', orderable: false, searchable: false },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'barcode', name: 'barcode', orderable: false, searchable: false }, // ❌ don't export
+            { data: 'action', name: 'action', orderable: false, searchable: false }     // ❌ don't export
         ],
-        pageLength: 50
+
+        pageLength: 50,
+
+        buttons: [
+            {
+                extend: 'copy',
+                exportOptions: { columns: [0,1,2,3,4] }
+            },
+            {
+                extend: 'csv',
+                title: "New Order Report",
+                exportOptions: { columns: [0,1,2,3,4] }
+            },
+            {
+                extend: 'excel',
+                title: "New Order Report",
+                exportOptions: { columns: [0,1,2,3,4] }
+            },
+            {
+                extend: 'pdfHtml5',
+                title: "New Order Report",
+                orientation: 'portrait',
+                pageSize: 'A4',
+                exportOptions: { columns: [0,1,2,3,4] },
+                customize: function(doc) {
+
+                    // Header style
+                    doc.styles.tableHeader = {
+                        bold: true,
+                        fontSize: 9,
+                        fillColor: '#4d617e',
+                        color: 'white',
+                        alignment: 'center'
+                    };
+
+                    // Center all text
+                    doc.defaultStyle.alignment = 'center';
+
+                    // Page margins
+                    doc.pageMargins = [20, 40, 20, 30];
+
+                    // Fix table width
+                    for (var i = 0; i < doc.content.length; i++) {
+                        if (doc.content[i].table) {
+                            doc.content[i].table.widths = [
+                                '18%', // created_at
+                                '22%', // order_id
+                                '25%', // donor
+                                '15%', // amount
+                                '20%'  // status
+                            ];
+                            break;
+                        }
+                    }
+                }
+            },
+            {
+                extend: 'print',
+                title: "<h3 style='text-align:center;'>New Order Report</h3>",
+                exportOptions: { columns: [0,1,2,3,4] }
+            }
+        ]
     });
 
 });
-
 </script>
+
     
 @endsection

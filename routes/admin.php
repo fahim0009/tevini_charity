@@ -229,7 +229,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/order-status', [OrderController::class, 'orderStatus']);
     Route::get('/order/new', [OrderController::class, 'newOrder'])->name('neworder');
     Route::get('/order/complete', [OrderController::class, 'completeOrder'])->name('completeorder');
-    Route::get('/order/cencle', [OrderController::class, 'cancelOrder'])->name('cancelorder');
+    Route::get('/order/cancel', [OrderController::class, 'cancelOrder'])->name('cancelorder');
     Route::post('/add-start-barcode', [OrderController::class, 'addStartBarcode']);
     Route::post('/add-pages', [OrderController::class, 'addNumberofpage']);
     Route::post('/cancel-pages', [OrderController::class, 'cancelVoucherBook']);

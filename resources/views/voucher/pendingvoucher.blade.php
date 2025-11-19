@@ -177,13 +177,19 @@ function initDT() {
     $('#pendingTable').DataTable({
         processing: true,
         serverSide: true,
+
+        // 🔥 required for export buttons
+        dom: '<"html5buttons"B>lTfgitp',
+
         ajax: {
             url: "{{ route('pendingvoucher') }}",
             data: { id: "{{ $donor_id ?? '' }}" }
         },
+
         pageLength: 100,
+
         columns: [
-            { data: 'checkbox', orderable: false, searchable: false },
+            { data: 'checkbox', orderable: false, searchable: false }, // ❌ do not export
             { data: 'created_at' },
             { data: 'charity' },
             { data: 'donor' },
@@ -192,12 +198,67 @@ function initDT() {
             { data: 'amount' },
             { data: 'status' }
         ],
+
         buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print'
+            {
+                extend: 'copy',
+                exportOptions: { columns: ':not(:first-child)' } // remove checkbox column
+            },
+            {
+                extend: 'csv',
+                title: "Pending Voucher Report",
+                exportOptions: { columns: ':not(:first-child)' }
+            },
+            {
+                extend: 'excel',
+                title: "Pending Voucher Report",
+                exportOptions: { columns: ':not(:first-child)' }
+            },
+            {
+                extend: 'pdfHtml5',
+                title: "Pending Voucher Report",
+                orientation: 'portrait',
+                pageSize: 'A4',
+                exportOptions: { columns: ':not(:first-child)' },
+                customize: function(doc) {
+
+                    // Style
+                    doc.styles.tableHeader = {
+                        bold: true,
+                        fontSize: 8,
+                        fillColor: '#4d617e',
+                        color: 'white',
+                        alignment: 'center'
+                    };
+                    doc.defaultStyle.alignment = 'center';
+                    doc.pageMargins = [20, 40, 20, 30];
+
+                    // Fix column width cropping issue
+                    for (var i = 0; i < doc.content.length; i++) {
+                        if (doc.content[i].table) {
+                            doc.content[i].table.widths = [
+                                '12%', // created_at
+                                '16%', // charity
+                                '19%', // donor
+                                '15%', // cheque no
+                                '10%', // note
+                                '20%', // amount
+                                '8%',  // status
+                            ];
+                            break;
+                        }
+                    }
+                }
+            },
+
+            {
+                extend: 'print',
+                title: "<h3 style='text-align:center;'>Pending Voucher Report</h3>",
+                exportOptions: { columns: ':not(:first-child)' }
+            }
         ]
     });
 }
-
-
 </script>
+
 @endsection

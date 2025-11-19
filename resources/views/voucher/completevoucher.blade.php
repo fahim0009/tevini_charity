@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
     
 <div class="dashboard-content">
     <section class="profile purchase-status">
@@ -35,21 +35,6 @@
                                             <th>Amount</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-
-                                        {{-- @foreach ($cvouchers as $voucher)
-                                        <tr>
-                                                <td>{{ $voucher->created_at->format('m/d/Y')}} </td>
-                                                <td>{{ $voucher->charity->name}} </td>
-                                                <td>{{ $voucher->user->name }}</td>
-                                                <td>{{ $voucher->cheque_no}}</td>
-                                                <td>{{ $voucher->voucher_type}}</td>
-                                                <td>{{ $voucher->note}}</td>
-                                                <td>£{{ $voucher->amount}}</td>
-                                        </tr>
-                                        @endforeach --}}
-
-
                                     </tbody>
                                 </table>
                             </div>
@@ -63,41 +48,76 @@
 @endsection
 
 @section('script')
+<script>
+    $(document).ready(function() {
+        let id = $('#donorid').val();
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        $('#example3').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "{{ route('completevoucher') }}",
+                type: "GET",
+                data: function (d) {
+                    d.id = id;
+                }
+            },
+            pageLength: 100,
 
-    <script>
-        $(document).ready(function() {
-            let id = $('#donorid').val();
-            console.log(id)
-            $('#example3').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: "{{ route('completevoucher') }}",
-                    type: "GET",
-                    data: function (d) {
-                        d.id = id; // Add the ID as a parameter to the request
-                    },
-                    error: function(xhr, error, code) {
-                        console.log(xhr.responseText); // Debugging response
+            // 🔥 enable button layout (same as previous)
+            dom: '<"html5buttons"B>lTfgitp',
+
+            buttons: [
+                {
+                    extend: 'copy',
+                    exportOptions: { columns: ':visible' }
+                },
+                {
+                    extend: 'csv',
+                    title: "Complete Voucher Report",
+                    exportOptions: { columns: ':visible' }
+                },
+                {
+                    extend: 'excel',
+                    title: "Complete Voucher Report",
+                    exportOptions: { columns: ':visible' }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    title: "Complete Voucher Report",
+                    orientation: 'portrait',
+                    pageSize: 'A4',
+                    exportOptions: { columns: ':visible' },
+                    customize: function(doc) {
+                        doc.styles.tableHeader = {
+                            bold: true,
+                            fontSize: 10,
+                            fillColor: '#4d617e',
+                            color: 'white',
+                            alignment: 'center'
+                        };
+                        doc.defaultStyle.alignment = 'center';
+                        doc.pageMargins = [20, 40, 20, 30];
                     }
                 },
-                pageLength: 100,
-                columns: [
-                    { data: 'created_at', name: 'created_at' },
-                    { data: 'completed_date', name: 'completed_date' },
-                    { data: 'charity', name: 'charity' },
-                    { data: 'user', name: 'user' },
-                    { data: 'cheque_no', name: 'cheque_no' },
-                    { data: 'note', name: 'note' },
-                    { data: 'amount', name: 'amount' }
-                ],
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print'
-                ]
-            });
+                {
+                    extend: 'print',
+                    title: "<h3 style='text-align:center;'>Complete Voucher Report</h3>",
+                    exportOptions: { columns: ':visible' }
+                }
+            ],
+
+            columns: [
+                { data: 'created_at', name: 'created_at' },
+                { data: 'completed_date', name: 'completed_date' },
+                { data: 'charity', name: 'charity' },
+                { data: 'user', name: 'user' },
+                { data: 'cheque_no', name: 'cheque_no' },
+                { data: 'note', name: 'note' },
+                { data: 'amount', name: 'amount' }
+            ]
         });
-    </script>
+    });
+
+</script>
 @endsection

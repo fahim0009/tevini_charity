@@ -151,12 +151,23 @@ use app\Models\Provoucher;
 <script>
 $(document).ready(function () {
 
+    var data = 'Tevini';
+    var title = 'Remittance Report';
+
+    // Destroy old table if exists
+    if ($.fn.DataTable.isDataTable('#remittanceTable')) {
+        $('#remittanceTable').DataTable().clear().destroy();
+    }
+
     $('#remittanceTable').DataTable({
         processing: true,
         serverSide: true,
         searching: true,
         ordering: true,
         pageLength: 25,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        responsive: true,
+
         ajax: {
             url: "{{ route('remittance') }}",
             type: "GET",
@@ -166,6 +177,104 @@ $(document).ready(function () {
                 d.charityid = $('#charityid').val();
             }
         },
+
+        dom: '<"html5buttons"B>lTfgitp',
+
+        buttons: [
+            { extend: 'copy', exportOptions: { columns: ':visible' } },
+
+            {
+                extend: 'excel',
+                title: title,
+                messageTop: data,
+                exportOptions: { columns: ':visible' }
+            },
+
+            {
+                extend: 'pdfHtml5',
+                title: 'Report',
+                orientation: 'portrait',
+                pageSize: 'A4',
+                header: true,
+                exportOptions: { columns: ':visible' },
+
+                customize: function (doc) {
+                    doc.content.splice(0, 1, {
+                        text: [
+                            { text: data + '\n', bold: true, fontSize: 12 },
+                            { text: title + '\n', bold: true, fontSize: 15 }
+                        ],
+                        margin: [0, 0, 0, 12],
+                        alignment: 'center'
+                    });
+
+                    doc.defaultStyle.alignment = 'center';
+
+                    var tableNode = null;
+                    for (var i = 0; i < doc.content.length; i++) {
+                        if (doc.content[i] && doc.content[i].table) {
+                            tableNode = doc.content[i];
+                            break;
+                        }
+                    }
+
+                    if (tableNode) {
+
+                        // Set column widths (adjust as needed)
+                        tableNode.table.widths = ['10%', '20%', '15%', '15%', '15%', '15%', '10%'];
+
+                        tableNode.layout = {
+                            hLineWidth: function () { return 0.5; },
+                            vLineWidth: function () { return 0; },
+                            hLineColor: function () { return '#aaa'; },
+                            paddingLeft: function () { return 2; },
+                            paddingRight: function () { return 2; },
+                            paddingTop: function () { return 4; },
+                            paddingBottom: function () { return 4; }
+                        };
+
+                        doc.styles.tableHeader = {
+                            bold: true,
+                            fontSize: 8,
+                            color: 'white',
+                            fillColor: '#4d617e',
+                            alignment: 'center'
+                        };
+
+                        doc.styles.tableBodyEven = {
+                            fontSize: 7,
+                            color: '#4d617e',
+                            fillColor: '#f8f9fa',
+                            alignment: 'center'
+                        };
+
+                        doc.styles.tableBodyOdd = {
+                            fontSize: 7,
+                            color: '#4d617e',
+                            fillColor: 'white',
+                            alignment: 'center'
+                        };
+
+                        doc.pageMargins = [20, 60, 20, 40];
+                    }
+                }
+            },
+
+            {
+                extend: 'print',
+                title: "<p style='text-align:center;'>" + data + "<br>" + title + "</p>",
+                header: true,
+                exportOptions: { columns: ':visible' },
+                customize: function (win) {
+                    $(win.document.body).addClass('white-bg');
+                    $(win.document.body).css('font-size', '10px');
+                    $(win.document.body).find('table')
+                        .addClass('compact')
+                        .css('font-size', 'inherit');
+                }
+            }
+        ],
+
         columns: [
             { data: 'date', name: 'date' },
             { data: 'description', name: 'description' },
@@ -173,17 +282,20 @@ $(document).ready(function () {
             { data: 'amount', name: 'amount' },
             { data: 'balance', name: 'balance', orderable: false },
             { data: 'notes', name: 'notes' },
-            { data: 'status_text', name: 'status_text' },
+            { data: 'status_text', name: 'status_text' }
         ]
     });
 
+    // Filter button reload
     $('#searchBtn').on('click', function () {
         $('#remittanceTable').DataTable().ajax.reload();
     });
 
-
 });
 </script>
+
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
 <script>
     $('#charity').select2({

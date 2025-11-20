@@ -1026,7 +1026,7 @@ class OrderController extends Controller
 
             $limit = $user->balance + $user->overdrawn_amount;
             $amount = $amounts[$index];
-            $isPending = ($limit < $amount || $waitings[$index] === 'Yes');
+            $isPending = ($limit < $amount || $waitings[$index] === 'Yes' || $expireds[$index] =="Yes");
 
             $barcode = $chequeNos[$index];
 

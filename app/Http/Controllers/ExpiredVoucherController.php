@@ -9,7 +9,7 @@ class ExpiredVoucherController extends Controller
 {
     public function getExpiredVoucher()
     {
-        $data = Provoucher::where('expired','=', 'Yes')->orderBy('id','DESC')->get();
+        $data = Provoucher::where('expired','=', 'Yes')->where('status', '!=', 3)->orderBy('id','DESC')->get();
         return view('voucher.expiredVoucher', compact('data'));
 
     }

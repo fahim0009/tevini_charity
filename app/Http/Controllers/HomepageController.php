@@ -263,12 +263,8 @@ class HomepageController extends Controller
         if($chkuser)
         {
             
-
-            $u_bal = $chkuser->balance;
             $donor_id = $chkuser->id;
-
-            $overdrawn = $chkuser->overdrawn_amount;
-            $limitChk = $u_bal + $overdrawn;
+            $limitChk = $chkuser->getAvailableLimit() ?? 0;
 
             if($limitChk < $amount ){
                 $reason ='Overdrawn limit exceed.';

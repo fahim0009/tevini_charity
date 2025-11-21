@@ -1024,7 +1024,7 @@ class OrderController extends Controller
             $user = User::find($donorId);
             if (!$user) continue;
 
-            $limit = $user->balance + $user->overdrawn_amount;
+            $limit = $user->getAvailableLimit();
             $amount = $amounts[$index];
             $isPending = ($limit < $amount || $waitings[$index] === 'Yes' || $expireds[$index] =="Yes");
 
@@ -1731,53 +1731,53 @@ class OrderController extends Controller
 
         $voucher = Provoucher::where('id',$voucher_id)->first();
         
-        $u_bal = User::where('id',$voucher->user_id)->first()->balance;
-        $overdrawn = (User::where('id',$voucher->user_id)->first()->overdrawn_amount);
-        $limitChk = $u_bal + $overdrawn;
+        $user = User::where('id',$voucher->user_id)->first();
+        $limitChk = $user->getAvailableLimit() ?? 0;
 
-        if($limitChk >= $voucher->amount){
+            if($limitChk >= $voucher->amount){
 
-            $utransaction = Usertransaction::find($voucher->tran_id);
-            $utransaction->status = '1';
-            $utransaction->pending = '1';
-            $utransaction->save();
+                $utransaction = Usertransaction::find($voucher->tran_id);
+                $utransaction->status = '1';
+                $utransaction->pending = '1';
+                $utransaction->save();
 
-            $charity = Charity::find($voucher->charity_id);
-            $charity->increment('balance',$voucher->amount);
-            $charity->save();
+                $charity = Charity::find($voucher->charity_id);
+                $charity->increment('balance',$voucher->amount);
+                $charity->save();
 
-            $donor = User::find($voucher->user_id);
-            $donor->decrement('balance',$voucher->amount);
-            $donor->save();
+                $donor = User::find($voucher->user_id);
+                $donor->decrement('balance',$voucher->amount);
+                $donor->save();
 
-            // card balance update
-            if (isset($donor->CreditProfileId)) {
-                $CreditProfileId = $donor->CreditProfileId;
-                $CreditProfileName = $donor->name;
-                $AvailableBalance = 0 - $voucher->amount;
-                $comment = "waiting voucher complete";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
+                // card balance update
+                if (isset($donor->CreditProfileId)) {
+                    $CreditProfileId = $donor->CreditProfileId;
+                    $CreditProfileName = $donor->name;
+                    $AvailableBalance = 0 - $voucher->amount;
+                    $comment = "waiting voucher complete";
+                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $CreditProfileId,
+                            'CreditProfileName' => $CreditProfileName,
+                            'AvailableBalance' => $AvailableBalance,
+                            'comment' => $comment,
+                        ]);
+                }
+                // card balance update end
 
-
-
-            $pstatus = Provoucher::find($voucher_id);
-            $pstatus->waiting = "No";
-            $pstatus->status = 1;
-            $pstatus->completed_date = date('Y-m-d');
-            $pstatus->save();
+                $pstatus = Provoucher::find($voucher_id);
+                $pstatus->waiting = "No";
+                $pstatus->expired = "No";
+                $pstatus->status = 1;
+                $pstatus->completed_date = date('Y-m-d');
+                $pstatus->save();
 
             }else {
-            $pstatus = Provoucher::find($voucher_id);
-            $pstatus->waiting = "No";
-            $pstatus->save();
+
+                $pstatus = Provoucher::find($voucher_id);
+                $pstatus->waiting = "Yes";
+                $pstatus->save();
+
             }   
         }
 
@@ -1816,6 +1816,7 @@ class OrderController extends Controller
 
 public function watingvoucherCancel(Request $request)
     {
+
      if(empty($request->voucherIds)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
@@ -1836,14 +1837,14 @@ public function watingvoucherCancel(Request $request)
         foreach($voucher_ids as $key => $voucher_id)
         {
 
-        $voucher = Provoucher::where('id',$voucher_id)->first();
+            $voucher = Provoucher::where('id',$voucher_id)->first();
 
-        Usertransaction::where('id', $voucher->tran_id)->delete();
+            Usertransaction::where('id', $voucher->tran_id)->delete();
 
-        $pstatus = Provoucher::find($voucher_id);
-        $pstatus->status = 3;
-        $pstatus->waiting = "Cancel";
-        $pstatus->save();
+            $pstatus = Provoucher::find($voucher_id);
+            $pstatus->status = 3;
+            $pstatus->waiting = "Cancel";
+            $pstatus->save();
 
         }
 
@@ -1874,7 +1875,7 @@ public function watingvoucherCancel(Request $request)
         ->send(new WaitingVoucherCancel($array));
     }
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
+    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher status change successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);
 
     }

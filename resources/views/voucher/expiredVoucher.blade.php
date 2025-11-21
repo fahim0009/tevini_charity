@@ -133,8 +133,9 @@ $("#vsrComplete").click(function(){
                     pagetop();
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
-                    location.reload();
                     pagetop();
+                    setTimeout(() => location.reload(), 3000);
+
                 }
             },
             complete:function(d){
@@ -179,8 +180,9 @@ $("#vsrCancel").click(function(){
                     pagetop();
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
-                    location.reload();
                     pagetop();
+                    setTimeout(() => location.reload(), 3000);
+
                 }
             },
             complete:function(d){
@@ -214,9 +216,10 @@ $("input[type='file']").on("change", function() {
                 $(".ermsg").html(d.message);
                 pagetop();
             }else if(d.status == 300){
-                // $(".ermsg").html(d.message);
-                console.log(d.message);
+                $(".ermsg").html(d.message);
                 pagetop();
+                setTimeout(() => location.reload(), 3000);
+
             }
         },
         complete:function(d){
@@ -260,8 +263,9 @@ $("#vsrMail").click(function(){
                     pagetop();
                 }else if(d.status == 300){
                     $(".ermsg").html(d.message);
-                    location.reload();
                     pagetop();
+                    setTimeout(() => location.reload(), 3000);
+
                 }
             },
             complete:function(d){

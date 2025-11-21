@@ -858,9 +858,7 @@ class CharityController extends Controller
         // Loop donors
         foreach ($donor_ids as $key => $donor_id) {
             $user = User::find($donor_id);
-            $u_bal = $user->balance ?? 0;
-            $overdrawn = $user->overdrawn_amount ?? 0;
-            $limitChk = $u_bal + $overdrawn;
+            $limitChk = $user->getAvailableLimit() ?? 0;
 
             // Create user transaction
             $utransaction = new Usertransaction();

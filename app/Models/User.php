@@ -149,5 +149,27 @@ class User extends Authenticatable
         return $this->hasMany(AccDelRequest::class);
     }
 
+    public function getLiveBalance()
+    {
+        return Usertransaction::where('user_id', $this->id)
+            ->where(function ($q) {
+                $q->where('status', 1)
+                  ->orWhere('pending', 1);
+            })
+            ->selectRaw('
+                COALESCE(
+                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                    SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END),
+                0) as balance
+            ')
+            ->value('balance');
+    }
+
+    public function getAvailableLimit()
+    {
+        return $this->getLiveBalance() + $this->overdrawn_amount;
+    }
+
+
 
 }

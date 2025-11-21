@@ -59,19 +59,13 @@ class DonorController extends Controller
     {
         $users = User::where('is_type','user')
             ->select('id','name','surname','email','phone','accountno','town','balance','overdrawn_amount','email_verified_at')
-            ->withSum(['usertransaction as balance_in' => function($q){
-                $q->where('t_type','In')->where('status',1);
-            }], 'amount')
-            ->withSum(['usertransaction as balance_out' => function($q){
-                $q->where('t_type','Out')->where('status',1);
-            }], 'amount')
             ->withSum(['usertransaction as pending_out' => function($q){
                 $q->where('t_type','Out')->where('pending',0);
             }], 'amount');
 
         return datatables()->eloquent($users)
             ->addColumn('balance', function($u){
-                $value = $u->balance_in - $u->balance_out;
+                $value = $u->getLiveBalance();
                 return '£' . number_format($value, 2);
             })
             ->addColumn('overdrawn_amount', function($u){

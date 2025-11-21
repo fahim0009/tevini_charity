@@ -100,10 +100,10 @@ class UserController extends Controller
     }
 
     public function profileinAdmin($id)
-    {   $donor_id = $id;
-        $profile_data= User::where('id','=',$id)->first();
+    {   
 
-
+        $donor_id = $id;
+        $profile_data = User::where('id','=', $id)->first();
 
         // previous year data start
         $period = CarbonPeriod::create(
@@ -146,43 +146,9 @@ class UserController extends Controller
         $currentMonthName = $date->format('F'); // July
         $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
 
-        // user balance calculation start
-        $gettrans = Usertransaction::where([
-            ['user_id','=', $donor_id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', $donor_id],
-            ['pending','=', '1']
-        ])->orderBy('id','DESC')->get();
 
-        $donorUpBalance = 0;
 
-        foreach ($gettrans as $key => $tran) {
-            if ($tran->t_type == "In") {
-                $donorUpBalance = $donorUpBalance + $tran->amount;
-            }elseif ($tran->t_type == "Out") {
-                $donorUpBalance = $donorUpBalance - $tran->amount;
-            } else {
-                # code...
-            }
-        }
-
-        $userTransactionBalance = UserTransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', $donor_id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=', $donor_id],
-                ['pending','=', '1']
-            ])
-            ->first();
-
-        // user balance calculation end
-
-        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName','donorUpBalance','userTransactionBalance'));
+        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName'));
     }
 
     public function updateprofile(Request $request)

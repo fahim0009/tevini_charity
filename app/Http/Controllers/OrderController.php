@@ -1382,13 +1382,6 @@ class OrderController extends Controller
             }
         } 
 
-
-
-        
-
-        
-
-
     }
 
     public function addNumberofpage(Request $request)
@@ -1578,7 +1571,7 @@ class OrderController extends Controller
         foreach($array2 as $key => $voucher_id)
         {
 
-        $voucher = Provoucher::where('id',$voucher_id)->first();
+            $voucher = Provoucher::where('id',$voucher_id)->first();
 
 
             $utransaction = Usertransaction::find($voucher->tran_id);
@@ -1620,32 +1613,32 @@ class OrderController extends Controller
         foreach($result as $chrt_id => $vchr_ids)
         {
 
-        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-        $charity = Charity::where('id','=',$chrt_id)->first();
+            $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+            $charity = Charity::where('id','=',$chrt_id)->first();
 
-        $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
-        $output = $pdf->output();
-        file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
+            $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
 
-        $contactmail = ContactMail::where('id', 1)->first()->name;
+            $contactmail = ContactMail::where('id', 1)->first()->name;
 
-        $array['subject'] = 'Remittance Report';
-        $array['from'] = 'info@tevini.co.uk';
-        $array['cc'] = $contactmail;
-        $array['name'] = $charity->name;
-        $email = $charity->email;
-        $array['charity'] = $charity;
-        $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
-        $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
-        $array['subjectsingle'] = 'Report Placed - '.$charity->id;
+            $array['subject'] = 'Remittance Report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $array['name'] = $charity->name;
+            $email = $charity->email;
+            $array['charity'] = $charity;
+            $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
+            $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$charity->id;
 
-        Mail::to($email)
-        ->cc($contactmail)
-        ->send(new PendingvReport($array));
-    }
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new PendingvReport($array));
+        }
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";
-    return response()->json(['status'=> 300,'message'=>$message]);
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
     }
 
     public function pvCancel(Request $request)

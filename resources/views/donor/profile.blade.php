@@ -44,7 +44,7 @@
                                         src="@if($profile_data->photo){{asset('images/'.$profile_data->photo)}}@else https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg @endif"><span
                                         class="font-weight-bold">{{ $profile_data->name }}</span>
                                         <span class="text-black-50">{{$profile_data->email }}</span>
-                                        <span> Balance : {{ $userTransactionBalance->balance < 0 ? '-' : '' }}£{{ number_format(abs($userTransactionBalance->balance), 2) }}</span>
+                                        <span> Balance : {{ $profile_data->getLiveBalance() < 0 ? '-' : '' }}£{{ number_format(abs($profile_data->getLiveBalance()), 2) }}</span>
                                         <span> Gift in Previous Year: {{ $totalamount }}</span>
                                         <span>  Gift in Current Year: {{$currentyramount }}</span>
                                         {{-- <input type="file" id="image" name="image" class="profile-upload"> --}}

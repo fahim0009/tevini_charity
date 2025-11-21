@@ -23,16 +23,16 @@
                         <div class="col-md-1 my-1">
                         </div>
 
-                        <div class="col-md-4 my-2 d-none">
+                        <div class="col-md-4 my-2">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="checkbox" id="checkAll">
                                 <label class="form-check-label" for="checkAll">
                                   All Select
                                 </label>
                             </div>
-                            <button class="btn btn-primary rounded-pill" id="vsrComplete" type="button">Complete</button>
-                            <button class="btn btn-danger rounded-pill" id="vsrCancel" type="button">Cancel</button>
-                            <button class="btn btn-success rounded-pill" id="vsrMail" type="button">Send Mail</button>
+                            <button class="btn btn-primary" id="vsrComplete" type="button">Complete</button>
+                            <button class="btn btn-danger" id="vsrCancel" type="button">Cancel</button>
+                            <button class="btn btn-success" id="vsrMail" type="button">Send Mail</button>
                         </div>
 
                         <div class="col-md-12 mt-2 text-center">
@@ -40,7 +40,7 @@
                                 <table class="table table-custom shadow-sm bg-white" id="example">
                                     <thead>
                                         <tr>
-                                            <th style="display: none"></th>
+                                            <th style=""></th>
                                             <th>Date</th>
                                             <th>Charity</th>
                                             <th>Donor</th>
@@ -56,7 +56,7 @@
                                         @foreach ($data as $voucher)
 
                                         <tr>
-                                                <td style="display: none">
+                                                <td style="">
                                                     <input class="form-check-input getvid" type="checkbox" name="voucherId[]" donor_id="{{ $voucher->user_id }}" charity_id="{{ $voucher->charity_id }}" value="{{ $voucher->id }}">
                                                 </td>
                                                 <td><span style="display:none;">{{ $voucher->id }}</span>{{ $voucher->created_at->format('d/m/Y')}} </td>
@@ -91,17 +91,191 @@
 
 $(document).ready(function() {
 
+    $("#checkAll").click(function(){
+    $('input:checkbox').not(this).prop('checked', this.checked);
+    });
+
 
 
 //header for csrf-token is must in laravel
 $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 //
 
+// select and confirm
+var url = "{{URL::to('/admin/waiting-vouchercomplete')}}";
+
+$("#vsrComplete").click(function(){
+    $("#loading").show();
+    var voucherIds = [];
+    $('.getvid:checkbox:checked').each(function(i){
+        voucherIds[i] = $(this).val();
+        });
+
+    var charityIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        charityIds[i] = $(this).attr('charity_id');
+    });
+    
+    var donorIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        donorIds[i] = $(this).attr('donor_id');
+    });  
 
 
+        $.ajax({
+            url: url,
+            method: "POST",
+            data: {voucherIds,charityIds,donorIds},
 
+            success: function (d) {
+                if (d.status == 303) {
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                }else if(d.status == 300){
+                    $(".ermsg").html(d.message);
+                    location.reload();
+                    pagetop();
+                }
+            },
+            complete:function(d){
+                        $("#loading").hide();
+                    },
+            error: function (d) {
+                console.log(d);
+            }
+        });
+
+});
+
+
+// select and cancel
+var urlc = "{{URL::to('/admin/waiting-vouchercancel')}}";
+
+$("#vsrCancel").click(function(){
+    $("#loading").show();
+    var voucherIds = [];
+    $('.getvid:checkbox:checked').each(function(i){
+        voucherIds[i] = $(this).val();
+        });
+
+    var charityIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        charityIds[i] = $(this).attr('charity_id');
+    });
+    
+    var donorIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        donorIds[i] = $(this).attr('donor_id');
+    });  
+
+        $.ajax({
+            url: urlc,
+            method: "POST",
+            data: {voucherIds,charityIds,donorIds},
+
+            success: function (d) {
+                if (d.status == 303) {
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                }else if(d.status == 300){
+                    $(".ermsg").html(d.message);
+                    location.reload();
+                    pagetop();
+                }
+            },
+            complete:function(d){
+                        $("#loading").hide();
+                    },
+            error: function (d) {
+                console.log(d);
+            }
+        });
+
+});
+
+//upload image for send mail
+var urlimgadd = "{{URL::to('/admin/waiting-voucherimgadd')}}";
+$("input[type='file']").on("change", function() {
+    var image = $(this)[0].files[0];
+    var process_voucher_id = $(this).attr('process_voucher_id');
+    var formData = new FormData();
+    formData.append('image', image);
+    formData.append('process_voucher_id', process_voucher_id);
+
+        $.ajax({
+        url: urlimgadd,
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        contentType: false,
+        processData: false,
+        success: function (d) {
+            if (d.status == 303) {
+                $(".ermsg").html(d.message);
+                pagetop();
+            }else if(d.status == 300){
+                // $(".ermsg").html(d.message);
+                console.log(d.message);
+                pagetop();
+            }
+        },
+        complete:function(d){
+                    $("#loading").hide();
+                },
+        error: function (d) {
+            console.log(d);
+        }
+    });
+
+});
+
+
+// mail send
+var urlmail = "{{URL::to('/admin/waiting-vouchermail')}}";
+$("#vsrMail").click(function(){
+    $("#loading").show();
+    var voucherIds = [];
+    $('.getvid:checkbox:checked').each(function(i){
+        voucherIds[i] = $(this).val();
+        });
+
+    var charityIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        charityIds[i] = $(this).attr('charity_id');
+    });
+    
+    var donorIds = [];    
+    $('.getvid:checkbox:checked').each(function(i){
+        donorIds[i] = $(this).attr('donor_id');
+    });  
+
+        $.ajax({
+            url: urlmail,
+            method: "POST",
+            data: {voucherIds,charityIds,donorIds},
+
+            success: function (d) {
+                if (d.status == 303) {
+                    $(".ermsg").html(d.message);
+                    pagetop();
+                }else if(d.status == 300){
+                    $(".ermsg").html(d.message);
+                    location.reload();
+                    pagetop();
+                }
+            },
+            complete:function(d){
+                        $("#loading").hide();
+                    },
+            error: function (d) {
+                console.log(d);
+            }
+        });
+
+});
 
 
 });
 </script>
 @endsection
+

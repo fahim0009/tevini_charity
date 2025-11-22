@@ -81,6 +81,10 @@ class DonorController extends Controller
                     ' <i class="fa fa-'.($u->email_verified_at ? 'check-circle' : 'times-circle').'" 
                         style="color:'.($u->email_verified_at ? 'green' : 'red').'"></i>';
             })
+            ->filterColumn('fullname', function($query, $keyword) {
+                $query->whereRaw("CONCAT(name, ' ', surname) LIKE ?", ["%{$keyword}%"]);
+            })
+            
             ->addColumn('action', function($u){
                 return view('donor.partials.action', compact('u'))->render();
             })

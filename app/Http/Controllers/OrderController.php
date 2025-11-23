@@ -1706,7 +1706,7 @@ class OrderController extends Controller
 
     ///////////////// waiting voucher start ////////////////////
 
-    public function watingvoucherComplete(Request $request)
+    public function watingvoucherComplete_old(Request $request)
     {
      if(empty($request->voucherIds)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
@@ -1808,10 +1808,149 @@ class OrderController extends Controller
         ->send(new PendingvReport($array));
     }
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher status change successfully.</b></div>";
-    return response()->json(['status'=> 300,'message'=>$message]);
-    
-}
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher status change successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
+        
+    }
+
+    public function watingvoucherComplete(Request $request)
+    {
+        if (empty($request->voucherIds)) {
+            $message ="<div class='alert alert-danger'><b>No voucher selected.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+
+        $donor_ids = $request->donorIds;
+        $charity_ids = $request->charityIds;
+        $voucher_ids = $request->voucherIds;
+
+        $result = [];
+        $index = 0;
+
+        // group voucher by charity id
+        foreach ($charity_ids as $key => $value) {
+            $result[$value][] = $voucher_ids[$index];
+            $index++;
+        }
+
+        $completed = [];   // store completed voucher ids
+        $failed = [];      // store failed voucher ids
+
+        foreach ($voucher_ids as $voucher_id)
+        {
+            $voucher = Provoucher::where('id',$voucher_id)->first();
+
+            $user = User::where('id',$voucher->user_id)->first();
+            $limitChk = $user->getAvailableLimit() ?? 0;
+
+            if($limitChk >= $voucher->amount){
+
+                // **complete voucher**
+                $utransaction = Usertransaction::find($voucher->tran_id);
+                $utransaction->status = '1';
+                $utransaction->pending = '1';
+                $utransaction->save();
+
+                $charity = Charity::find($voucher->charity_id);
+                $charity->increment('balance',$voucher->amount);
+
+                $donor = User::find($voucher->user_id);
+                $donor->decrement('balance',$voucher->amount);
+
+                // card balance API
+                if (isset($donor->CreditProfileId)) {
+                    Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                            'CreditProfileId' => $donor->CreditProfileId,
+                            'CreditProfileName' => $donor->name,
+                            'AvailableBalance' => (0 - $voucher->amount),
+                            'comment' => "Voucher complete",
+                        ]);
+                }
+
+                $pstatus = Provoucher::find($voucher_id);
+                $pstatus->waiting = "No";
+                $pstatus->expired = "No";
+                $pstatus->status = 1;
+                $pstatus->completed_date = date('Y-m-d');
+                $pstatus->save();
+
+                $completed[] = $voucher_id;
+
+            } else {
+
+                // **failed due to low balance**
+                $pstatus = Provoucher::find($voucher_id);
+                $pstatus->waiting = "Yes";
+                $pstatus->save();
+
+                $failed[] = $voucher_id;
+            }
+        }
+
+
+        /**
+         * SEND EMAIL ONLY FOR COMPLETED VOUCHERS
+         */
+        foreach($result as $chrt_id => $vchr_ids)
+        {
+            // filter vouchers only if completed
+            $final_list = array_intersect($vchr_ids, $completed);
+
+            if (count($final_list) == 0) continue;
+
+            $remittances = Provoucher::whereIn('id', $final_list)->get();
+            $charity = Charity::where('id','=',$chrt_id)->first();
+
+            $pdf = PDF::loadView('invoices.waiting_vouchercomplete', compact('remittances','charity'));
+            $output = $pdf->output();
+            $path = public_path('/invoices/confirm_waiting_voucher#'.$charity->id.'.pdf');
+            file_put_contents($path, $output);
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array = [
+                'subject' => 'Remittance Report',
+                'from' => 'info@tevini.co.uk',
+                'cc' => $contactmail,
+                'name' => $charity->name,
+                'charity' => $charity,
+                'file' => $path,
+                'file_name' => 'confirm_waiting_voucher#'.$charity->id.'.pdf',
+                'subjectsingle' => 'Report Placed - '.$charity->id,
+            ];
+
+            Mail::to($charity->email)
+                ->cc($contactmail)
+                ->send(new PendingvReport($array));
+        }
+
+
+        /**
+         * FINAL RESPONSE MESSAGES
+         */
+        if (count($completed) > 0 && count($failed) > 0) {
+            $msg = "<div class='alert alert-warning'>
+                        <b>Some vouchers completed, some failed due to insufficient balance.</b>
+                    </div>";
+            return response()->json(['status'=>300,'message'=>$msg]);
+        }
+
+        if (count($completed) > 0 && count($failed) == 0) {
+            $msg = "<div class='alert alert-success'>
+                        <b>All vouchers completed successfully.</b>
+                    </div>";
+            return response()->json(['status'=>300,'message'=>$msg]);
+        }
+
+        if (count($completed) == 0 && count($failed) > 0) {
+            $msg = "<div class='alert alert-danger'>
+                        <b>No voucher completed. Not enough balance.</b>
+                    </div>";
+            return response()->json(['status'=>303,'message'=>$msg]);
+        }
+    }
+
 
 
 public function watingvoucherCancel(Request $request)

@@ -77,6 +77,7 @@ use app\Models\Provoucher;
                                     <th>Balance </th>
                                     <th>Notes </th>
                                     <th>Status </th>
+                                    <th>Expired </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -86,33 +87,44 @@ use app\Models\Provoucher;
                                 @endphp
                                 @foreach ($remittance as $data)
                                         <tr>
-                                        <td><span style="display:none;">{{ $data->id }}</span>{{ $data->created_at->format('d/m/Y')}} </td>
-                                        <td>Vouchers </td>
-                                        <td>{{$data->cheque_no}}</td>
-                                        <td>{{$data->user->name}}</td>
-                                        <td> £{{ number_format($data->amount, 2) }}</td>
-                                        @if($data->status == 1)
-                                        <td> £{{ number_format($total+$tbalance, 2) }} </td>
-                                        <?php $tbalance = $tbalance - $data->amount;?>
-                                        @else
-                                        <td> £{{ number_format('0', 2) }} </td>
-                                        @endif
-                                        <td>
-                                        <!--Acc: No: {{$data->donor_acc}}; <br>-->
-                                            <!--Voucher No:*****-->
-                                           {{$data->note}}
-                                        </td>
-                                        <td>
+                                            <td><span style="display:none;">{{ $data->id }}</span>{{ $data->created_at->format('d/m/Y')}} </td>
+                                            <td>Vouchers </td>
+                                            <td>{{$data->cheque_no}}</td>
+                                            <td>{{$data->user->name}}</td>
+                                            <td> £{{ number_format($data->amount, 2) }}</td>
                                             @if($data->status == 1)
-                                            Complete
-                                            @elseif($data->status == 0 && $data->waiting == "Yes")
-                                            Awaiting
-                                            @elseif($data->status == 0 && $data->waiting == "No")
-                                            Pending
-                                            @elseif($data->status == 3)
-                                            Cancel
+                                            <td> £{{ number_format($total+$tbalance, 2) }} </td>
+                                            <?php $tbalance = $tbalance - $data->amount;?>
+                                            @else
+                                            <td> £{{ number_format('0', 2) }} </td>
                                             @endif
-                                        </td>
+                                            <td>
+                                            <!--Acc: No: {{$data->donor_acc}}; <br>-->
+                                                <!--Voucher No:*****-->
+                                            {{$data->note}}
+                                            </td>
+                                            <td>
+                                                @if($data->status == 1)
+                                                Complete
+                                                @elseif($data->status == 0 && $data->waiting == "Yes")
+                                                Awaiting
+                                                @elseif($data->status == 0 && $data->waiting == "No")
+                                                Pending
+                                                @elseif($data->status == 3)
+                                                Cancel
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($data->expired == 1)
+                                                Complete
+                                                @elseif($data->status == 0 && $data->expired == "Yes")
+                                                Expired
+                                                @elseif($data->status == 0 && $data->expired == "No")
+                                                Pending
+                                                @elseif($data->status == 3)
+                                                Cancel
+                                                @endif
+                                            </td>
                                         </tr>
                                 @endforeach
 

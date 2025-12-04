@@ -356,6 +356,13 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/all-barcode-delete', [VouchersController::class, 'deleteBarcode'])->name('admin.deleteBarcode');
 
     
+    Route::get('/transaction-delete', [TransactionController::class, 'checkTran'])->name('admin.transactionDelete');
+    Route::post('/transaction-delete', [TransactionController::class, 'checkTran'])->name('admin.transactionSearch');
+    Route::post('/transaction-status-change', [TransactionController::class, 'changeTranStatus'])->name('admin.transactionChangeStatus');
+
+
+
+    
     Route::post('/new-information', [CredentialController::class, 'newUserCredentialStore'])->name('newUserCredentialStore');
     Route::put('/user-email/update/{id}', [CredentialController::class, 'update'])->name('useremail.update');
     Route::delete('/user-email/delete/{id}', [CredentialController::class, 'destroy'])->name('useremail.destroy');

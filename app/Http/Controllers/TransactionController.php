@@ -483,4 +483,64 @@ class TransactionController extends Controller
         ->with('outtransactions',$outtransactions);
     }
 
+
+    public function checkTran(Request $request)
+    {
+        if ($request->isMethod('post')) {
+
+            $request->validate([
+                'tranId' => 'required|string|max:255',
+            ]);
+    
+
+            $tranId = $request->tranId;
+            
+            $chktran = Usertransaction::where('t_id', $tranId)->get();
+
+
+
+            if ($chktran->count() > 0) {
+                
+                return view('transaction.delete', compact('chktran','tranId'))->with('success', 'Data found successfully.');
+            } else {
+                
+                return redirect()->back()->with(['error' => 'Data not found.']);
+            }
+            
+        }else{
+            return view('transaction.delete');
+        }
+        
+    }
+
+    public function changeTranStatus(Request $request)
+    {
+        $request->validate([
+            'tranId' => 'required|string|max:255',
+        ]);
+
+        $tranId = $request->tranId;
+
+        $barcodes = Usertransaction::where('t_id', $tranId);
+
+        if ($barcodes->count() > 0) {
+            
+            $barcodes->update(['status' => 0]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'data deleted successfully.'
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No data found to delete.'
+            ]);
+        }
+    }
+
+
+
+
+
 }

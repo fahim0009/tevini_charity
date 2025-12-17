@@ -507,11 +507,21 @@ class DonationController extends Controller
     public function donationStanding(Request $request)
     {
         if ($request->ajax()) {
-            $query = StandingDonation::with(['user', 'charity'])->orderBy('id', 'desc');
+            // Get status from request, default to active (1)
+            $status = $request->get('status', 1); 
+
+            $query = StandingDonation::with(['user', 'charity'])
+                ->where('status', $status)
+                ->orderBy('id', 'desc');
 
             return DataTables::of($query)
-                ->addColumn('donor', fn($d) => $d->user->name)
-                ->addColumn('beneficiary', fn($d) => $d->charity->name)
+                ->addColumn('donor', fn($d) => $d->user->name ?? 'N/A')
+                ->filterColumn('donor', function($query, $keyword) {
+                    $query->whereHas('user', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->addColumn('beneficiary', fn($d) => $d->charity->name ?? 'N/A')
                 ->addColumn('amount', fn($d) => $d->amount)
                 ->addColumn('anonymous', fn($d) => $d->ano_donation == "true" ? 'Yes' : 'No')
                 ->addColumn('payments', function ($d) {
@@ -533,8 +543,7 @@ class DonationController extends Controller
                 ->rawColumns(['view', 'status_switch'])
                 ->make(true);
         }
-        $donation = StandingDonation::all();
-        return view('donor.standing',compact('donation'));
+        return view('donor.standing');
     }
 
     public function activeStandingdnsn(Request $request)

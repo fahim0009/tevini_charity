@@ -63,6 +63,7 @@
                 }
             },
             pageLength: 100,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 
             // 🔥 enable button layout (same as previous)
             dom: '<"html5buttons"B>lTfgitp',

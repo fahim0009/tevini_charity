@@ -64,7 +64,12 @@
         $('#standingTable').DataTable({
             processing: true,
             serverSide: true,
+            dom: '<"html5buttons"B>lTfgitp',
             ajax: "{{ route('donationstanding') }}",
+
+            pageLength: 50,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            
             columns: [
                 { data: 'created_at', name: 'created_at' },
                 { data: 'donor', name: 'donor' },
@@ -79,11 +84,6 @@
                 { data: 'view', name: 'view', orderable:false, searchable:false },
                 { data: 'status_switch', name: 'status_switch', orderable:false, searchable:false }
             ],
-
-            pageLength: 50,
-
-            // ⭐ Add Buttons Here
-            dom: 'Bfrtip',
             buttons: [
                 {
                     extend: 'copyHtml5',

@@ -187,9 +187,10 @@ function initDT() {
         },
 
         pageLength: 100,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 
         columns: [
-            { data: 'checkbox', orderable: false, searchable: false }, // ❌ do not export
+            { data: 'checkbox', orderable: false, searchable: false }, 
             { data: 'created_at' },
             { data: 'charity' },
             { data: 'donor' },
@@ -202,7 +203,7 @@ function initDT() {
         buttons: [
             {
                 extend: 'copy',
-                exportOptions: { columns: ':not(:first-child)' } // remove checkbox column
+                exportOptions: { columns: ':not(:first-child)' } 
             },
             {
                 extend: 'csv',

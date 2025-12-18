@@ -2200,10 +2200,15 @@ public function watingvoucherCancel(Request $request)
 
         if ($request->ajax()) {
 
+            
+
             $orders = Order::with('user')
-                ->select('id','user_id','order_id','amount','status','created_at')
+                ->select('id','user_id','order_id','amount','status','created_at', 'delivery_option', 'delivery_charge')
                 ->where('status', '0')
-                ->orderBy('id', 'DESC'); 
+                ->when($request->delivery_option, function ($query) use ($request) {
+                    return $query->where('delivery_option', $request->delivery_option);
+                })
+                ->orderBy('id', 'DESC');
 
             return DataTables::eloquent($orders)
                 ->addColumn('donor', function ($order) {
@@ -2230,6 +2235,8 @@ public function watingvoucherCancel(Request $request)
                 ->rawColumns(['barcode','action'])
                 ->make(true);
         }
+
+        
 
         return view('voucher.order_new');
     }

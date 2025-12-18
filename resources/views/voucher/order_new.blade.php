@@ -54,7 +54,18 @@
                            </div>
                         </div>
                         <div class="col-md-12 mt-2 text-center">
+
+                            <ul class="nav nav-tabs mb-3" id="orderTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="delivery-tab" data-toggle="tab" href="#delivery" role="tab" data-type="Delivery">Delivery</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="collection-tab" data-toggle="tab" href="#collection" role="tab" data-type="Collection">Collection</a>
+                            </li>
+                            </ul>
+
                             <div class="overflow">
+                                
                                 <table class="table table-custom shadow-sm bg-white" id="completeTable">
                                     <thead>
                                         <tr>
@@ -71,6 +82,25 @@
                                 </table>
 
                             </div>
+
+
+                            {{-- <div class="overflow">
+                                <table class="table table-custom shadow-sm bg-white" id="completeTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Order Id</th>
+                                            <th>Donor Name</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Barcode</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div> --}}
+
                         </div>
                     </div>
                 </div>
@@ -88,8 +118,8 @@ $(document).ready(function() {
     if ($.fn.DataTable.isDataTable('#completeTable')) {
         $('#completeTable').DataTable().clear().destroy();
     }
-
-    $('#completeTable').DataTable({
+    let deliveryOption = 'Delivery';
+    let table = $('#completeTable').DataTable({
         processing: true,
         serverSide: true,
 
@@ -99,6 +129,9 @@ $(document).ready(function() {
         ajax: {
             url: "{{ route('neworder') }}",
             type: "GET",
+            data: function (d) {
+                d.delivery_option = deliveryOption; // Send the tab type to the controller
+            }
         },
 
         columns: [
@@ -107,8 +140,8 @@ $(document).ready(function() {
             { data: 'donor', name: 'donor' },
             { data: 'amount', name: 'amount' },
             { data: 'status_text', name: 'status_text' },
-            { data: 'barcode', name: 'barcode', orderable: false, searchable: false }, // ❌ don't export
-            { data: 'action', name: 'action', orderable: false, searchable: false }     // ❌ don't export
+            { data: 'barcode', name: 'barcode', orderable: false, searchable: false },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
 
         pageLength: 50,
@@ -173,6 +206,12 @@ $(document).ready(function() {
                 exportOptions: { columns: [0,1,2,3,4] }
             }
         ]
+    });
+
+    // Handle Tab Click
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        deliveryOption = $(e.target).data('type'); // Get "Delivery" or "Collection"
+        table.draw(); // Refresh the table with new data
     });
 
 });

@@ -11,45 +11,55 @@ use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\Donation;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
 class TransactionController extends Controller
 {
+
+
     public function index(Request $request)
     {
-        $fromDate = $request->input('fromDate');
-        $toDate   = $request->input('toDate');
+        if ($request->ajax()) {
+            $type = $request->get('t_type'); // We'll pass this from JS
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
 
-        $dateFilter = function ($query) use ($fromDate, $toDate) {
-            if (!empty($fromDate) && !empty($toDate)) {
+            $query = Transaction::query();
+
+            // Apply type filter
+            if ($type === 'In' || $type === 'Out') {
+                $query->where('t_type', $type);
+            }
+
+            // Apply date filter
+            if ($fromDate && $toDate) {
                 $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
             }
-        };
 
-        $outtransactions = Transaction::with('charity')
-            ->where('t_type', 'Out')
-            ->select('id', 't_id', 'created_at', 'charity_id', 'crdAcptID', 'crdAcptLoc', 'name', 'note', 'amount')
-            ->where($dateFilter)
-            ->orderBy('id', 'DESC')
-            ->get();
+            // Load relationships based on type
+            $query->with(['user', 'charity']);
 
-        $intransactions = Transaction::with('user')
-            ->where('t_type', 'In')
-            ->select('id', 't_id', 'created_at', 'user_id', 'name', 'amount')
-            ->where($dateFilter)
-            ->orderBy('id', 'DESC')
-            ->get();
+            return DataTables::of($query)
+                ->editColumn('created_at', function ($row) {
+                    return Carbon::parse($row->created_at)->format('d/m/Y');
+                })
+                ->addColumn('beneficiary', function ($row) {
+                    if ($row->charity_id) return $row->charity->name;
+                    if ($row->crdAcptID) return $row->crdAcptLoc;
+                    return '';
+                })
+                ->addColumn('donor', function ($row) {
+                    return $row->user ? $row->user->name : '';
+                })
+                ->editColumn('amount', function ($row) {
+                    return '£' . number_format($row->amount, 2);
+                })
+                ->rawColumns(['beneficiary', 'donor'])
+                ->make(true);
+        }
 
-        $alltransactions = Transaction::with(['user', 'charity'])
-            ->select('id', 't_id', 'created_at', 'user_id', 'charity_id', 'crdAcptID', 'crdAcptLoc', 'name', 'note', 'amount')
-            ->where($dateFilter)
-            ->orderBy('id', 'DESC')
-            ->get();
-
-        return view('transaction.index')
-            ->with('alltransactions', $alltransactions)
-            ->with('outtransactions', $outtransactions)
-            ->with('intransactions', $intransactions);
+        return view('transaction.index');
     }
 
 

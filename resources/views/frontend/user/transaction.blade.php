@@ -35,7 +35,8 @@ use Illuminate\Support\Carbon;
                     </div>
                     <div class="col-md-5 d-flex align-items-center">
                         <div class="form-group d-flex mt-4">
-                        <button class="btn-theme bg-primary" type="submit">Search</button>
+                        {{-- <button class="btn-theme bg-primary" type="submit">Search</button> --}}
+                        <button class="btn-theme bg-primary" type="button" id="filterButton">Search</button>
                         </div>
                     </div>
                 </div>
@@ -73,256 +74,36 @@ use Illuminate\Support\Carbon;
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="transaction" role="tabpanel"
+            <div class="tab-pane fade show mt-4 active" id="transaction" role="tabpanel"
                 aria-labelledby="transaction-tab">
+
                 <div class="data-container">
-                      <table class="table table-theme mt-4 w-100" id="exampleAll">
-                    <thead>
-                        <tr>
-                            <th scope="col" style="display: none">ID</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Donate By</th>
-                            <th scope="col">Amount</th>
-                            <th scope="col">Comments</th>
-                            <th scope="col">Reference/Voucher no.</th>
-                            <th scope="col">Balance</th>
-                        </tr>
-                    </thead>
-
-                    <?php
-                    $tbalance = 0;
-                    ?>
-
-                  @foreach ($tamount as $data)
-                        @if($data->commission != 0)
-                            @php
-                            $tbalance = $tbalance - $data->commission;
-                            @endphp
-                        @endif
-
-                        @php
-                        if($data->t_type == "In"){
-                            if($data->commission != 0){
-
-                            $tbalance = $tbalance + $data->amount + $data->commission;
-                            }else {
-
-                            $tbalance = $tbalance + $data->amount;
-                            }
-
-                        }
-                        @endphp
-
-                                @php
-                                if($data->t_type == "Out"){
-                                $tbalance = $tbalance - $data->amount;
-                                }
-                                @endphp
-                    @endforeach
-
-                    <tbody>
-
-                        @foreach ($alltransactions as $data)
-                        @if($data->commission != 0)
-                        <tr>
-                            <td class="fs-16 txt-secondary" style="display: none">{{ $data->id }}</td>
-                            <td class="fs-16 txt-secondary">{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
-                            <td>Commission</td>
-                            <td></td>
-                            <td>-£{{$data->commission}}</td>
-                            <td></td>
-                            <td>{{$data->t_id}}</td>
-                            <td>£{{ number_format($tbalance, 2) }}</td>
-                            @php
-                            $tbalance = $tbalance + $data->commission;
-                            @endphp
-                        </tr>
-                        @endif
-                        <tr>
-                            <td class="fs-16 txt-secondary" style="display: none">{{ $data->id }}</td>
-                            <td class="fs-16 txt-secondary">{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                            <td>
-                                <div class="d-flex flex-column">
-                                    <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name}}@endif 
-                                        @if($data->crdAcptID){{ $data->crdAcptLoc}}@endif
-                                    </span>
-                                    <span class="fs-16 txt-secondary">
-                                        {{$data->title}} 
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#tranModal{{$data->id}}" style="margin-left: 5px;">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#18988B" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
-                                                <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
-                                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12z"/>
-                                            </svg>
-                                        </a>
-                                    </span>
-
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="tranModal{{$data->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                        <div class="modal-content" style="background-color: #fdf3ee;">
-                                            <div class="modal-header">
-                                            <h1 class="modal-title fs-5 txt-secondary" id="exampleModalLabel">Transaction</h1>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                            
-                                                <table class="table table-borderless">
-                                                    <tr>
-                                                        <td>Date</td>
-                                                        <td>:</td>
-                                                        <td id="t_date">{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Transaction ID</td>
-                                                        <td>:</td>
-                                                        <td id="t_id">{{$data->t_id}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Transaction Type</td>
-                                                        <td>:</td>
-                                                        <td id="t_donation_type">{{$data->title}}</td>
-                                                    </tr>
-                                                    @if($data->charity_id)
-                                                    <tr>
-                                                        <td>Charity Name</td>
-                                                        <td>:</td>
-                                                        <td id="t_charity">{{ $data->charity->name}}</td>
-                                                    </tr>
-                                                    @endif
-                                                    @if ($data->donation_by)
-                                                    <tr>
-                                                        <td>Donate By</td>
-                                                        <td>:</td>
-                                                        <td id="t_donate_by">{{$data->donation_by}}</td>
-                                                    </tr>
-                                                    @endif
-                                                    @if ($data->provoucher)
-                                                    <tr>
-                                                        <td>Status</td>
-                                                        <td>:</td>
-                                                        <td>{{ $data->provoucher->expired == "Yes" ? 'Expired' : '' }}</td>
-                                                    </tr>
-                                                    @endif
-                                                    <tr>
-                                                        <td>Amount</td>
-                                                        <td>:</td>
-                                                        <td id="t_amount">£{{number_format($data->amount, 2) }}</td>
-                                                    </tr>
-                                                    @if ($data->note)
-                                                    <tr>
-                                                        <td>Comment</td>
-                                                        <td>:</td>
-                                                        <td id="t_comment">{{$data->note}}</td>
-                                                    </tr>
-                                                    @endif
-
-                                                    @if ($data->barcode_image)
-                                                    <tr>
-                                                        <td colspan="3">
-                                                            <img src="{{ asset($data->barcode_image) }}" alt="Barcode Image" class="img-fluid">
-
-                                                        </td>
-                                                    </tr>
-                                                        
-                                                    @endif
-                                                </table>
-
-                                            </div>
-                                        </div>
-                                        </div>
-                                    </div>
-
-
-
-                                </div>
-                            </td>
-                            <td class="fs-16 txt-secondary">{{$data->donation_by}}</td>
-                                @if($data->t_type == "In")
-                                    @if($data->commission != 0)
-                                        <td>£{{ number_format($data->amount + $data->commission, 2) }} </td>
-                                        <td></td>
-                                        <td class="fs-16 txt-secondary">
-                                            @if ($data->title == "Voucher")
-                                            {{$data->cheque_no}}
-                                            @else
-                                            {{$data->t_id}}
-                                            @endif
-                                        </td>
-                                        <td> £{{ number_format($tbalance, 2) }} </td>
-                                        @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
-                                    @else
-                                    <td class="fs-16 txt-secondary">
-                                            £{{number_format($data->amount, 2)}}
-                                            <svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M10.0527 5.89619C9.96315 5.98283 9.84339 6.03126 9.71876 6.03126C9.59413 6.03126 9.47438 5.98283 9.38478 5.89619L5.96876 2.47432V11.656C5.96876 11.7803 5.91938 11.8995 5.83147 11.9874C5.74356 12.0753 5.62433 12.1247 5.50001 12.1247C5.37569 12.1247 5.25646 12.0753 5.16856 11.9874C5.08065 11.8995 5.03126 11.7803 5.03126 11.656V2.47432L1.61525 5.89619C1.52417 5.97094 1.40855 6.00914 1.29087 6.00336C1.17319 5.99758 1.06186 5.94823 0.978549 5.86492C0.895236 5.78161 0.84589 5.67028 0.84011 5.5526C0.834331 5.43492 0.87253 5.3193 0.947278 5.22822L5.16603 1.00947C5.2549 0.92145 5.37493 0.87207 5.50001 0.87207C5.6251 0.87207 5.74512 0.92145 5.834 1.00947L10.0527 5.22822C10.1408 5.31709 10.1901 5.43712 10.1901 5.56221C10.1901 5.68729 10.1408 5.80732 10.0527 5.89619Z" fill="#18988B"></path>
-                                                </svg>
-                                        </td>
-                                        <td>{{$data->note}}</td>
-                                        <td class="fs-16 txt-secondary">
-                                            @if ($data->title == "Voucher")
-                                            {{$data->cheque_no}}
-                                            @else
-                                            {{$data->t_id}}
-                                            @endif
-                                        </td>
-                                        <td> £{{ number_format($tbalance, 2) }} </td>
-                                        @php $tbalance = $tbalance - $data->amount; @endphp
-                                    @endif
-                                @elseif($data->t_type == "Out")
-                                <td class="fs-16 txt-secondary">
-                                    -£{{number_format($data->amount, 2) }}
-                                    <svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M10.0527 7.18393C9.96315 7.08574 9.84339 7.03085 9.71876 7.03085C9.59413 7.03085 9.47438 7.08574 9.38478 7.18393L5.96876 11.0621V0.656192C5.96876 0.515295 5.91938 0.380169 5.83147 0.28054C5.74356 0.180912 5.62433 0.124942 5.50001 0.124942C5.37569 0.124942 5.25646 0.180912 5.16856 0.28054C5.08065 0.380169 5.03126 0.515295 5.03126 0.656192V11.0621L1.61525 7.18393C1.52417 7.09921 1.40855 7.05592 1.29087 7.06247C1.17319 7.06902 1.06186 7.12494 0.978549 7.21937C0.895236 7.31379 0.84589 7.43995 0.84011 7.57333C0.834331 7.7067 0.87253 7.83774 0.947278 7.94096L5.16603 12.7222C5.2549 12.822 5.37493 12.8779 5.50001 12.8779C5.6251 12.8779 5.74512 12.822 5.834 12.7222L10.0527 7.94096C10.1408 7.84024 10.1901 7.7042 10.1901 7.56244C10.1901 7.42068 10.1408 7.28465 10.0527 7.18393Z" fill="#003057"/>
-                                    </svg>
-                                </td>
-                                    <td>{{$data->note}}</td>
-                                    <td class="fs-16 txt-secondary">
-                                        @if ($data->title == "Voucher")
-                                        {{$data->cheque_no}}
-                                        @else
-                                        {{$data->t_id}}
-                                        @endif
-                                    </td>
-                                     <td> £{{ number_format($tbalance, 2) }} </td>
-                                     {{-- @if($data->pending != "0")
-                                     @php  $tbalance = $tbalance + $data->amount;  @endphp
-                                     @endif --}}
-
-                                     @if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes"))
-                                        @php
-                                            $tbalance += $data->amount;
-                                        @endphp
-                                    @endif
-
-
-
-                                @endif
-
-                        </tr>
-
-
-                        
-                        
-
-
-                        
-                    @endforeach
-                     <tr>
-                        <td style="display: none"></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>Previous Balance</td>
-                        <td>£{{ number_format($tbalance, 2) }}</td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <table class="table table-theme pt-4 w-100" id="allTransactionTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Donate By</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Comments</th>
+                                <th scope="col">Reference/Voucher no.</th>
+                                <th scope="col">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5"></td>
+                                <td><strong>Previous Balance</strong></td>
+                                <td id="prev-balance">£0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
 
             </div>
+
+            
             {{-- transaction In  --}}
             <div class="tab-pane fade" id="moneyIn" role="tabpanel" aria-labelledby="moneyIn-tab">
                     {{-- transaction in  --}}
@@ -515,6 +296,7 @@ use Illuminate\Support\Carbon;
             </div>
 
 
+            
         </div>
     </div>
 </div>
@@ -522,4 +304,105 @@ use Illuminate\Support\Carbon;
 
 
 
+@endsection
+
+@section('script')
+
+<script>
+
+$(document).ready(function() {
+
+    var title = 'Report: ';
+    var data = 'Data: ';
+
+
+    var table = $('#allTransactionTable').DataTable({
+        destroy: true,
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ route('user.donor.alltransaction') }}",
+            data: function (d) {
+                d.fromDate = $('#fromDate').val();
+                d.toDate = $('#toDate').val();
+            }
+        },
+        columns: [
+            { data: 'created_at', name: 'created_at' },
+            { data: 'description', name: 'description' },
+            { data: 'donation_by', name: 'donation_by', defaultContent: '' },
+            { data: 'amount', name: 'amount' },
+            { data: 'note', name: 'note', defaultContent: '' },
+            { data: 'reference', name: 'reference' },
+            { data: 'calculated_balance', name: 'calculated_balance' }
+        ],
+        order: [[0, 'desc']],
+        dom: '<"html5buttons"B>lTfgitp',
+        buttons: [
+            {extend: 'copy'},
+            {extend: 'excel', title: title},
+            {extend: 'pdfHtml5',
+            title: 'Report',
+            orientation : 'portrait',
+                header:true,
+                customize: function ( doc ) {
+                    doc.content.splice(0, 1, {
+                            text: [
+
+                                    { text: data+'\n',bold:true,fontSize:12 },
+                                    { text: title+'\n',bold:true,fontSize:15 }
+
+                            ],
+                            margin: [0, 0, 0, 12],
+                            alignment: 'center'
+                        });
+                    doc.defaultStyle.alignment = 'center'
+                }
+            },
+            {extend: 'print',
+            title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
+            header:true,
+                customize: function (win){
+                $(win.document.body).addClass('white-bg');
+                $(win.document.body).css('font-size', '10px');
+                $(win.document.body).find('table')
+                .addClass('compact')
+                .css('font-size', 'inherit');
+            }
+            }
+        ],
+
+
+
+        drawCallback: function(settings) {
+            var api = this.api();
+            var lastRow = api.row(':last').data();
+            if(lastRow) {
+                $('#prev-balance').html(lastRow.calculated_balance);
+            }
+
+            // THIS IS THE FIX FOR MODALS:
+            // Every time the table draws, move the modals to the body
+            // and initialize them if necessary.
+            $('body').append($('.modal')); 
+        }
+    });
+
+    $('#filterButton').on('click', function(e) {
+        e.preventDefault();
+        table.ajax.reload(); 
+    });
+});
+
+
+
+
+
+
+
+
+
+
+</script>
+    
 @endsection

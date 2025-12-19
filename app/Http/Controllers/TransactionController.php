@@ -331,6 +331,131 @@ class TransactionController extends Controller
         ));
     }
 
+    public function donorTransactionShow(Request $request)
+    {
+        $userId = auth()->id();
+        $fromDate = $request->input('fromDate');
+        $toDate = $request->input('toDate') ? $request->input('toDate') . ' 23:59:59' : null;
+        $hasDateRange = $fromDate && $toDate;
+
+        // 1. Calculate the initial Total Balance (Running Balance starting point)
+        $tamount = Usertransaction::where('user_id', $userId)
+            ->where('status', 1)
+            ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+            ->get();
+
+        $runningBalance = 0;
+        foreach ($tamount as $data) {
+            if ($data->commission != 0) $runningBalance -= $data->commission;
+            if ($data->t_type == "In") {
+                $runningBalance += ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
+            } else {
+                $runningBalance -= $data->amount;
+            }
+        }
+
+        // 2. Fetch All Transactions
+        $query = Usertransaction::with([
+                'charity:id,name',
+                'standingdonationDetail.standingDonation:id,charitynote,mynote',
+                'donation:id,charitynote,mynote',
+                'campaign:id,campaign_title',
+                'provoucher'
+            ])
+            ->where('user_id', $userId)
+            ->where(function ($q) use ($hasDateRange, $fromDate, $toDate) {
+                $q->where('status', 1)
+                ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
+            })
+            ->orWhere(function ($q) use ($userId, $hasDateRange, $fromDate, $toDate) {
+                $q->where('user_id', $userId)
+                ->where('pending', 1)
+                ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
+            })
+            ->orderByDesc('id')
+            ->get();
+
+        // 3. Transform data to handle the "Commission Row" logic
+        // We use a temporary variable to track balance backward during transformation
+        $tempBalance = $runningBalance;
+        
+        $transformed = $query->flatMap(function ($data) use (&$tempBalance) {
+            $rows = [];
+
+            // Main Transaction Row Logic
+            $currentRow = clone $data;
+            $currentRow->display_type = 'main';
+            $currentRow->calculated_balance = $tempBalance;
+
+            // Calculate next balance step
+            if ($data->t_type == "In") {
+                $tempBalance -= ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
+            } elseif ($data->t_type == "Out") {
+                if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes")) {
+                    $tempBalance += $data->amount; 
+                }
+            }
+
+            // Commission Row Logic (If exists, it appears ABOVE the transaction in your blade)
+            if ($data->commission != 0) {
+                $commRow = clone $data;
+                $commRow->display_type = 'commission';
+                // In your blade, the commission row shows the balance BEFORE the commission is added back
+                $commRow->calculated_balance = $currentRow->calculated_balance + $data->commission; 
+                $rows[] = $commRow;
+            }
+
+            $rows[] = $currentRow;
+            return $rows;
+        });
+
+        return DataTables::of($transformed)
+            ->addIndexColumn()
+            ->editColumn('created_at', fn($row) => Carbon::parse($row->created_at)->format('d/m/Y'))
+            ->addColumn('description', function($row) {
+                if ($row->display_type == 'commission') return 'Commission';
+                
+                $charityName = $row->charity ? $row->charity->name : '';
+                $location = $row->crdAcptID ? $row->crdAcptLoc : '';
+                
+                // Return the HTML for the Description + Modal Trigger
+                return '
+                    <div class="d-flex flex-column">
+                        <span class="fs-20 txt-secondary fw-bold">'.$charityName.' '.$location.'</span>
+                        <span class="fs-16 txt-secondary">
+                            '.$row->title.'
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#tranModal'.$row->id.'" style="margin-left: 5px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#18988B" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+                                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12z"/>
+                                </svg>
+                            </a>
+                        </span>
+                    </div>' . view('frontend.user.partials.transaction_modal', ['data' => $row])->render(); 
+            })
+            ->addColumn('amount', function($row) {
+                if ($row->display_type == 'commission') return '-£' . number_format($row->commission, 2);
+                
+                $amt = number_format($row->amount + ($row->t_type == "In" ? $row->commission : 0), 2);
+                
+                // Original SVGs from your blade
+                $upIcon = '<svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.0527 5.89619C9.96315 5.98283 9.84339 6.03126 9.71876 6.03126C9.59413 6.03126 9.47438 5.98283 9.38478 5.89619L5.96876 2.47432V11.656C5.96876 11.7803 5.91938 11.8995 5.83147 11.9874C5.74356 12.0753 5.62433 12.1247 5.50001 12.1247C5.37569 12.1247 5.25646 12.0753 5.16856 11.9874C5.08065 11.8995 5.03126 11.7803 5.03126 11.656V2.47432L1.61525 5.89619C1.52417 5.97094 1.40855 6.00914 1.29087 6.00336C1.17319 5.99758 1.06186 5.94823 0.978549 5.86492C0.895236 5.78161 0.84589 5.67028 0.84011 5.5526C0.834331 5.43492 0.87253 5.3193 0.947278 5.22822L5.16603 1.00947C5.2549 0.92145 5.37493 0.87207 5.50001 0.87207C5.6251 0.87207 5.74512 0.92145 5.834 1.00947L10.0527 5.22822C10.1408 5.31709 10.1901 5.43712 10.1901 5.56221C10.1901 5.68729 10.1408 5.80732 10.0527 5.89619Z" fill="#18988B"></path></svg>';
+                $downIcon = '<svg width="11" height="13" viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.0527 7.18393C9.96315 7.08574 9.84339 7.03085 9.71876 7.03085C9.59413 7.03085 9.47438 7.08574 9.38478 7.18393L5.96876 11.0621V0.656192C5.96876 0.515295 5.91938 0.380169 5.83147 0.28054C5.74356 0.180912 5.62433 0.124942 5.50001 0.124942C5.37569 0.124942 5.25646 0.180912 5.16856 0.28054C5.08065 0.380169 5.03126 0.515295 5.03126 0.656192V11.0621L1.61525 7.18393C1.52417 7.09921 1.40855 7.05592 1.29087 7.06247C1.17319 7.06902 1.06186 7.12494 0.978549 7.21937C0.895236 7.31379 0.84589 7.43995 0.84011 7.57333C0.834331 7.7067 0.87253 7.83774 0.947278 7.94096L5.16603 12.7222C5.2549 12.822 5.37493 12.8779 5.50001 12.8779C5.6251 12.8779 5.74512 12.822 5.834 12.7222L10.0527 7.94096C10.1408 7.84024 10.1901 7.7042 10.1901 7.56244C10.1901 7.42068 10.1408 7.28465 10.0527 7.18393Z" fill="#003057"/></svg>';
+
+                $icon = $row->t_type == "In" ? $upIcon : $downIcon;
+                $prefix = $row->t_type == "Out" ? "-£" : "£";
+                
+                return '<span class="fs-16 txt-secondary">' . $prefix . $amt . ' ' . $icon . '</span>';
+            })
+            ->addColumn('reference', function($row) {
+                if ($row->display_type == 'commission') return $row->t_id;
+                return ($row->title == "Voucher") ? $row->cheque_no : $row->t_id;
+            })
+            ->editColumn('calculated_balance', fn($row) => '£' . number_format($row->calculated_balance, 2))
+            ->rawColumns(['description', 'amount'])
+            ->make(true);
+    }
+
     public function donorTransaction(Request $request, $id)
     {
         $user = User::findOrFail($id); // fail-safe

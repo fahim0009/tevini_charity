@@ -94,6 +94,7 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
 
     // donation
     Route::get('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction');
+    Route::get('donor-transaction-view', [TransactionController::class, 'donorTransactionShow'])->name('user.donor.alltransaction');
     Route::post('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction_search');
     Route::get('make-donate', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
     Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');

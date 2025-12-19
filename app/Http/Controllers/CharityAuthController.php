@@ -103,8 +103,19 @@ class CharityAuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:charities'],
             'phone' => 'required',
+            'acc_no' => 'required',
             'password' => ['required','min:6'],
             'confirm_password' => 'required|same:password',
+        ], [
+            'name.required' => 'Charity name is required.',
+            'email.required' => 'Email address is required.',
+            'email.unique' => 'Email already registered.',
+            'phone.required' => 'Phone number is required.',
+            'acc_no.required' => 'Charity number is required.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 6 characters.',
+            'confirm_password.required' => 'Confirm password is required.',
+            'confirm_password.same' => 'Passwords do not match.',
         ]);
         
         $data = new Charity();
@@ -115,6 +126,7 @@ class CharityAuthController extends Controller
         $data->address_third_line = $request->address_third_line;
         $data->town = $request->town;
         $data->number = $request->phone;
+        $data->acc_no = $request->acc_no;
         $data->post_code = $request->postcode;
         $data->password = Hash::make($request->password);
 

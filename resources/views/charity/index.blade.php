@@ -34,76 +34,106 @@
         </section>
         @endif
 
-        <section class="px-4"  id="addThisFormContainer">
-            <div class="row justify-content-md-center my-3">
+        <section class="px-4 py-5" id="addThisFormContainer">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0 bold">Create New Charity</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <form action="{{ route('charity.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
+                                    @csrf
 
-                    <div class="col-md-6  my-4 bg-white">
-                        <form action="{{ route('charity.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
-                            @csrf
-                        <div class="col my-3">
-                                <label for="">Name</label>
-                               <input type="text" name="name" id="name" placeholder="Name" class="form-control @error('name') is-invalid @enderror">
-                         </div>
-                         <div class="col my-3">
-                             <label for="">Address</label>
-                            <input type="text" name="address" id="address" placeholder="Address" class="form-control @error('address') is-invalid @enderror">
-                         </div>
-                        <div class="col my-3">
-                             <label for="">Town</label>
-                            <input type="text" name="town" id="town" placeholder="Town" class="form-control @error('town') is-invalid @enderror">
-                         </div>
-                        <div class="col my-3">
-                             <label for="">Post Code</label>
-                            <input type="text" name="post_code" id="post_code" placeholder="" class="form-control @error('address') is-invalid @enderror">
-                         </div>
+                                    <div class="row">
+                                        <div class="col-md-6 border-end-md">
+                                            <h6 class="text-muted mb-3 text-uppercase small fw-bold">General Information</h6>
+                                            
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label">Charity Name</label>
+                                                <input type="text" name="name" id="name" placeholder="Enter charity name" class="form-control @error('name') is-invalid @enderror" required>
+                                                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            </div>
 
-                         
-                        <div class="col my-3">
-                            <label for="">Account name</label>
-                           <input type="text" name="account_name" id="account_name" placeholder="" class="form-control @error('account_name') is-invalid @enderror">
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Email Address</label>
+                                                <input type="email" name="email" id="email" placeholder="email@example.com" class="form-control @error('email') is-invalid @enderror" required>
+                                                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="number" class="form-label">Phone Number</label>
+                                                <input type="text" name="number" id="number" placeholder="e.g. +44 123 4567" class="form-control @error('number') is-invalid @enderror">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="address" class="form-label">Address</label>
+                                                <input type="text" name="address" id="address" placeholder="Street address" class="form-control @error('address') is-invalid @enderror">
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-7 mb-3">
+                                                    <label for="town" class="form-label">Town/City</label>
+                                                    <input type="text" name="town" id="town" class="form-control">
+                                                </div>
+                                                <div class="col-5 mb-3">
+                                                    <label for="post_code" class="form-label">Post Code</label>
+                                                    <input type="text" name="post_code" id="post_code" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 ps-md-4">
+                                            <h6 class="text-muted mb-3 text-uppercase small fw-bold">Financial Details</h6>
+
+                                            <div class="mb-3">
+                                                <label for="acc" class="form-label">Charity Registration Number</label>
+                                                <input type="text" name="acc" id="acc" placeholder="Reg No." class="form-control @error('acc') is-invalid @enderror">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="bank_statement" class="form-label">Bank Statement</label>
+                                                <input type="file" name="bank_statement" id="bank_statement" class="form-control @error('bank_statement') is-invalid @enderror">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="account_name" class="form-label">Bank Account Name</label>
+                                                <input type="text" name="account_name" id="account_name" class="form-control @error('account_name') is-invalid @enderror">
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-7 mb-3">
+                                                    <label for="account_number" class="form-label">Account Number</label>
+                                                    <input type="text" name="account_number" id="account_number" class="form-control @error('account_number') is-invalid @enderror">
+                                                </div>
+                                                <div class="col-5 mb-3">
+                                                    <label for="account_sortcode" class="form-label">Sort Code</label>
+                                                    <input type="text" name="account_sortcode" id="account_sortcode" placeholder="00-00-00" class="form-control @error('account_sortcode') is-invalid @enderror">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="balance" class="form-label">Opening Balance</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">£</span>
+                                                    <input type="text" name="balance" id="balance" class="form-control" placeholder="0.00">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-4 text-muted">
+
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="javascript:void(0)" class="btn btn-light px-4" id="FormCloseBtn">Cancel</a>
+                                        <button type="submit" class="btn btn-primary px-5 shadow-sm">Create Charity</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-
-                        
-                        <div class="col my-3">
-                            <label for="">Account number</label>
-                           <input type="text" name="account_number" id="account_number" placeholder="" class="form-control @error('account_number') is-invalid @enderror">
-                        </div>
-    
                     </div>
-
-                    <div class="col-md-6  my-4  bg-white">
-
-
-                        <div class="col my-3">
-                            <label for="">Email</label>
-                           <input type="email" name="email" id="email" placeholder="Email" class="form-control @error('email') is-invalid @enderror">
-                        </div>
-                        <div class="col my-3">
-                            <label for="">Phone</label>
-                           <input type="text" name="number" id="number" placeholder="Phone" class="form-control @error('number') is-invalid @enderror">
-                        </div>
-
-                        <div class="col my-3">
-                            <label for="">Charity Number</label>
-                           <input type="text" name="acc" id="acc" placeholder="account no" class="form-control @error('acc') is-invalid @enderror">
-                        </div>
-                        <div class="col my-3">
-                            <label for="">Balance</label>
-                           <input type="text" name="balance" id="balance" placeholder="balance" class="form-control">
-                        </div>
-
-                        
-                        <div class="col my-3">
-                            <label for="">Account sortcode</label>
-                           <input type="text" name="account_sortcode" id="account_sortcode" placeholder="" class="form-control @error('account_sortcode') is-invalid @enderror">
-                        </div>
-
-                    </div>
-                    <div class="col-md-6">
-                        <button class="btn btn-theme mt-2 text-white">Create</button>
-                        <a class="btn btn-warning mt-2 text-white" id="FormCloseBtn">close</a>
-                    </div>
-                    </form>
+                </div>
             </div>
         </section>
 

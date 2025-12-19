@@ -159,13 +159,22 @@ class CharityController extends Controller
         $user->account_number = $request->account_number;
         $user->account_sortcode = $request->account_sortcode;
         $user->acc_no = $request->acc;
+
+        if(isset($request->bank_statement)){
+            $rand = mt_rand(100000, 999999);
+            $imageName = time(). $rand .'.'.$request->bank_statement->extension();
+            $request->bank_statement->move(public_path('images'), $imageName);
+            $user->bank_statement= $imageName;
+        }
+
+
         if($request->balance == "") {
-            $user->balance =0;
+            $user->balance = 0;
           }else{
             $user->balance = $request->balance;
           }
         if ($password) {
-            $user->password= Hash::make($password);
+            $user->password = Hash::make($password);
         }   
         if($user->save()){
 
@@ -238,6 +247,21 @@ class CharityController extends Controller
         $user->account_name = $request->account_name;
         $user->account_number = $request->account_number;
         $user->account_sortcode = $request->account_sortcode;
+
+        if(isset($request->bank_statement)){
+            // Delete previous bank statement if it exists
+            if($user->bank_statement && file_exists(public_path('images/' . $user->bank_statement))){
+                @unlink(public_path('images/' . $user->bank_statement));
+            }
+            
+            $rand = mt_rand(100000, 999999);
+            $imageName = time(). $rand .'.'.$request->bank_statement->extension();
+            $request->bank_statement->move(public_path('images'), $imageName);
+            $user->bank_statement = $imageName;
+        }
+
+
+
         if ($request->password) {
             $user->password= Hash::make($request->password);
         }

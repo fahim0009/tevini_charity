@@ -59,7 +59,7 @@
                                                 <td><input class="form-check-input getvid" type="checkbox" name="voucherId[]" donor_id="{{ $voucher->user_id }}" charity_id="{{ $voucher->charity_id }}" value="{{ $voucher->id }}"></td>
                                                 <td><span style="display:none;">{{ $voucher->id }}</span>{{ $voucher->created_at->format('d/m/Y')}} </td>
                                                 <td>{{ $voucher->charity->name}} </td>
-                                                <td>{{ $voucher->user->name }}</td>
+                                                <td>{{ $voucher->user->name }} {{ $voucher->user->surname }}</td>
                                                 <td>{{ $voucher->cheque_no}}</td>
                                                 <td>{{ $voucher->note}}</td>
                                                 <td>£{{ $voucher->amount}}</td>

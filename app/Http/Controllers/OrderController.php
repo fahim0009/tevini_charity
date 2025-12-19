@@ -1246,7 +1246,7 @@ class OrderController extends Controller
 
             return DataTables::eloquent($cvouchers)
                 ->addColumn('charity', fn($row) => $row->charity->name ?? '')
-                ->addColumn('user', fn($row) => $row->user->name ?? '')
+                ->addColumn('user', fn($row) => $row->user->name.' '.$row->user->surname ?? '')
                 ->editColumn('created_at', fn($row) => $row->created_at?->format('d/m/Y'))
                 ->make(true);
         }
@@ -1286,7 +1286,7 @@ class OrderController extends Controller
                 })
                 ->rawColumns(['checkbox']) 
                 ->addColumn('charity', fn($row) => $row->charity->name ?? '')
-                ->addColumn('donor', fn($row) => $row->user->name ?? '')
+                ->addColumn('donor', fn($row) => $row->user->name.' '.$row->user->surname ?? '')
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d/m/Y'))
                 ->editColumn('status', function($row){
                     return $row->status == 0 ? "Pending" : "";
@@ -2215,7 +2215,7 @@ public function watingvoucherCancel(Request $request)
                     if ($order->user->profile_type == 'Company') {
                         return $order->user->surname;
                     }
-                    return $order->user->name;
+                    return $order->user->name.' '.$order->user->surname;
                 })
                 ->addColumn('status_text', function ($order) {
                     return $order->status == 0 ? 'New Order' : '';
@@ -2255,7 +2255,7 @@ public function watingvoucherCancel(Request $request)
                     if ($order->user->profile_type == 'Company') {
                         return $order->user->surname;
                     }
-                    return $order->user->name;
+                    return $order->user->name.' '.$order->user->surname;
                 })
                 ->addColumn('status_text', function ($order) {
                     return $order->status == 1 ? 'Complete' : '';
@@ -2272,7 +2272,7 @@ public function watingvoucherCancel(Request $request)
                 ->editColumn('created_at', function ($order) {
                     return $order->created_at->format('d/m/Y');
                 })
-                ->rawColumns(['barcode','action'])
+                ->rawColumns(['donor', 'barcode','action'])
                 ->make(true);
         }
 
@@ -2294,7 +2294,7 @@ public function watingvoucherCancel(Request $request)
                     if ($order->user->profile_type == 'Company') {
                         return $order->user->surname;
                     }
-                    return $order->user->name;
+                    return $order->user->name.' '.$order->user->surname;
                 })
                 ->addColumn('status_text', function ($order) {
                     return $order->status == 3 ? 'Cancel Order' : '';
@@ -2330,7 +2330,7 @@ public function watingvoucherCancel(Request $request)
                     return $c->created_at->format('d/m/Y');
                 })
                 ->addColumn('donor', function($c){
-                    return $c->user->name;
+                    return $c->user->name.' '.$c->user->surname;
                 })
                 ->addColumn('amount', function($c){
                     return '£' . $c->commission;

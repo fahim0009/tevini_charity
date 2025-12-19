@@ -50,7 +50,7 @@ class TransactionController extends Controller
                     return '';
                 })
                 ->addColumn('donor', function ($row) {
-                    return $row->user ? $row->user->name : '';
+                    return $row->user ? $row->user->name.' '.$row->user->surname : '';
                 })
                 ->editColumn('amount', function ($row) {
                     return '£' . number_format($row->amount, 2);

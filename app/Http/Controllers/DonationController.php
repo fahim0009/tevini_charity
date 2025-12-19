@@ -515,10 +515,10 @@ class DonationController extends Controller
                 ->orderBy('id', 'desc');
 
             return DataTables::of($query)
-                ->addColumn('donor', fn($d) => $d->user->name ?? 'N/A')
+                ->addColumn('donor', fn($d) => $d->user->name.' '.$d->user->surname ?? 'N/A')
                 ->filterColumn('donor', function($query, $keyword) {
                     $query->whereHas('user', function($q) use ($keyword) {
-                        $q->where('name', 'like', "%{$keyword}%");
+                        $q->where('name', 'like', "%{$keyword}%")->orWhere('surname', 'like', "%{$keyword}%");
                     });
                 })
                 ->addColumn('beneficiary', fn($d) => $d->charity->name ?? 'N/A')

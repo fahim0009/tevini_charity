@@ -73,7 +73,7 @@
                                             <input type="checkbox" name="donation_id[]" value="{{ $data->id }}" class="donation-checkbox" data-charity="{{ $data->charity_id}}">
                                         </td>
                                         <td>{{ $data->created_at->format('d/m/Y') }}</td>
-                                        <td>{{ $data->user->name }}</td>
+                                        <td>{{ $data->user->name }} {{ $data->user->surname }}</td>
                                         <td>
                                             <a href="{{ route('charity.topup', [$data->charity_id, $data->amount]) }}" class="my-2 btn btn-sm btn-success text-white" target="blank"> {{ trim($data->charity->name) }} </a>
                                             

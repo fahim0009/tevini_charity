@@ -1751,7 +1751,7 @@ class DonorController extends Controller
                     ->orderBy('id', 'DESC');
 
             return DataTables::of($query)
-                ->addColumn('donor', fn($d) => $d->user->name)
+                ->addColumn('donor', fn($d) => $d->user->name.' '.$d->user->surname)
                 ->addColumn('beneficiary', fn($d) => $d->charity->name)
                 ->addColumn('anonymous', fn($d) => $d->ano_donation == "true" ? 'Yes' : 'No')
                 ->addColumn('standing', fn($d) => $d->standing_order == "true" ? 'Yes' : 'No')

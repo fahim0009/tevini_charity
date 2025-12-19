@@ -76,7 +76,7 @@
                                 @forelse ($data as $key => $item)
                                     <tr>
                                         <td>{{$item->created_at->format('d/m/Y') }}</td>
-                                        <td>{{$item->user->name ?? " "}}</td>
+                                        <td>{{$item->user->name ?? " "}} {{$item->user->surname ?? " "}}</td>
                                         <td>{{$item->campaign->charity->name ?? " "}}</td>
                                         @if (isset($item->campaign_id))
                                         <td>{{$item->campaign->campaign_title ?? " "}}</td>

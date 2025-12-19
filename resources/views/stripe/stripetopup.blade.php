@@ -38,12 +38,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php
-                                $n = 1;
-                                ?>
                                 @forelse ($stripe as $data)
                                     <tr>
-                                        <td>{{$data->created_at->format('d/m/Y')}}</td>
+                                        <td>
+                                            <span title="Day/Month/Year" style="cursor: help;">
+                                                {{ $data->created_at->format('d/m/Y') }}
+                                            </span>
+                                        </td>
                                         <td>{{\App\Models\User::where('id','=', $data->donor_id)->first()->accountno}}</td>
                                         <td>£{{$data->amount}}</td>
                                         <td><a href="{{ route('topup',[$data->donor_id,'0']) }}">TopUp</a></td>

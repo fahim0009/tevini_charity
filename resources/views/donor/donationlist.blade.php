@@ -57,7 +57,7 @@
                                     <th> Mark </th>
                                     <th>Date</th>
                                     <th>Donor</th>
-                                    <th>Beneficiary</th> <!-- This is Charity -->
+                                    <th>Beneficiary</th> 
                                     <th>Amount</th>
                                     <th>Annonymous Donation</th>
                                     <th>Charity Note</th>
@@ -74,7 +74,10 @@
                                         </td>
                                         <td>{{ $data->created_at->format('d/m/Y') }}</td>
                                         <td>{{ $data->user->name }}</td>
-                                        <td>{{ trim($data->charity->name) }}</td>
+                                        <td>
+                                            <a href="{{ route('charity.topup', [$data->charity_id, $data->amount]) }}" class="my-2 btn btn-sm btn-success text-white" target="blank"> {{ trim($data->charity->name) }} </a>
+                                            
+                                        </td>
                                         <td>£{{ $data->amount }}</td>
                                         <td>{{ $data->ano_donation == 'true' ? 'Yes' : 'No' }}</td>
                                         <td>{{ $data->charitynote }}</td>

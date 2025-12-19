@@ -173,7 +173,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // topup
     Route::get('/topup/{id}/{amount}', [DonorController::class, 'topup'])->name('topup');
     Route::post('/topupstore', [DonorController::class, 'topupStore'])->name('topup.store');
-    Route::get('/charity-topup/{id}', [CharityController::class, 'topup'])->name('charity.topup');
+    Route::get('/charity-topup/{id}/{amount?}', [CharityController::class, 'topup'])->name('charity.topup');
     Route::get('/charity-pay/{id}', [CharityController::class, 'pay'])->name('charity.pay');
     Route::post('/charity-topupstore', [CharityController::class, 'topupStore'])->name('charity.topup.store');
     Route::post('/charity-paystore', [CharityController::class, 'payStore'])->name('charity.pay.store');

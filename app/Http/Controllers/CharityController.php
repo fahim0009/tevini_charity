@@ -314,10 +314,10 @@ class CharityController extends Controller
     }
 
 
-    public function topup($id)
+    public function topup($id, $amount = null)
     {
         $topup = Charity::where('id','=', $id)->first();
-        return view('charity.topup',compact('topup'));
+        return view('charity.topup',compact('topup', 'amount'));
     }
 
     public function topupStore(Request $request)

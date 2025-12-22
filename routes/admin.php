@@ -226,7 +226,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/download-postage/{id}', [OrderController::class, 'downloadpostage'])->name('downloadpostage');
 
     //order
-    Route::post('/order-status', [OrderController::class, 'orderStatus']);
+    Route::post('/order-status', [OrderController::class, 'orderStatus'])->name('admin.order.status');
     Route::get('/order/new', [OrderController::class, 'newOrder'])->name('neworder');
     Route::get('/order/complete', [OrderController::class, 'completeOrder'])->name('completeorder');
     Route::get('/order/cancel', [OrderController::class, 'cancelOrder'])->name('cancelorder');

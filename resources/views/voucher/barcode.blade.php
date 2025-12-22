@@ -13,6 +13,13 @@
             <a href="{{route('neworder')}}"  class="btn btn-info">back</a>
         </div>
     </section>
+    
+        <!-- Image loader -->
+        <div id='loading' style='display:none ;'>
+            <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
+        </div>
+        <!-- Image loader -->
+        
     <section class="px-4">
         <div class="ermsg"></div>
         <div class="row my-3">
@@ -34,16 +41,29 @@
                         <br>
                         <p class="mb-1">Delivery Option: {{$order->delivery_option}}</p>
                     </div>
+
+                    
+
                     <div class="text-start text-muted mb-4">
                         <p class="mb-1">Order date: {{$order->created_at}}</p>
-                        <p>Status:
-                              @if($order->status == "0")
-                            Pending
-                            @elseif ($order->status == "1")
-                            Complete
-                            @else
-                            Cancel
-                            @endif
+                        
+                        <p class="mb-1 d-flex align-items-center">Status:
+                            {{-- <select 
+                                class="ms-2 form-control js-status-change" 
+                                data-order-id="{{ $order->id }}"
+                                @disabled($order->status == \App\Enums\OrderStatus::CANCELLED)
+                            >
+                                <option value="0" @selected($order->status == 0)>Pending</option>
+                                <option value="1" @selected($order->status == 1)>Complete</option>
+                                <option value="3" @selected($order->status == 3)>Cancel</option>
+
+                            </select> --}}
+
+                            <select name="" id=""  data-order-id="{{ $order->id }}"  class="ms-2 form-control js-status-change" @if($order->status == "3") disabled @endif>
+                                <option value="0" @if($order->status == "0") selected @endif>Pending</option>
+                                <option value="1" @if($order->status == "1") selected @endif>Complete</option>
+                                <option value="3" @if($order->status == "3") selected @endif>Cancel</option>
+                            </select>
                         </p>
 
                         <p>
@@ -220,9 +240,46 @@ $(document).ready(function() {
 
 
 
-//header for csrf-token is must in laravel
-$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-//
+    //header for csrf-token is must in laravel
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+    //
+
+    const STATUS_URL = "{{ route('admin.order.status') }}";
+
+    $('.js-status-change').on('change', function() {
+        const $select = $(this);
+        const status = $select.val();
+        const orderId = $select.data('order-id');
+
+        // Professional touch: Add a confirmation for dangerous actions (like cancelling)
+        if (status == 3 && !confirm("Are you sure you want to cancel this order?")) {
+            location.reload(); // Reset select if they cancel
+            return;
+        }
+
+        $("#loading").show();
+
+        $.ajax({
+            url: STATUS_URL,
+            method: "POST",
+            data: { status, orderId },
+            success: function (d) {
+                    $(".ermsg").html(d.message);
+                    window.setTimeout(function(){location.reload()},1000)
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                alert("Something went wrong. Please try again.");
+            },
+            complete: function() {
+                $("#loading").hide();
+            }
+        });
+    });
+
+
+
+
 //add stock to voucher
     $(".acc").click(function(){
         var orderid = $(this).attr("order-id");

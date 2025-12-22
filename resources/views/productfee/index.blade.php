@@ -41,45 +41,83 @@
         @endif
 
 
-        <section class="px-4"  id="addThisFormContainer">
-            <div class="row my-3">
+        <section class="px-4 py-5 bg-light" id="addThisFormContainer">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="card-title mb-0 text-secondary fw-bold">Create Product Fee</h5>
+                                <small class="text-muted">Enter the details below to set up a new fee structure.</small>
+                            </div>
+                            
+                            <div class="card-body p-4">
+                                <form action="{{ route('productfee.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
+                                    @csrf
+                                    
+                                    <div class="row mb-4">
+                                        <div class="col-12">
+                                            <label for="Name" class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="Name" id="Name" 
+                                                placeholder="e.g. Standard Subscription" 
+                                                class="form-control @error('Name') is-invalid @enderror" required>
+                                            @error('Name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
 
-                    <div class="col-md-6  my-4 bg-white">
-                        <form action="{{ route('productfee.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
-                            @csrf
-                         <div class="col my-3">
-                            <label for="">Name</label>
-                           <input type="text" name="Name" id="Name" placeholder="Name" class="form-control @error('Name') is-invalid @enderror">
+                                    <hr class="my-4 text-muted opacity-25">
+
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="FinanceFee" class="form-label fw-semibold">Finance Fee (%)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-percent"></i></span>
+                                                <input type="number" step="0.01" name="FinanceFee" id="FinanceFee" 
+                                                    class="form-control @error('FinanceFee') is-invalid @enderror" placeholder="0.00">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="CardFee" class="form-label fw-semibold">Card Transaction Fee</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                                <input type="number" step="0.01" name="CardFee" id="CardFee" 
+                                                    class="form-control @error('CardFee') is-invalid @enderror" placeholder="0.00">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="CardIsueeFee" class="form-label fw-semibold">Card Issuance Fee</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" step="0.01" name="CardIsueeFee" id="CardIsueeFee" 
+                                                    class="form-control @error('CardIsueeFee') is-invalid @enderror" placeholder="0.00">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="FXFee" class="form-label fw-semibold">FX Fee (Foreign Exchange)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-currency-exchange"></i></span>
+                                                <input type="number" step="0.01" name="FXFee" id="FXFee" 
+                                                    class="form-control @error('FXFee') is-invalid @enderror" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 mt-5">
+                                        <button type="button" class="btn btn-light px-4 border" id="FormCloseBtn">Cancel</button>
+                                        <button type="submit" class="btn btn-secondary px-5 shadow-sm">
+                                            <i class="bi bi-check2-circle me-1"></i> Create Product Fee
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-
-                         <div class="col my-3">
-                            <label for="">FinanceFee</label>
-                           <input type="number" name="FinanceFee" id="FinanceFee" placeholder="FinanceFee" class="form-control @error('FinanceFee') is-invalid @enderror">
                         </div>
-
-                         <div class="col my-3">
-                            <label for="">CardFee</label>
-                           <input type="number" name="CardFee" id="CardFee" placeholder="CardFee" class="form-control @error('CardFee') is-invalid @enderror">
-                        </div>
-
-                         <div class="col my-3">
-                            <label for="">CardIsueeFee</label>
-                           <input type="number" name="CardIsueeFee" id="CardIsueeFee" placeholder="CardIsueeFee" class="form-control @error('CardIsueeFee') is-invalid @enderror">
-                        </div>
-
-                         <div class="col my-3">
-                            <label for="">FXFee</label>
-                           <input type="number" name="FXFee" id="FXFee" placeholder="FXFee" class="form-control @error('FXFee') is-invalid @enderror">
-                        </div>
-
-                    </div>
-                    <div class="col-md-6  my-4  bg-white">
-                    </div>
-                    <div class="col-md-6">
-                        <button class="btn btn-theme mt-2 text-white">Create</button>
-                        <a class="btn btn-warning mt-2 text-white" id="FormCloseBtn">close</a>
-                    </div>
-                    </form>
+                </div>
             </div>
         </section>
 

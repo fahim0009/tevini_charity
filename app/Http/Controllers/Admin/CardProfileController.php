@@ -13,7 +13,7 @@ class CardProfileController extends Controller
     {
 
         try {
-            $data = User::whereNotNull('CreditProfileId')->get();
+            $data = User::whereNotNull('CreditProfileId')->latest()->get();
             // return $data;
             return view('cardservice.creditProfiles', compact('data'));
         } catch (\Exception $e) {

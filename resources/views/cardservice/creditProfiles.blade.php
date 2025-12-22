@@ -57,7 +57,7 @@
                                 @forelse ($data as $profile)
                                     <tr>
                                         <td>{{ $profile->CreditProfileId }}</td>
-                                        <td>{{ $profile->name }}</td>
+                                        <td>{{ $profile->name ?? "" }} {{ $profile->surname ?? "" }}</td>
                                         <td>{{ $profile->email }}</td>
                                         <td>{{ $profile->overdrawn_amount }}</td>
                                         <td>{{ $profile->balance }}</td>

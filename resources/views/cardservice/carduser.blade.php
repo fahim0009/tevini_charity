@@ -52,7 +52,7 @@
                             <tbody>
                                 @forelse ($data as $data)
                                     <tr>
-                                        <td>{{ \App\Models\User::where('id', $data->user_id)->first()->name }}</td>
+                                        <td>{{ \App\Models\User::where('id', $data->user_id)->first()->name }} {{ \App\Models\User::where('id', $data->user_id)->first()->surname }}</td>
                                         <td>{{ \App\Models\User::where('id', $data->user_id)->first()->email }}</td>
                                         <td>
                                             <button type="button" class="btn btn-primary acc" data-bs-toggle="modal" data-bs-target="#exampleModal{{$data->id}}">

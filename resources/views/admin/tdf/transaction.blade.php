@@ -58,7 +58,7 @@
                                     <tr>
                                         <td>{{ $data->issue_date}} </td>
                                         <td>{{ $data->tdfaccount}} </td>
-                                        <td>{{ \App\Models\User::where('id', $data->user_id)->first()->name }}</td>
+                                        <td>{{ \App\Models\User::where('id', $data->user_id)->first()->name }} {{ \App\Models\User::where('id', $data->user_id)->first()->surname }}</td>
                                         <td>{{ \App\Models\User::where('id', $data->user_id)->first()->email }}</td>
                                         
                                         <td>£{{ $data->tdf_amount}}</td>

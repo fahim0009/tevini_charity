@@ -62,7 +62,7 @@ class ProductController extends Controller
 
     public function getCardTransaction(Request $request)
     {
-        $data = CardProduct::whereNotNull('CardProxyId')->get();
+        $data = CardProduct::whereNotNull('CardProxyId')->latest()->get();
         return view('cardservice.carduser', compact('data'));
     }
 

@@ -38,7 +38,7 @@ use Illuminate\Support\Carbon;
                                     @endphp
                                     <tr>
                                         <td>{{ $data->user_id }}</td>
-                                        <td>{{ $user->name}}</td>
+                                        <td>{{ $user->name}} {{ $user->surname}}</td>
                                         <td>{{ $user->email}}</td>
                                         <td>{{ $user->accountno}}</td>
                                         <td>£{{ number_format($user->balance, 2) }}</td>

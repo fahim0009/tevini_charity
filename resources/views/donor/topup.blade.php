@@ -126,45 +126,61 @@
                                     <input class="form-control mr-sm-2" type="text" readonly name="balance" id="balance" required placeholder="">
                                 </div>
                                 <div class="form-group my-2">
-                                    <label for=""><small>Source</small> </label>
+                                    <label for="source"><small>Source</small> </label>
                                     <select name="source" id="source" class="form-control">
                                         <option value="Bank">Bank</option>
                                         <option value="Cheque">Cheque</option>
                                         <option value="Card">Card</option>
                                     </select>
+                                </div>
+                                
+
+                                <div class="form-group my-2">
+                                    <label for=""><small>Donation By</small> </label>
+                                    <input class="form-control mr-sm-2" 
+                                        type="text" 
+                                        name="donationBy" 
+                                        id="donationBy" 
+                                        list="donors" 
+                                        placeholder="Start typing or enter new name...">
+
+                                    <datalist id="donors">
+                                        @foreach($donateBy as $donor)
+                                            <option value="{{ $donor->donation_by }}">
+                                        @endforeach
+                                    </datalist>
+
+                                </div>
+
+                                
+                                <div class="form-group my-2">
+                                    <label for=""><small>Note</small> </label>
+                                    <input class="form-control mr-sm-2" type="text" name="note" id="note" placeholder="">
+                                </div>
+                                <div class="form-group my-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value id="receipt">
+                                        <label class="form-check-label" for="receipt">
+                                            I want receipt.
+                                        </label>
                                     </div>
-                                    <div class="form-group my-2">
-                                        <label for=""><small>Donation By</small> </label>
-                                        <input class="form-control mr-sm-2" type="text" name="donationBy" id="donationBy" placeholder="">
+                                </div>
+                                <div class="form-group my-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value id="gift">
+                                        <label class="form-check-label" for="gift">
+                                            GIFT
+                                        </label>
                                     </div>
-                                    <div class="form-group my-2">
-                                        <label for=""><small>Note</small> </label>
-                                        <input class="form-control mr-sm-2" type="text" name="note" id="note" placeholder="">
+                                </div>  
+                                <div class="form-group my-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value id="cleargift">
+                                        <label class="form-check-label" for="cleargift">
+                                        CLEAR EXPECTED GIFT AID
+                                        </label>
                                     </div>
-                                    <div class="form-group my-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value id="receipt">
-                                            <label class="form-check-label" for="receipt">
-                                              I want receipt.
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group my-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value id="gift">
-                                            <label class="form-check-label" for="gift">
-                                              GIFT
-                                            </label>
-                                        </div>
-                                    </div>  
-                                    <div class="form-group my-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value id="cleargift">
-                                            <label class="form-check-label" for="cleargift">
-                                            CLEAR EXPECTED GIFT AID
-                                            </label>
-                                        </div>
-                                    </div>    
+                                </div>    
                                 <div class="form-group my-2">
                                     <button type="button" id="topBal" class="my-2 btn btn-sm btn-info text-white">Save</button>
                                 </div>

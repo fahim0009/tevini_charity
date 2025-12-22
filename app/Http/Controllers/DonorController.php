@@ -223,9 +223,13 @@ class DonorController extends Controller
     public function topup($id,$amount)
     {
         $topup = User::where('id','=', $id)->first();
+
+        $donateBy = Usertransaction::select('donation_by')->whereNotNull('donation_by')->groupBy('donation_by')->get();
+
         return view('donor.topup')
-        ->with('topup',$topup)
-        ->with('amount',$amount);
+                ->with('topup',$topup)
+                ->with('donateBy',$donateBy)
+                ->with('amount',$amount);
     }
 
     public function topupStore(Request $request)

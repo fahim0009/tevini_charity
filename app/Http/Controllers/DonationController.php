@@ -549,12 +549,16 @@ class DonationController extends Controller
     public function activeStandingdnsn(Request $request)
     {
 
-        if($request->status==1){
+        if($request->status == 1){
+
+
             $active = StandingDonation::find($request->id);
             $active->status = $request->status;
             $active->save();
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>  Active Successfully. </b></div>";
+            return response()->json(['status'=> 300,'message'=>$message, 'data' => $active]);
+
+
         }else{
             $deactive = StandingDonation::find($request->id);
             $deactive->status = $request->status;

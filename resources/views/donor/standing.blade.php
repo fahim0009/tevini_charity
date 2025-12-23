@@ -171,6 +171,7 @@
         var id = $(this).data('id');
 
         $.post(url, {status:status, id:id}, function(d){
+            console.log(d);
             $('.stsermsg').html('<div class="alert alert-success">'+d.message+'</div>');
             table.draw(); // Refresh table so the item moves to the other tab
         });

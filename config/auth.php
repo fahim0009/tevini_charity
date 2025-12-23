@@ -107,6 +107,12 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'charities' => [
+            'provider' => 'charities',
+            'table' => 'password_resets', // You can use the same table for all resets
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*

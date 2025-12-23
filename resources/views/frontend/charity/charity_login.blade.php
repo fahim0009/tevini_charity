@@ -22,35 +22,31 @@
                         <form method="POST" action="{{ route('charity.login') }}" class="form-custom mt-5">
                           @csrf
                           <div class="title text-center mb-5 txt-secondary">Charity Login</div>
-                          @if(session()->has('error'))
-                              <div class="alert alert-danger alert-dismissible fade show alert-custom" role="alert">
-                                  {{ session()->get('error') }}
-                                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                              </div>
-                          @endif
-                          @error('login')
-                                  <div class="alert alert-danger alert-dismissible fade show alert-custom" role="alert">
-                                      <strong>{{ $message }}</strong>
-                                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                  </div>
-                          @enderror
-                          @error('password')
-                                  <div class="alert alert-danger alert-dismissible fade show alert-custom" role="alert">
-                                      <strong>{{ $message }}</strong>
-                                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                  </div>
-                          @enderror
+                          
+                            @if (session('status'))
+                                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                                    <div class="d-flex">
+                                        <i class="fas fa-check-circle me-2 mt-1"></i>
+                                        <div>{{ session('status') }}</div>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
 
-                          @if (isset($message))
-                                <span class="login-head" role="alert">
-                                    <strong><p style="color: red">{{ $message }}</p></strong>
-                                </span>
+                            @if(session()->has('error') || isset($message))
+                                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                                    <div class="d-flex">
+                                        <i class="fas fa-exclamation-circle me-2 mt-1"></i>
+                                        <div>{{ session()->get('error') ?? $message }}</div>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                             @endif
 
 
 
                           <div class="form-group">
-                          <input id="login" type="text" class="form-control @error('login') is-invalid @enderror" name="login" value="{{ old('login') }}" required autofocus placeholder="Email or Account Number">
+                            <input id="login" type="text" class="form-control @error('login') is-invalid @enderror" name="login" value="{{ old('login') }}" required autofocus placeholder="Email or Account Number">
                           </div>
                           <div class="form-group">
                             <input id="password" type="password"  placeholder="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
@@ -64,8 +60,8 @@
                           </div>
                           <div class="form-group d-flex justify-content-center">
                               <span class="txt-primary fs-20 me-2 ">or</span>
-                              @if (Route::has('password.request'))
-                                      <a class="theme-link" href="{{ route('password.request') }}">
+                              @if (Route::has('charity.password.request'))
+                                      <a class="theme-link" href="{{ route('charity.password.request') }}">
                                           {{ __('Forgot Your Password?') }}
                                       </a>
                               @endif

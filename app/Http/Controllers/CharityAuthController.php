@@ -51,7 +51,7 @@ class CharityAuthController extends Controller
         return redirect()->back()->withErrors($errors)->withInput($request->only('email','remember'));
     }
 
-    public function login(Request $request)
+    public function login_old(Request $request)
     {
         $this->validate($request, [
             'login' => 'required|string',
@@ -89,6 +89,42 @@ class CharityAuthController extends Controller
     
         
 
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'login' => 'required|string',
+            'password' => 'required',
+        ]);
+
+        $loginValue = $request->input('login');
+
+        // Find user by email or account number
+        $charity = Charity::where('email', $loginValue)->orWhere('acc_no', $loginValue)->first();
+
+        if (!$charity) {
+            return back()->withInput()->with('error', 'Credential Error. You are not an authenticated user.');
+        }
+
+        if ($charity->status != 1) {
+            return back()->withInput()->with('error', 'Your ID is Deactive. Please contact support.');
+        }
+
+        // Determine if login is email or account number
+        $fieldType = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'acc_no';
+
+        $credentials = [
+            $fieldType => $loginValue,
+            'password' => $request->input('password')
+        ];
+
+        if (auth()->guard('charity')->attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('charityDashboard'));
+        }
+
+        return back()->withInput()->with('error', 'Whoops! Invalid credentials provided.');
     }
 
     public function charityRegistraion()

@@ -26,6 +26,8 @@ use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\User\UserController;
 
+use App\Http\Controllers\Auth\CharityPasswordResetController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -58,19 +60,29 @@ Route::get('app-version', [AboutController::class, 'appVersion']);
  
 Route::post('/email/resend-verification', function (Request $request) {
     $user = Auth::user();
-
     if ($user->hasVerifiedEmail()) {
         return redirect()->back()->with('message', 'Your email is already verified.');
     }
-
     $user->sendEmailVerificationNotification();
-
     return redirect()->back()->with('message', 'Please check your email. we have send a link to confirm your email!');
 })->middleware(['auth'])->name('verification.resend');
 
 Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verification'])->name('verification.verify');
-
 Route::get('/verify-email/{token}', [UserController::class, 'verifyEmail'])->name('verify.email');
+
+
+
+// Show form to request reset link
+Route::get('charity/forgot-password', [CharityPasswordResetController::class, 'showLinkRequestForm'])->name('charity.password.request');
+
+// Handle sending the link
+Route::post('charity/forgot-password', [CharityPasswordResetController::class, 'sendResetLinkEmail'])->name('charity.password.email');
+
+// Show the actual reset password form (from email link)
+Route::get('charity/reset-password/{token}', [CharityPasswordResetController::class, 'showResetForm'])->name('charity.password.reset');
+
+// Handle the password update
+Route::post('charity/reset-password', [CharityPasswordResetController::class, 'reset'])->name('charity.password.update');
 
 
 // user part start

@@ -74,10 +74,14 @@
                                         </td>
                                         <td>{{ $data->created_at->format('d/m/Y') }}</td>
                                         <td>{{ $data->user->name }} {{ $data->user->surname }}</td>
-                                        <td>
-                                            <a href="{{ route('charity.topup', [$data->charity_id, $data->amount]) }}" class="my-2 btn btn-sm btn-success text-white" target="blank"> {{ trim($data->charity->name) }} </a>
-                                            
+
+                                        <td data-search="{{ trim($data->charity->name) }}">
+                                            <a href="{{ route('charity.topup', [$data->charity_id, $data->amount]) }}" 
+                                            class="my-2 btn btn-sm btn-success text-white" target="blank"> 
+                                            {{ trim($data->charity->name) }} 
+                                            </a>
                                         </td>
+
                                         <td>£{{ $data->amount }}</td>
                                         <td>{{ $data->ano_donation == 'true' ? 'Yes' : 'No' }}</td>
                                         <td>{{ $data->charitynote }}</td>
@@ -154,10 +158,14 @@ $(document).ready(function() {
 
     $('#charityFilter').on('change', function() {
         var charity = $(this).val();
+        
+        // Use column 3 (Beneficiary)
+        // We remove the ^ and $ regex anchors because the cell contains <a> tags
+        // and use smart filtering instead
         if (charity) {
-            table.column(3).search('^' + charity + '$', true, false).draw();
+            table.column(3).search(charity).draw();
         } else {
-            table.column(3).search('', true, false).draw();
+            table.column(3).search('').draw();
         }
     });
 

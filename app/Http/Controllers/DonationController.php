@@ -546,7 +546,7 @@ class DonationController extends Controller
         return view('donor.standing');
     }
 
-    public function activeStandingdnsn(Request $request)
+    public function activeStandingdnsn_old(Request $request)
     {
 
         if($request->status == 1){
@@ -569,29 +569,77 @@ class DonationController extends Controller
 
     }
 
-    public function activeStandinguser(Request $request)
+    public function activeStandingdnsn(Request $request)
     {
+        if($request->status == 1){
+            // 1. Find the original record
+            $original = StandingDonation::find($request->id);
 
-        if($request->status==1){
-            $active = StandingDonation::where([
-                ['id','=', $request->id],
-                ['user_id','=', Auth::user()->id],
-            ])->first();
-            $active->status = $request->status;
-            $active->save();
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Active Successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }else{
-            $deactive = StandingDonation::where([
-                ['id','=', $request->id],
-                ['user_id','=', Auth::user()->id],
-            ])->first();
+            if (!$original) {
+                return response()->json(['status'=> 404, 'message'=> 'Record not found']);
+            }
+
+            // 2. IMPORTANT: Deactivate the original record first 
+            // This prevents "double" active records in your list.
+            $original->status = 0; 
+            $original->save();
+
+            // 3. Create the new copy
+            $newDonation = $original->replicate();
+            
+            // 4. Set the new status to 1 and save
+            $newDonation->status = 1;
+            $newDonation->starting = now()->format('Y-m-d');
+            $newDonation->created_at = now(); 
+            $newDonation->save();
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b> New Donation Activated & Previous Archived. </b></div>";
+            
+            return response()->json([
+                'status'=> 300,
+                'message'=>$message, 
+                'data' => $newDonation
+            ]);
+
+        } else {
+            // Standard Deactivation
+            $deactive = StandingDonation::find($request->id);
             $deactive->status = $request->status;
             $deactive->save();
+            
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
         }
+    }
 
+    public function activeStandinguser(Request $request)
+    {
+        $original = StandingDonation::where('id', $request->id)
+                                    ->where('user_id', Auth::user()->id)
+                                    ->first();
+
+        if (!$original) {
+            return response()->json(['status' => 404, 'message' => 'Record not found']);
+        }
+
+        if ($request->status == 1) {
+            $newDonation = $original->replicate();
+            
+            $newDonation->status = 1;
+            $newDonation->starting = now()->format('Y-m-d');
+            $newDonation->created_at = now();
+            $newDonation->save();
+
+            $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b> Donation Active Successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } else {
+            $original->status = 0;
+            $original->save();
+            
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
     }
 
     public function stdTest()

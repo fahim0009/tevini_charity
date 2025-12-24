@@ -191,7 +191,7 @@ class DonorController extends Controller
     }
 
 
-    public function activeStandinguser(Request $request)
+    public function activeStandinguser_old(Request $request)
     {
 
         if($request->status==1){
@@ -219,6 +219,52 @@ class DonorController extends Controller
             return response()->json(['success'=>true,'response'=> $success], 200);
         }
 
+    }
+
+    public function activeStandinguser(Request $request)
+    {
+        // Find the record and verify ownership
+        $donation = StandingDonation::where('id', $request->id)
+                                    ->where('user_id', Auth::user()->id)
+                                    ->first();
+
+        if (!$donation) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Record not found.'
+            ], 404);
+        }
+
+        if ($request->status == 1) {
+            // 1. Deactivate the old record so it's no longer "Active"
+            // This prevents the "double data" issue in your active view
+            $donation->status = 0;
+            $donation->save();
+
+            // 2. Create a new copy of that record
+            $newDonation = $donation->replicate();
+            
+            // 3. Set properties for the NEW record
+            $newDonation->status = 1;
+            $newDonation->starting = now()->format('Y-m-d');
+            $newDonation->created_at = now();
+            $newDonation->save();
+
+            $success['message'] = 'New donation activated successfully.';
+            $success['data'] = $newDonation;
+            
+            return response()->json(['success' => true, 'response' => $success], 200);
+
+        } else {
+            // Standard deactivation (turning it off)
+            $donation->status = 0;
+            $donation->save();
+            
+            $success['message'] = 'Inactive Successfully.';
+            $success['data'] = $donation;
+            
+            return response()->json(['success' => true, 'response' => $success], 200);
+        }
     }
 
     // this function is use for mobile app

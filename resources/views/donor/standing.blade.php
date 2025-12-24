@@ -164,19 +164,35 @@
         table.draw(); // Redraw table with new status
     });
 
-    // Handle Status Switch (Toggle)
-    $(document).on('change', '.standingdnstatus', function () {
-        var url = "{{URL::to('/admin/active-standingdonation')}}";
-        var status = $(this).prop('checked') ? 1 : 0;
-        var id = $(this).data('id');
+    var isProcessing = false;
 
-        $.post(url, {status:status, id:id}, function(d){
+    $(document).on('change', '.standingdnstatus', function () {
+        if (isProcessing) return;
+
+        var $checkbox = $(this);
+        var url = "{{URL::to('/admin/active-standingdonation')}}";
+        var status = $checkbox.prop('checked') ? 1 : 0;
+        var id = $checkbox.data('id');
+
+        isProcessing = true;
+        $checkbox.prop('disabled', true); 
+
+        $.post(url, {status: status, id: id}, function(d){
             console.log(d);
-            $('.stsermsg').html('<div class="alert alert-success">'+d.message+'</div>');
-            table.draw(); // Refresh table so the item moves to the other tab
+            $('.stsermsg').html(d.message);
+            
+            // Refresh table
+            if (typeof table !== 'undefined') {
+                table.draw(); 
+            }
+        }).always(function() {
+            isProcessing = false; // Unlock
+            $checkbox.prop('disabled', false); // Re-enable
         });
     });
+
 });
+
 </script>
 
 
@@ -257,17 +273,6 @@
             ]
         });
 
-
-        // ON STATUS CHANGE
-        $(document).on('change', '.standingdnstatus', function () {
-            var url = "{{URL::to('/admin/active-standingdonation')}}";
-            var status = $(this).prop('checked') ? 1 : 0;
-            var id = $(this).data('id');
-
-            $.post(url, {status:status, id:id}, function(d){
-                $('.stsermsg').html(d.message);
-            });
-        });
 
 });
 </script>

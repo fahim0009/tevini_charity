@@ -13,4 +13,9 @@ class StripeTopup extends Model
       {
           return $this->belongsTo('App\Models\User');
       }
+
+      public function donor()
+      {
+          return $this->belongsTo('App\Models\User');
+      }
 }

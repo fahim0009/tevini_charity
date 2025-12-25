@@ -31,6 +31,7 @@ use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\ExpiredVoucherController;
 use App\Http\Controllers\OTPController;
+use App\Http\Controllers\TopupController;
 use App\Http\Controllers\User\UserController;
 
 //admin part start
@@ -276,7 +277,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/topupnoti', [DashboardController::class, 'topupNoti'])->name('topupnoti');
 
     // stripe topup
-    Route::get('/stripe-topup', [StripePaymentController::class, 'stripetopup'])->name('stripetopup');
+    Route::get('/stripe-topup', [TopupController::class, 'stripetopup'])->name('stripetopup');
     Route::post('/stripe-topup-status', [StripePaymentController::class, 'stripetopupstatus']);
 
     // Product Fee

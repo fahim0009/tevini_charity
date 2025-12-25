@@ -76,7 +76,7 @@
                                         <td>{{ $data->user->name }} {{ $data->user->surname }}</td>
 
                                         <td data-search="{{ trim($data->charity->name) }}">
-                                            <a href="{{ route('charity.topup', [$data->charity_id, $data->amount]) }}" 
+                                            <a href="{{ route('charity.pay', [$data->charity_id, $data->amount]) }}" 
                                             class="my-2 btn btn-sm btn-success text-white" target="blank"> 
                                             {{ trim($data->charity->name) }} 
                                             </a>

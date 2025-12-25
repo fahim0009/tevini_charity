@@ -332,10 +332,10 @@ class CharityController extends Controller
         return back();
     }
 
-    public function pay($id)
+    public function pay($id, $amount = null)
     {
         $charity = Charity::where('id','=', $id)->first();
-        return view('charity.pay',compact('charity'));
+        return view('charity.pay',compact('charity','amount'));
     }
 
     public function payStore(Request $request)

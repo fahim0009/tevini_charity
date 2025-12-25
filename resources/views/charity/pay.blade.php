@@ -92,7 +92,7 @@
                             <div class="col-md-8">
                                 <div class="form-group my-2">
                                     <label for=""><small>Amount </small> </label>
-                                    <input class="form-control mr-sm-2" type="text" name="balance" id="balance" required placeholder="Amount">
+                                    <input class="form-control mr-sm-2" type="text" name="balance" id="balance" required placeholder="Amount"  value="{{ $amount }}">
                                 </div>
                                 <div class="form-group my-2">
                                     <label for=""><small>Note </small> </label>

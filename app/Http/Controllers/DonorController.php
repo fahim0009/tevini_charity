@@ -298,7 +298,7 @@ class DonorController extends Controller
             $utransaction->save();
 
             if($request->gift == "true"){
-                $expgiftaidamnt = $request->balance * 25/100;
+                $expgiftaidamnt = $request->gbalance * 25/100;
                 $donorgiftaid = User::find($request->topupid);
                 $donorgiftaid->expected_gift_aid = $donorgiftaid->expected_gift_aid + $expgiftaidamnt;
                 $donorgiftaid->save();

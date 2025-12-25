@@ -338,7 +338,7 @@ class TransactionController extends Controller
         $toDate = $request->input('toDate') ? $request->input('toDate') . ' 23:59:59' : null;
         $hasDateRange = $fromDate && $toDate;
 
-        // 1. Calculate the initial Total Balance (Running Balance starting point)
+        // 1. Calculate the initial Total Balance (This remains the same)
         $tamount = Usertransaction::where('user_id', $userId)
             ->where('status', 1)
             ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
@@ -354,54 +354,47 @@ class TransactionController extends Controller
             }
         }
 
-        // 2. Fetch All Transactions
-        $query = Usertransaction::with([
-                'charity:id,name',
-                'standingdonationDetail.standingDonation:id,charitynote,mynote',
-                'donation:id,charitynote,mynote',
-                'campaign:id,campaign_title',
-                'provoucher'
-            ])
-            ->where('user_id', $userId)
-            ->where(function ($q) use ($hasDateRange, $fromDate, $toDate) {
-                $q->where('status', 1)
-                ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
+        // 2. Fetch All Transactions - ORDER BY ASC for calculation logic
+        $query = Usertransaction::with(['charity:id,name', 'standingdonationDetail.standingDonation', 'donation', 'campaign', 'provoucher'])
+            ->where(function ($q) use ($userId, $hasDateRange, $fromDate, $toDate) {
+                $q->where('user_id', $userId)
+                    ->where('status', 1)
+                    ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
             })
             ->orWhere(function ($q) use ($userId, $hasDateRange, $fromDate, $toDate) {
                 $q->where('user_id', $userId)
-                ->where('pending', 1)
-                ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
+                    ->where('pending', 1)
+                    ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
             })
-            ->orderByDesc('id')
+            ->orderBy('created_at', 'asc') // Sort ASC to calculate balance forward
             ->get();
 
-        // 3. Transform data to handle the "Commission Row" logic
-        // We use a temporary variable to track balance backward during transformation
-        $tempBalance = $runningBalance;
-        
-        $transformed = $query->flatMap(function ($data) use (&$tempBalance) {
+        // 3. Transform and Calculate
+        $currentBalanceTracker = 0; // Start from 0 or your historical starting point
+        $transformed = $query->flatMap(function ($data) use (&$currentBalanceTracker) {
             $rows = [];
 
-            // Main Transaction Row Logic
-            $currentRow = clone $data;
-            $currentRow->display_type = 'main';
-            $currentRow->calculated_balance = $tempBalance;
-
-            // Calculate next balance step
+            // Main Transaction Logic
             if ($data->t_type == "In") {
-                $tempBalance -= ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
-            } elseif ($data->t_type == "Out") {
-                if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes")) {
-                    $tempBalance += $data->amount; 
+                $currentBalanceTracker += ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
+            } else {
+                // Only deduct if not pending or special voucher logic
+                if(!($data->pending != "0" && (isset($data->provoucher) && $data->provoucher->expired == "Yes"))) {
+                    $currentBalanceTracker -= $data->amount;
                 }
             }
 
-            // Commission Row Logic (If exists, it appears ABOVE the transaction in your blade)
+            $currentRow = clone $data;
+            $currentRow->display_type = 'main';
+            $currentRow->calculated_balance = $currentBalanceTracker;
+
+            // If Commission exists, it affects the balance after the main transaction
             if ($data->commission != 0) {
+                $currentBalanceTracker -= $data->commission;
+                
                 $commRow = clone $data;
                 $commRow->display_type = 'commission';
-                // In your blade, the commission row shows the balance BEFORE the commission is added back
-                $commRow->calculated_balance = $currentRow->calculated_balance + $data->commission; 
+                $commRow->calculated_balance = $currentBalanceTracker;
                 $rows[] = $commRow;
             }
 
@@ -409,7 +402,10 @@ class TransactionController extends Controller
             return $rows;
         });
 
-        return DataTables::of($transformed)
+        // 4. REVERSE the final collection for Descending View
+        $reversedData = $transformed->reverse()->values();
+
+        return DataTables::of($reversedData)
             ->addIndexColumn()
             ->editColumn('created_at', fn($row) => Carbon::parse($row->created_at)->format('d/m/Y'))
             ->addColumn('description', function($row) {

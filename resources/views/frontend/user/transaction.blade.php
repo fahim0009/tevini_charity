@@ -336,7 +336,8 @@ $(document).ready(function() {
             { data: 'reference', name: 'reference' },
             { data: 'calculated_balance', name: 'calculated_balance' }
         ],
-        order: [[0, 'desc']],
+        // Disable default ordering so it uses the order sent by the Controller
+        "ordering": false, 
         dom: '<"html5buttons"B>lTfgitp',
         buttons: [
             {extend: 'copy'},

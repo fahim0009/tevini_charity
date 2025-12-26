@@ -67,67 +67,62 @@ class HomeController extends Controller
         return view('agent.dashboard');
     }
 
-    public function userHome()
-    {
+public function userHome()
+{
+    $user = auth()->user();
 
-        // previous year data start
-        $period = CarbonPeriod::create(
-            now()->month(4)->subMonths(12)->startOfMonth()->format('Y-m-d'),
-            '1 month',
-            now()->month(3)->endOfMonth()->format('Y-m-d')
-        );
-        $finYear = [];
-        $totalamount = 0;
-        foreach ($period as $p) {
-            $finYear[] = $p->format('m-Y');
-            $currentmonthgift2 = Usertransaction::where('user_id','=', auth()->user()->id)->where('gift','=','1')
-                            ->where('gift','=', 1)
-                            ->whereMonth('created_at', $p->format('m'))
-                            ->whereYear('created_at', $p->format('Y'))
-                            ->get();
-            foreach ($currentmonthgift2 as $data){
-                $totalamount = $data->amount + $totalamount + $data->commission;
-            }
-        }
-        // previous year data end
+    // 1. Core Balances (Using your Model methods)
+    $donorUpBalance = $user->getLiveBalance();
+    
+    $pending_transactions = Usertransaction::where('user_id', $user->id)
+        ->where('t_type', 'Out')
+        ->where('pending', '0') 
+        ->sum('amount');
 
-        // current year data start
-        $currentyr = Usertransaction::where('user_id','=', auth()->user()->id)->where('gift','=','1')
-                        ->whereBetween('created_at',
-                            [Carbon::now()->subMonth(4), Carbon::now()]
-                        )
-                        ->get();
+    // 2. Gift Aid Stats (Financial Year: April to March)
+    $currentTaxYearStart = now()->month >= 4 ? now()->month(4)->startOfMonth() : now()->subYear()->month(4)->startOfMonth();
+    $lastTaxYearStart = $currentTaxYearStart->copy()->subYear();
+    
+    $currentyramount = Usertransaction::where('user_id', $user->id)
+        ->where('gift', 1)->where('status', 1)
+        ->whereBetween('created_at', [$currentTaxYearStart, now()])
+        ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
 
-        $currentyramount = 0;
-        foreach ($currentyr as $data2){
-            $currentyramount = $data2->amount + $currentyramount + $data2->commission;
-        }
-        // current year data end
+        $currentyramountExpGiftAid = $currentyramount * 0.25;
 
-        // user balance calculation start
-        $gettrans = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-        ])->orderBy('id','DESC')->get();
+    $lastTaxYearAmount = Usertransaction::where('user_id', $user->id)
+        ->where('gift', 1)->where('status', 1)
+        ->whereBetween('created_at', [$lastTaxYearStart, $currentTaxYearStart->copy()->subDay()])
+        ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
 
-        $donorUpBalance = 0;
+        $lastTaxYearAmountExpGiftAid = $lastTaxYearAmount * 0.25;
 
-        foreach ($gettrans as $key => $tran) {
-            if ($tran->t_type == "In") {
-                $donorUpBalance = $donorUpBalance + $tran->amount;
-            }elseif ($tran->t_type == "Out") {
-                $donorUpBalance = $donorUpBalance - $tran->amount;
-            } else {
-                # code...
-            }
-        }
-        // user balance calculation end
-        return view('frontend.user.dashboard',compact('currentyramount','totalamount','donorUpBalance'));
+    // 3. Transactions & Notifications
+    // Optimization: Use eager loading 'provoucher' and 'charity' to prevent N+1 issues
+    $alltransactions = Usertransaction::where('user_id', $user->id)
+        ->where(fn($q) => $q->where('status', 1)->orWhere('pending', 1))
+        ->with(['provoucher', 'charity'])
+        ->orderBy('id', 'DESC')
+        ->limit(5)
+        ->get();
 
-    }
+    $donation_req = \App\Models\CharityLink::where('email', $user->email)
+        ->where('donor_notification', '0')
+        ->get();
+
+    return view('frontend.user.dashboard', compact(
+        'donorUpBalance', 
+        'pending_transactions', 
+        'currentyramountExpGiftAid', 
+        'lastTaxYearAmountExpGiftAid', 
+        'alltransactions', 
+        'donation_req'
+    ));
+}
+
+
+
+
     public function changePassword()
     {
         return view('frontend.user.passwordchange');

@@ -151,7 +151,7 @@ class User extends Authenticatable
 
     public function getLiveBalance()
     {
-        return Usertransaction::where('user_id', $this->id)
+        return (float) Usertransaction::where('user_id', $this->id)
             ->where(function ($q) {
                 $q->where('status', 1)
                   ->orWhere('pending', 1);

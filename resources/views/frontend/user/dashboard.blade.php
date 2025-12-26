@@ -174,12 +174,10 @@ use Illuminate\Support\Carbon;
             @endif
         </div>
         <div class="p-4 py-5 mt-2" style="background-color: #D9D9D9;">
-            <div>
-                <div class="txt-secondary fs-32 fw-bold  text-center">GIFT AID DONATIONS</div>  <br>
-                <div class="txt-secondary fs-20"> Expected gift aid : £{{ Auth::user()->expected_gift_aid }}</div>
-                <div class="txt-secondary fs-20"> Gift Aid donations for this Tax Year : £{{ $currentyramount }}</div>
-                <div class="txt-secondary fs-20"> Gift Aid donations for last Tax Year : £{{ $totalamount }}</div>
-            </div>
+            <div class="txt-secondary fs-32 fw-bold text-center">GIFT AID DONATIONS</div>
+            <div class="txt-secondary fs-20"> Expected gift aid : £{{ number_format(Auth::user()->expected_gift_aid, 2) }}</div>
+            <div class="txt-secondary fs-20"> Gift Aid donations for this Tax Year : £{{ number_format($currentyramountExpGiftAid, 2) }}</div>
+            <div class="txt-secondary fs-20"> Gift Aid donations for last Tax Year : £{{ number_format($lastTaxYearAmountExpGiftAid, 2) }}</div>
         </div>
     </div>
     <div class="col-lg-6">
@@ -354,15 +352,7 @@ use Illuminate\Support\Carbon;
 
 @section('script')
 
-
 <script>
-
-    // document.getElementById('verifythis').addEventListener('click', function() {
-    //     document.getElementById('loading').style.display = 'block';
-    //     setTimeout(function() {
-    //         document.getElementById('loading').style.display = 'none';
-    //     }, 2000); // Adjust the timeout duration as needed
-    // });
 
     // JavaScript to allow only numeric input
     document.getElementById('tdfamount').addEventListener('input', function() {
@@ -480,40 +470,6 @@ use Illuminate\Support\Carbon;
 
             
         });
-
-
-        // $("#tdfamount").keyup(function(){
-            
-        //     var tdfamount = $("#tdfamount").val();
-        //     // set endpoint and your access key
-        //     endpoint = 'live'
-        //     access_key = 'YOUR_ACCESS_KEY';
-
-        //     // get the most recent exchange rates via the "live" endpoint:
-        //     $.ajax({
-        //         url: 'https://api.exchangerate.host/' + endpoint + '?access_key=' + access_key,   
-        //         dataType: 'jsonp',
-        //         success: function(json) {
-
-        //             // exchange rata data is stored in json.quotes
-        //             alert(json.quotes.USDGBP);
-
-        //             // source currency is stored in json.source
-        //             alert(json.source);
-
-        //             // timestamp can be accessed in json.timestamp
-        //             alert(json.timestamp);
-
-        //         }
-        //     });
-            
-
-            
-        // });
-
-
-
-        //currencyurl end 
 
     });
 </script>

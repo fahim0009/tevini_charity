@@ -1,313 +1,212 @@
 @extends('layouts.admin')
+
 @section('content')
-<div class="dashboard-content">
-    <section class="profile purchase-status">
-        <div class="title-section">
-            <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">Donor Details</div>
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary text-white p-2 rounded-3 me-3">
+            <span class="iconify" data-icon="fluent:contact-card-28-regular" data-width="24"></span>
         </div>
-    </section>
+        <div>
+            <h4 class="fw-bold mb-0">Donor Profile</h4>
+            <small class="text-muted">ID: {{$donor_id}}</small> <br>
+            <small class="text-muted">Account No: {{$profile_data->accountno ?? ''}}</small>
+        </div>
+    </div>
+
     @include('inc.user_menue')
 
-    <div class="rightSection">
-        <div class="dashboard-content">
-            <section class="profile purchase-status">
-                <div class="title-section">
-                    <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                    <div class="mx-2">User Profiles ({{$donor_id}})</div>
+    <div class="row mt-4">
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <div class="position-relative mb-3">
+                    <img class="rounded-circle border border-4 border-white shadow-sm" 
+                         width="120px" height="120px" style="object-fit: cover;"
+                         src="{{ $profile_data->photo ? asset('images/'.$profile_data->photo) : 'https://ui-avatars.com/api/?name='.urlencode($profile_data->name).'&background=0D6EFD&color=fff' }}">
                 </div>
-            </section>
-            @if(session()->has('message'))
-              <section class="px-4">
-                  <div class="row my-3">
-                      <div class="alert alert-success" id="successMessage">{{ session()->get('message') }}</div>
-                  </div>
-              </section>
-              @endif
-              @if(session()->has('error'))
-              <section class="px-4">
-                  <div class="row my-3">
-                      <div class="alert alert-danger" id="errMessage">{{ session()->get('error') }}</div>
-                  </div>
-              </section>
-              @endif
-            <section class="px-4">
-                <div class="row my-3">
+                <h5 class="fw-bold mb-1">{{ $profile_data->name }} {{ $profile_data->surname }}</h5>
+                <p class="text-muted small mb-3">{{ $profile_data->email }}</p>
 
-                  <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data" >
-                    @csrf
-                    <div class="col-md-12 ">
-                        <div class="row mx-auto">
-
-                            <div class="col-md-3 border-right">
-                                <div class="d-flex flex-column align-items-center text-center p-3 py-5" style="position:relative">
-                                    <img class="rounded-circle mt-5" width="150px"
-                                        src="@if($profile_data->photo){{asset('images/'.$profile_data->photo)}}@else https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg @endif"><span
-                                        class="font-weight-bold">{{ $profile_data->name }}</span>
-                                        <span class="text-black-50">{{$profile_data->email }}</span>
-                                        <span> Balance : {{ $profile_data->getLiveBalance() < 0 ? '-' : '' }}£{{ number_format(abs($profile_data->getLiveBalance()), 2) }}</span>
-                                        <span> Gift in Previous Year: {{ $totalamount }}</span>
-                                        <span>  Gift in Current Year: {{$currentyramount }}</span>
-                                        {{-- <input type="file" id="image" name="image" class="profile-upload"> --}}
-                                </div>
-                            </div>
-                            <div class="col-md-5 border-right">
-                                <div class="p-3 py-4 text-muted">
-                                    <div class="row mt-2">
-                                        <div class="col-md-6"><label><small>Name</small></label><input type="text"
-                                                class="form-control" placeholder="first name" name="name" id="name" value="{{ $profile_data->name }}" readonly="readonly"></div>
-
-                                        <div class="col-md-6"><label><small>Surname</small></label><input
-                                                type="text" class="form-control" name="surname" id="surname" value="{{ $profile_data->surname }}" placeholder="surname" readonly="readonly">
-                                        </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-12 mb-3"><label><small>Mobile
-                                                    Number</small></label><input type="text" class="form-control"
-                                                placeholder="enter phone number" id="phone" name="phone" value="{{ $profile_data->phone }}" readonly="readonly"></div>
-
-                                        <div class="col-md-12 mb-3"><label><small>House No</small></label>
-                                          <input type="text" class="form-control" placeholder="enter address" name="houseno" id="houseno" value="{{ $profile_data->houseno }}" readonly="readonly">
-                                          </div>
-
-                                              <div class="col-md-12 mb-3"><label><small>Street</small></label>
-                                          <input type="text" class="form-control" placeholder="Street number" name="street" id="street" value="{{ $profile_data->street }}" readonly="readonly">
-                                          </div>
-
-
-                                        <div class="col-md-12 mb-3"><label><small>Town</small></label><input type="text" class="form-control" placeholder="enter town" name="town" id="town" value="{{ $profile_data->town }}" readonly="readonly"></div>
-
-                                        <div class="col-md-12 mb-3"><label><small>Postcode</small></label><input
-                                                type="text" class="form-control" id="postcode" name="postcode" placeholder="enter postcode" value="{{ $profile_data->postcode }}" readonly="readonly"></div>
-
-                                        <div class="col-md-12 mb-3"><label><small>Email ID</small></label><input
-                                                type="email" class="form-control" id="email" name="email" placeholder="enter email id" value="{{ $profile_data->email }}" readonly="readonly"></div>
-
-
-                                        {{-- <div class="col-md-12 mb-3"><label><small>Password</small></label><input
-                                                  type="password" id="password" name="password" class="form-control" placeholder="password" readonly="readonly"></div>
-
-                                          <div class="col-md-12 mb-3"><label><small>Confirm Password</small></label><input
-                                                      type="password" id="cpassword" name="cpassword" class="form-control" placeholder="Confirm password" readonly="readonly"></div>
-                                            --}}
-                                    </div>
-                                    {{-- <div class="mt-3"><button class="btn-theme text-white updateBtn" id="updateBtn" type="submit">Update
-                                            Profile</button></div>
-                                      <div class="mt-3"><button class="btn-theme text-white editBtn" id="editBtn" type="submit">Edit
-                                              Profile</button></div> --}}
-                                </div>
-                            </div>
-
-
-                        </div>
+                <div class="bg-light rounded-3 p-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Current Balance</span>
+                        <span class="fw-bold text-primary">
+                            {{ $profile_data->getLiveBalance() < 0 ? '-' : '' }}£{{ number_format(abs($profile_data->getLiveBalance()), 2) }}
+                        </span>
                     </div>
-
-
-                  </form>
+                    <hr class="my-2 opacity-25">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">Prev. Year</span>
+                        <span class="fw-bold">£{{ number_format($lastTaxYearAmountExpGiftAid, 2) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Current Year</span>
+                        <span class="fw-bold">£{{ number_format($currentyramountExpGiftAid, 2) }}</span>
+                    </div>
                 </div>
-            </section>
+            </div>
+        </div>
 
+        <div class="col-lg-8">
+            @if(session('message'))
+                <div class="alert alert-success border-0 shadow-sm mb-4">{{ session('message') }}</div>
+            @endif
 
-
-            <!---------- User email account  ---------->
-
-
-            <section class="profile purchase-status">
-                <div class="title-section">
-                    <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                    <div class="mx-2">More email account</div>
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0">Personal Information</h6>
+                    {{-- <button type="button" class="btn btn-sm btn-outline-primary px-3" id="enableEditMode">
+                        <i class="fas fa-edit me-1"></i> Edit
+                    </button> --}}
                 </div>
-            </section>
-
-            <section class="card m-3">
-                <div class="row  my-3 mx-0 ">
-                    <div class="col-md-12 ">
-
-
-                        @if (session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="card-body">
+                    <form action="{{ route('donor.update', $profile_data->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="donorid" value="{{ $profile_data->id }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">First Name</label>
+                                <input type="text" class="form-control bg-light border-0" name="name" id="name" value="{{ $profile_data->name }}" readonly>
                             </div>
-                        @endif
-
-                        @if ($errors->any())
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">Surname</label>
+                                <input type="text" class="form-control bg-light border-0" name="surname" id="surname" value="{{ $profile_data->surname }}" readonly>
                             </div>
-                        @endif
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">Phone</label>
+                                <input type="text" class="form-control bg-light border-0" name="phone" id="phone" value="{{ $profile_data->phone }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">Email</label>
+                                <input type="email" class="form-control bg-light border-0" name="email" id="email" value="{{ $profile_data->email }}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small text-muted fw-bold">House No</label>
+                                <input type="text" class="form-control bg-light border-0" name="houseno" id="houseno" value="{{ $profile_data->houseno }}" readonly>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="small text-muted fw-bold">Street</label>
+                                <input type="text" class="form-control bg-light border-0" name="street" id="street" value="{{ $profile_data->street }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">Town</label>
+                                <input type="text" class="form-control bg-light border-0" name="town" id="town" value="{{ $profile_data->town }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">Postcode</label>
+                                <input type="text" class="form-control bg-light border-0" name="postcode" id="postcode" value="{{ $profile_data->postcode }}" readonly>
+                            </div>
+                        </div>
+                        <div class="mt-4 d-none" id="saveButtonGroup">
+                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                            <button type="button" class="btn btn-link text-muted" onclick="location.reload()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-
-
-                        <div class="col-md-12" id="emailCreateForm">
-                            <form class="form-inline" action="{{route('newUserCredentialStore')}}" method="POST">
-                                @csrf         
-
-                                <div class="row justify-content-center">
-
-                                    <div class="col-md-4">
-                                        <div class="form-group my-2">
-                                            <label for="newemail"><small>Email</small> </label>
-                                            <input class="form-control mr-sm-2" id="newemail" name="newemail" type="email"  value="">
-                                            <input id="donor_id" name="donor_id" type="hidden"  value="{{$donor_id}}">
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-4 d-flex align-items-center">
-                                        <div class="form-group d-flex mt-4">
-                                        <button class="text-white btn-theme ml-1" type="submit">Add</button>
-                                        </div>
-                                    </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h6 class="fw-bold mb-0">Linked Email Accounts</h6>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <form action="{{route('newUserCredentialStore')}}" method="POST" class="row g-2 justify-content-end">
+                                @csrf
+                                <input type="hidden" name="donor_id" value="{{$donor_id}}">
+                                <div class="col-sm-8 col-md-7">
+                                    <input type="email" name="newemail" class="form-control form-control-sm" placeholder="Enter new linked email address" required>
                                 </div>
-
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-sm btn-dark px-3">Add Account</button>
+                                </div>
                             </form>
                         </div>
-                        
                     </div>
                 </div>
-            </section>
 
-
-
-            <section class="card m-3">
-                <div class="row  my-3 mx-0 ">
-                    <div class="col-md-12 ">
-                        <div class="stsermsg"></div>
-                        
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Email</th>
-                                            <th>Action </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-
-                                        @foreach (\App\Models\UserDetail::where('user_id', $donor_id)->get() as $data)
-                                            <tr>
-                                                <td>{{ $data->date }}</td>
-                                                <td>{{ $data->email }}</td>
-                                                <td class="text-right">
-                                                    <button data-udid="{{$data->id}}" data-email="{{$data->email}}" class="btn btn-sm btn-primary mr-1 editBtn" >Edit</button>
-
-                                                    <form action="{{ route('useremail.destroy', $data->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this email?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-warning mr-1">Delete</button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </section>  
-
-            <!-- Edit Modal -->
-            <div class="modal fade" id="editEmailModal" tabindex="-1" aria-labelledby="editEmailModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                <form method="POST" id="editEmailForm">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-header">
-                    <h5 class="modal-title" id="editEmailModalLabel">Edit Email</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                    <div class="form-group">
-                        <label for="editEmail">Email</label>
-                        <input type="email" class="form-control" id="editEmail" name="email" required>
-                    </div>
-                    </div>
-                    <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                    </div>
-                </form>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 small text-muted" style="width: 20%;">DATE</th>
+                                <th class="small text-muted" style="width: 60%;">EMAIL ADDRESS</th>
+                                <th class="text-end pe-4 small text-muted" style="width: 20%;">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (\App\Models\UserDetail::where('user_id', $donor_id)->get() as $data)
+                            <tr>
+                                <td class="ps-4 text-muted small">{{ $data->date }}</td>
+                                <td class="fw-medium text-dark">{{ $data->email }}</td>
+                                <td class="text-end pe-4">
+                                    <button data-udid="{{$data->id}}" data-email="{{$data->email}}" class="btn btn-sm btn-light border editEmailBtn">
+                                        <i class="fas fa-edit small"></i> Edit
+                                    </button>
+                                    <form action="{{ route('useremail.destroy', $data->id) }}" method="POST" class="d-inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 ms-1" onclick="return confirm('Delete email?')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            </div>
 
-
-
-
+            
         </div>
-      </div>
+    </div>
+</div>
 
+<div class="modal fade" id="editEmailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form method="POST" id="editEmailForm">
+                @csrf @method('PUT')
+                <div class="modal-header">
+                    <h6 class="fw-bold mb-0">Update Linked Email</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <label class="small fw-bold text-muted mb-2">Email Address</label>
+                    <input type="email" class="form-control" id="editEmail" name="email" required>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary w-100">Update Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection
 
 @section('script')
-
-
-<script type="text/javascript">
-  $(document).ready(function() {
-      $("#profileinfo").addClass('active');
-      $("#profileinfo").addClass('is-expanded');
-      $("#profile").addClass('active');
-  });
-</script>
-
-
-<script type="text/javascript">
-
-    $(document).ready(function () {
-
-        $(".updateBtn").hide();
-
-
-        $("body").delegate(".editBtn","click",function(event){
-            event.preventDefault();
-            $("#name").attr("readonly", false);
-            $("#surname").attr("readonly", false);
-            $("#phone").attr("readonly", false);
-            $("#houseno").attr("readonly", false);
-            $("#street").attr("readonly", false);
-            $("#town").attr("readonly", false);
-            $("#postcode").attr("readonly", false);
-            $("#email").attr("readonly", false);
-            $("#password").attr("readonly", false);
-            $("#cpassword").attr("readonly", false);
-            $("#editBtn").hide();
-            $("#updateBtn").show();
-        });
-
-})
-
-</script>
-
 <script>
 $(document).ready(function() {
-    $('.editBtn').on('click', function() {
+    // Enable Editing for Personal Info
+    $('#enableEditMode').on('click', function() {
+        $('input[readonly]').each(function() {
+            $(this).removeAttr('readonly').removeClass('bg-light border-0').addClass('border');
+        });
+        $('#saveButtonGroup').removeClass('d-none');
+        $(this).fadeOut();
+    });
+
+    // Handle Email List Editing
+    $('.editEmailBtn').on('click', function() {
         let udid = $(this).data('udid');
         let email = $(this).data('email');
+        let updateRoute = "{{ route('useremail.update', ':id') }}".replace(':id', udid);
 
-        // Use Laravel route name (replace :id dynamically)
-        let updateRoute = "{{ route('useremail.update', ':id') }}";
-        updateRoute = updateRoute.replace(':id', udid);
-
-        // Set values in modal
         $('#editEmail').val(email);
         $('#editEmailForm').attr('action', updateRoute);
-
-        // Show modal
         $('#editEmailModal').modal('show');
     });
 });
 </script>
-
-
 @endsection

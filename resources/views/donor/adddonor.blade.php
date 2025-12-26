@@ -1,6 +1,39 @@
 @extends('layouts.admin')
 
 @section('content')
+
+<style>
+    #addThisFormContainer .card {
+        transition: all 0.3s ease;
+    }
+    
+    #addThisFormContainer .form-control, 
+    #addThisFormContainer .form-select,
+    #addThisFormContainer .input-group-text {
+        border-color: #e9ecef;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+    }
+
+    #addThisFormContainer .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    }
+
+    #addThisFormContainer .btn-primary {
+        background-color: #0d6efd;
+        border: none;
+        padding: 0.7rem 2rem;
+        border-radius: 8px;
+    }
+
+    @media (min-width: 768px) {
+        .border-end-md {
+            border-right: 1px solid #f0f0f0;
+        }
+    }
+</style>
+
 <div class="rightSection">
     <div class="dashboard-content">
         <!-- Title Section -->
@@ -30,76 +63,117 @@
 
         <!-- Add Donor Form -->
         <section class="px-4" id="addThisFormContainer" style="display: none;">
-            <div class="row justify-content-md-center bg-white">
-                <div class="col-md-8">
-                    <form action="{{ route('donor.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
-                        @csrf
-                        <div class="row my-3">
-                            <!-- Left Column -->
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <select name="prefix_name" id="prefix_name" class="form-control">
-                                        <option value="">Please Select</option>
-                                        <option value="Mr">Mr</option>
-                                        <option value="Mrs">Mrs</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="title">Title</label>
-                                    <input type="text" name="title" id="title" placeholder="Title" class="form-control @error('title') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="fname">Name</label>
-                                    <input type="text" name="fname" id="fname" placeholder="Name" class="form-control @error('fname') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="surname">Surname</label>
-                                    <input type="text" name="surname" id="surname" placeholder="Surname" class="form-control @error('surname') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="postcode">Postcode</label>
-                                    <input type="text" name="postcode" id="postcode" placeholder="Postcode" class="form-control @error('postcode') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone">Phone</label>
-                                    <input type="text" name="phone" id="phone" placeholder="Phone" class="form-control @error('phone') is-invalid @enderror">
-                                </div>
-                            </div>
-                            <!-- Right Column -->
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="street">Street</label>
-                                    <input type="text" name="street" id="street" placeholder="Street" class="form-control @error('street') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="houseno">House No</label>
-                                    <input type="text" name="houseno" id="houseno" placeholder="House No" class="form-control @error('houseno') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="town">Town</label>
-                                    <input type="text" name="town" id="town" placeholder="Town" class="form-control @error('town') is-invalid @enderror">
-                                </div>
-                                <input type="hidden" name="donorid" id="donorid">
-                                <div class="mb-3">
-                                    <label for="email">Email</label>
-                                    <input type="email" name="email" id="email" placeholder="Email" class="form-control @error('email') is-invalid @enderror">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="balance">Balance</label>
-                                    <input type="text" name="balance" id="balance" placeholder="Balance" class="form-control">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="accno">Account No</label>
-                                    <input type="text" name="accno" id="accno" placeholder="Account No" class="form-control">
-                                </div>
-                            </div>
-                            <!-- Form Buttons -->
-                            <div class="col-md-6">
-                                <button type="submit" class="btn btn-theme mt-2 text-white">Create</button>
-                                <button type="button" class="btn btn-warning mt-2 text-white" id="FormCloseBtn">Close</button>
-                            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card border-0 shadow-sm rounded-4 mt-4">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4">
+                            <h5 class="fw-bold text-dark mb-0">Register New Donor</h5>
+                            <p class="text-muted small">Fill in the information below to create a new donor account.</p>
                         </div>
-                    </form>
+                        
+                        <div class="card-body p-4">
+                            <form action="{{ route('donor.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
+                                @csrf
+                                <input type="hidden" name="donorid" id="donorid">
+
+                                <div class="row g-4">
+                                    <div class="col-md-6 border-end-md">
+                                        <h6 class="text-primary fw-bold mb-3">Identity Details</h6>
+                                        
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold">Prefix</label>
+                                                <select name="prefix_name" id="prefix_name" class="form-select border-radius-8">
+                                                    <option value="">Select</option>
+                                                    <option value="Mr">Mr</option>
+                                                    <option value="Mrs">Mrs</option>
+                                                    <option value="Ms">Ms</option>
+                                                    <option value="Dr">Dr</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <label for="title" class="form-label small fw-bold">Title/Position</label>
+                                                <input type="text" name="title" id="title" placeholder="e.g. Manager" class="form-control @error('title') is-invalid @enderror">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="fname" class="form-label small fw-bold">First Name</label>
+                                            <input type="text" name="fname" id="fname" placeholder="Enter first name" class="form-control @error('fname') is-invalid @enderror">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="surname" class="form-label small fw-bold">Surname</label>
+                                            <input type="text" name="surname" id="surname" placeholder="Enter surname" class="form-control @error('surname') is-invalid @enderror">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label small fw-bold">Email Address</label>
+                                            <input type="email" name="email" id="email" placeholder="email@example.com" class="form-control @error('email') is-invalid @enderror">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label small fw-bold">Phone Number</label>
+                                            <input type="text" name="phone" id="phone" placeholder="+123456789" class="form-control @error('phone') is-invalid @enderror">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary fw-bold mb-3">Address & Account</h6>
+
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-md-8">
+                                                <label for="street" class="form-label small fw-bold">Street</label>
+                                                <input type="text" name="street" id="street" placeholder="Street name" class="form-control @error('street') is-invalid @enderror">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="houseno" class="form-label small fw-bold">House No</label>
+                                                <input type="text" name="houseno" id="houseno" placeholder="No." class="form-control @error('houseno') is-invalid @enderror">
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-md-6">
+                                                <label for="town" class="form-label small fw-bold">Town/City</label>
+                                                <input type="text" name="town" id="town" placeholder="Town" class="form-control @error('town') is-invalid @enderror">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="postcode" class="form-label small fw-bold">Postcode</label>
+                                                <input type="text" name="postcode" id="postcode" placeholder="Postcode" class="form-control @error('postcode') is-invalid @enderror">
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4 opacity-50">
+
+                                        <div class="mb-3">
+                                            <label for="accno" class="form-label small fw-bold">Account Number</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light text-muted"><i class="iconify" data-icon="fluent:badge-24-regular"></i></span>
+                                                <input type="text" name="accno" id="accno" placeholder="ACC-0000" class="form-control">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="balance" class="form-label small fw-bold">Opening Balance</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light text-muted">£</span>
+                                                <input type="text" name="balance" id="balance" placeholder="0.00" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4 pt-3 border-top">
+                                    <div class="col-12 d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-light px-4 fw-semibold" id="FormCloseBtn">Cancel</button>
+                                        <button type="submit" class="btn btn-primary px-5 fw-semibold shadow-sm">
+                                            <span class="iconify me-1" data-icon="fluent:add-circle-24-regular"></span> Create Donor
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

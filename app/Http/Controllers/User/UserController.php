@@ -100,55 +100,52 @@ class UserController extends Controller
     }
 
     public function profileinAdmin($id)
-    {   
-
+    {
         $donor_id = $id;
-        $profile_data = User::where('id','=', $id)->first();
+        // Use findOrFail to handle invalid IDs gracefully
+        $profile_data = User::findOrFail($id);
 
-        // previous year data start
-        $period = CarbonPeriod::create(
-            now()->month(4)->subMonths(12)->startOfMonth()->format('Y-m-d'),
-            '1 month',
-            now()->month(3)->endOfMonth()->format('Y-m-d')
-        );
-        $finYear = [];
-        $totalamount = 0;
-        foreach ($period as $p) {
-            $finYear[] = $p->format('m-Y');
-            $currentmonthgift2 = Usertransaction::where('user_id','=', $id)->where('gift','=','1')
-                            ->where('gift','=', 1)
-                            ->whereMonth('created_at', $p->format('m'))
-                            ->whereYear('created_at', $p->format('Y'))
-                            ->get();
-            foreach ($currentmonthgift2 as $data){
-                $totalamount = $data->amount + $totalamount + $data->commission;
-            }
-        }
-        // previous year data end
+        // 1. Calculate Tax Year Boundaries (UK: April to March)
+        $now = now();
+        $currentTaxYearStart = $now->month >= 4 
+            ? now()->month(4)->startOfMonth() 
+            : now()->subYear()->month(4)->startOfMonth();
+        
+        $lastTaxYearStart = $currentTaxYearStart->copy()->subYear();
+        $lastTaxYearEnd = $currentTaxYearStart->copy()->subSecond();
 
+        // 2. Current Tax Year Amount (April to Now)
+        // We use selectRaw to sum amount + commission in one database trip
+        $currentyramount = Usertransaction::where('user_id', $id)
+            ->where('gift', 1)
+            ->where('status', 1) // Only count successful transactions
+            ->whereBetween('created_at', [$currentTaxYearStart, $now])
+            ->selectRaw('SUM(amount + commission) as total')
+            ->value('total') ?? 0;
 
-        $currentyr = Usertransaction::where('user_id','=', $id)->where('gift','=','1')
-                        ->whereBetween('created_at',
-                            [Carbon::now()->subMonth(4), Carbon::now()]
-                        )
-                        ->get();
+        // 3. Previous Tax Year Amount (April last year to March this year)
+        $lastTaxYearAmount = Usertransaction::where('user_id', $id)
+            ->where('gift', 1)
+            ->where('status', 1)
+            ->whereBetween('created_at', [$lastTaxYearStart, $lastTaxYearEnd])
+            ->selectRaw('SUM(amount + commission) as total')
+            ->value('total') ?? 0;
+        $currentyramountExpGiftAid = $currentyramount * 0.25;
+        $lastTaxYearAmountExpGiftAid = $lastTaxYearAmount * 0.25;
 
-
-        $currentyramount = 0;
-        foreach ($currentyr as $data2){
-            $currentyramount = $data2->amount + $currentyramount + $data2->commission;
-        }
-
-
-        // current year data end
-
+        // 4. Additional Data for Display
         $date = \Carbon\Carbon::now();
-        $currentMonthName = $date->format('F'); // July
-        $lastMonthName = $date->startOfMonth()->subMonth(1)->format('F'); // June
+        $currentMonthName = $date->format('F');
+        $lastMonthName = $date->subMonth()->format('F');
 
-
-
-        return view('donor.profile',compact('profile_data','donor_id','currentyramount','totalamount','lastMonthName','currentMonthName'));
+        return view('donor.profile', compact(
+            'profile_data',
+            'donor_id',
+            'currentyramountExpGiftAid',
+            'lastTaxYearAmountExpGiftAid',
+            'lastMonthName',
+            'currentMonthName'
+        ));
     }
 
     public function updateprofile(Request $request)

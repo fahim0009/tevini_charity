@@ -21,7 +21,7 @@
                 <div class="position-relative mb-3">
                     <img class="rounded-circle border border-4 border-white shadow-sm" 
                          width="120px" height="120px" style="object-fit: cover;"
-                         src="{{ $profile_data->photo ? asset('images/'.$profile_data->photo) : 'https://ui-avatars.com/api/?name='.urlencode($profile_data->name).'&background=0D6EFD&color=fff' }}">
+                         src="{{ $profile_data->photo && file_exists(public_path('images/'.$profile_data->photo)) ? asset('images/'.$profile_data->photo) : 'https://www.tevini.co.uk/assets/admin/images/profile.png' }}">
                 </div>
                 <h5 class="fw-bold mb-1">{{ $profile_data->name }} {{ $profile_data->surname }}</h5>
                 <p class="text-muted small mb-3">{{ $profile_data->email }}</p>
@@ -158,7 +158,7 @@
                 </div>
             </div>
 
-            
+
         </div>
     </div>
 </div>

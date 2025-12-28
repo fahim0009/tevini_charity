@@ -89,6 +89,7 @@ public function userHome()
         ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
 
         $currentyramountExpGiftAid = $currentyramount * 0.25;
+        
 
     $lastTaxYearAmount = Usertransaction::where('user_id', $user->id)
         ->where('gift', 1)->where('status', 1)

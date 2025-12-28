@@ -173,11 +173,14 @@ use Illuminate\Support\Carbon;
             </div>
             @endif
         </div>
+        @php
+            $type = 'prev-year';
+        @endphp
         <div class="p-4 py-5 mt-2" style="background-color: #D9D9D9;">
             <div class="txt-secondary fs-32 fw-bold text-center">GIFT AID DONATIONS</div>
             <div class="txt-secondary fs-20"> Expected gift aid : £{{ number_format(Auth::user()->expected_gift_aid, 2) }}</div>
-            <div class="txt-secondary fs-20"> Gift Aid donations for this Tax Year : £{{ number_format($currentyramountExpGiftAid, 2) }}</div>
-            <div class="txt-secondary fs-20"> Gift Aid donations for last Tax Year : £{{ number_format($lastTaxYearAmountExpGiftAid, 2) }}</div>
+            <div class="txt-secondary fs-20"> <a href="{{ route('user.currentyear.giftaidtran')}}"> Gift Aid donations for this Tax Year : £{{ number_format($currentyramountExpGiftAid, 2) }} </a></div>
+            <div class="txt-secondary fs-20"> <a href="{{ route('user.currentyear.giftaidtran', $type)}}">  Gift Aid donations for last Tax Year : £{{ number_format($lastTaxYearAmountExpGiftAid, 2) }} </a></div>
         </div>
     </div>
     <div class="col-lg-6">

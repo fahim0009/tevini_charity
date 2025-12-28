@@ -283,6 +283,7 @@ class DonorController extends Controller
 
             $utransaction = new Usertransaction();
             $utransaction->t_id = time() . "-" . $request->topupid;
+            $utransaction->date = $request->date;
             $utransaction->user_id = $request->topupid;
             $utransaction->source = $request->source;
             $utransaction->t_type = "In";
@@ -291,7 +292,7 @@ class DonorController extends Controller
             $utransaction->note = $request->note;
             $utransaction->donation_by = $request->donationBy;
             if($request->gift == "true"){
-            $utransaction->gift =  1;
+                $utransaction->gift =  1;
             }
             $utransaction->title = 'Credit';
             $utransaction->status =  1;
@@ -316,7 +317,11 @@ class DonorController extends Controller
                 $cleargiftaid = User::find($request->topupid);
                 $cleargiftaid->expected_gift_aid = $cleargiftaid->expected_gift_aid - $request->balance;
                 $cleargiftaid->save();
-                }
+
+                
+                $utransaction->clear_gift = 1;
+                $utransaction->save();
+            }
 
             if($request->receipt == 'true'){
                 $user = User::where('id',$request->topupid)->first();

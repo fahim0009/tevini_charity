@@ -27,6 +27,7 @@ use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\User\UserController;
 
 use App\Http\Controllers\Auth\CharityPasswordResetController;
+use App\Http\Controllers\User\GiftAidController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +100,9 @@ Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function
     Route::post('email-account-update', [UserController::class, 'emailAccountUpdate'])->name('emailAccountUpdate');
     Route::delete('user-email/delete/{id}', [UserController::class, 'destroy'])->name('useremailDestroy');
     // profile end
+
+    
+    Route::get('current-year-giftaid-transaction/{type?}', [GiftAidController::class, 'currentYearTransaction'])->name('user.currentyear.giftaidtran');
 
 
     // overdrawn

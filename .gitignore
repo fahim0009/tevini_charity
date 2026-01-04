@@ -17,7 +17,6 @@ public/master
 #stripe key ignore
 resources/views/frontend/user/strip_topup.blade.php
 app/Http/Controllers/StripePaymentController.php
-app/Http/Controllers/OTPController.php
 
 # Laravel 5 & Lumen specific with changed public path
 public_html/storage

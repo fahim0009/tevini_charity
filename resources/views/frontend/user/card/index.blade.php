@@ -145,6 +145,8 @@
         <p>
             “The Tevini Prepaid Mastercard® is issued by PayrNet Limited and licensed by Mastercard International Incorporation. PayrNet Limited is authorised by the Financial Conduct Authority (FCA) to conduct electronic money service activities under the Electronic Money Regulations 2011 (Firm Reference Number 900594). Mastercard is a registered trademark, and the circles design is a trademark of Mastercard International Incorporated.”
         </p>
+        
+                            <a href="{{route('mobileVerify')}}" class="d-block btn-theme bg-primary">Get Pin</a>
     </div>
 </div>
 @endsection

@@ -3,6 +3,33 @@
 @php
 use Illuminate\Support\Carbon;
 @endphp
+
+<style>
+    .btn-btn-theme {
+        border: 0;
+        width: auto;
+        margin: 1px;
+        border-radius: 7px;
+        padding: 5px 16px;
+        font-size: 16px;
+        color: #fff;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-content: center;
+        font-family: "DarkerGrotesque-semibold", sans-serif;
+        font-weight: 400;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        user-select: none;
+        line-height: 1.5;
+        transition: all 0.3s ease-in-out;
+        outline: 0;
+    }
+</style>
+
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section">
@@ -52,9 +79,9 @@ use Illuminate\Support\Carbon;
                             </div>
                            </div>
                         </div> --}}
-                        <div class="col-md-12 mt-2 text-center">
+                        <div class="col-md-12 mt-2 text-center shadow-sm">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="voucherTable">
+                                <table class="table" id="voucherTable">
                                     <thead>
                                         <tr>
                                             <th style="display: none;">Raw Date</th> 
@@ -73,7 +100,7 @@ use Illuminate\Support\Carbon;
                                             <td style="display: none;">{{ $order->created_at->format('Y-m-d') }}</td> <!-- Hidden column with correct format -->
                                             <td>{{ $order->created_at->format('d/m/Y') }}</td>
                                             <td>{{ $order->order_id}} </td>
-                                            <td>£{{ $order->amount}}</td>
+                                            <td>£{{ number_format($order->amount, 2)}}</td>
                                             <td>@if($order->status =="0")
                                                 Pending
                                                 @elseif($order->status =="1")
@@ -84,11 +111,11 @@ use Illuminate\Support\Carbon;
                                             </td>
                                             <td>
                                                 @if ($order->status == 0)
-                                                <a href="{{ route('voucherBookEdit',$order->id) }}" class="btn-theme bg-secondary"> <i class="fa fa-edit"></i>Edit</a>
+                                                <a href="{{ route('voucherBookEdit',$order->id) }}" class="btn-btn-theme bg-secondary"> <i class="fa fa-edit px-2"></i>Edit</a>
                                                 @endif
 
-                                                <button type="button" class="btn-theme bg-info" data-toggle="modal" data-target="#orderModal{{ $order->id }}">
-                                                    <i class="fa fa-eye"></i> View
+                                                <button type="button" class="btn-btn-theme bg-primary" data-toggle="modal" data-target="#orderModal{{ $order->id }}">
+                                                    <i class="fa fa-eye px-2"></i> View
                                                 </button>
 
                                                 <!-- Modal -->

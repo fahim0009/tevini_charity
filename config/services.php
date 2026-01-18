@@ -39,6 +39,12 @@ return [
         'token' => env('TWILIO_TOKEN'),
         'from'  => env('TWILIO_FROM'),
     ],
+
+    'qcs' => [
+        'url'  => env('QCS_API_URL'),
+        'user' => env('QCS_API_USER'),
+        'pass' => env('QCS_API_PASS'),
+    ],
    
 
   

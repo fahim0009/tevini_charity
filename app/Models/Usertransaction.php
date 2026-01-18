@@ -14,20 +14,8 @@ class Usertransaction extends Model
      *
      * @var array
      */
-    protected $fillable = [
-      'charity_id',
-      'user_id',
-      'source',
-      't_type',
-      'amount',
-      'note',
-      't_unq',
-      'title',
-      'status',
-
-      'updated_by',
-      'created_by',
-  ];
+    
+    protected $guarded = [];
 
     public function user(){
         return $this->belongsTo('App\Models\User');

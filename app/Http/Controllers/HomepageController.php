@@ -11,6 +11,7 @@ use App\Models\Charity;
 use App\Models\FingerprintDonation;
 use App\Models\Gateway;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\{DB, Log};
 
 class HomepageController extends Controller
 {
@@ -74,7 +75,7 @@ class HomepageController extends Controller
     }
 
 
-    public function apidonationCheck(Request $request)
+    public function apidonationCheck2(Request $request)
     {
 
         if(empty($request->password)){
@@ -168,6 +169,129 @@ class HomepageController extends Controller
         }
     }
 
+    public function apidonationCheck(Request $request)
+    {
+        // 1. Initial Validation
+        if (empty($request->password)) {
+            return response()->json([
+                'status' => 303,
+                'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Enter password</span>'
+            ]);
+        }
+
+        // 2. Fetch required data before entering transaction
+        $campaign_dtls = Campaign::findOrFail($request->tevini_campaignid);
+        $gateway = Gateway::findOrFail($request->identifier);
+        $return_url = $gateway->return_url;
+        
+        // Clean and cast the amount to prevent "Non-numeric" crash
+        $amt = (float) str_replace(',', '', $request->amt ?? 0);
+
+        // 3. Attempt Authentication
+        if (auth()->attempt(['accountno' => $request->acc, 'password' => $request->password])) {
+            
+            // Wrap everything in a transaction to ensure data integrity
+            return DB::transaction(function () use ($request, $campaign_dtls, $amt, $return_url) {
+                
+                /** @var \App\Models\User $user */
+                $user = auth()->user(); 
+                
+                // Check balance + overdrawn limit
+                $limitChk = (float)$user->balance + (float)$user->overdrawn_amount;
+
+                if ($limitChk < $amt) {
+                    return response()->json([
+                        'status' => 303,
+                        'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Overdrawn limit exceed.</span>'
+                    ]);
+                }
+
+                // 4. Create User Transaction Record
+                $utransaction = new Usertransaction();
+                $utransaction->t_id = time() . "-" . $user->id;
+                $utransaction->charity_id = $campaign_dtls->charity_id;
+                $utransaction->user_id = $user->id;
+                $utransaction->t_type = "Out";
+                $utransaction->amount = $amt;
+                $utransaction->note = $request->comment;
+                $utransaction->title = "Online Campaign (" . $campaign_dtls->campaign_title . ")";
+                $utransaction->gateway_id = $request->identifier;
+                $utransaction->campaign_id = $campaign_dtls->id;
+                $utransaction->status = 1;
+                $utransaction->save();
+
+                // 5. Update User Balance (Safe Numeric Update)
+                // Note: decrement() saves to DB automatically. No need for $user->save().
+                $user->decrement('balance', $amt);
+
+                // 6. External Card API Update (QCS)
+                if (isset($user->CreditProfileId)) {
+                    try {
+                        Http::withBasicAuth(config('services.qcs.user'), config('services.qcs.pass'))
+                            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                                'CreditProfileId'   => $user->CreditProfileId,
+                                'CreditProfileName' => $user->name,
+                                'AvailableBalance'  => 0 - $amt,
+                                'comment'           => "third party donation by tevini",
+                            ]);
+                    } catch (\Exception $e) {
+                        Log::error("Card API Update Failed during donation", [
+                            'user_id' => $user->id,
+                            'error' => $e->getMessage()
+                        ]);
+                        // We continue the transaction even if API notification fails
+                    }
+                }
+
+                // 7. Update Charity Balance
+                $charity = Charity::findOrFail($campaign_dtls->charity_id);
+                $charity->increment('balance', $amt);
+
+                // 8. Generate Success Hash and URL
+                $success_params = [
+                    'campaign' => $request->tevini_campaignid,
+                    'transid'  => $request->transid,
+                    'cid'      => $request->acc,
+                    'donation' => $amt,
+                    'intid'    => $utransaction->id,
+                    'rtncode'  => 0
+                ];
+                
+                $success_query = "?" . http_build_query($success_params);
+                $tevini_hash = hash_hmac("sha256", $success_query, $campaign_dtls->hash_code);
+                $success_url = $return_url . $success_query . "&hash=" . $tevini_hash;
+
+                return response()->json([
+                    'status' => 300,
+                    'url' => $success_url,
+                    'message' => '<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>'
+                ]);
+            });
+
+        } else {
+            // 9. Handle Authentication Failure
+            $user_tran = time();
+            $unsuccess_params = [
+                'campaign' => $request->tevini_campaignid,
+                'transid'  => $request->transid,
+                'cid'      => $request->acc,
+                'donation' => $amt,
+                'intid'    => $user_tran,
+                'rtncode'  => 1
+            ];
+
+            $unsuccess_query = "?" . http_build_query($unsuccess_params);
+            $tevini_hash = hash_hmac("sha256", $unsuccess_query, $campaign_dtls->hash_code);
+            $unsuccess_url = $return_url . $unsuccess_query . "&hash=" . $tevini_hash;
+
+            return response()->json([
+                'status' => 301,
+                'url' => $unsuccess_url,
+                'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>'
+            ]);
+        }
+    }
+    
     protected function generateUniqueCode()
     {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

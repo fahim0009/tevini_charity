@@ -1533,17 +1533,21 @@ class CardServiceController extends Controller
     /**
      * Handle Authorisation Requests (msgType 100, 120, 420)
      */
+
     public function authorisation(Request $request)
     {
+        Log::info("Payment Auth: Request Received", ['msgType' => $request->msgType, 'Utid' => $request->Utid]);
+
         return DB::transaction(function () use ($request) {
             $cardNumber = substr($request->PAN, -4);
             $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
 
             if (!$chkuser) {
+                Log::warning("Payment Auth: Card not found", ['last4' => $cardNumber]);
                 return redirect()->back()->with('error', 'User not found.');
             }
 
-            // 1. Determine Model and Flow based on msgType
+            // 1. Determine Model
             $data = match ((int)$request->msgType) {
                 100      => new Authorisation(),
                 420, 120 => new AuthReversal(),
@@ -1551,24 +1555,31 @@ class CardServiceController extends Controller
             };
 
             if (!$data) {
+                Log::error("Payment Auth: Invalid msgType", ['type' => $request->msgType]);
                 return redirect()->back()->with('error', 'Invalid Message Type.');
             }
 
-            // 2. Map Request Data to Model
+            // 2. Map & Save
             $this->mapPaymentData($data, $request, $chkuser->user_id);
             
             if (!$data->save()) {
+                Log::emergency("Payment Auth: Database Save Failed", ['Utid' => $request->Utid]);
                 throw new \Exception("Failed to save authorisation data.");
             }
+            Log::info("Payment Auth: Record Saved", ['id' => $data->id, 'type' => get_class($data)]);
 
-            // 3. Process Balance Logic (Only for approved actions)
+            // 3. Balance Adjustment
             if ($request->actionCode === "000") {
+                Log::info("Payment Auth: Processing Balance", ['user_id' => $chkuser->user_id, 'amt' => $request->billAmt]);
                 $this->processBalanceAdjustment($request, $chkuser, $request->msgType);
+            } else {
+                Log::notice("Payment Auth: ActionCode not 000, skipping balance update", ['code' => $request->actionCode]);
             }
 
-            // 4. Notify External API
-            $this->notifyExternalApi("AUTH");
+            // 4. API Notify
+            $this->notifyExternalApi("AUTH", $request->Utid);
 
+            Log::info("Payment Auth: Completed Successfully", ['Utid' => $request->Utid]);
             return response()->json(['status' => 'success']);
         });
     }
@@ -1578,24 +1589,32 @@ class CardServiceController extends Controller
      */
     public function settlement(Request $request)
     {
+        Log::info("Payment Settlement: Request Received", ['Utid' => $request->Utid]);
+
         return DB::transaction(function () use ($request) {
             $chkuser = CardProduct::where('cardNumber', substr($request->PAN, -4))->first();
             
             $data = new Settlement();
             $this->mapPaymentData($data, $request, $chkuser->user_id ?? null);
             $data->save();
+            Log::info("Payment Settlement: Record Saved");
 
-            // Adjust balance based on difference between Auth and Settlement
+            // Adjust balance based on difference
             $auth = Authorisation::where('Utid', $request->Utid)->first();
             if ($auth && $chkuser) {
                 $diff = $auth->billAmt - $request->billAmt;
-                User::where('id', $chkuser->user_id)->decrement('balance', $diff);
+                if ($diff != 0) {
+                    Log::info("Payment Settlement: Adjusting variance", ['diff' => $diff]);
+                    User::where('id', $chkuser->user_id)->decrement('balance', $diff);
+                }
             }
 
-            $this->notifyExternalApi("SETTLEMENT");
+            $this->notifyExternalApi("SETTLEMENT", $request->Utid);
             return response()->json(['status' => 'success']);
         });
     }
+
+
 
     /**
      * Helper: Map all incoming request fields to the model
@@ -1615,23 +1634,25 @@ class CardServiceController extends Controller
     /**
      * Helper: Handle User and System Balance Logic
      */
+
     private function processBalanceAdjustment($request, $chkuser, $msgType)
     {
         $user = User::findOrFail($chkuser->user_id);
         $qpay = QpayBalance::firstOrFail();
 
         if ($msgType == 100) {
-            // Deduction
             $user->decrement('balance', $request->billAmt);
             $qpay->decrement('balance', $request->billAmt);
+            Log::info("Balance: Deducted successfully");
             $this->createTransactionRecords($request, $chkuser, 'Out');
         } else if ($msgType == 420) {
-            // Refund/Reversal
             $user->increment('balance', $request->billAmt);
             $qpay->increment('balance', $request->billAmt);
+            Log::info("Balance: Reversal credited successfully");
             $this->createTransactionRecords($request, $chkuser, 'In');
         }
     }
+
 
     /**
      * Helper: Create audit trails in transaction tables
@@ -1660,21 +1681,27 @@ class CardServiceController extends Controller
             'name' => 'Tevini Card',
             'note' => $title . $request->crdAcptLoc,
         ]));
+
+        Log::info("Ledger: Transaction records created", ['type' => $type]);
     }
 
     /**
      * Helper: Centralized API Notification
      */
-    private function notifyExternalApi(string $type)
+    
+    private function notifyExternalApi(string $type, $utid)
     {
+        Log::info("External API: Notifying", ['type' => $type, 'Utid' => $utid]);
         try {
-            Http::withBasicAuth(config('services.qcs.user'), config('services.qcs.pass'))
+            $response = Http::withBasicAuth(config('services.qcs.user'), config('services.qcs.pass'))
                 ->post(config('services.qcs.url'), [
                     'Type' => $type,
                     'DateTime' => now(),
                 ]);
+            
+            Log::info("External API: Response received", ['status' => $response->status()]);
         } catch (\Exception $e) {
-            Log::error("External API Notification Failed: " . $e->getMessage());
+            Log::error("External API: Notification Failed", ['msg' => $e->getMessage()]);
         }
     }
 }

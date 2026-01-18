@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Expired extends Model
 {
     use HasFactory;
+    protected $guarded = [];
 }

@@ -1602,9 +1602,14 @@ class CardServiceController extends Controller
             // Adjust balance based on difference
             $auth = Authorisation::where('Utid', $request->Utid)->first();
             if ($auth && $chkuser) {
-                $diff = $auth->billAmt - $request->billAmt;
+                // Ensure both values are treated as numbers
+                $authAmt = (float)$auth->billAmt;
+                $settleAmt = (float)$request->billAmt;
+                
+                $diff = $authAmt - $settleAmt;
+                
                 if ($diff != 0) {
-                    Log::info("Payment Settlement: Adjusting variance", ['diff' => $diff]);
+                    // If diff is positive, it decrements; if negative, it increments automatically
                     User::where('id', $chkuser->user_id)->decrement('balance', $diff);
                 }
             }
@@ -1640,15 +1645,24 @@ class CardServiceController extends Controller
         $user = User::findOrFail($chkuser->user_id);
         $qpay = QpayBalance::firstOrFail();
 
+        // Force the value to be a number
+        $amount = (float)($request->billAmt ?? 0);
+
+        if ($amount <= 0) {
+            Log::warning("Balance Update Skipped: Amount is zero or non-numeric", [
+                'Utid' => $request->Utid,
+                'raw_amt' => $request->billAmt
+            ]);
+            return;
+        }
+
         if ($msgType == 100) {
-            $user->decrement('balance', $request->billAmt);
-            $qpay->decrement('balance', $request->billAmt);
-            Log::info("Balance: Deducted successfully");
+            $user->decrement('balance', $amount);
+            $qpay->decrement('balance', $amount);
             $this->createTransactionRecords($request, $chkuser, 'Out');
         } else if ($msgType == 420) {
-            $user->increment('balance', $request->billAmt);
-            $qpay->increment('balance', $request->billAmt);
-            Log::info("Balance: Reversal credited successfully");
+            $user->increment('balance', $amount);
+            $qpay->increment('balance', $amount);
             $this->createTransactionRecords($request, $chkuser, 'In');
         }
     }

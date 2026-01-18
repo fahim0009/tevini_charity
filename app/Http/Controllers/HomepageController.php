@@ -116,8 +116,11 @@ class HomepageController extends Controller
             $utransaction->status =  1;
             $utransaction->save();
 
+            $amount = (float)($request->amt ?? 0); 
             $user = User::find($donor_id);
-            $user->decrement('balance',$request->amt);
+            if ($amount > 0) {
+                $user->decrement('balance', $amount);
+            }
             $user->save();
 
             // card balance update
@@ -232,7 +235,7 @@ class HomepageController extends Controller
         $fingerprint = $request->fingerprint;
         $HID = decrypt($request->HID);
         // $HID = $request->HID;
-        $amount = $request->Amount;
+        $amount = (float)($request->Amount ?? 0); 
         $FunddAccountNumber = $request->FunddAccountNumber;
 
         $uniqueId = rand(100000, 999999);
@@ -285,8 +288,11 @@ class HomepageController extends Controller
             $utransaction->status =  1;
             $utransaction->save();
 
+            
             $user = User::find($donor_id);
-            $user->decrement('balance',$amount);
+            if ($amount > 0) {
+                $user->decrement('balance', $amount);
+            }
             $user->save();
 
             $ch = Charity::find($campaign_dtls->charity_id);

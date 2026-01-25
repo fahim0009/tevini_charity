@@ -31,42 +31,30 @@ class DashboardController extends Controller
         $user = auth()->user();
 
 
-        // previous year data start
-        $period = CarbonPeriod::create(
-            now()->month(4)->subMonths(12)->startOfMonth()->format('Y-m-d'),
-            '1 month',
-            now()->month(3)->endOfMonth()->format('Y-m-d')
-        );
-        $finYear = [];
-        $totalamount = 0;
-        foreach ($period as $p) {
-            $finYear[] = $p->format('m-Y');
-            $currentmonthgift2 = Usertransaction::where('user_id','=', auth()->user()->id)->where('gift','=','1')
-                            ->where('gift','=', 1)
-                            ->whereMonth('created_at', $p->format('m'))
-                            ->whereYear('created_at', $p->format('Y'))
-                            ->get();
-            foreach ($currentmonthgift2 as $data){
-                $totalamount = $data->amount + $totalamount + $data->commission;
-            }
-        }
-        // previous year data end
 
-        // current year data start
-        $currentyr = Usertransaction::where('user_id','=', auth()->user()->id)->where('gift','=','1')
-                        ->whereBetween('created_at',
-                            [Carbon::now()->subMonth(4), Carbon::now()]
-                        )
-                        ->get();
 
-        $currentyramount = 0;
-        foreach ($currentyr as $data2){
-            $currentyramount = $data2->amount + $currentyramount + $data2->commission;
-        }
-        // current year data end
+        $currentTaxYearStart = now()->month >= 4 ? now()->month(4)->startOfMonth() : now()->subYear()->month(4)->startOfMonth();
+        $lastTaxYearStart = $currentTaxYearStart->copy()->subYear();
+    
+        $currentyramount = Usertransaction::where('user_id', $user->id)
+        ->where('gift', 1)->where('status', 1)
+        ->whereBetween('created_at', [$currentTaxYearStart, now()])
+        ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
 
-        $finalTotalPrevYear = $user->prev_yr_gift_aid > 0 ? $user->prev_yr_gift_aid : $totalamount;
-        $finalTotalCurrYear = $user->current_yr_gift_aid > 0 ? $user->current_yr_gift_aid : $currentyramount;
+        $currentyramountExpGiftAid = $currentyramount * 0.25;
+        
+
+        $lastTaxYearAmount = Usertransaction::where('user_id', $user->id)
+        ->where('gift', 1)->where('status', 1)
+        ->whereBetween('created_at', [$lastTaxYearStart, $currentTaxYearStart->copy()->subDay()])
+        ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
+
+        $lastTaxYearAmountExpGiftAid = $lastTaxYearAmount * 0.25;
+
+
+
+        $finalTotalPrevYear = $user->prev_yr_gift_aid > 0 ? $user->prev_yr_gift_aid : $lastTaxYearAmountExpGiftAid;
+        $finalTotalCurrYear = $user->current_yr_gift_aid > 0 ? $user->current_yr_gift_aid : $currentyramountExpGiftAid;
         $finalExpectedGiftAid = $user->gift_aid_currenction > 0 ? $user->gift_aid_currenction : $user->expected_gift_aid;
 
         $tamount = Usertransaction::where([

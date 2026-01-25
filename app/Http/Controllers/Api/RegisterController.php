@@ -194,6 +194,7 @@ class RegisterController extends BaseController
     public function userDetails()
     {
         $data = User::where('id', auth()->user()->id)->first();
+        $data->expected_gift_aid = $data->gift_aid_currenction > 0 ? $data->gift_aid_currenction : $data->expected_gift_aid;
         $success['data'] = $data;
         return response()->json(['success'=>true,'response'=> $success], 200);
     }

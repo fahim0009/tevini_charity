@@ -302,6 +302,16 @@ class DonorController extends Controller
                 $expgiftaidamnt = $request->gbalance * 25/100;
                 $donorgiftaid = User::find($request->topupid);
                 $donorgiftaid->expected_gift_aid = $donorgiftaid->expected_gift_aid + $expgiftaidamnt;
+
+                if ($donorgiftaid->gift_aid_currenction > 0) {
+                    $donorgiftaid->gift_aid_currenction = $donorgiftaid->gift_aid_currenction + $expgiftaidamnt;
+                }
+
+                if ($donorgiftaid->current_yr_gift_aid > 0) {
+                    $donorgiftaid->current_yr_gift_aid = $donorgiftaid->current_yr_gift_aid + $expgiftaidamnt;
+                }
+
+
                 $donorgiftaid->save();
 
                 $expgiftaidtran = new ExpectedGiftAid();
@@ -1971,6 +1981,19 @@ class DonorController extends Controller
                });
 
             return redirect()->back()->with('success', 'Mail send successfully.');
+    }
+
+    public function updateGiftAid(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $user->update([
+            'gift_aid_currenction' => $request->gift_aid_currenction,
+            'current_yr_gift_aid'  => $request->current_yr_gift_aid,
+            'prev_yr_gift_aid'     => $request->prev_yr_gift_aid,
+        ]);
+
+        return redirect()->back()->with('message', 'Gift Aid fields updated successfully.');
     }
 
 

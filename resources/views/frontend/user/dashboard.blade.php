@@ -176,12 +176,46 @@ use Illuminate\Support\Carbon;
         @php
             $type = 'prev-year';
         @endphp
-        <div class="p-4 py-5 mt-2" style="background-color: #D9D9D9;">
+        {{-- <div class="p-4 py-5 mt-2" style="background-color: #D9D9D9;">
             <div class="txt-secondary fs-32 fw-bold text-center">GIFT AID DONATIONS</div>
             <div class="txt-secondary fs-20"> Expected gift aid : £{{ number_format(Auth::user()->expected_gift_aid, 2) }}</div>
             <div class="txt-secondary fs-20"> <a href="{{ route('user.currentyear.giftaidtran')}}"> Gift Aid donations for this Tax Year : £{{ number_format($currentyramountExpGiftAid, 2) }} </a></div>
             <div class="txt-secondary fs-20"> <a href="{{ route('user.currentyear.giftaidtran', $type)}}">  Gift Aid donations for last Tax Year : £{{ number_format($lastTaxYearAmountExpGiftAid, 2) }} </a></div>
-        </div>
+        </div> --}}
+
+        <div class="p-4 py-5 mt-2" style="background-color: #D9D9D9;">
+    <div class="txt-secondary fs-32 fw-bold text-center">GIFT AID DONATIONS</div>
+
+    {{-- Expected Gift Aid --}}
+    <div class="txt-secondary fs-20"> 
+        Expected gift aid : 
+        <span class="{{ Auth::user()->gift_aid_currenction > 0 ? 'txt-secondary' : '' }}">
+            £{{ number_format(Auth::user()->gift_aid_currenction ?: Auth::user()->expected_gift_aid, 2) }}
+        </span>
+    </div>
+
+    {{-- Current Tax Year --}}
+    <div class="txt-secondary fs-20"> 
+        <a href="{{ route('user.currentyear.giftaidtran')}}" class="txt-secondary" > 
+            Gift Aid donations for this Tax Year : 
+            <span class="{{ Auth::user()->current_yr_gift_aid > 0 ? 'txt-secondary' : '' }}">
+                £{{ number_format(Auth::user()->current_yr_gift_aid ?: $currentyramountExpGiftAid, 2) }}
+            </span>
+        </a>
+    </div>
+
+    {{-- Last Tax Year --}}
+    <div class="txt-secondary fs-20"> 
+        <a href="{{ route('user.currentyear.giftaidtran', $type)}}" class="txt-secondary" >  
+            Gift Aid donations for last Tax Year : 
+            <span class="{{ Auth::user()->prev_yr_gift_aid > 0 ? 'txt-secondary' : '' }}">
+                £{{ number_format(Auth::user()->prev_yr_gift_aid ?: $lastTaxYearAmountExpGiftAid, 2) }}
+            </span>
+        </a>
+    </div>
+</div>
+
+
     </div>
     <div class="col-lg-6">
         <div class="row mb-5">

@@ -17,6 +17,8 @@ use Illuminate\support\Facades\Auth;
 
 class DashboardController extends Controller
 {
+
+
     public function index()
     {
 
@@ -25,6 +27,8 @@ class DashboardController extends Controller
             ['user_id','=', auth()->user()->id],
             ['pending','=', '0']
         ])->sum('amount');
+
+        $user = auth()->user();
 
 
         // previous year data start
@@ -60,6 +64,10 @@ class DashboardController extends Controller
             $currentyramount = $data2->amount + $currentyramount + $data2->commission;
         }
         // current year data end
+
+        $finalTotalPrevYear = $user->prev_yr_gift_aid > 0 ? $user->prev_yr_gift_aid : $totalamount;
+        $finalTotalCurrYear = $user->current_yr_gift_aid > 0 ? $user->current_yr_gift_aid : $currentyramount;
+        $finalExpectedGiftAid = $user->gift_aid_currenction > 0 ? $user->gift_aid_currenction : $user->expected_gift_aid;
 
         $tamount = Usertransaction::where([
             ['user_id','=', auth()->user()->id],
@@ -157,11 +165,12 @@ class DashboardController extends Controller
             
         $donation_req = CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
 
+
         $responseArray = [
             'status'=>'ok',
             'pending_transactions'=>$pending_transactions,
-            'currentyramount'=>$currentyramount,
-            'totalamount'=>$totalamount,
+            'currentyramount'=>$finalTotalCurrYear,
+            'totalamount'=>$finalTotalPrevYear,
             'tamount'=>$tamount,
             'previousBalance'=>$tbalance,
             'preamntIn'=>$preamntIn,

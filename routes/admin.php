@@ -116,6 +116,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/tdf-transfer/{id}', [DonorController::class, 'tdfTransferAdmin'])->name('donor.tdftransfer');
     Route::post('/tdf-transfer', [DonorController::class, 'tdfTransferStore'])->name('donor.tdftransferstore');
 
+    Route::put('/donor/update-gift-aid/{id}', [DonorController::class, 'updateGiftAid'])->name('donor.update_gift_aid');
+
 
     Route::get('/donor-voucher-order/{id}', [OrderController::class, 'voucherinAdmin'])->name('donor.vorder');
     Route::get('/donor-voucher-order-edit/{id}', [OrderController::class, 'voucherEditinAdmin'])->name('donor.vorderEdit');

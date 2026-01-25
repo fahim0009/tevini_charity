@@ -53,8 +53,8 @@ class DashboardController extends Controller
 
 
 
-        $finalTotalPrevYear = (string)($user->prev_yr_gift_aid > 0 ? $user->prev_yr_gift_aid : $lastTaxYearAmountExpGiftAid);
-        $finalTotalCurrYear = (string)($user->current_yr_gift_aid > 0 ? $user->current_yr_gift_aid : $currentyramountExpGiftAid);
+        $finalTotalPrevYear = (int)($user->prev_yr_gift_aid > 0 ? $user->prev_yr_gift_aid : $lastTaxYearAmountExpGiftAid);
+        $finalTotalCurrYear = (int)($user->current_yr_gift_aid > 0 ? $user->current_yr_gift_aid : $currentyramountExpGiftAid);
         $finalExpectedGiftAid = $user->gift_aid_currenction > 0 ? $user->gift_aid_currenction : $user->expected_gift_aid;
 
         $tamount = Usertransaction::where([

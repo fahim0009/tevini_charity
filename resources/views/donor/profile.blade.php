@@ -38,29 +38,29 @@
                         <span class="text-muted small">Expected Gift Aid</span>
                         <span class="fw-bold">
                             @if ($profile_data->gift_aid_currenction > 0)
-                                <span class="text-success small">(+£{{ number_format($profile_data->gift_aid_currenction, 2) }} Gift Aid)</span>
+                                <span class="text-success small">£{{ number_format($profile_data->gift_aid_currenction, 2) }} Gift Aid</span>
                             @else
-                                <span class="text-danger small">(£{{ number_format($profile_data->expected_gift_aid, 2) }} Gift Aid)</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="text-muted small">Prev. Year</span>
-                        <span class="fw-bold">
-                            @if ($profile_data->prev_yr_gift_aid > 0)
-                                <span class="text-success small">(+£{{ number_format($profile_data->prev_yr_gift_aid, 2) }} Gift Aid)</span>
-                            @else
-                                <span class="text-danger small">(£{{ number_format($lastTaxYearAmountExpGiftAid, 2) }} Gift Aid)</span>
+                                <span class="text-danger small">£{{ number_format($profile_data->expected_gift_aid, 2) }} Gift Aid</span>
                             @endif
                         </span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span class="text-muted small">Current Year</span>
                         @if ($profile_data->current_yr_gift_aid > 0)
-                            <span class="text-success small">(+£{{ number_format($profile_data->current_yr_gift_aid, 2) }} Gift Aid)</span>
+                            <span class="text-success small">£{{ number_format($profile_data->current_yr_gift_aid, 2) }} Gift Aid</span>
                         @else
-                            <span class="text-danger small">(£{{ number_format($currentyramountExpGiftAid, 2) }} Gift Aid)</span>
+                            <span class="text-danger small">£{{ number_format($currentyramountExpGiftAid, 2) }} Gift Aid</span>
                         @endif
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">Prev. Year</span>
+                        <span class="fw-bold">
+                            @if ($profile_data->prev_yr_gift_aid > 0)
+                                <span class="text-success small">£{{ number_format($profile_data->prev_yr_gift_aid, 2) }} Gift Aid</span>
+                            @else
+                                <span class="text-danger small">£{{ number_format($lastTaxYearAmountExpGiftAid, 2) }} Gift Aid</span>
+                            @endif
+                        </span>
                     </div>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                         @method('PUT')
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="small text-muted fw-bold">Correction</label>
+                                <label class="small text-muted fw-bold">Expected Gift Aid</label>
                                 <div class="input-group">
                                     <span class="input-group-text border-0">£</span>
                                     <input type="number" step="0.01" class="form-control bg-light border-0 gift-aid-field" name="gift_aid_currenction" value="{{ $profile_data->gift_aid_currenction }}">

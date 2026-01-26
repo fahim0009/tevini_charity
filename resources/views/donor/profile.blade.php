@@ -46,11 +46,13 @@
                     </div>
                     <div class="d-flex justify-content-between">
                         <span class="text-muted small">Current Year</span>
-                        @if ($profile_data->current_yr_gift_aid > 0)
-                            <span class="text-success small">£{{ number_format($profile_data->current_yr_gift_aid, 2) }} Gift Aid</span>
-                        @else
-                            <span class="text-danger small">£{{ number_format($currentyramountExpGiftAid, 2) }} Gift Aid</span>
-                        @endif
+                        <span class="fw-bold">
+                            @if ($profile_data->current_yr_gift_aid > 0)
+                                <span class="text-success small">£{{ number_format($profile_data->current_yr_gift_aid, 2) }} Gift Aid</span>
+                            @else
+                                <span class="text-danger small">£{{ number_format($currentyramountExpGiftAid, 2) }} Gift Aid</span>
+                            @endif
+                        </span>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-muted small">Prev. Year</span>

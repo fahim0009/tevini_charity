@@ -1,0 +1,102 @@
+
+
+    /* Main Theme Color */
+    :root {
+        --primary-color: #4d617e;
+        --primary-hover: #3a4b63;
+    }
+
+    /* Button Group Styling */
+    div.dt-buttons {
+        gap: 8px !important;
+    }
+
+    .btn-export {
+        background-color: var(--primary-color) !important;
+        border: none !important;
+        color: white !important;
+        border-radius: 6px !important;
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.875rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 4px rgba(77, 97, 126, 0.2) !important;
+    }
+
+    .btn-export:hover {
+        background-color: var(--primary-hover) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(77, 97, 126, 0.3) !important;
+    }
+
+    .btn-export i {
+        margin-right: 6px;
+    }
+
+    /* Table Styling */
+    #campaignTable {
+        font-size: 0.94rem;
+    }
+
+    #campaignTable thead th {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border: none !important;
+        padding: 12px 8px !important;
+    }
+
+    #campaignTable tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    #campaignTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    #campaignTable tbody td {
+        padding: 12px 8px !important;
+        vertical-align: middle;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    /* Striped rows with subtle colors */
+    #campaignTable tbody tr:nth-child(even) {
+        background-color: #fafbfc;
+    }
+
+    /* Search & Length Menu */
+    .dataTables_filter input,
+    .dataTables_length select {
+        border-radius: 6px !important;
+        border: 1px solid #d1dbe4 !important;
+    }
+
+    .dataTables_filter input:focus,
+    .dataTables_length select:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(77, 97, 126, 0.15) !important;
+    }
+
+    /* Pagination */
+    .dataTables_paginate .paginate_button {
+        border-radius: 6px !important;
+        margin: 0 3px !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .dataTables_paginate .paginate_button.current {
+        background: var(--primary-color) !important;
+        color: white !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    .dataTables_info {
+        font-weight: 500;
+        color: #64748b;
+    }
+    

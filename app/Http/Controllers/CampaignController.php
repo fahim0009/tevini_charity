@@ -16,16 +16,7 @@ class CampaignController extends Controller
 {
     public function index(Request $request)
     {
-        $data = Campaign::orderBy('id', 'DESC')
-                ->when(request()->input('campaign'), function ($query, $campaign) {
-                    return $query->where('id', $campaign);
-                })
-                ->when(request()->input('charity'), function ($query, $charity) {
-                    return $query->where('charity_id', $charity);
-                })->limit(10)
-                ->get();
-
-        return view('campaign.index', compact('data'));
+        return view('campaign.index');
     }
 
     

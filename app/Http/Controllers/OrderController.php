@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Barcode;
@@ -18,7 +17,6 @@ use App\Models\Commission;
 use App\Models\Usertransaction;
 use App\Models\ContactMail;
 use App\Models\ProvouchersImages;
-use Illuminate\Support\Facades\DB;
 use App\Mail\InstantReport;
 use App\Mail\PendingvCancelReport;
 use App\Mail\PendingvReport;
@@ -27,12 +25,16 @@ use App\Mail\WaitingVoucherCancel;
 use App\Mail\WaitingvoucherReport;
 use App\Models\VoucherCart;
 use App\Models\ProcessedBarcode;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\File;
-use Auth;
 use Yajra\DataTables\Facades\DataTables;
 use PDF;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
+
 
 class OrderController extends Controller
 {
@@ -129,7 +131,7 @@ class OrderController extends Controller
         return view('voucher.donorvoucher',compact('reports','donor_id'));
     }
 
-    public function storeVoucher(Request $request)
+    public function storeVoucher_old(Request $request)
     {
         $voucher_ids= $request->voucherIds;
         $qtys = $request->qtys;
@@ -366,7 +368,7 @@ class OrderController extends Controller
 
     }
 
-    public function voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl)
+    public function voucherDetailsStore_old($order, $voucher_id, $amount, $unique, $voucherDtl)
     {
 
         // never delete this is from database. 176, 177
@@ -454,6 +456,297 @@ class OrderController extends Controller
             OrderHistory::create($input);
         }
 
+    }
+
+    public function storeVoucher(Request $request)
+    {
+        // 1. Initial Validation
+        if (!$request->voucherIds || count(array_filter($request->qtys)) == 0) {
+            return response()->json(['status' => 303, 'message' => "<div class='alert alert-danger'>You didn't select any voucher.</div>"]);
+        }
+
+        if ($request->delivery == "false" && $request->collection == "false") {
+            return response()->json(['status' => 303, 'message' => "<div class='alert alert-danger'>Please select a delivery option.</div>"]);
+        }
+
+        // 2. Data Preparation (Load all vouchers at once to save database hits)
+        $vouchers = Voucher::whereIn('id', $request->voucherIds)->get()->keyBy('id');
+        $prepaid_amount = 0;
+        $total_order_amount = 0;
+        $delivery_opt = ($request->delivery == "true") ? "Delivery" : "Collection";
+        $delivery_charge = ($delivery_opt == "Delivery") ? floatval($request->delivery_charge) : 0;
+
+        // 3. Stock & Balance Pre-check
+        foreach ($request->voucherIds as $key => $id) {
+            $qty = (int)$request->qtys[$key];
+            if ($qty <= 0) continue;
+
+            $voucher = $vouchers->get($id);
+            if ($qty > $voucher->stock) {
+                return response()->json(['status' => 303, 'message' => "<div class='alert alert-danger'>Stock limit exceeded for £{$voucher->amount} vouchers.</div>"]);
+            }
+
+            if ($voucher->type == "Prepaid") {
+                $prepaid_amount += ($voucher->amount * $qty);
+            }
+        }
+
+        $user = User::find($request->did);
+        if ($prepaid_amount > 0 && ($user->balance + $user->overdrawn_amount) < ($prepaid_amount + $delivery_charge)) {
+            return response()->json(['status' => 303, 'message' => "<div class='alert alert-danger'>Overdrawn limit exceeded.</div>"]);
+        }
+
+        // 4. Atomic Transaction (Save everything or save nothing)
+        try {
+            DB::beginTransaction();
+
+            $order = new Order();
+            $order->user_id = $request->did;
+            $order->order_id = time() . "-" . $request->did;
+            $order->amount = $prepaid_amount + $delivery_charge;
+            $order->delivery_charge = $delivery_charge;
+            $order->delivery_option = $delivery_opt;
+            $order->notification = 1;
+            $order->status = 0;
+            $order->save();
+
+            foreach ($request->voucherIds as $key => $id) {
+                $qty = (int)$request->qtys[$key];
+                if ($qty <= 0) continue;
+
+                $voucher = $vouchers->get($id);
+                
+                // Loop for each individual voucher to create unique records
+                for ($x = 0; $x < $qty; $x++) {
+                    $uniqueCode = time() . rand(100, 999);
+                    
+                    if ($voucher->type == "Mixed") {
+                        $this->voucherDetailsStore($order, $id, $uniqueCode);
+                    } else {
+                        OrderHistory::create([
+                            'order_id' => $order->id,
+                            'voucher_id' => $id,
+                            'number_voucher' => 1,
+                            'amount' => $voucher->amount,
+                            'o_unq' => $uniqueCode,
+                            'status' => "0"
+                        ]);
+                    }
+
+
+
+
+
+
+
+
+                    // Define the mapping of single_amount to accountno
+                    $accountMapping = [
+                        '0.50' => '000',
+                        '1.00' => '1111',
+                        '2.00' => '222',
+                        '3.00' => '333',
+                        '5.00' => '5555',
+                    ];
+
+                    // Inside the voucher loop, after creating the donor's "Out" transaction:
+                    if ($voucher->type == "Prepaid") {
+                        
+                        // 1. Find the target system account based on single_amount
+                        // 2. Force the lookup key to also be 2 decimals
+                        $lookupKey = number_format((float)$voucher->single_amount, 2, '.', '');
+                        $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+
+                        \Log::info('Step 1: Finding target account', [
+                            'original_amount' => $voucher->single_amount,
+                            'formatted_lookup_key' => $lookupKey,
+                            'target_account_no' => $targetAccountNo
+                        ]);
+
+                        
+                        
+                        if ($targetAccountNo) {
+                            $targetUser = User::where('accountno', $targetAccountNo)->first();
+                            \Log::info('Step 2: Target user lookup', [
+                                'account_no' => $targetAccountNo,
+                                'target_user_id' => $targetUser?->id,
+                                'target_user_found' => $targetUser ? true : false
+                            ]);
+                            
+                            if ($targetUser) {
+                                $creditAmount = $voucher->amount;
+                                \Log::info('Step 3: Credit amount prepared', [
+                                    'credit_amount' => $creditAmount,
+                                    'target_user_id' => $targetUser->id,
+                                    'order_id' => $order->id
+                                ]);
+
+                                // 2. Create Global Transaction (In)
+                                $transaction = new Transaction();
+                                $transaction->t_id = "SYS-" . time() . "-" . rand(100, 999);
+                                $transaction->user_id = $targetUser->id;
+                                $transaction->t_type = "In";
+                                $transaction->amount = $creditAmount;
+                                $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                                $transaction->status = "1";
+                                $transaction->save();
+                                \Log::info('Step 4: Global transaction created', [
+                                    'transaction_id' => $transaction->id,
+                                    't_id' => $transaction->t_id,
+                                    'amount' => $creditAmount
+                                ]);
+
+                                // 3. Create User Transaction for the System Account (In)
+                                $utransactionIn = new Usertransaction();
+                                $utransactionIn->t_id = $transaction->t_id;
+                                $utransactionIn->user_id = $targetUser->id;
+                                $utransactionIn->t_type = "In";
+                                $utransactionIn->amount = $creditAmount;
+                                $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                                $utransactionIn->title = 'Credit';
+                                $utransactionIn->status = 1;
+                                $utransactionIn->order_id = $order->id;
+                                $utransactionIn->save();
+                                \Log::info('Step 5: User transaction created', [
+                                    'utransaction_id' => $utransactionIn->id,
+                                    't_id' => $utransactionIn->t_id,
+                                    'user_id' => $targetUser->id,
+                                    'amount' => $creditAmount
+                                ]);
+
+                                // 4. Update the System User's actual balance
+                                $targetUser->increment('balance', $creditAmount);
+                                \Log::info('Step 6: User balance incremented', [
+                                    'user_id' => $targetUser->id,
+                                    'increment_amount' => $creditAmount,
+                                    'new_balance' => $targetUser->fresh()->balance
+                                ]);
+                            } else {
+                                \Log::warning('Step 2 Failed: Target user not found', [
+                                    'account_no' => $targetAccountNo
+                                ]);
+                            }
+                        } else {
+                            \Log::warning('Step 1 Failed: Target account not found in mapping', [
+                                'single_amount' => $voucher->single_amount,
+                                'available_mappings' => array_keys($accountMapping)
+                            ]);
+                        }
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+                }
+
+                // Decrement Stock
+                $voucher->decrement('stock', $qty);
+            }
+
+            // Handle Delivery Charge Transaction
+            if ($delivery_charge > 0 && $prepaid_amount > 0) {
+                Usertransaction::create([
+                    't_id' => "DEL-" . time(),
+                    'user_id' => $request->did,
+                    't_type' => "Out",
+                    'amount' => $delivery_charge,
+                    't_unq' => time() . rand(1, 100),
+                    'order_id' => $order->id,
+                    'title' => "Delivery Charge",
+                    'status' => 1
+                ]);
+            }
+
+            // Update User Balance
+            if ($prepaid_amount > 0) {
+                $user->decrement('balance', ($prepaid_amount + $delivery_charge));
+                
+                // External API Call
+                if ($user->CreditProfileId) {
+                    $this->updateExternalBalance($user, ($prepaid_amount + $delivery_charge));
+                }
+            }
+
+            // Cleanup Cart
+            VoucherCart::where('user_id', Auth::id())->delete();
+
+            DB::commit();
+
+            // 5. Send Email (After commit so we don't email if DB fails)
+            $this->sendOrderEmail($user, $order, $delivery_opt);
+
+            return response()->json([
+                'status' => 300, 
+                'message' => "<div class='alert alert-success'>Voucher order placed successfully.</div>"
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 303, 'message' => "Error: " . $e->getMessage()]);
+        }
+    }
+
+
+    private function updateExternalBalance($user, $totalDeduction)
+    {
+        Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                'CreditProfileId' => $user->CreditProfileId,
+                'CreditProfileName' => $user->name,
+                'AvailableBalance' => 0 - $totalDeduction,
+                'comment' => "Voucher Store",
+            ]);
+    }
+
+    private function sendOrderEmail($user, $order, $delivery_opt)
+    {
+        $contactmail = ContactMail::first()->name ?? 'info@tevini.co.uk';
+        
+        // Change variable name from $data to $array
+        $array = [
+            'subject' => 'Voucher books order confirmation',
+            'from' => 'info@tevini.co.uk',
+            'cc' => $contactmail,
+            'name' => $user->name,
+            'client_no' => $user->accountno,
+            'order_id' => $order->id,
+            'orderid' => $order->order_id,
+            'delivery_option' => $delivery_opt
+        ];
+
+        // Pass 'array' instead of 'data'
+        Mail::send('mail.order', compact('array'), function($message) use ($array, $user) {
+            $message->from($array['from'], 'Tevini.co.uk')
+                    ->to($user->email)
+                    ->cc($array['cc'])
+                    ->subject($array['subject']);
+        });
+    }
+
+    public function voucherDetailsStore($order, $voucher_id, $unique)
+    {
+        // Define mixed values based on ID
+        $values = ($voucher_id == 176) ? ["3", "5", "10", "18"] : ["20", "25", "36", "50", "72"];
+
+        foreach ($values as $val) {
+            OrderHistory::create([
+                'order_id' => $order->id,
+                'voucher_id' => $voucher_id,
+                'number_voucher' => 1,
+                'amount' => 0,
+                'o_unq' => $unique,
+                'mixed_value' => $val,
+                'status' => "0"
+            ]);
+        }
     }
 
 
@@ -1881,7 +2174,8 @@ class OrderController extends Controller
 
                 // **failed due to low balance**
                 $pstatus = Provoucher::find($voucher_id);
-                $pstatus->waiting = "Yes";
+                $pstatus->waiting = "No";
+                $pstatus->status = 0;
                 $pstatus->save();
 
                 $failed[] = $voucher_id;

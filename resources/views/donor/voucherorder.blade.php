@@ -55,8 +55,9 @@
                     @foreach (App\Models\Voucher::where('status','=','1')->get() as $voucher )
                         <div class="voucher">
                             <div class="items">
-                                <span>£{{ $voucher->amount }} </span>
+                                <span>£{{ number_format($voucher->single_amount, 2)  }} </span>
                                 <input type="hidden" value="{{$voucher->id}}" name="v_ids[]">
+                                <input type="hidden" value="{{$voucher->single_amount}}" name="single_amount[]">
                                 @if ($voucher->type == 'Prepaid')
                                     <div class="badge rounded-pill bg-secondary">{{ $voucher->type }}</div>
                                     <span class="h6">(@if($voucher->note){{$voucher->note}}@endif)</span>
@@ -217,6 +218,9 @@
             var qtys = $("input[name='qty[]']")
               .map(function(){return $(this).val();}).get();
 
+            var single_amounts = $("input[name='single_amount[]']")
+              .map(function(){return $(this).val();}).get();
+
             var did = $("#donner_id").val();
             var net_total = $("#net_total").val();
             
@@ -232,13 +236,10 @@
                 
             }
 
-            console.log(delivery_charge);
-
-
                 $.ajax({
                     url: url,
                     method: "POST",
-                    data: {voucherIds:voucherIds,qtys:qtys,did:did,delivery_charge:delivery_charge,delivery:delivery,collection:collection},
+                    data: {voucherIds:voucherIds,qtys:qtys,did:did,delivery_charge:delivery_charge,delivery:delivery,collection:collection,single_amounts:single_amounts},
 
                     success: function (d) {
                         console.log(d);

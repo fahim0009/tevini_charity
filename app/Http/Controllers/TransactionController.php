@@ -18,28 +18,23 @@ class TransactionController extends Controller
 {
 
 
-    public function index(Request $request)
+    public function index_old(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type'); // We'll pass this from JS
             $fromDate = $request->get('fromDate');
             $toDate = $request->get('toDate');
-
             $query = Transaction::query();
-
             // Apply type filter
             if ($type === 'In' || $type === 'Out') {
                 $query->where('t_type', $type);
             }
-
             // Apply date filter
             if ($fromDate && $toDate) {
                 $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
             }
-
             // Load relationships based on type
             $query->with(['user', 'charity']);
-
             return DataTables::of($query)
                 ->editColumn('created_at', function ($row) {
                     return Carbon::parse($row->created_at)->format('d/m/Y');
@@ -55,6 +50,107 @@ class TransactionController extends Controller
                 ->editColumn('amount', function ($row) {
                     return '£' . number_format($row->amount, 2);
                 })
+                ->rawColumns(['beneficiary', 'donor'])
+                ->make(true);
+        }
+        return view('transaction.index');
+    }
+
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $type = $request->get('t_type');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+
+            if ($type === 'Summary') {
+                $paidSubquery = DB::table('transactions')
+                    ->select(
+                        DB::raw('DATE(created_at) as pay_date'),
+                        'charity_id',
+                        DB::raw('SUM(amount) as total_paid')
+                    )
+                    ->where('status', '1')
+                    ->groupBy('pay_date', 'charity_id');
+
+                $query = Usertransaction::query()
+                    ->whereNotNull('usertransactions.charity_id') 
+                    ->select([
+                        DB::raw('DATE(usertransactions.created_at) as date_group'),
+                        'usertransactions.charity_id',
+                        DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
+                        DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
+                        DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
+                        DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
+                        DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum") 
+                    ])
+                    ->leftJoinSub($paidSubquery, 'paid_data', function ($join) {
+                        $join->on(DB::raw('DATE(usertransactions.created_at)'), '=', 'paid_data.pay_date')
+                            ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
+                    })
+                    ->groupBy('date_group', 'usertransactions.charity_id') 
+                    ->with('charity');
+
+                if ($fromDate && $toDate) {
+                    $query->whereBetween('usertransactions.created_at', [$fromDate, $toDate . ' 23:59:59']);
+                }
+
+                return DataTables::of($query)
+                    ->editColumn('date_group', fn($row) => \Carbon\Carbon::parse($row->date_group)->format('d/m/Y'))
+                    ->addColumn('charity_name', fn($row) => $row->charity->name ?? 'N/A')
+                    ->addColumn('balance', function($row) {
+                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                        $balance = $totalGenerated - $row->paid_sum;
+                        return '£' . number_format($balance, 2);
+                    })
+                    ->addColumn('action', function($row) {
+                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                        $balance = $totalGenerated - $row->paid_sum;
+                        
+                        // Determine if the switch should be "on" (checked)
+                        // We'll consider it "Settled" (checked) if the balance is effectively zero
+                        $isChecked = $balance <= 0.01 ? 'checked' : '';
+
+                        return '
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input status-switch" type="checkbox" 
+                                    role="switch" 
+                                    '.$isChecked.'
+                                    data-charity-id="'.$row->charity_id.'"
+                                    data-date="'.$row->date_group.'"
+                                    data-total="'.$totalGenerated.'">
+                            </div>';
+                    })
+                    ->editColumn('online_sum', fn($row) => '£' . number_format($row->online_sum, 2))
+                    ->editColumn('standing_sum', fn($row) => '£' . number_format($row->standing_sum, 2))
+                    ->editColumn('voucher_sum', fn($row) => '£' . number_format($row->voucher_sum, 2))
+                    ->editColumn('campaign_sum', fn($row) => '£' . number_format($row->campaign_sum, 2))
+                    ->editColumn('paid_sum', fn($row) => '£' . number_format($row->paid_sum, 2))
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
+
+            // --- Corrected Default Logic for In/Out/All ---
+            // We select usertransactions.* to avoid conflicts with joined table IDs
+            $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
+
+            if ($type === 'In' || $type === 'Out') {
+                $query->where('usertransactions.t_type', $type);
+            }
+
+            if ($fromDate && $toDate) {
+                $query->whereBetween('usertransactions.created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+
+            return DataTables::of($query)
+                ->editColumn('created_at', fn($row) => \Carbon\Carbon::parse($row->created_at)->format('d/m/Y'))
+                ->addColumn('beneficiary', function($row) {
+                    return $row->charity->name ?? $row->crdAcptLoc ?? 'N/A';
+                })
+                ->addColumn('donor', function($row) {
+                    return $row->user ? $row->user->name.' '.$row->user->surname : 'N/A';
+                })
+                ->editColumn('amount', fn($row) => '£' . number_format($row->amount, 2))
                 ->rawColumns(['beneficiary', 'donor'])
                 ->make(true);
         }

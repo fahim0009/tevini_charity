@@ -32,7 +32,10 @@
         <div class="card-header bg-white pt-3">
             <ul class="nav nav-pills card-header-pills" id="transactionTabs">
                 <li class="nav-item">
-                    <button class="nav-link active" data-type="Out">Transactions Out</button>
+                    <button class="nav-link active" data-type="Summary">Summary Report</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-type="Out">Transactions Out</button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" data-type="In">Transactions In</button>
@@ -45,18 +48,9 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover w-100" id="transaction-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Date</th>
-                            <th>Transaction ID</th>
-                            <th>Donor</th>
-                            <th>Beneficiary</th>
-                            <th>Source</th>
-                            <th>Note</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                </table>
+                    </table>
+
+                    
             </div>
         </div>
     </div>
@@ -66,82 +60,81 @@
 @section('script')
 <script>
 $(function() {
-    let currentType = 'Out';
+    let currentType = 'Summary'; // Default tab
 
-    let table = $('#transaction-table').DataTable({
-        processing: true,
-        serverSide: true,
-        // lengthMenu configuration
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        pageLength: 25,
-        // Updated DOM: 
-        // l = lengthMenu, B = Buttons, f = filter (search)
-        // r = processing, t = table, i = info, p = pagination
-        dom: '<"row mb-3"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-4 text-center"B><"col-sm-12 col-md-4"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-        ajax: {
-            url: "{{ route('transaction') }}",
-            data: function (d) {
-                d.t_type = currentType;
-                d.fromDate = $('#fromDate').val();
-                d.toDate = $('#toDate').val();
-            }
-        },
-        columns: [
-            {data: 'created_at', name: 'created_at'},
-            {data: 't_id', name: 't_id'},
-            {data: 'donor', name: 'user.name'},
-            {data: 'beneficiary', name: 'charity.name'},
-            {data: 'name', name: 'name'},
-            {data: 'note', name: 'note'},
-            {data: 'amount', name: 'amount', className: 'fw-bold text-dark'}
-        ],
-        order: [[0, 'desc']],
-        buttons: [
-            {
-                extend: 'copy',
-                className: 'btn btn-sm btn-outline-secondary',
-                exportOptions: { columns: ':visible' }
-            },
-            {
-                extend: 'excel',
-                className: 'btn btn-sm btn-outline-success',
-                title: "Transaction_Report",
-                exportOptions: { columns: ':visible' }
-            },
-            {
-                extend: 'pdfHtml5',
-                className: 'btn btn-sm btn-outline-danger',
-                title: "Transaction Report",
-                orientation: 'landscape',
-                pageSize: 'A4',
-                exportOptions: { columns: ':visible' },
-                customize: function(doc) {
-                    doc.styles.tableHeader = {
-                        bold: true, fontSize: 10, fillColor: '#4d617e', color: 'white', alignment: 'center'
-                    };
-                    doc.defaultStyle.alignment = 'center';
-                    // Adjusting widths for 7 columns
-                    doc.content[1].table.widths = ['14%', '14%', '14%', '14%', '14%', '15%', '15%'];
+    // Definition for Standard Tabs (In, Out, All)
+    const standardColumns = [
+        {data: 'created_at', name: 'created_at', title: 'Date'},
+        {data: 't_id', name: 't_id', title: 'Transaction ID'},
+        {data: 'donor', name: 'user.name', title: 'Donor'},
+        {data: 'beneficiary', name: 'charity.name', title: 'Beneficiary'},
+        {data: 'amount', name: 'amount', title: 'Amount', className: 'fw-bold'}
+    ];
+
+    // Definition for Summary Tab
+    const summaryColumns = [
+        {data: 'date_group', name: 'date_group', title: 'Date'},
+        {data: 'charity_name', name: 'charity.name', title: 'Charity'},
+        {data: 'online_sum', name: 'online_sum', title: 'Online'},
+        {data: 'standing_sum', name: 'standing_sum', title: 'Standing'},
+        {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher'},
+        {data: 'campaign_sum', name: 'campaign_sum', title: 'Campaign'},
+        {data: 'paid_sum', name: 'paid_sum', title: 'Paid', className: 'text-success'},
+        {data: 'balance', name: 'balance', title: 'Balance', className: 'fw-bold text-primary'},
+        {data: 'action', name: 'action', title: 'Action', orderable: false, searchable: false}
+    ];
+
+    function initTable(cols) {
+        // We use 'destroy: true' and 'columns' with 'title' to rebuild the header
+        return $('#transaction-table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true, 
+            scrollX: true, // Useful for the wide Summary table
+            lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            ajax: {
+                url: "{{ route('transaction') }}",
+                data: function (d) {
+                    d.t_type = currentType;
+                    d.fromDate = $('#fromDate').val();
+                    d.toDate = $('#toDate').val();
                 }
             },
-            {
-                extend: 'print',
-                className: 'btn btn-sm btn-outline-info',
-                title: "Transaction Report",
-                exportOptions: { columns: ':visible' }
-            }
-        ]
-    });
+            columns: cols,
+            order: [[0, 'desc']],
+            dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',
+            buttons: [
+                { extend: 'excel', className: 'btn btn-sm btn-outline-success' },
+                { extend: 'pdf', className: 'btn btn-sm btn-outline-danger', orientation: 'landscape' }
+            ]
+        });
+    }
+
+    // First initialization
+    let table = initTable(summaryColumns);
 
     // Tab Switching Logic
     $('#transactionTabs .nav-link').on('click', function() {
-        $('#transactionTabs .nav-link').removeClass('active');
+        $('.nav-link').removeClass('active');
         $(this).addClass('active');
         currentType = $(this).data('type');
-        table.draw();
+        
+        // 1. Completely destroy the instance
+        if ($.fn.DataTable.isDataTable('#transaction-table')) {
+            $('#transaction-table').DataTable().destroy();
+        }
+
+        // 2. Wipe the HTML inside the table (clears the thead/tbody)
+        $('#transaction-table').empty(); 
+
+        // 3. Decide which columns to use
+        let cols = (currentType === 'Summary') ? summaryColumns : standardColumns;
+
+        // 4. Re-initialize (this will create new headers based on the 'title' key in the objects)
+        table = initTable(cols);
     });
 
-    // Filter Submission
+    // Filter Handlers
     $('#filter-form').on('submit', function(e) {
         e.preventDefault();
         table.draw();
@@ -151,6 +144,26 @@ $(function() {
         $('#fromDate, #toDate').val('');
         table.draw();
     });
+
+    // Listener for the Status Switch
+    $(document).on('change', '.status-switch', function() {
+        const isChecked = $(this).is(':checked');
+        const charityId = $(this).data('charity-id');
+        const date = $(this).data('date');
+        const total = $(this).data('total');
+
+        if (isChecked) {
+            // Example: Logic to mark as Paid/Settled
+            console.log(`Setting Charity ${charityId} as Settled for date ${date}`);
+        } else {
+            // Example: Logic to revert or mark as Pending
+            console.log(`Setting Charity ${charityId} as Pending for date ${date}`);
+        }
+        
+        // You can call an AJAX function here to update your database
+    });
+
+
 });
 </script>
 @endsection

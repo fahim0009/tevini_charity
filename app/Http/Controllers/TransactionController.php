@@ -533,86 +533,71 @@ class TransactionController extends Controller
 
     public function charityTransaction(Request $request, $id)
     {
+        $request->validate([
+            'fromDate' => 'nullable|date',
+            'toDate'   => 'nullable|date|after_or_equal:fromDate',
+        ]);
 
-        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
-            $fromDate = $request->input('fromDate');
-            $toDate   = $request->input('toDate');
+        $fromDate = $request->input('fromDate');
+        $toDate   = $request->input('toDate');
+        $endDateTime = $toDate ? $toDate . ' 23:59:59' : null;
 
-            $intransactions = Usertransaction::where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type','=', 'Out'],
-                ['charity_id','=', $id],
-                ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // --- 1. Optimized Daily Summary (The New Tab Data) ---
+        $dailySummaryQuery = Usertransaction::query()
+            ->selectRaw('DATE(created_at) as trans_date, charity_id, SUM(amount) as total_amount, COUNT(*) as total_entries')
+            ->where('charity_id', $id)
+            ->where('t_type', 'Out') // As per your logic, In-transactions are labeled 'Out' in this table
+            ->where('status', '1');
 
-            $outtransactions = Transaction::where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type','=', 'Out'],
-                ['charity_id','=', $id],
-                ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // --- 2. Detailed Transactions (Transaction In Tab) ---
+        $userTransQuery = Usertransaction::with('charity')
+            ->where('charity_id', $id)
+            ->where('t_type', 'Out')
+            ->where('status', '1');
 
-            $reports = Batchprov::where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['charity_id','=', $id]
-            ])->orderby('id','DESC')->get();
+        // --- 3. External Transactions (Transaction Out Tab) ---
+        $transQuery = Transaction::where('charity_id', $id)
+            ->where('t_type', 'Out')
+            ->where('status', '1');
 
-        }else{
+        $reportQuery = Batchprov::where('charity_id', $id);
 
-            $intransactions = Usertransaction::where([
-                ['t_type','=', 'Out'],
-                ['charity_id','=', $id],
-                ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
-
-            $outtransactions= Transaction::where([
-                ['t_type','=', 'Out'],
-                ['charity_id','=', $id],
-                ['status','=', '1']
-            ])->orderBy('id','DESC')->get();
-
-            $reports = Batchprov::where('charity_id','=', $id)->orderby('id','DESC')->get();
-
+        // Apply Date Filters to all queries
+        if ($fromDate && $toDate) {
+            $dailySummaryQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
+            $userTransQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
+            $transQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
+            $reportQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
         }
 
+        // Execute Queries
+        $dailySummary    = $dailySummaryQuery->groupBy('trans_date', 'charity_id')->orderBy('trans_date', 'DESC')->with('charity')->get();
+        $intransactions  = $userTransQuery->orderBy('id', 'DESC')->get();
+        $outtransactions = $transQuery->orderBy('id', 'DESC')->get();
+        $reports         = $reportQuery->orderBy('id', 'DESC')->get();
 
-        $totalIN = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['charity_id','=', $id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->sum('amount');
+        $totalIN  = $intransactions->sum('amount');
+        $totalOUT = $outtransactions->sum('amount');
 
-        $totalOUT= Transaction::where([
-            ['t_type','=', 'Out'],
-            ['charity_id','=', $id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->sum('amount');
+        $pvouchers = Provoucher::with('user')->where('charity_id', $id)
+            ->where('waiting', 'No')
+            ->where('status', '0')
+            ->orderBy('id', 'DESC')
+            ->get();
 
-        // $ledgers = DB::table('charities')
-        // ->join('usertransactions', 'charities.id', '=', 'usertransactions.charity_id')
-        // ->join('transactions', 'charities.id', '=', 'transactions.charity_id')
-        // ->select('transactions.amount as tranamount','transactions.t_type as trantype','transactions.t_id as trantid','usertransactions.t_id as utrantid','usertransactions.amount as utranamount')
-        // ->where('usertransactions.charity_id', $id)->get();
+        $paidDates = Transaction::where('charity_id', $id)
+            ->where('t_type', 'Out')
+            ->where('status', '1')
+            ->get()
+            ->map(fn($t) => \Carbon\Carbon::parse($t->created_at)->format('Y-m-d'))
+            ->toArray();
 
-        $pvouchers = Provoucher::where([
-            ['charity_id', '=', $id],
-            ['waiting', '=', 'No'],
-            ['status', '=', '0']
-        ])->orderBy('id','DESC')->get();
-
-
-        return view('charity.transaction')
-        ->with('intransactions',$intransactions)
-        ->with('id',$id)
-        ->with('reports',$reports)
-        ->with('totalIN',$totalIN)
-        ->with('totalOUT',$totalOUT)
-        ->with('pvouchers',$pvouchers)
-        ->with('outtransactions',$outtransactions);
+        return view('charity.transaction', compact(
+            'dailySummary', 'intransactions', 'outtransactions', 
+            'reports', 'totalIN', 'totalOUT', 'pvouchers', 'id', 'paidDates'
+        ));
     }
+
 
 
     public function checkTran(Request $request)

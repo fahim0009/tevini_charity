@@ -1,362 +1,354 @@
 @extends('layouts.admin')
+
 @section('content')
-@php
-use Illuminate\Support\Carbon;
-@endphp
 <div class="dashboard-content">
     <section class="profile purchase-status">
-        <div class="title-section">
-            <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">View All Transactions</div>
+        <div class="title-section d-flex align-items-center">
+            <span class="iconify" data-icon="icon-park-outline:transaction" data-width="25"></span> 
+            <h4 class="mx-2 mb-0">Charity Financial Overview</h4>
         </div>
     </section>
-  <section class="">
-    <div class="row  my-3 mx-0 ">
-        <div class="col-md-12 ">
-            <nav>
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                  <button class="nav-link active" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Transaction In</button>
-                  <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-transcationIn" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Transcation Out</button>
 
-                  <button class="nav-link" id="nav-report-tab" data-bs-toggle="tab" data-bs-target="#nav-reportTab" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Report</button>
+    <section class="mt-3">
+        <div class="row mx-0">
+            <div class="col-md-12">
+                <nav>
+                    <div class="nav nav-tabs" id="charityTab" role="tablist">
+                        <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#nav-summary" type="button" role="tab">Daily Summary</button>
+                        <button class="nav-link" id="transactionIn-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionIn" type="button" role="tab">Transaction In</button>
+                        <button class="nav-link" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab">Transaction Out</button>
+                        <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#nav-report" type="button" role="tab">Reports</button>
+                        <button class="nav-link" id="ledger-tab" data-bs-toggle="tab" data-bs-target="#nav-ledger" type="button" role="tab">Ledger</button>
+                        <button class="nav-link" id="pendingVoucher-tab" data-bs-toggle="tab" data-bs-target="#nav-pendingVoucher" type="button" role="tab">Pending Vouchers</button>
+                        <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#nav-email" type="button" role="tab">Email Configuration</button>
+                    </div>
+                </nav>
 
-                  
-                  <button class="nav-link" id="nav-ledger-tab" data-bs-toggle="tab" data-bs-target="#nav-ledger" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Ledger</button>
-
-                  <button class="nav-link" id="nav-pendingVoucher-tab" data-bs-toggle="tab" data-bs-target="#nav-pendingVoucher" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Pending Voucher</button>
-
-                  
-                  <button class="nav-link" id="nav-email-tab" data-bs-toggle="tab" data-bs-target="#nav-email" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Email</button>
-
-                </div>
-              </nav>
-              <div class="tab-content" id="nav-tabContent">
-
-
-                <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
-                    <div class="row my-2">
-                        <div class="col-md-12 my-3">
-                            <div class="container">
-                           <div class="row">
-                            <div class="col-md-9">
-                                <form class="form-inline" action="{{route('charity.tranview_search', $id)}}" method ="POST">
-                                    @csrf
-                                    <div class="row">
-
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for="fromDate"><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for="toDate"><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5 d-flex align-items-center">
-                                            <div class="form-group d-flex mt-4">
-                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            </div>
-
-                           </div>
+                <div class="tab-content bg-white shadow-sm p-3" id="nav-tabContent">
+                    
+                    {{-- 1. DAILY SUMMARY TAB (Optimized) --}}
+                    <div class="tab-pane fade show active" id="nav-summary" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Grouped Daily Totals</h5>
                         </div>
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Transaction Id</th>
-                                            <th>Transaction Type</th>
-                                            <th>Voucher Number</th>
-                                            <th>Note </th>
-                                            <th>Amount </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                        <div class="table-responsive">
+                            <table class="table table-hover border datatable-init">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Charity Name</th>
+                                        <th class="text-center">Transaction Count</th>
+                                        <th class="text-end">Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($dailySummary as $summary)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($summary->trans_date)->format('d/m/Y') }}</td>
+                                        <td>{{ $summary->charity->name ?? 'Unknown Charity' }}</td>
 
-                                        @foreach ($intransactions as $transaction)
-                                        <tr>
-                                                <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
-                                                <td>{{ $transaction->t_id }}</td>
-                                                <td>{{ $transaction->title}}</td>
-                                                <td>{{ $transaction->cheque_no}}</td>
-                                                <td>{{ $transaction->note}}</td>
-                                                <td>{{ $transaction->amount}}</td>
-                                        </tr>
-                                        @endforeach
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                                <span class="badge  bg-primary text-white px-3 view-daily-details" 
+                                                    style="cursor: pointer;"
+                                                    data-date="{{ $summary->trans_date }}"
+                                                    data-formatted-date="{{ \Carbon\Carbon::parse($summary->trans_date)->format('d/m/Y') }}">
+                                                    {{ $summary->total_entries }}
+                                                </span>
+                                            </div>
+                                        </td>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                                        <td class="text-end font-monospace fw-bold text-success">£{{ number_format($summary->total_amount, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
-                <div class="tab-pane fade" id="nav-transcationIn" role="tabpanel" aria-labelledby="nav-profile-tab">
-                    <div class="row my-2">
-                        <div class="col-md-12 my-3">
-                            <div class="col-md-12 my-3">
-                                <div class="container">
-                               <div class="row">
-                                <div class="col-md-9">
 
-                                <form class="form-inline" action="{{route('charity.tranview_search', $id)}}" method ="POST">
-                                    @csrf
-                                    <div class="row">
-
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for="fromDate"><small>Date From </small> </label>
-                                                <input class="form-control mr-sm-2" id="fromDate" name="fromDate" type="date" placeholder="Search" aria-label="Search">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group my-2">
-                                                <label for="toDate"><small>Date To </small> </label>
-                                                <input class="form-control mr-sm-2" id="toDate" name="toDate" type="date" placeholder="Search" aria-label="Search">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5 d-flex align-items-center">
-                                            <div class="form-group d-flex mt-4">
-                                            <button class="text-white btn-theme ml-1" type="submit">Search</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                                </div>
-                                </div>
-
-                               </div>
-                            </div>
-                        </div>
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="exampleIn">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Transaction Id</th>
-                                            <th>Charity Name</th>
-                                            <th>Source</th>
-                                            <th>Note </th>
-                                            <th>Amount </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($outtransactions as $transaction)
-                                        <tr>
-                                            <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
-                                            <td>{{ $transaction->t_id }}</td>
-                                            <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
-                                            <td>{{ $transaction->name}}</td>
-                                            <td>{{ $transaction->note}}</td>
-                                            <td>{{ $transaction->amount}}</td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="nav-reportTab" role="tabpanel" aria-labelledby="nav-report-tab">
-                    <div class="row my-2">
+                    {{-- 2. TRANSACTION IN --}}
+                    <div class="tab-pane fade" id="nav-transactionIn" role="tabpanel">
                         
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white">
-                                    <thead>
-                                        <tr>
-                                            <th>SL</th>
-                                            <th>Date</th>
-                                            <th>Report </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                        <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
+                            @csrf
+                            <div class="col-md-3">
+                                <label class="small">Date From</label>
+                                <input type="date" name="fromDate" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small">Date To</label>
+                                <input type="date" name="toDate" class="form-control">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-theme text-white w-100">Search</button>
+                            </div>
+                        </form>
+                        
 
-                                        @foreach ($reports as $key => $report)
+                        <div class="overflow mt-3">
+                            <table class="table table-custom datatable-init">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Transaction ID</th>
+                                        <th>Type</th>
+                                        <th>Voucher #</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($intransactions as $transaction)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{ $transaction->t_id }}</td>
+                                        <td>{{ $transaction->title }}</td>
+                                        <td>{{ $transaction->cheque_no }}</td>
+                                        <td>{{ number_format($transaction->amount, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                                        <tr>
-                                            <td>{{ $key + 1 }}</td>
-                                            <td>{{ $report->created_at }}</td>
-                                            <td><a class="text-white btn-theme ml-1" href="{{route('instreport', $report->id)}}" style="text-decoration: none">Report</a></td>
-                                        </tr>
-                                            
-                                        @endforeach
-                                        
-                                        
-                                    </tbody>
+                    {{-- 3. TRANSACTION OUT --}}
+                    <div class="tab-pane fade" id="nav-transactionOut" role="tabpanel">
+                        <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
+                            @csrf
+                            <div class="col-md-3">
+                                <label class="small">Date From</label>
+                                <input type="date" name="fromDate" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small">Date To</label>
+                                <input type="date" name="toDate" class="form-control">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-theme text-white w-100">Search</button>
+                            </div>
+                        </form>
+                        <div class="overflow mt-3">
+                            <table class="table table-custom datatable-init">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Transaction ID</th>
+                                        <th>Source</th>
+                                        <th>Note</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($outtransactions as $transaction)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{ $transaction->t_id }}</td>
+                                        <td>{{ $transaction->name }}</td>
+                                        <td>{{ $transaction->note }}</td>
+                                        <td>{{ number_format($transaction->amount, 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- 4. REPORTS --}}
+                    <div class="tab-pane fade" id="nav-report" role="tabpanel">
+                        <table class="table table-custom datatable-init">
+                            <thead>
+                                <tr>
+                                    <th>SL</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($reports as $key => $report)
+                                <tr>
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>{{ $report->created_at->format('d/m/Y H:i') }}</td>
+                                    <td><a class="btn btn-sm btn-theme text-white" href="{{ route('instreport', $report->id) }}">View Report</a></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- 5. LEDGER --}}
+                    <div class="tab-pane fade" id="nav-ledger" role="tabpanel">
+                        <div class="row justify-content-center">
+                            <div class="col-md-6">
+                                <table class="table table-bordered text-center mt-4">
+                                    <tr class="bg-light"><th>Total In</th><td>{{ number_format($totalIN, 2) }}</td></tr>
+                                    <tr class="bg-light"><th>Total Out</th><td>{{ number_format($totalOUT, 2) }}</td></tr>
+                                    <tr class="table-primary"><th>Current Balance</th><td><strong>{{ number_format($totalIN - $totalOUT, 2) }}</strong></td></tr>
                                 </table>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="tab-pane fade" id="nav-ledger" role="tabpanel" aria-labelledby="nav-ledger-tab">
-                    <div class="row my-2">
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="">
-                                    <thead>
-                                        <tr>
-                                            <th>Total In</th>
-                                            <th>Total Out</th>
-                                            <th>Balance</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        
-                                        <tr>
-                                            <td>{{ $totalIN}}</td>
-                                            <td>{{ $totalOUT}}</td>
-                                            <td>{{ $totalIN-$totalOUT}}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+
+                    {{-- 6. PENDING VOUCHERS --}}
+                    <div class="tab-pane fade" id="nav-pendingVoucher" role="tabpanel">
+                        <table class="table table-custom datatable-init">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Donor</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($pvouchers as $voucher)
+                                <tr>
+                                    <td>{{ $voucher->created_at->format('d/m/Y') }}</td>
+                                    <td>{{ $voucher->user->name ?? 'N/A' }}</td>
+                                    <td>£{{ number_format($voucher->amount, 2) }}</td>
+                                    <td>
+                                        <span class="badge {{ $voucher->status == 0 ? 'bg-warning' : ($voucher->status == 1 ? 'bg-success' : 'bg-danger') }}">
+                                            {{ $voucher->status == 0 ? 'Pending' : ($voucher->status == 1 ? 'Complete' : 'Cancelled') }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>
 
-                <div class="tab-pane fade" id="nav-pendingVoucher" role="tabpanel" aria-labelledby="nav-pendingVoucher-tab">
-                    <div class="row my-2">
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Donor</th>
-                                            <th>Cheque No</th>
-                                            <th>Note</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        
-                                        @foreach ($pvouchers as $voucher)
-
-                                        <tr>
-                                            <td>{{ $voucher->created_at->format('d/m/Y')}} </td>
-                                            <td>{{ $voucher->user->name }}</td>
-                                            <td>{{ $voucher->cheque_no}}</td>
-                                            <td>{{ $voucher->note}}</td>
-                                            <td>£{{ $voucher->amount}}</td>
-                                            <td>
-                                            @if($voucher->status == "0") Pending @endif
-                                            @if($voucher->status == "1") Complete @endif
-                                            @if($voucher->status == "3") Cancel @endif
-                                            </td>
-
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                
-                <div class="tab-pane fade" id="nav-email" role="tabpanel" aria-labelledby="nav-email-tab">
-                    <div class="row my-2">
-
-                        <section class="profile purchase-status">
-                            <div class="title-section">
-                                <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                                <div class="mx-2">More email account</div>
-                            </div>
-                        </section>
-
-                        <section class="card m-3">
-                            <div class="row  my-3 mx-0 ">
-                                <div class="col-md-12 ">
-
-                                    <div class="errmsg"></div>
-
-                                    <div class="col-md-12" id="emailCreateForm">
-                                        <form class="form-inline" method="POST">
-                                            @csrf         
-
-                                            <div class="row justify-content-center">
-
-                                                <div class="col-md-4">
-                                                    <div class="form-group my-2">
-                                                        <label for="newemail"><small>Email</small> </label>
-                                                        <input class="form-control mr-sm-2" id="newemail" name="newemail" type="email"  value="">
-                                                        <input id="charity_id" name="charity_id" type="hidden"  value="{{$id}}">
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-md-4 d-flex align-items-center">
-                                                    <div class="form-group d-flex mt-4">
-                                                        <input type="hidden" id="update_id" value="">
-                                                        <button class="text-white btn-theme ml-1" id="addBtn" type="button">Add</button>
-                                                        <button class="text-white btn-theme ml-1 d-none" id="updateBtn" type="button">Update</button>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </form>
-                                    </div>
-                                    
+                    {{-- 7. EMAIL CONFIG --}}
+                    <div class="tab-pane fade" id="nav-email" role="tabpanel">
+                        <div class="card p-4 border-0">
+                            <h6>Add Supplementary Email</h6>
+                            <div class="errmsg"></div>
+                            <form class="row g-3 align-items-end" id="emailAjaxForm">
+                                <div class="col-md-5">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="newemail" placeholder="email@charity.com">
+                                    <input type="hidden" id="charity_id" value="{{$id}}">
+                                    <input type="hidden" id="update_id" value="">
                                 </div>
-                            </div>
-                        </section>
-
-                        <div class="col-md-12 mt-2 text-center">
-                            <div class="overflow">
-                                
-                                <table class="table table-custom shadow-sm bg-white" id="example">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Email</th>
-                                            <th>Action </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-
-                                        @foreach (\App\Models\UserDetail::where('charity_id', $id)->get() as $data)
-                                            <tr>
-                                                <td>{{ $data->date }}</td>
-                                                <td>{{ $data->email }}</td>
-                                                <td class="text-right">
-                                                    <button data-udid="{{$data->id}}" data-email="{{$data->email}}" class="btn btn-sm btn-primary mr-1 editBtn" >Edit</button>
-
-                                                    <form action="{{ route('useremail.destroy', $data->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this email?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-warning mr-1">Delete</button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-theme text-white w-100" id="addBtn" type="button">Add Email</button>
+                                    <button class="btn btn-primary w-100 d-none" id="updateBtn" type="button">Update Email</button>
+                                </div>
+                            </form>
                         </div>
+                        
+                        <table class="table table-custom mt-4" id="emailTable">
+                            <thead>
+                                <tr>
+                                    <th>Date Added</th>
+                                    <th>Email</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (\App\Models\UserDetail::where('charity_id', $id)->get() as $data)
+                                <tr id="row_{{$data->id}}">
+                                    <td>{{ $data->date }}</td>
+                                    <td class="email-cell">{{ $data->email }}</td>
+                                    <td class="text-right">
+                                        <button data-udid="{{$data->id}}" data-email="{{$data->email}}" class="btn btn-sm btn-outline-primary editBtn">Edit</button>
+                                        <form action="{{ route('useremail.destroy', $data->id) }}" method="POST" class="d-inline delete-form">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
 
                 </div>
+            </div>
+        </div>
+    </section>
+</div>
 
-              </div>
+<div class="modal fade" id="dailyDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">Transactions for <span id="modal-date-display"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped" id="modal-transactions-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Voucher #</th>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-body-content">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-  </section>
 </div>
+
+
 @endsection
+
+
+
 @section('script')
+
+<script>
+    $(document).ready(function() {
+        // 1. Convert the PHP Collection to a JS Object
+        const allTransactions = @json($intransactions);
+
+        $('.view-daily-details').on('click', function() {
+            const targetDate = $(this).data('date').toString(); // Ensure it's a string
+            const displayDate = $(this).data('formatted-date');
+            
+            console.log('Filtering for date:', targetDate);
+            console.log('Total pool size:', allTransactions.length);
+
+            // 2. Filter transactions (Handling potential timestamp mismatches)
+            const filtered = allTransactions.filter(item => {
+                if (!item.created_at) return false;
+                // Split by ' ' or 'T' to handle different ISO formats and get YYYY-MM-DD
+                const itemDate = item.created_at.split(/[ T]/)[0]; 
+                return itemDate === targetDate;
+            });
+
+            console.log('Found matches:', filtered.length);
+
+            // 3. Populate the Modal
+            let rows = '';
+            if (filtered.length > 0) {
+                filtered.forEach(trans => {
+                    rows += `
+                        <tr>
+                            <td>${trans.t_id || 'N/A'}</td>
+                            <td>${trans.cheque_no || 'N/A'}</td>
+                            <td>${trans.note || 'Charity Transaction'}</td>
+                            <td class="text-end fw-bold">£${parseFloat(trans.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                rows = '<tr><td colspan="4" class="text-center text-muted">No details found for this date.</td></tr>';
+            }
+
+            $('#modal-date-display').text(displayDate);
+            $('#modal-body-content').html(rows);
+            
+            // 4. Show the Modal
+            $('#dailyDetailsModal').modal('show');
+        });
+    });
+</script>
+
 <script>
     $(document).ready(function() {
 
@@ -391,8 +383,6 @@ use Illuminate\Support\Carbon;
                 }
             ]
         });
-
-
 
     });
 </script>

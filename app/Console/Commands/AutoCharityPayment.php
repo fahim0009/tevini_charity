@@ -15,46 +15,76 @@ class AutoCharityPayment extends Command
 
     public function handle()
     {
-        // $today = now()->subDay()->toDateString();
-        $today = now()->toDateString();
+        
+        $today = now()->subDay()->toDateString();
+        // $today = now()->toDateString();
+        $contactmail = DB::table('contact_mails')->where('id', 1)->value('name');
 
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
-            ->whereDate('created_at', $today) 
-            ->select([
-                'charity_id',
-                DB::raw("SUM(amount) as total_generated_today")
-            ])
-            ->groupBy('charity_id')
-            ->get();
+            ->whereDate('created_at', $today)
+            ->select(['charity_id', DB::raw("SUM(amount) as total")])
+            ->groupBy('charity_id')->get();
 
         foreach ($pendingBalances as $record) {
-            $alreadyPaidToday = Transaction::where('charity_id', $record->charity_id)
-                ->where('t_type', 'Out')
-                ->where('name', 'Bank')
-                ->whereDate('created_at', $today)
-                ->exists();
+            $charity = Charity::find($record->charity_id);
+            if (!$charity || !$charity->email) continue;
 
-            if (!$alreadyPaidToday && $record->total_generated_today > 0.01) {
-                $t_id = "Out-" . time() . "-" . $record->charity_id;
-                $amountToPay = $record->total_generated_today;
+            // Check if already processed
+            $exists = Transaction::where('charity_id', $charity->id)
+                ->where('t_type', 'Out')->whereDate('created_at', $today)->exists();
 
-                // 3. Create the payment record
+            if (!$exists && $record->total > 0.01) {
+                // 1. Save the Transaction record
                 $transaction = new Transaction();
-                $transaction->t_id = $t_id;
-                $transaction->charity_id = $record->charity_id;
+                $transaction->t_id = "Out-" . time() . "-" . $charity->id;
+                $transaction->charity_id = $charity->id;
                 $transaction->t_type = "Out";
                 $transaction->name = "Bank";
-                $transaction->amount = $amountToPay;
-                $transaction->note = "Consolidated payment for " . $today;
-                $transaction->status = "0";
+                $transaction->amount = $record->total;
+                $transaction->status = "0"; // Pending manual switch
+                $transaction->created_at = $today . ' ' . now()->format('H:i:s');
                 $transaction->save();
 
-                // 4. Update Charity Balance
-                Charity::where('id', $record->charity_id)->decrement('balance', $amountToPay);
+                // 2. Decrement Charity Balance
+                $charity->decrement('balance', $record->total);
 
-                $this->info("Successfully processed £{$amountToPay} for Charity ID: {$record->charity_id}");
-            } else {
-                $this->line("Skipping Charity ID: {$record->charity_id} (Already paid or no balance for today)");
+                // 3. Get all transactions for the PDF
+                $details = Usertransaction::where('charity_id', $charity->id)
+                    ->whereDate('created_at', $today)
+                    ->with('user')
+                    ->get();
+
+                // 4. Generate PDF
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
+                    'charity' => $charity,
+                    'details' => $details,
+                    'total'   => $record->total,
+                    'date'    => $today
+                ]);
+
+                $fileName = 'Statement-' . $charity->id . '-' . $today . '.pdf';
+                $filePath = public_path('/invoices/' . $fileName);
+                file_put_contents($filePath, $pdf->output());
+
+                // 5. Prepare and Send Mail
+                $mailData = [
+                    'name'    => $charity->name,
+                    'total'   => number_format($record->total, 2),
+                    'date'    => $today,
+                    'subject' => 'Daily Transaction Statement - ' . $today,
+                    'file'    => $filePath,
+                    'file_name' => $fileName,
+                    'cc'      => $contactmail
+                ];
+
+
+                \Mail::send('mail.charity_daily_report', $mailData, function($message) use ($charity, $mailData) {
+                    $message->to($charity->email)
+                            ->subject($mailData['subject'])
+                            ->attach($mailData['file']);
+                });
+
+                $this->info("Email sent to " . $charity->email);
             }
         }
     }

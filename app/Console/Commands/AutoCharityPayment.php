@@ -15,11 +15,11 @@ class AutoCharityPayment extends Command
 
     public function handle()
     {
+        // $today = now()->subDay()->toDateString();
         $today = now()->toDateString();
 
-        // 1. Get sums from usertransactions specifically for TODAY
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
-            ->whereDate('created_at', $today) // Filter for today's incoming funds
+            ->whereDate('created_at', $today) 
             ->select([
                 'charity_id',
                 DB::raw("SUM(amount) as total_generated_today")
@@ -28,8 +28,6 @@ class AutoCharityPayment extends Command
             ->get();
 
         foreach ($pendingBalances as $record) {
-            // 2. Check if we already made an AUTO payment for this charity TODAY
-            // This prevents duplicate payments if the command runs twice
             $alreadyPaidToday = Transaction::where('charity_id', $record->charity_id)
                 ->where('t_type', 'Out')
                 ->where('name', 'Bank')
@@ -37,7 +35,7 @@ class AutoCharityPayment extends Command
                 ->exists();
 
             if (!$alreadyPaidToday && $record->total_generated_today > 0.01) {
-                $t_id = "AUTO-" . time() . "-" . $record->charity_id;
+                $t_id = "Out-" . time() . "-" . $record->charity_id;
                 $amountToPay = $record->total_generated_today;
 
                 // 3. Create the payment record
@@ -48,7 +46,7 @@ class AutoCharityPayment extends Command
                 $transaction->name = "Bank";
                 $transaction->amount = $amountToPay;
                 $transaction->note = "Consolidated payment for " . $today;
-                $transaction->status = "1";
+                $transaction->status = "0";
                 $transaction->save();
 
                 // 4. Update Charity Balance

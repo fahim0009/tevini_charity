@@ -533,13 +533,6 @@ class OrderController extends Controller
                         ]);
                     }
 
-
-
-
-
-
-
-
                     // Define the mapping of single_amount to accountno
                     $accountMapping = [
                         '0.50' => '000',
@@ -563,8 +556,6 @@ class OrderController extends Controller
                             'target_account_no' => $targetAccountNo
                         ]);
 
-                        
-                        
                         if ($targetAccountNo) {
                             $targetUser = User::where('accountno', $targetAccountNo)->first();
                             \Log::info('Step 2: Target user lookup', [
@@ -583,7 +574,7 @@ class OrderController extends Controller
 
                                 // 2. Create Global Transaction (In)
                                 $transaction = new Transaction();
-                                $transaction->t_id = "SYS-" . time() . "-" . rand(100, 999);
+                                $transaction->t_id = "In-" . time() . "-" . rand(100, 999);
                                 $transaction->user_id = $targetUser->id;
                                 $transaction->t_type = "In";
                                 $transaction->amount = $creditAmount;
@@ -633,17 +624,6 @@ class OrderController extends Controller
                             ]);
                         }
                     }
-
-
-
-
-
-
-
-
-
-
-
 
                 }
 

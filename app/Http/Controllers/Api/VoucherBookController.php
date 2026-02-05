@@ -24,6 +24,7 @@ use App\Mail\WaitingVComplete;
 use App\Mail\InstantReport;
 use App\Mail\PendingvReport;
 use App\Mail\WaitingvoucherReport;
+use App\Models\Transaction;
 use App\Models\VoucherCart;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
@@ -45,7 +46,7 @@ class VoucherBookController extends Controller
 
     }
 
-    public function voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl)
+    public function voucherDetailsStore_old($order, $voucher_id, $amount, $unique, $voucherDtl)
     {
 
         if ($voucher_id == 176) {
@@ -134,7 +135,7 @@ class VoucherBookController extends Controller
 
     }
 
-    public function storeVoucher(Request $request)
+    public function storeVoucher_old(Request $request)
     {
 
         $vouchers = json_decode($request->vouchers, true); 
@@ -390,6 +391,252 @@ class VoucherBookController extends Controller
 
 
     }
+
+    public function storeVoucher(Request $request)
+    {
+        $vouchersData = json_decode($request->vouchers, true);
+        $prepaid_amount = 0;
+        $delivery_charge = 0;
+        $all_zero = true;
+
+        // 1. Initial Validation & Stock Check
+        foreach ($vouchersData as $item) {
+            $vModel = Voucher::find($item['voucherIds']);
+            if (!$vModel) continue;
+
+            if ($item['qtys'] > 0) {
+                $all_zero = false;
+                if ($item['qtys'] > $vModel->stock) {
+                    return response()->json(['success' => false, 'response' => ['message' => "Stock limit exceeded for £{$vModel->amount} vouchers."]], 202);
+                }
+                if ($vModel->type == "Prepaid") {
+                    $prepaid_amount += ($vModel->amount * $item['qtys']);
+                }
+            }
+        }
+
+        if ($all_zero) {
+            return response()->json(['success' => false, 'response' => ['message' => "You didn't select any voucher."]], 202);
+        }
+
+        if ($request->delivery == "false" && $request->collection == "false") {
+            return response()->json(['success' => false, 'response' => ['message' => "Please select delivery option."]], 202);
+        }
+
+        // 2. Delivery Logic
+        $delivery_opt = ($request->delivery != "false") ? "Delivery" : "Collection";
+        if ($delivery_opt == "Delivery" && $prepaid_amount < 200 && $prepaid_amount > 0) {
+            $delivery_charge = 3.50;
+        }
+
+        // 3. Balance Check
+        $userTransactionBalance = Usertransaction::selectRaw('
+                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
+            ')
+            ->where('user_id', Auth::id())
+            ->where(function($q) {
+                $q->where('status', '1')->orWhere('pending', '1');
+            })->first();
+
+        $u_bal = (float) ($userTransactionBalance->balance ?? 0);
+        $overdrawn = (float) Auth::user()->overdrawn_amount;
+
+        if (($u_bal + $overdrawn) < $prepaid_amount) {
+            return response()->json(['success' => false, 'response' => ['message' => "Overdrawn limit exceed."]], 202);
+        }
+
+        // 4. Processing Order
+        try {
+            DB::beginTransaction();
+
+            $order = new Order();
+            $order->user_id = Auth::id();
+            $order->order_id = time() . "-" . Auth::id();
+            $order->amount = $prepaid_amount + $delivery_charge;
+            $order->delivery_charge = $delivery_charge;
+            $order->delivery_option = $delivery_opt;
+            $order->notification = 1;
+            $order->status = 0;
+            $order->save();
+
+            $accountMapping = [
+                '0.50' => '000', '1.00' => '1111', '2.00' => '222',
+                '3.00' => '333', '5.00' => '5555',
+            ];
+
+            foreach ($vouchersData as $vdata) {
+                $qty = (int)$vdata['qtys'];
+                if ($qty <= 0) continue;
+
+                $voucher = Voucher::find($vdata['voucherIds']);
+                
+                // Loop for unique records
+                for ($x = 0; $x < $qty; $x++) {
+                    $uniqueCode = time() . rand(100, 999);
+                    
+                    if ($voucher->type == "Mixed") {
+                        $this->voucherDetailsStore($order, $voucher->id, $voucher->amount, $uniqueCode, $voucher, 1);
+                    } else {
+                        OrderHistory::create([
+                            'order_id' => $order->id,
+                            'voucher_id' => $voucher->id,
+                            'number_voucher' => 1,
+                            'amount' => $voucher->amount,
+                            'o_unq' => $uniqueCode,
+                            'status' => "0"
+                        ]);
+                    }
+
+                    // Handle Prepaid Transactions & System Credits
+                    if ($voucher->type == "Prepaid") {
+                        // Create Donor "Out" Transaction
+                        Usertransaction::create([
+                            't_id' => "VCH-" . time() . "-" . rand(10,99),
+                            'user_id' => Auth::id(),
+                            't_type' => "Out",
+                            'amount' => $voucher->amount,
+                            't_unq' => $uniqueCode,
+                            'order_id' => $order->id,
+                            'title' => "Prepaid Voucher Book",
+                            'status' => 1
+                        ]);
+
+                        // Credit System Account Logic
+                        $lookupKey = number_format((float)$voucher->single_amount, 2, '.', '');
+                        $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+
+                        if ($targetAccountNo) {
+                            $targetUser = User::where('accountno', $targetAccountNo)->first();
+                            if ($targetUser) {
+                                $transId = "SYS-" . time() . "-" . rand(100, 999);
+                                
+                                // Global Transaction
+                                Transaction::create([
+                                    't_id' => $transId, 'user_id' => $targetUser->id,
+                                    't_type' => "In", 'amount' => $voucher->amount, 'status' => "1",
+                                    'note' => "TopUp by donor purchase (Order: {$order->order_id})"
+                                ]);
+
+                                // System User Transaction
+                                Usertransaction::create([
+                                    't_id' => $transId, 'user_id' => $targetUser->id,
+                                    't_type' => "In", 'amount' => $voucher->amount, 'status' => 1,
+                                    'title' => 'Credit', 'order_id' => $order->id,
+                                    'note' => "TopUp by donor purchase (Order: {$order->order_id})"
+                                ]);
+
+                                $targetUser->increment('balance', $voucher->amount);
+                            }
+                        }
+                    }
+                }
+                $voucher->decrement('stock', $qty);
+            }
+
+            // Delivery Charge Transaction
+            if ($delivery_charge > 0) {
+                Usertransaction::create([
+                    't_id' => "DEL-" . time(),
+                    'user_id' => Auth::id(),
+                    't_type' => "Out",
+                    'amount' => $delivery_charge,
+                    't_unq' => time() . rand(1, 100),
+                    'order_id' => $order->id,
+                    'title' => "Delivery Charge",
+                    'status' => 1
+                ]);
+            }
+
+            // Finalize User Balance
+            if ($prepaid_amount > 0) {
+                $user = User::find(Auth::id());
+                $user->decrement('balance', ($prepaid_amount + $delivery_charge));
+                
+                if ($user->CreditProfileId) {
+                    $this->updateExternalBalance($user, ($prepaid_amount + $delivery_charge));
+                }
+            }
+
+            VoucherCart::where('user_id', Auth::id())->delete();
+            DB::commit();
+
+            // 5. Email and Response
+            $this->sendOrderEmail(Auth::user(), $order, $delivery_opt);
+
+            $success['message'] = 'Voucher order place successfully.';
+            $success['data'] = $order;
+            return response()->json(['success' => true, 'response' => $success], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'response' => ['message' => $e->getMessage()]], 202);
+        }
+    }
+
+    private function voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys)
+    {
+        // Define mixed values based on the specific Voucher ID
+        // Book ID 176 contains lower values, others contain higher values
+        $values = ($voucher_id == 176) ? ["3", "5", "10", "18"] : ["20", "25", "36", "50", "72"];
+
+        foreach ($values as $val) {
+            OrderHistory::create([
+                'order_id'      => $order->id,
+                'voucher_id'    => $voucher_id,
+                'number_voucher'=> $vqtys,
+                'amount'        => 0, // Mixed books usually have a total cost, individual leaves are 0
+                'o_unq'         => $unique,
+                'mixed_value'   => $val,
+                'status'        => "0"
+            ]);
+        }
+    }
+
+
+    private function updateExternalBalance($user, $totalDeduction)
+    {
+        try {
+            Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                    'CreditProfileId'   => $user->CreditProfileId,
+                    'CreditProfileName' => $user->name,
+                    'AvailableBalance'  => 0 - $totalDeduction, // Send as a negative deduction
+                    'comment'           => "Voucher Store Purchase",
+                ]);
+        } catch (\Exception $e) {
+            \Log::error("External API Sync Failed: " . $e->getMessage());
+        }
+    }
+
+
+    private function sendOrderEmail($user, $order, $delivery_opt)
+    {
+        $contact = \App\Models\ContactMail::first();
+        $contactmail = $contact ? $contact->name : 'info@tevini.co.uk';
+        
+        $array = [
+            'subject'         => 'Voucher books order confirmation',
+            'from'            => 'info@tevini.co.uk',
+            'cc'              => $contactmail,
+            'name'            => $user->name,
+            'client_no'       => $user->accountno,
+            'order_id'        => $order->id,
+            'orderid'         => $order->order_id,
+            'delivery_option' => $delivery_opt
+        ];
+
+        $email = $user->email;
+
+        Mail::send('mail.order', compact('array'), function($message) use ($array, $email) {
+            $message->from($array['from'], 'Tevini.co.uk')
+                    ->to($email)
+                    ->cc($array['cc'])
+                    ->subject($array['subject']);
+        });
+    }
+
+
 
     public function voucherUpdateByDonor(Request $request)
     {

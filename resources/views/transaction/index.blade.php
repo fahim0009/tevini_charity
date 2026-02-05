@@ -1,6 +1,29 @@
 @extends('layouts.admin')
 
 @section('content')
+
+<style>
+    .form-check-input {
+        cursor: pointer;
+        width: 2.5em;
+        height: 1.25em;
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
+        color: #0056b3 !important; 
+    }
+
+    #transaction-table td {
+        vertical-align: middle;
+    }
+    
+    .text-muted {
+        opacity: 0.5;
+        font-weight: normal;
+    }
+</style>
+
 <div class="dashboard-content">
     <section class="profile purchase-status mb-4">
         <div class="title-section d-flex align-items-center">
@@ -55,6 +78,35 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered" id="details-table">
+                        <thead>
+                            <tr>
+                                <th>Donor</th>
+                                <th>Amount</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="details-content">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @endsection
 
 @section('script')
@@ -147,20 +199,70 @@ $(function() {
 
     // Listener for the Status Switch
     $(document).on('change', '.status-switch', function() {
-        const isChecked = $(this).is(':checked');
-        const charityId = $(this).data('charity-id');
-        const date = $(this).data('date');
-        const total = $(this).data('total');
+        const el = $(this);
+        const isChecked = el.is(':checked');
+        const data = {
+            charity_id: el.data('charity-id'),
+            date: el.data('date'),
+            total: el.data('total'),
+            status: isChecked,
+            _token: "{{ csrf_token() }}"
+        };
 
-        if (isChecked) {
-            // Example: Logic to mark as Paid/Settled
-            console.log(`Setting Charity ${charityId} as Settled for date ${date}`);
+        const actionText = isChecked ? "mark this as PAID?" : "REVERT this payment? (This will restore charity balance)";
+
+        if (confirm(`Are you sure you want to ${actionText}`)) {
+            $.ajax({
+                url: "{{ route('transaction.toggle') }}",
+                method: "POST",
+                data: data,
+                success: function(response) {
+                    if(response.success) {
+                        // Refresh the table to update the 'Paid' and 'Balance' columns
+                        $('#transaction-table').DataTable().ajax.reload(null, false);
+                        alert(response.message);
+                    } else {
+                        alert('Error: ' + response.message);
+                        el.prop('checked', !isChecked); // Revert switch UI
+                    }
+                },
+                error: function() {
+                    alert('Server error occurred.');
+                    el.prop('checked', !isChecked); // Revert switch UI
+                }
+            });
         } else {
-            // Example: Logic to revert or mark as Pending
-            console.log(`Setting Charity ${charityId} as Pending for date ${date}`);
+            el.prop('checked', !isChecked); // User cancelled, revert switch UI
         }
-        
-        // You can call an AJAX function here to update your database
+    });
+
+
+    $(document).on('click', '.view-details', function() {
+        const data = {
+            type: $(this).data('type'),
+            charity_id: $(this).data('charity'),
+            date: $(this).data('date')
+        };
+
+        $('#details-content').html('<tr><td colspan="4" class="text-center">Loading...</td></tr>');
+        $('#detailsModal').modal('show');
+
+        $.get("{{ route('dailytransaction.details') }}", data, function(response) {
+            let html = '';
+            if(response.length === 0) {
+                html = '<tr><td colspan="4" class="text-center">No transactions found</td></tr>';
+            } else {
+                response.forEach(item => {
+                    html += `<tr>
+                        <td>${item.donor}</td>
+                        <td>${item.amount}</td>
+                        <td>${item.ref}</td>
+                        <td>${item.date}</td>
+                    </tr>`;
+                });
+            }
+            $('#details-content').html(html);
+        });
     });
 
 

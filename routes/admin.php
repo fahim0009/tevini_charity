@@ -85,6 +85,9 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
     Route::post('/transaction', [TransactionController::class, 'index'])->name('transaction_search');
     Route::get('/report', [ReportController::class, 'index'])->name('report');
+    Route::get('/transaction/details', [TransactionController::class, 'getDayDetails'])->name('dailytransaction.details');
+    Route::post('/transaction/toggle-payment', [TransactionController::class, 'toggleCharityPayment'])->name('transaction.toggle');
+
 
     // donor details
     Route::get('/donor', [DonorController::class, 'addDonor'])->name('donor');

@@ -64,17 +64,20 @@ class TransactionController extends Controller
             $toDate = $request->get('toDate');
 
             if ($type === 'Summary') {
+                
                 $paidSubquery = DB::table('transactions')
                     ->select(
                         DB::raw('DATE(created_at) as pay_date'),
                         'charity_id',
-                        DB::raw('SUM(amount) as total_paid')
+                        DB::raw('SUM(amount) as total_paid'),
+                        DB::raw('MAX(status) as current_status') // Get the status (1 or 0)
                     )
-                    ->where('status', '1')
+                    ->where('t_type', 'Out') // Ensure we only look at payments out
                     ->groupBy('pay_date', 'charity_id');
 
                 $query = Usertransaction::query()
                     ->whereNotNull('usertransactions.charity_id') 
+                    ->whereDate('usertransactions.created_at', '<', now()->toDateString())
                     ->select([
                         DB::raw('DATE(usertransactions.created_at) as date_group'),
                         'usertransactions.charity_id',
@@ -82,7 +85,8 @@ class TransactionController extends Controller
                         DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
                         DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
                         DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
-                        DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum") 
+                        DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
+                        DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status") // Bring status into main query
                     ])
                     ->leftJoinSub($paidSubquery, 'paid_data', function ($join) {
                         $join->on(DB::raw('DATE(usertransactions.created_at)'), '=', 'paid_data.pay_date')
@@ -105,11 +109,9 @@ class TransactionController extends Controller
                     })
                     ->addColumn('action', function($row) {
                         $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
-                        $balance = $totalGenerated - $row->paid_sum;
                         
-                        // Determine if the switch should be "on" (checked)
-                        // We'll consider it "Settled" (checked) if the balance is effectively zero
-                        $isChecked = $balance <= 0.01 ? 'checked' : '';
+                        // Rule: If status is 1 (Active), switch is ON. If 0 (Deactive) or no record, switch is OFF.
+                        $isChecked = ($row->payment_status == 1) ? 'checked' : '';
 
                         return '
                             <div class="form-check form-switch d-flex justify-content-center">
@@ -121,17 +123,27 @@ class TransactionController extends Controller
                                     data-total="'.$totalGenerated.'">
                             </div>';
                     })
-                    ->editColumn('online_sum', fn($row) => '£' . number_format($row->online_sum, 2))
-                    ->editColumn('standing_sum', fn($row) => '£' . number_format($row->standing_sum, 2))
-                    ->editColumn('voucher_sum', fn($row) => '£' . number_format($row->voucher_sum, 2))
-                    ->editColumn('campaign_sum', fn($row) => '£' . number_format($row->campaign_sum, 2))
-                    ->editColumn('paid_sum', fn($row) => '£' . number_format($row->paid_sum, 2))
-                    ->rawColumns(['action'])
+
+                    ->editColumn('online_sum', function($row) {
+                        if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->online_sum, 2) . '</a>';
+                    })
+                    ->editColumn('standing_sum', function($row) {
+                        if ($row->standing_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="standing" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->standing_sum, 2) . '</a>';
+                    })
+                    ->editColumn('voucher_sum', function($row) {
+                        if ($row->voucher_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="voucher" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->voucher_sum, 2) . '</a>';
+                    })
+                    ->editColumn('campaign_sum', function($row) {
+                        if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->campaign_sum, 2) . '</a>';
+                    })
+                    ->rawColumns(['action', 'online_sum', 'standing_sum', 'voucher_sum', 'campaign_sum']) 
                     ->make(true);
             }
 
-            // --- Corrected Default Logic for In/Out/All ---
-            // We select usertransactions.* to avoid conflicts with joined table IDs
             $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
 
             if ($type === 'In' || $type === 'Out') {
@@ -157,6 +169,70 @@ class TransactionController extends Controller
 
         return view('transaction.index');
     }
+
+
+    public function getDayDetails(Request $request)
+    {
+        $query = Usertransaction::with('user')
+            ->where('charity_id', $request->charity_id)
+            ->whereDate('created_at', $request->date);
+
+        // Filter by type based on which column was clicked
+        if ($request->type == 'online') $query->whereNotNull('donation_id');
+        if ($request->type == 'standing') $query->whereNotNull('standing_donationdetails_id');
+        if ($request->type == 'voucher') $query->whereNotNull('cheque_no');
+        if ($request->type == 'campaign') $query->whereNotNull('campaign_id');
+
+        $data = $query->get();
+
+        return response()->json($data->map(function($item) {
+            return [
+                'donor' => $item->user->name ?? 'N/A',
+                'amount' => '£' . number_format($item->amount, 2),
+                'ref' => $item->cheque_no ?? $item->t_id,
+                'date' => $item->created_at->format('d/m/Y H:i')
+            ];
+        }));
+    }
+
+
+
+public function toggleCharityPayment(Request $request)
+{
+    $charityId = $request->charity_id;
+    $date = $request->date;
+    $total = $request->total;
+    $status = $request->status === 'true' ? '1' : '0'; // Convert JS boolean to "1" or "0"
+
+    return DB::transaction(function () use ($charityId, $date, $total, $status) {
+        // 1. Check if the transaction record already exists for this charity and date
+        $transaction = Transaction::where('charity_id', $charityId)
+            ->where('t_type', 'Out')
+            ->whereDate('created_at', $date)
+            ->first();
+
+        if ($transaction) {
+            // 2. If it exists, just update the status
+            $transaction->update(['status' => $status]);
+            
+            return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+        } 
+        
+        return response()->json(['success' => false, 'message' => 'No record found to deactivate.']);
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public function adminTransactionView()

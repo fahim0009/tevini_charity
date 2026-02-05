@@ -16,8 +16,8 @@ class AutoCharityPayment extends Command
     public function handle()
     {
         
-        $today = now()->subDay()->toDateString();
-        // $today = now()->toDateString();
+        // $today = now()->subDay()->toDateString();
+        $today = now()->toDateString();
         $contactmail = DB::table('contact_mails')->where('id', 1)->value('name');
 
         $pendingBalances = Usertransaction::whereNotNull('charity_id')

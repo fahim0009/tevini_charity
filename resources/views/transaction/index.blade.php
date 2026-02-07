@@ -91,7 +91,7 @@
                     <table class="table table-sm table-bordered" id="details-table">
                         <thead>
                             <tr>
-                                <th>Donor</th>
+                                <th>Donor/Charity</th>
                                 <th>Amount</th>
                                 <th>Reference</th>
                                 <th>Date</th>

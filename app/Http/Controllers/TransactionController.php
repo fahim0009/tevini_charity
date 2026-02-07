@@ -124,6 +124,17 @@ class TransactionController extends Controller
                             </div>';
                     })
 
+                    ->editColumn('paid_sum', function($row) {
+                        if ($row->paid_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        
+                        return '<a href="javascript:void(0)" class="view-details text-success text-decoration-none fw-bold" 
+                                data-type="paid" 
+                                data-charity="'.$row->charity_id.'" 
+                                data-date="'.$row->date_group.'">
+                                £' . number_format($row->paid_sum, 2) . '
+                                </a>';
+                    })
+
                     ->editColumn('online_sum', function($row) {
                         if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
                         return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->online_sum, 2) . '</a>';
@@ -140,7 +151,7 @@ class TransactionController extends Controller
                         if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
                         return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->campaign_sum, 2) . '</a>';
                     })
-                    ->rawColumns(['action', 'online_sum', 'standing_sum', 'voucher_sum', 'campaign_sum']) 
+                    ->rawColumns(['action', 'online_sum', 'standing_sum', 'voucher_sum', 'campaign_sum','paid_sum']) 
                     ->make(true);
             }
 
@@ -173,24 +184,42 @@ class TransactionController extends Controller
 
     public function getDayDetails(Request $request)
     {
+        // CASE 1: Paid amount clicked (Show the bulk record from transactions table)
+        if ($request->type == 'paid') {
+            $data = Transaction::with('charity') // Assumes relationship 'charity' exists on Transaction model
+                ->where('charity_id', $request->charity_id)
+                ->where('t_type', 'Out')
+                ->whereDate('created_at', $request->date)
+                ->get();
+
+            return response()->json($data->map(function($item) {
+                return [
+                    'donor'  => $item->charity->name ?? 'N/A',
+                    'amount' => '£' . number_format($item->amount, 2),
+                    'ref'    => $item->t_id,
+                    'date'   => $item->created_at->format('d/m/Y H:i')
+                ];
+            }));
+        }
+
+        // CASE 2: Online/Standing/Voucher/Campaign clicked (Show individual usertransactions)
         $query = Usertransaction::with('user')
             ->where('charity_id', $request->charity_id)
             ->whereDate('created_at', $request->date);
 
-        // Filter by type based on which column was clicked
-        if ($request->type == 'online') $query->whereNotNull('donation_id');
+        if ($request->type == 'online')   $query->whereNotNull('donation_id');
         if ($request->type == 'standing') $query->whereNotNull('standing_donationdetails_id');
-        if ($request->type == 'voucher') $query->whereNotNull('cheque_no');
+        if ($request->type == 'voucher')  $query->whereNotNull('cheque_no');
         if ($request->type == 'campaign') $query->whereNotNull('campaign_id');
 
         $data = $query->get();
 
         return response()->json($data->map(function($item) {
             return [
-                'donor' => $item->user->name ?? 'N/A',
+                'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
                 'amount' => '£' . number_format($item->amount, 2),
-                'ref' => $item->cheque_no ?? $item->t_id,
-                'date' => $item->created_at->format('d/m/Y H:i')
+                'ref'    => $item->cheque_no ?? $item->t_id,
+                'date'   => $item->created_at->format('d/m/Y H:i')
             ];
         }));
     }

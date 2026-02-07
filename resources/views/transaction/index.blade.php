@@ -132,7 +132,7 @@ $(function() {
         {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher'},
         {data: 'campaign_sum', name: 'campaign_sum', title: 'Campaign'},
         {data: 'paid_sum', name: 'paid_sum', title: 'Paid', className: 'text-success'},
-        {data: 'balance', name: 'balance', title: 'Balance', className: 'fw-bold text-primary'},
+        {data: 'balance', name: 'balance', title: 'Summary', className: 'fw-bold text-primary'},
         {data: 'action', name: 'action', title: 'Action', orderable: false, searchable: false}
     ];
 

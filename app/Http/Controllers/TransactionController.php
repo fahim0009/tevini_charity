@@ -40,7 +40,7 @@ class TransactionController extends Controller
                     return Carbon::parse($row->created_at)->format('d/m/Y');
                 })
                 ->addColumn('beneficiary', function ($row) {
-                    if ($row->charity_id) return $row->charity->name;
+                    if ($row->charity_id) return $row->charity->name.' ('.$row->charity->balance.')';
                     if ($row->crdAcptID) return $row->crdAcptLoc;
                     return '';
                 })

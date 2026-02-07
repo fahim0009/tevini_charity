@@ -101,7 +101,7 @@ class TransactionController extends Controller
 
                 return DataTables::of($query)
                     ->editColumn('date_group', fn($row) => \Carbon\Carbon::parse($row->date_group)->format('d/m/Y'))
-                    ->addColumn('charity_name', fn($row) => $row->charity->name ?? 'N/A')
+                    ->addColumn('charity_name', fn($row) => ($row->charity->name ?? 'N/A') . ' (' . ($row->charity->balance ?? '0') . ')')
                     ->addColumn('balance', function($row) {
                         $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
                         $balance = $totalGenerated - $row->paid_sum;

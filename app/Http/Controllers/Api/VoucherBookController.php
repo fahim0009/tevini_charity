@@ -460,10 +460,7 @@ class VoucherBookController extends Controller
             $order->status = 0;
             $order->save();
 
-            $accountMapping = [
-                '0.50' => '000', '1.00' => '1111', '2.00' => '222',
-                '3.00' => '333', '5.00' => '5555',
-            ];
+
 
             foreach ($vouchersData as $vdata) {
                 $qty = (int)$vdata['qtys'];
@@ -502,33 +499,6 @@ class VoucherBookController extends Controller
                             'status' => 1
                         ]);
 
-                        // Credit System Account Logic
-                        $lookupKey = number_format((float)$voucher->single_amount, 2, '.', '');
-                        $targetAccountNo = $accountMapping[$lookupKey] ?? null;
-
-                        if ($targetAccountNo) {
-                            $targetUser = User::where('accountno', $targetAccountNo)->first();
-                            if ($targetUser) {
-                                $transId = "SYS-" . time() . "-" . rand(100, 999);
-                                
-                                // Global Transaction
-                                Transaction::create([
-                                    't_id' => $transId, 'user_id' => $targetUser->id,
-                                    't_type' => "In", 'amount' => $voucher->amount, 'status' => "1",
-                                    'note' => "TopUp by donor purchase (Order: {$order->order_id})"
-                                ]);
-
-                                // System User Transaction
-                                Usertransaction::create([
-                                    't_id' => $transId, 'user_id' => $targetUser->id,
-                                    't_type' => "In", 'amount' => $voucher->amount, 'status' => 1,
-                                    'title' => 'Credit', 'order_id' => $order->id,
-                                    'note' => "TopUp by donor purchase (Order: {$order->order_id})"
-                                ]);
-
-                                $targetUser->increment('balance', $voucher->amount);
-                            }
-                        }
                     }
                 }
                 $voucher->decrement('stock', $qty);

@@ -270,8 +270,9 @@ $(document).ready(function() {
             method: "POST",
             data: { status, orderId },
             success: function (d) {
+                console.log(d);
                     $(".ermsg").html(d.message);
-                    window.setTimeout(function(){location.reload()},1000)
+                    // window.setTimeout(function(){location.reload()},1000)
             },
             error: function (xhr) {
                 console.error(xhr.responseText);

@@ -266,101 +266,6 @@ class OrderController extends Controller
                                 OrderHistory::create($input);
                             }
 
-
-                            // Define the mapping of single_amount to accountno
-                            $accountMapping = [
-                                '0.50' => '000',
-                                '1.00' => '1111',
-                                '2.00' => '222',
-                                '3.00' => '333',
-                                '5.00' => '5555',
-                            ];
-
-                            // Inside the voucher loop, after creating the donor's "Out" transaction:
-                            if ($voucherDtl->type == "Prepaid") {
-                                
-                                // 1. Find the target system account based on single_amount
-                                // 2. Force the lookup key to also be 2 decimals
-                                $lookupKey = number_format((float)$voucherDtl->single_amount, 2, '.', '');
-                                $targetAccountNo = $accountMapping[$lookupKey] ?? null;
-
-                                \Log::info('Step 1: Finding target account Prepaid Voucher', [
-                                    'original_amount' => $voucherDtl->single_amount,
-                                    'formatted_lookup_key' => $lookupKey,
-                                    'target_account_no' => $targetAccountNo
-                                ]);
-
-                                if ($targetAccountNo) {
-                                    $targetUser = User::where('accountno', $targetAccountNo)->first();
-                                    \Log::info('Step 2: Target user lookup  Prepaid Voucher', [
-                                        'account_no' => $targetAccountNo,
-                                        'target_user_id' => $targetUser?->id,
-                                        'target_user_found' => $targetUser ? true : false
-                                    ]);
-                                    
-                                    if ($targetUser) {
-                                        $creditAmount = $voucherDtl->amount;
-                                        \Log::info('Step 3: Credit amount prepared  Prepaid Voucher', [
-                                            'credit_amount' => $creditAmount,
-                                            'target_user_id' => $targetUser->id,
-                                            'order_id' => $order->id
-                                        ]);
-
-                                        // 2. Create Global Transaction (In)
-                                        $transaction = new Transaction();
-                                        $transaction->t_id = "In-" . time() . "-" . rand(100, 999);
-                                        $transaction->user_id = $targetUser->id;
-                                        $transaction->t_type = "In";
-                                        $transaction->amount = $creditAmount;
-                                        $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
-                                        $transaction->status = "1";
-                                        $transaction->save();
-                                        \Log::info('Step 4: Global transaction created', [
-                                            'transaction_id' => $transaction->id,
-                                            't_id' => $transaction->t_id,
-                                            'amount' => $creditAmount
-                                        ]);
-
-                                        // 3. Create User Transaction for the System Account (In)
-                                        $utransactionIn = new Usertransaction();
-                                        $utransactionIn->t_id = $transaction->t_id;
-                                        $utransactionIn->user_id = $targetUser->id;
-                                        $utransactionIn->t_type = "In";
-                                        $utransactionIn->amount = $creditAmount;
-                                        $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
-                                        $utransactionIn->title = 'Credit';
-                                        $utransactionIn->status = 1;
-                                        $utransactionIn->order_id = $order->id;
-                                        $utransactionIn->save();
-                                        \Log::info('Step 5: User transaction created', [
-                                            'utransaction_id' => $utransactionIn->id,
-                                            't_id' => $utransactionIn->t_id,
-                                            'user_id' => $targetUser->id,
-                                            'amount' => $creditAmount
-                                        ]);
-
-                                        // 4. Update the System User's actual balance
-                                        $targetUser->increment('balance', $creditAmount);
-                                        \Log::info('Step 6: User balance incremented', [
-                                            'user_id' => $targetUser->id,
-                                            'increment_amount' => $creditAmount,
-                                            'new_balance' => $targetUser->fresh()->balance
-                                        ]);
-                                    } else {
-                                        \Log::warning('Step 2 Failed: Target user not found', [
-                                            'account_no' => $targetAccountNo
-                                        ]);
-                                    }
-                                } else {
-                                    \Log::warning('Step 1 Failed: Target account not found in mapping', [
-                                        'single_amount' => $voucherDtl->single_amount,
-                                        'available_mappings' => array_keys($accountMapping)
-                                    ]);
-                                }
-                            }
-
-
-                        
                         }
 
                     }else{
@@ -2553,6 +2458,68 @@ public function watingvoucherCancel(Request $request)
         $order->status = $request->status;
         if($order->save()){
             if ($request->status == 1) {
+                
+                foreach ($order->orderhistories as $key => $orderhistories) {
+                    $chkvoucher = Voucher::where('id', $orderhistories->voucher_id)->first();
+
+                    // Define the mapping of single_amount to accountno
+                    $accountMapping = [
+                        '0.50' => '000',
+                        '1.00' => '1111',
+                        '2.00' => '222',
+                        '3.00' => '333',
+                        '5.00' => '5555',
+                    ];
+
+                    $lookupKey = number_format((float)$chkvoucher->single_amount, 2, '.', '');
+                    $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+                    if ($targetAccountNo) {
+                        $targetUser = User::where('accountno', $targetAccountNo)->first();
+                        
+                        if ($targetUser) {
+                            $creditAmount = $orderhistories->amount;
+
+                            // 2. Create Global Transaction (In)
+                            $transaction = new Transaction();
+                            $transaction->t_id = "In-" . time() . "-" . $targetUser->id;
+                            $transaction->user_id = $targetUser->id;
+                            $transaction->t_type = "In";
+                            $transaction->amount = $creditAmount;
+                            $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                            $transaction->status = "1";
+                            $transaction->save();
+
+                            // 3. Create User Transaction for the System Account (In)
+                            $utransactionIn = new Usertransaction();
+                            $utransactionIn->t_id = $transaction->t_id;
+                            $utransactionIn->user_id = $targetUser->id;
+                            $utransactionIn->t_type = "In";
+                            $utransactionIn->amount = $creditAmount;
+                            $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                            $utransactionIn->title = 'Credit';
+                            $utransactionIn->status = 1;
+                            $utransactionIn->order_id = $order->id;
+                            $utransactionIn->save();
+
+                            // 4. Update the System User's actual balance
+                            $targetUser->increment('balance', $creditAmount);
+
+                            \Log::warning('Step 1 Success: Target user found', [
+                                'account_no' => $targetAccountNo
+                            ]);
+                            
+                        } else {
+                            \Log::warning('Step 2 Failed: Target user not found', [
+                                'account_no' => $targetAccountNo
+                            ]);
+                        }
+                    } else {
+                        \Log::warning('Step 1 Failed: Target account not found in mapping', [
+                            'available_mappings' => array_keys($accountMapping)
+                        ]);
+                    }
+                }
+
                 // email 
                 $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
                 $contactmail = ContactMail::where('id', 1)->first()->name;
@@ -2568,7 +2535,7 @@ public function watingvoucherCancel(Request $request)
                 // email 
             }
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Order status change successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
+            return response()->json(['status'=> 300,'message'=>$message,'order'=>$order->orderhistories]);
         }
 
     }

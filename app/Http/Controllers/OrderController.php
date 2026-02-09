@@ -131,7 +131,7 @@ class OrderController extends Controller
         return view('voucher.donorvoucher',compact('reports','donor_id'));
     }
 
-    public function storeVoucher_old(Request $request)
+    public function storeVoucher(Request $request)
     {
         $voucher_ids= $request->voucherIds;
         $qtys = $request->qtys;
@@ -188,9 +188,15 @@ class OrderController extends Controller
             
 
 
-            $u_bal = User::where('id',$request->did)->first()->balance;
+            $u_bal = User::where('id',$request->did)->first()->getAvailableLimit();
             $overdrawn = (User::where('id',$request->did)->first()->overdrawn_amount);
-            $limitChk = $u_bal + $overdrawn;
+            $limitChk = (float) $u_bal;
+
+            \Log::info('User', [
+                                    'Donor Balance' => $u_bal,
+                                    'overdrawn Balance' => $overdrawn,
+                                    'limitChk' => $limitChk,
+                                ]);
 
             if ($prepaid_amount > 0) {
                 if($limitChk < $prepaid_amount ){
@@ -248,6 +254,10 @@ class OrderController extends Controller
                         $input['o_unq'] = $unique;
                         $input['status'] = "0";
 
+                        \Log::info('Voucher type', [
+                                    'voucher' => $voucherDtl
+                                ]);
+
                         $vqtys = 1;
 
                             if ($voucherDtl->type == "Mixed") {
@@ -255,6 +265,101 @@ class OrderController extends Controller
                             } else {
                                 OrderHistory::create($input);
                             }
+
+
+                            // Define the mapping of single_amount to accountno
+                            $accountMapping = [
+                                '0.50' => '000',
+                                '1.00' => '1111',
+                                '2.00' => '222',
+                                '3.00' => '333',
+                                '5.00' => '5555',
+                            ];
+
+                            // Inside the voucher loop, after creating the donor's "Out" transaction:
+                            if ($voucherDtl->type == "Prepaid") {
+                                
+                                // 1. Find the target system account based on single_amount
+                                // 2. Force the lookup key to also be 2 decimals
+                                $lookupKey = number_format((float)$voucherDtl->single_amount, 2, '.', '');
+                                $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+
+                                \Log::info('Step 1: Finding target account Prepaid Voucher', [
+                                    'original_amount' => $voucherDtl->single_amount,
+                                    'formatted_lookup_key' => $lookupKey,
+                                    'target_account_no' => $targetAccountNo
+                                ]);
+
+                                if ($targetAccountNo) {
+                                    $targetUser = User::where('accountno', $targetAccountNo)->first();
+                                    \Log::info('Step 2: Target user lookup  Prepaid Voucher', [
+                                        'account_no' => $targetAccountNo,
+                                        'target_user_id' => $targetUser?->id,
+                                        'target_user_found' => $targetUser ? true : false
+                                    ]);
+                                    
+                                    if ($targetUser) {
+                                        $creditAmount = $voucherDtl->amount;
+                                        \Log::info('Step 3: Credit amount prepared  Prepaid Voucher', [
+                                            'credit_amount' => $creditAmount,
+                                            'target_user_id' => $targetUser->id,
+                                            'order_id' => $order->id
+                                        ]);
+
+                                        // 2. Create Global Transaction (In)
+                                        $transaction = new Transaction();
+                                        $transaction->t_id = "In-" . time() . "-" . rand(100, 999);
+                                        $transaction->user_id = $targetUser->id;
+                                        $transaction->t_type = "In";
+                                        $transaction->amount = $creditAmount;
+                                        $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                                        $transaction->status = "1";
+                                        $transaction->save();
+                                        \Log::info('Step 4: Global transaction created', [
+                                            'transaction_id' => $transaction->id,
+                                            't_id' => $transaction->t_id,
+                                            'amount' => $creditAmount
+                                        ]);
+
+                                        // 3. Create User Transaction for the System Account (In)
+                                        $utransactionIn = new Usertransaction();
+                                        $utransactionIn->t_id = $transaction->t_id;
+                                        $utransactionIn->user_id = $targetUser->id;
+                                        $utransactionIn->t_type = "In";
+                                        $utransactionIn->amount = $creditAmount;
+                                        $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                                        $utransactionIn->title = 'Credit';
+                                        $utransactionIn->status = 1;
+                                        $utransactionIn->order_id = $order->id;
+                                        $utransactionIn->save();
+                                        \Log::info('Step 5: User transaction created', [
+                                            'utransaction_id' => $utransactionIn->id,
+                                            't_id' => $utransactionIn->t_id,
+                                            'user_id' => $targetUser->id,
+                                            'amount' => $creditAmount
+                                        ]);
+
+                                        // 4. Update the System User's actual balance
+                                        $targetUser->increment('balance', $creditAmount);
+                                        \Log::info('Step 6: User balance incremented', [
+                                            'user_id' => $targetUser->id,
+                                            'increment_amount' => $creditAmount,
+                                            'new_balance' => $targetUser->fresh()->balance
+                                        ]);
+                                    } else {
+                                        \Log::warning('Step 2 Failed: Target user not found', [
+                                            'account_no' => $targetAccountNo
+                                        ]);
+                                    }
+                                } else {
+                                    \Log::warning('Step 1 Failed: Target account not found in mapping', [
+                                        'single_amount' => $voucherDtl->single_amount,
+                                        'available_mappings' => array_keys($accountMapping)
+                                    ]);
+                                }
+                            }
+
+
                         
                         }
 
@@ -360,6 +465,7 @@ class OrderController extends Controller
              $message->from($array['from'], 'Tevini.co.uk');
              $message->to($email)->cc($array['cc'])->subject($array['subject']);
             });
+
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher order place successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
 
@@ -458,7 +564,7 @@ class OrderController extends Controller
 
     }
 
-    public function storeVoucher(Request $request)
+    public function storeVoucher2(Request $request)
     {
         // 1. Initial Validation
         if (!$request->voucherIds || count(array_filter($request->qtys)) == 0) {
@@ -496,7 +602,6 @@ class OrderController extends Controller
             return response()->json(['status' => 303, 'message' => "<div class='alert alert-danger'>Overdrawn limit exceeded.</div>"]);
         }
 
-        // 4. Atomic Transaction (Save everything or save nothing)
         try {
             DB::beginTransaction();
 
@@ -550,7 +655,7 @@ class OrderController extends Controller
                         $lookupKey = number_format((float)$voucher->single_amount, 2, '.', '');
                         $targetAccountNo = $accountMapping[$lookupKey] ?? null;
 
-                        \Log::info('Step 1: Finding target account', [
+                        \Log::info('Step 1: Finding target account Prepaid Voucher', [
                             'original_amount' => $voucher->single_amount,
                             'formatted_lookup_key' => $lookupKey,
                             'target_account_no' => $targetAccountNo
@@ -558,7 +663,7 @@ class OrderController extends Controller
 
                         if ($targetAccountNo) {
                             $targetUser = User::where('accountno', $targetAccountNo)->first();
-                            \Log::info('Step 2: Target user lookup', [
+                            \Log::info('Step 2: Target user lookup  Prepaid Voucher', [
                                 'account_no' => $targetAccountNo,
                                 'target_user_id' => $targetUser?->id,
                                 'target_user_found' => $targetUser ? true : false
@@ -566,7 +671,7 @@ class OrderController extends Controller
                             
                             if ($targetUser) {
                                 $creditAmount = $voucher->amount;
-                                \Log::info('Step 3: Credit amount prepared', [
+                                \Log::info('Step 3: Credit amount prepared  Prepaid Voucher', [
                                     'credit_amount' => $creditAmount,
                                     'target_user_id' => $targetUser->id,
                                     'order_id' => $order->id

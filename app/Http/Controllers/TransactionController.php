@@ -793,9 +793,96 @@ public function toggleCharityPayment(Request $request)
             ->map(fn($t) => \Carbon\Carbon::parse($t->created_at)->format('Y-m-d'))
             ->toArray();
 
+
+            // ledger
+
+
+            // 1. Get the data
+            $userTransactionsledger = Usertransaction::with('charity')
+                ->where('charity_id', $id)
+                ->where('t_type', 'Out')
+                ->where('status', '1')
+                ->get();
+
+            $externalTransactionsledger = Transaction::where('charity_id', $id)
+                ->where('t_type', 'Out')
+                ->where('status', '1')
+                ->get();
+                
+
+            // 2. Normalize and Combine
+            $ledgerEntries = collect();
+
+            // Normalize User Transactions (Debits)
+            foreach ($userTransactionsledger as $ut) {
+                // Start building the dynamic description
+                $descParts = [];
+                
+                // Add the Title first
+                if ($ut->title) {
+                    $descParts[] = $ut->title;
+                }
+
+                // Rule: donation_id not null
+                if ($ut->donation_id !== null) {
+                    $descParts[] = "(Online donation transaction)";
+                }
+
+                // Rule: standing_donationdetails_id not null
+                if ($ut->standing_donationdetails_id !== null) {
+                    $descParts[] = "(Standing Donation Transaction)";
+                }
+
+                // Rule: cheque_no not null (Voucher No)
+                if ($ut->cheque_no !== null) {
+                    $descParts[] = "Voucher No: " . $ut->cheque_no;
+                }
+
+                // Join everything with a space or separator
+                $finalDescription = implode(' - ', $descParts);
+
+                $ledgerEntries->push([
+                    'date' => $ut->created_at,
+                    't_id' => $ut->t_id ?? $ut->id, 
+                    'description' => $finalDescription ?: 'User Transfer', // Fallback if empty
+                    'debit' => $ut->amount,
+                    'credit' => 0,
+                    'type' => 'User'
+                ]);
+            }
+
+            foreach ($externalTransactionsledger as $et) {
+                $ledgerEntries->push([
+                    'date' => $et->created_at,
+                    't_id' => $et->t_id ?? $et->id, // Ensure t_id is captured
+                    'description' => 'Desc: ' . $et->note,
+                    'debit' => 0,
+                    'credit' => $et->amount,
+                    'type' => 'External'
+                ]);
+            }
+
+            // 3. Sort by Date ASCENDING to calculate running balance correctly
+            $sortedLedger = $ledgerEntries->sortBy('date');
+
+            $runningBalance = 0;
+            $ledgerWithBalance = $sortedLedger->map(function ($entry) use (&$runningBalance) {
+                // Standard Ledger: Balance = (Previous Balance + Credit) - Debit
+                $runningBalance += ($entry['credit'] - $entry['debit']);
+                $entry['balance'] = $runningBalance;
+                return $entry;
+            });
+
+            // 4. Now reverse it for the View (Descending order: Newest at top)
+            $finalLedger = $ledgerWithBalance->reverse();
+
+            // Capture the total current balance to show at the top of the table
+            $currentTotalBalance = $runningBalance;
+            // ledger
+
         return view('charity.transaction', compact(
             'dailySummary', 'intransactions', 'outtransactions', 
-            'reports', 'totalIN', 'totalOUT', 'pvouchers', 'id', 'paidDates'
+            'reports', 'totalIN', 'totalOUT', 'pvouchers', 'id', 'paidDates','finalLedger','currentTotalBalance'
         ));
     }
 

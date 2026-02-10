@@ -14,8 +14,8 @@
             <div class="col-md-12">
                 <nav>
                     <div class="nav nav-tabs" id="charityTab" role="tablist">
-                        <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#nav-summary" type="button" role="tab">Daily Summary</button>
-                        <button class="nav-link" id="transactionIn-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionIn" type="button" role="tab">Transaction In</button>
+                        <button class="nav-link " id="summary-tab" data-bs-toggle="tab" data-bs-target="#nav-summary" type="button" role="tab">Daily Summary</button>
+                        <button class="nav-link active" id="transactionIn-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionIn" type="button" role="tab">Transaction In</button>
                         <button class="nav-link" id="transactionOut-tab" data-bs-toggle="tab" data-bs-target="#nav-transactionOut" type="button" role="tab">Transaction Out</button>
                         <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#nav-report" type="button" role="tab">Reports</button>
                         <button class="nav-link" id="ledger-tab" data-bs-toggle="tab" data-bs-target="#nav-ledger" type="button" role="tab">Ledger</button>
@@ -28,7 +28,7 @@
                 <div class="tab-content bg-white shadow-sm p-3" id="nav-tabContent">
                     
                     {{-- 1. DAILY SUMMARY TAB (Optimized) --}}
-                    <div class="tab-pane fade show active" id="nav-summary" role="tabpanel">
+                    <div class="tab-pane fade" id="nav-summary" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="mb-0">Grouped Daily Totals</h5>
                         </div>
@@ -68,7 +68,7 @@
                     </div>
 
                     {{-- 2. TRANSACTION IN --}}
-                    <div class="tab-pane fade" id="nav-transactionIn" role="tabpanel">
+                    <div class="tab-pane fade  show active" id="nav-transactionIn" role="tabpanel">
                         
                         <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
                             @csrf
@@ -187,6 +187,53 @@
                                 </table>
                             </div>
                         </div>
+
+                        <div class="row justify-content-center mt-4">
+                            <div class="col-md-12">
+
+
+                                <div class="row justify-content-center mt-4">
+                                    <div class="col-md-12">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="table-dark">
+                                                    <th>Date</th>
+                                                    <th>Transaction ID</th>
+                                                    <th>Description</th>
+                                                    <th>Debit (-)</th>
+                                                    <th>Credit (+)</th>
+                                                    <th>Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="table-info">
+                                                    <td colspan="5" class="text-end"><strong>Current Total Balance:</strong></td>
+                                                    <td><strong>{{ number_format($currentTotalBalance, 2) }}</strong></td>
+                                                </tr>
+
+                                                @foreach($finalLedger as $entry)
+                                                    <tr>
+                                                        <td>{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d H:i') }}</td>
+                                                        <td><code>{{ $entry['t_id'] }}</code></td>
+                                                        <td>{{ $entry['description'] }}</td>
+                                                        <td class="text-danger">
+                                                            {{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}
+                                                        </td>
+                                                        <td class="text-success">
+                                                            {{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}
+                                                        </td>
+                                                        <td><strong>{{ number_format($entry['balance'], 2) }}</strong></td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
                     </div>
 
                     {{-- 6. PENDING VOUCHERS --}}

@@ -265,31 +265,81 @@
                     {{-- 8. --}}
 
                     <div class="tab-pane fade" id="check-trans" role="tabpanel">
-                        
-                        
-                        <table class="table table-custom mt-4" id="emailTable">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>TranID</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th class="text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
-                                <tr id="row_{{$data->id}}">
-                                    <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                    <td class="email-cell">{{ $data->t_id }}</td>
-                                    <td class="email-cell">{{ $data->amount }}</td>
-                                    <td class="email-cell">{{ $data->status }}</td>
-                                    <td class="text-right">
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="accordion mt-4" id="transactionAccordion">
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                         Transactions Table
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#transactionAccordion">
+                                    <div class="accordion-body">
+                                        <table class="table table-custom" id="emailTable1">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>TranID</th>
+                                                    <th>Tran type</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                    <th class="text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
+                                                <tr>
+                                                    <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                                                    <td class="email-cell">{{ $data->t_id }}</td>
+                                                    <td class="email-cell">{{ $data->t_type }}</td>
+                                                    <td class="email-cell">{{ $data->amount }}</td>
+                                                    <td class="email-cell">{{ $data->status }}</td>
+                                                    <td class="text-right"></td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        User Transactions Table
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#transactionAccordion">
+                                    <div class="accordion-body">
+                                        <table class="table table-custom" id="emailTable2">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>TranID</th>
+                                                    <th>Tran type</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                    <th class="text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (\App\Models\Usertransaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
+                                                <tr>
+                                                    <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                                                    <td class="email-cell">{{ $data->t_id }}</td>
+                                                    <td class="email-cell">{{ $data->t_type }}</td>
+                                                    <td class="email-cell">{{ $data->amount }}</td>
+                                                    <td class="email-cell">{{ $data->status }}</td>
+                                                    <td class="text-right"></td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
 
                 </div>

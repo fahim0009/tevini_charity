@@ -290,10 +290,20 @@
                                                 @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
                                                 <tr>
                                                     <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                                    <td class="email-cell">{{ $data->t_id }}</td>
+                                                    <td class="email-cell">
+                                                        @if($data->status == 0)
+                                                            <span class="badge bg-danger">{{ $data->t_id }}</span>
+                                                        @else
+                                                            {{ $data->t_id }}
+                                                        @endif
+                                                    </td>
                                                     <td class="email-cell">{{ $data->t_type }}</td>
                                                     <td class="email-cell">{{ $data->amount }}</td>
-                                                    <td class="email-cell">{{ $data->status }}</td>
+                                                    <td class="email-cell">
+                                                        <span class="{{ $data->status == 0 ? 'text-danger fw-bold' : '' }}">
+                                                            {{ $data->status }}
+                                                        </span>
+                                                    </td>
                                                     <td class="text-right"></td>
                                                 </tr>
                                                 @endforeach
@@ -326,10 +336,20 @@
                                                 @foreach (\App\Models\Usertransaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
                                                 <tr>
                                                     <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                                    <td class="email-cell">{{ $data->t_id }}</td>
+                                                    <td class="email-cell">
+                                                        @if($data->status == 0)
+                                                            <span class="badge bg-danger">{{ $data->t_id }}</span>
+                                                        @else
+                                                            {{ $data->t_id }}
+                                                        @endif
+                                                    </td>
                                                     <td class="email-cell">{{ $data->t_type }}</td>
                                                     <td class="email-cell">{{ $data->amount }}</td>
-                                                    <td class="email-cell">{{ $data->status }}</td>
+                                                    <td class="email-cell">
+                                                        <span class="{{ $data->status == 0 ? 'text-danger fw-bold' : '' }}">
+                                                            {{ $data->status }}
+                                                        </span>
+                                                    </td>
                                                     <td class="text-right"></td>
                                                 </tr>
                                                 @endforeach

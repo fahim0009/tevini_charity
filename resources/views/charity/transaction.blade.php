@@ -334,7 +334,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
+                                                @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->get() as $data)
                                                 <tr>
                                                     <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                                     <td class="email-cell">

@@ -801,7 +801,7 @@ public function toggleCharityPayment(Request $request)
             $userTransactionsledger = Usertransaction::with('charity')
                 ->where('charity_id', $id)
                 ->where('t_type', 'Out')
-                ->where('status', '1')
+                ->where('status', '5')
                 ->get();
 
             $externalTransactionsledger = Transaction::where('charity_id', $id)
@@ -868,7 +868,7 @@ public function toggleCharityPayment(Request $request)
             $runningBalance = 0;
             $ledgerWithBalance = $sortedLedger->map(function ($entry) use (&$runningBalance) {
                 // Standard Ledger: Balance = (Previous Balance + Credit) - Debit
-                $runningBalance += ($entry['credit'] - $entry['debit']);
+                $runningBalance += ($entry['debit'] - $entry['credit']);
                 $entry['balance'] = $runningBalance;
                 return $entry;
             });

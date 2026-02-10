@@ -801,7 +801,7 @@ public function toggleCharityPayment(Request $request)
             $userTransactionsledger = Usertransaction::with('charity')
                 ->where('charity_id', $id)
                 ->where('t_type', 'Out')
-                ->where('status', '5')
+                ->where('status', '1')
                 ->get();
 
             $externalTransactionsledger = Transaction::where('charity_id', $id)

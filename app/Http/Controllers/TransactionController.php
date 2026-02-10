@@ -943,6 +943,35 @@ public function toggleCharityPayment(Request $request)
 
 
 
+    public function allCharityBalances()
+    {
+        // 1. Get all charities with their related transaction sums
+        // We use withSum to efficiently get totals without loading every record
+        $charities = Charity::withSum(['usertransaction as total_in' => function ($query) {
+                $query->where('t_type', 'Out')->where('status', '1');
+            }], 'amount')
+            ->withSum(['transaction as total_out' => function ($query) {
+                $query->where('t_type', 'Out')->where('status', '1');
+            }], 'amount')
+            ->get();
 
+        // 2. Map the data to calculate the balance for each charity
+        $charityData = $charities->map(function ($charity) {
+            $in = $charity->total_in ?? 0;
+            $out = $charity->total_out ?? 0;
+            
+            return [
+                'name'    => $charity->name,
+                'email'   => $charity->email,
+                'cbalance'   => $charity->balance,
+                'in_amt'  => $in,
+                'out_amt' => $out,
+                'balance' => $in - $out,
+                'id'      => $charity->id
+            ];
+        });
+
+        return view('charity.charityTest', compact('charityData'));
+    }
 
 }

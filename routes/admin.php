@@ -131,6 +131,9 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview');
     Route::post('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview_search');
 
+    // this route for checking charity balance mitch-match
+    Route::get('/charity-balance/{id?}', [TransactionController::class, 'allCharityBalances']);
+
     // test message 
     Route::post('/text-message/{id}', [OTPController::class, 'sendText'])->name('admin.donor.sendtext');
 

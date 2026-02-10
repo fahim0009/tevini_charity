@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('donation:deduct-standing')->daily();
         // $schedule->command('queue:work')->everyFiveMinutes();
-        $schedule->command('payments:process-charity')->dailyAt('23:55');
+        $schedule->command('payments:process-charity')->dailyAt('23:45');
     }
 
     /**

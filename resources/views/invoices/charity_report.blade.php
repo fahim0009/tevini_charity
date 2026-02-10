@@ -26,7 +26,7 @@
             <div class="logo">
                 <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logo.png'))) }}" width="120px"/>
             </div>
-            <div class="title">Daily Transaction Report</div>
+            <div class="title">Remittance Report</div>
             <div>Tevini Limited | Registered charity no. 282079</div>
         </div>
 
@@ -52,7 +52,7 @@
                         <th>Donor Name</th>
                         <th>Type</th>
                         <th>Voucher #</th>
-                        <th>Note</th>
+                        <th>Donor Note</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -75,7 +75,7 @@
                 </tbody>
                 <tfoot>
                     <tr style="font-weight: bold; background: #eee;">
-                        <td colspan="5" class="text-right">Total Consolidated Payment:</td>
+                        <td colspan="5" class="text-right">Total Payment:</td>
                         <td>£{{ number_format($total, 2) }}</td>
                     </tr>
                 </tfoot>
@@ -83,6 +83,7 @@
         </div>
 
         <div style="margin-top: 30px; font-size: 10px; text-align: center;">
+            This is a consolidated statement of your daily income. Funds are processed according to your payment schedule.
         </div>
     </div>
 </body>

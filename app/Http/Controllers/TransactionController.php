@@ -945,7 +945,7 @@ public function toggleCharityPayment(Request $request)
 
     public function allCharityBalances()
     {
-        dd('controller');
+        
         // 1. Get all charities with their related transaction sums
         // We use withSum to efficiently get totals without loading every record
         $charities = Charity::withSum(['usertransaction as total_in' => function ($query) {

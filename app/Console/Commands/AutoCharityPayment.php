@@ -54,7 +54,7 @@ class AutoCharityPayment extends Command
                 $transaction->t_type = "Out";
                 $transaction->name = "Bank";
                 $transaction->amount = $amountToPayNow;
-                $transaction->status = "0"; 
+                $transaction->status = "1"; 
                 $transaction->created_at = $today . ' ' . now()->format('H:i:s');
                 $transaction->save();
 

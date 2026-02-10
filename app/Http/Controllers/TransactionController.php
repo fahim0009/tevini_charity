@@ -70,7 +70,7 @@ class TransactionController extends Controller
                         DB::raw('DATE(created_at) as pay_date'),
                         'charity_id',
                         DB::raw('SUM(amount) as total_paid'),
-                        DB::raw('MAX(status) as current_status') // Get the status (1 or 0)
+                        DB::raw('MAX(bank_payment_status) as current_status')
                     )
                     ->where('t_type', 'Out') // Ensure we only look at payments out
                     ->groupBy('pay_date', 'charity_id');
@@ -86,7 +86,7 @@ class TransactionController extends Controller
                         DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
                         DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
                         DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
-                        DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status") // Bring status into main query
+                        DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status") 
                     ])
                     ->leftJoinSub($paidSubquery, 'paid_data', function ($join) {
                         $join->on(DB::raw('DATE(usertransactions.created_at)'), '=', 'paid_data.pay_date')
@@ -242,7 +242,7 @@ public function toggleCharityPayment(Request $request)
 
         if ($transaction) {
             // 2. If it exists, just update the status
-            $transaction->update(['status' => $status]);
+            $transaction->update(['bank_payment_status' => $status]);
             
             return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
         } 

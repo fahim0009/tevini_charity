@@ -23,8 +23,8 @@ class AutoCharityPayment extends Command
         // Ensure the script doesn't time out
         set_time_limit(0);
 
-            $today = now()->subDay()->toDateString();
-            // $today = now()->toDateString();
+            // $today = now()->subDay()->toDateString();
+            $today = now()->toDateString();
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
         $pendingBalances = Usertransaction::whereNotNull('charity_id')

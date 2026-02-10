@@ -793,12 +793,8 @@ public function toggleCharityPayment(Request $request)
             ->map(fn($t) => \Carbon\Carbon::parse($t->created_at)->format('Y-m-d'))
             ->toArray();
 
-            Transaction::where('t_id', 'Out-1770654109-21')->update(['status' => 1]);
-
 
             // ledger
-
-
             // 1. Get the data
             $userTransactionsledger = Usertransaction::with('charity')
                 ->where('charity_id', $id)

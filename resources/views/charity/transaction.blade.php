@@ -21,6 +21,7 @@
                         <button class="nav-link" id="ledger-tab" data-bs-toggle="tab" data-bs-target="#nav-ledger" type="button" role="tab">Ledger</button>
                         <button class="nav-link" id="pendingVoucher-tab" data-bs-toggle="tab" data-bs-target="#nav-pendingVoucher" type="button" role="tab">Pending Vouchers</button>
                         <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#nav-email" type="button" role="tab">Email Configuration</button>
+                        <button class="nav-link" id="check-tran-tab" data-bs-toggle="tab" data-bs-target="#check-trans" type="button" role="tab">Check Transactions</button>
                     </div>
                 </nav>
 
@@ -254,6 +255,36 @@
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                         </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- 8. --}}
+
+                    <div class="tab-pane fade" id="check-trans" role="tabpanel">
+                        
+                        
+                        <table class="table table-custom mt-4" id="emailTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>TranID</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
+                                <tr id="row_{{$data->id}}">
+                                    <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                                    <td class="email-cell">{{ $data->t_id }}</td>
+                                    <td class="email-cell">{{ $data->amount }}</td>
+                                    <td class="email-cell">{{ $data->status }}</td>
+                                    <td class="text-right">
                                     </td>
                                 </tr>
                                 @endforeach

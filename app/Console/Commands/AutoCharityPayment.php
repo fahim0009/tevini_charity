@@ -8,6 +8,8 @@ use App\Models\Transaction;
 use App\Models\Charity;
 use App\Models\ContactMail;
 use Illuminate\Support\Facades\DB;
+use App\Mail\CharityDailyReport;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class AutoCharityPayment extends Command
@@ -20,86 +22,110 @@ class AutoCharityPayment extends Command
 
     public function handle()
     {
-        // Ensure the script doesn't time out
         set_time_limit(0);
+        Log::info("Payment Process: Starting charity payout for 16:30 cut-off.");
 
-            // $today = now()->subDay()->toDateString();
-            $today = now()->toDateString();
+        // 1. Define the 16:30 cut-off for today
+        $endTime = now()->setHour(16)->setMinute(30)->setSecond(0);
+
+        // Define the "Day 1" start time (Midnight of today)
+        $startOfToday = (clone $endTime)->startOfDay();
+
+        // Standard 24-hour window start
+        $standardStartTime = (clone $endTime)->subDay();
+
+        $launchDate = '2026-02-15'; // Set this to your actual Day 1 date
+
+        if (now()->toDateString() === $launchDate) {
+            $startTime = $startOfToday;
+            Log::info("Payment Process: Day 1 detected. Setting start time to 00:00.");
+        } else {
+            $startTime = $standardStartTime;
+        }
+
+
+        
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
+        // 2. Get transactions within the window
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', [$startTime, $endTime])
             ->select(['charity_id', DB::raw("SUM(amount) as total")])
-            ->groupBy('charity_id')->get();
+            ->groupBy('charity_id')
+            ->get();
+
+        Log::info("Payment Process: Found " . $pendingBalances->count() . " charities with transactions.");
 
         foreach ($pendingBalances as $record) {
             $charity = Charity::find($record->charity_id);
-            if (!$charity || !$charity->email) continue;
+            
+            if (!$charity || !$charity->email) {
+                Log::warning("Payment Process: Charity ID {$record->charity_id} not found or missing email.");
+                continue;
+            }
 
-            // 1. Calculate how much has ALREADY been paid out today
-            $alreadyPaidToday = Transaction::where('charity_id', $charity->id)
+            // Check for manual 'Out' transactions in this window
+            $alreadyPaid = Transaction::where('charity_id', $charity->id)
                 ->where('t_type', 'Out')
-                ->whereDate('created_at', $today)
+                ->whereBetween('created_at', [$startTime, $endTime])
                 ->sum('amount');
 
-            // 2. The amount to pay now is the Total Collected minus what was already paid
-            $amountToPayNow = $record->total - $alreadyPaidToday;
+            $amountToPayNow = $record->total - $alreadyPaid;
 
-            // 3. Only proceed if there is a remaining balance higher than 0.01
             if ($amountToPayNow > 0.01) {
-                // 1. Database Logic
-                $transaction = new Transaction();
-                $transaction->t_id = "Out-" . time() . "-" . $charity->id;
-                $transaction->charity_id = $charity->id;
-                $transaction->t_type = "Out";
-                $transaction->name = "Bank";
-                $transaction->amount = $amountToPayNow;
-                $transaction->status = "1"; 
-                $transaction->created_at = $today . ' ' . now()->format('H:i:s');
-                $transaction->save();
+                try {
+                    DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $startTime, $contactmail) {
+                        // Create Payout Record
+                        $transaction = new Transaction();
+                        $transaction->t_id = "Out-" . time() . "-" . $charity->id;
+                        $transaction->charity_id = $charity->id;
+                        $transaction->t_type = "Out";
+                        $transaction->name = "Bank";
+                        $transaction->amount = $amountToPayNow;
+                        $transaction->status = "1"; 
+                        $transaction->created_at = $endTime;
+                        $transaction->save();
 
-                $charity->decrement('balance', $amountToPayNow);
+                        $charity->decrement('balance', $amountToPayNow);
 
-                // 2. Generate PDF
-                $details = Usertransaction::where('charity_id', $charity->id)
-                    ->whereDate('created_at', $today)
-                    ->with('user')->get();
+                        // PDF Generation
+                        $details = Usertransaction::where('charity_id', $charity->id)
+                            ->whereBetween('created_at', [$startTime, $endTime])
+                            ->with('user')->get();
 
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
-                    'charity' => $charity,
-                    'details' => $details,
-                    'total'   => $amountToPayNow,
-                    'date'    => $today
-                ]);
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
+                            'charity' => $charity,
+                            'details' => $details,
+                            'total'   => $amountToPayNow,
+                            'date'    => $endTime->toDateString()
+                        ]);
 
-                $fileName = 'Statement-' . $charity->id . '-' . $today . '.pdf';
-                $filePath = public_path('/invoices/' . $fileName);
-                file_put_contents($filePath, $pdf->output());
+                        $fileName = 'Statement-' . $charity->id . '-' . $endTime->format('Y-m-d-Hi') . '.pdf';
+                        $filePath = public_path('/invoices/' . $fileName);
+                        file_put_contents($filePath, $pdf->output());
 
-                $mailData = [
-                    'name'    => $charity->name,
-                    'transactionid'    => $transaction->t_id,
-                    'total'   => number_format($record->total, 2),
-                    'date'    => $today,
-                    'subject' => 'Daily Transaction Statement - ' . $today,
-                    'file'    => $filePath,
-                ];
+                        $mailData = [
+                            'name'          => $charity->name,
+                            'transactionid' => $transaction->t_id,
+                            'total'         => number_format($amountToPayNow, 2),
+                            'date'          => $endTime->toDateString(),
+                            'subject'       => 'Daily Statement - ' . $endTime->toDateString(),
+                            'file'          => $filePath,
+                        ];
 
-                // 3. Send to Charity and Wait 10 seconds
-                Mail::send('mail.charity_daily_report', $mailData, function($message) use ($charity, $mailData) {
-                    $message->to($charity->email)->subject($mailData['subject'])->attach($mailData['file']);
-                });
-                $this->info("Email sent to charity: " . $charity->email);
-                sleep(10); // Pause for 10 seconds
+                        // 3. Queue the Emails (No more sleep timers!)
+                        Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
+                        Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
 
-                // 4. Send to Admin and Wait 10 seconds
-                Mail::send('mail.charity_daily_report', $mailData, function($message) use ($mailData, $contactmail) {
-                    $message->to($contactmail)->subject($mailData['subject'])->attach($mailData['file']);
-                });
-                $this->info("Copy sent to admin.");
-                sleep(10); // Pause for 10 seconds
+                        Log::info("Payment Process: Success for {$charity->name}. Emails queued.");
+                    });
+                } catch (\Exception $e) {
+                    Log::error("Payment Process: Failed for Charity {$charity->id}. Error: " . $e->getMessage());
+                }
             }
         }
+
+        Log::info("Payment Process: Completed for cut-off " . $endTime);
     }
 
 

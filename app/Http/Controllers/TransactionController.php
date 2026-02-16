@@ -56,7 +56,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index(Request $request)
+    public function index2(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');
@@ -90,6 +90,139 @@ class TransactionController extends Controller
                     ])
                     ->leftJoinSub($paidSubquery, 'paid_data', function ($join) {
                         $join->on(DB::raw('DATE(usertransactions.created_at)'), '=', 'paid_data.pay_date')
+                            ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
+                    })
+                    ->groupBy('date_group', 'usertransactions.charity_id') 
+                    ->with('charity');
+
+                if ($fromDate && $toDate) {
+                    $query->whereBetween('usertransactions.created_at', [$fromDate, $toDate . ' 23:59:59']);
+                }
+
+                return DataTables::of($query)
+                    ->editColumn('date_group', fn($row) => \Carbon\Carbon::parse($row->date_group)->format('d/m/Y'))
+                    ->addColumn('charity_name', fn($row) => ($row->charity->name ?? 'N/A') . ' (' . ($row->charity->balance ?? '0') . ')')
+                    ->addColumn('balance', function($row) {
+                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                        $balance = $totalGenerated - $row->paid_sum;
+                        return '£' . number_format($balance, 2);
+                    })
+                    ->addColumn('action', function($row) {
+                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                        
+                        // Rule: If status is 1 (Active), switch is ON. If 0 (Deactive) or no record, switch is OFF.
+                        $isChecked = ($row->payment_status == 1) ? 'checked' : '';
+
+                        return '
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input status-switch" type="checkbox" 
+                                    role="switch" 
+                                    '.$isChecked.'
+                                    data-charity-id="'.$row->charity_id.'"
+                                    data-date="'.$row->date_group.'"
+                                    data-total="'.$totalGenerated.'">
+                            </div>';
+                    })
+
+                    ->editColumn('paid_sum', function($row) {
+                        if ($row->paid_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        
+                        return '<a href="javascript:void(0)" class="view-details text-success text-decoration-none fw-bold" 
+                                data-type="paid" 
+                                data-charity="'.$row->charity_id.'" 
+                                data-date="'.$row->date_group.'">
+                                £' . number_format($row->paid_sum, 2) . '
+                                </a>';
+                    })
+
+                    ->editColumn('online_sum', function($row) {
+                        if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->online_sum, 2) . '</a>';
+                    })
+                    ->editColumn('standing_sum', function($row) {
+                        if ($row->standing_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="standing" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->standing_sum, 2) . '</a>';
+                    })
+                    ->editColumn('voucher_sum', function($row) {
+                        if ($row->voucher_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="voucher" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->voucher_sum, 2) . '</a>';
+                    })
+                    ->editColumn('campaign_sum', function($row) {
+                        if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.$row->date_group.'">£' . number_format($row->campaign_sum, 2) . '</a>';
+                    })
+                    ->rawColumns(['action', 'online_sum', 'standing_sum', 'voucher_sum', 'campaign_sum','paid_sum']) 
+                    ->make(true);
+            }
+
+            $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
+
+            if ($type === 'In' || $type === 'Out') {
+                $query->where('usertransactions.t_type', $type);
+            }
+
+            if ($fromDate && $toDate) {
+                $query->whereBetween('usertransactions.created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+
+            return DataTables::of($query)
+                ->editColumn('created_at', fn($row) => \Carbon\Carbon::parse($row->created_at)->format('d/m/Y'))
+                ->addColumn('beneficiary', function($row) {
+                    return $row->charity->name ?? $row->crdAcptLoc ?? 'N/A';
+                })
+                ->addColumn('donor', function($row) {
+                    return $row->user ? $row->user->name.' '.$row->user->surname : 'N/A';
+                })
+                ->editColumn('amount', fn($row) => '£' . number_format($row->amount, 2))
+                ->rawColumns(['beneficiary', 'donor'])
+                ->make(true);
+        }
+
+        return view('transaction.index');
+    }
+
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $type = $request->get('t_type');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+
+            if ($type === 'Summary') {
+                
+                // 1. Define the offset as a clean string for MariaDB
+                $timeOffset = "INTERVAL '16:30' HOUR_MINUTE";
+                
+                // 2. Build the adjusted date logic
+                $adjustedDate = "DATE(DATE_SUB(usertransactions.created_at, $timeOffset))";
+                $adjustedPaidDate = "DATE(DATE_SUB(transactions.created_at, $timeOffset))";
+
+                $paidSubquery = DB::table('transactions')
+                    ->select(
+                        DB::raw("$adjustedPaidDate as pay_date"), 
+                        'charity_id',
+                        DB::raw('SUM(amount) as total_paid'),
+                        DB::raw('MAX(bank_payment_status) as current_status')
+                    )
+                    ->where('t_type', 'Out') // Laravel handles the quotes here correctly
+                    ->groupBy('pay_date', 'charity_id');
+
+                $query = Usertransaction::query()
+                    ->whereNotNull('usertransactions.charity_id') 
+                    // Ensure now() is formatted as a string for the query
+                    ->where('usertransactions.created_at', '<', now()->setHour(16)->setMinute(30)->toDateTimeString())
+                    ->select([
+                        DB::raw("$adjustedDate as date_group"), 
+                        'usertransactions.charity_id',
+                        DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
+                        DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
+                        DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
+                        DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
+                        DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
+                        DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status") 
+                    ])
+                    ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($adjustedDate) {
+                        $join->on(DB::raw($adjustedDate), '=', 'paid_data.pay_date')
                             ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
                     })
                     ->groupBy('date_group', 'usertransactions.charity_id') 

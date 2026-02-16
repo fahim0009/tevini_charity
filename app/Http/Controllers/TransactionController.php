@@ -56,7 +56,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index2(Request $request)
+    public function index(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');
@@ -181,7 +181,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index(Request $request)
+    public function index2(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');
@@ -204,7 +204,7 @@ class TransactionController extends Controller
                         DB::raw('SUM(amount) as total_paid'),
                         DB::raw('MAX(bank_payment_status) as current_status')
                     )
-                    ->where('t_type', 'Out') // Laravel handles the quotes here correctly
+                    ->where('t_type', 'Out') 
                     ->groupBy('pay_date', 'charity_id');
 
                 $query = Usertransaction::query()

@@ -1603,7 +1603,7 @@ class OrderController extends Controller
 
     }
 
-    public function addStartBarcode(Request $request)
+    public function addStartBarcode_old(Request $request)
     {
         if(empty($request->startbarcode)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please start barcode fill field.</b></div>";
@@ -1665,6 +1665,73 @@ class OrderController extends Controller
             }
         } 
 
+    }
+
+    public function addStartBarcode(Request $request)
+    {
+        if(empty($request->startbarcode)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill the start barcode field.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+
+        $voucherType = $request->voucherType;
+
+        if ($voucherType == "Mixed") {
+            $startbarcode = $request->startbarcode;  
+            $unqid = OrderHistory::where('id', $request->orderhisid)->first()->o_unq;
+            $orderhis = OrderHistory::where('o_unq', $unqid)->get();
+
+            // --- VALIDATION STEP ---
+            // Calculate the total range first to check for duplicates before saving anything
+            $tempStart = $startbarcode;
+            foreach ($orderhis as $order) {
+                $rangeSize = ($order->mixed_value == 3 || $order->mixed_value == 5) ? 15 : 10;
+                $tempEnd = $tempStart + $rangeSize - 1;
+
+                // Check if any barcode in this specific range already exists
+                $exists = Barcode::whereBetween('barcode', [$tempStart, $tempEnd])->first();
+                if ($exists) {
+                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Error: Barcode " . $exists->barcode . " already exists in the system.</b></div>";
+                    return response()->json(['status'=> 303,'message'=>$message]);
+                }
+                $tempStart = $tempEnd + 1;
+            }
+            // --- END VALIDATION ---
+
+            // If we reached here, the range is clear. Now perform the save.
+            foreach ($orderhis as $order) {
+                $page = ($order->mixed_value == 3 || $order->mixed_value == 5) ? 15 : 10;
+                
+                $data = OrderHistory::find($order->id);
+                $data->startbarcode = $startbarcode;
+                $data->total_page = $page;
+                $data->save();
+
+                $endbarcode = $startbarcode + $page;
+
+                for($x = $startbarcode; $x < $endbarcode; $x++) {
+                    $addbarcode = new Barcode();
+                    $addbarcode->orderhistory_id = $data->id;
+                    $addbarcode->user_id = $request->user_id;
+                    $addbarcode->barcode = $x;
+                    $addbarcode->amount = $data->mixed_value;
+                    $addbarcode->save();
+                }
+                $startbarcode = $endbarcode; // Set start for next order in loop
+            }
+
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mixed Barcodes added successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+            
+        } else {
+            // Non-mixed logic (If you also generate a single barcode here, add a check too)
+            $user = OrderHistory::find($request->orderhisid);
+            $user->startbarcode = $request->startbarcode;
+            if($user->save()){
+                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
+                return response()->json(['status'=> 300,'message'=>$message]);
+            }
+        } 
     }
 
     public function addNumberofpage(Request $request)

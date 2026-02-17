@@ -1689,10 +1689,11 @@ class OrderController extends Controller
                 $tempEnd = $tempStart + $rangeSize - 1;
 
                 // Check if any barcode in this specific range already exists
-                $exists = Barcode::whereBetween('barcode', [$tempStart, $tempEnd])->first();
+                $exists = Barcode::whereRaw('CAST(barcode AS UNSIGNED) BETWEEN ? AND ?', [$tempStart, $tempEnd])->first();
+    
                 if ($exists) {
                     $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Error: Barcode " . $exists->barcode . " already exists in the system.</b></div>";
-                    return response()->json(['status'=> 303,'message'=>$message]);
+                    return response()->json(['status'=> 303, 'message'=>$message]);
                 }
                 $tempStart = $tempEnd + 1;
             }
@@ -1807,6 +1808,47 @@ class OrderController extends Controller
 
     }
 
+    public function clearBarcode(Request $request)
+    {
+        $orderHistory = OrderHistory::find($request->orderhisid);
+
+        if (!$orderHistory) {
+            return response()->json(['status' => 303, 'message' => 'Record not found.']);
+        }
+
+        try {
+            // Handle Mixed Vouchers (Clearing the whole group sharing o_unq)
+            if ($orderHistory->voucher->type == "Mixed") {
+                $unqid = $orderHistory->o_unq;
+                $relatedOrders = OrderHistory::where('o_unq', $unqid)->get();
+                $relatedIds = $relatedOrders->pluck('id');
+
+                // 1. Delete all generated barcodes for this group
+                Barcode::whereIn('orderhistory_id', $relatedIds)->delete();
+
+                // 2. Reset fields for the whole group
+                OrderHistory::whereIn('id', $relatedIds)->update([
+                    'startbarcode' => null,
+                    'total_page' => null
+                ]);
+            } else {
+                // Handle Standard Vouchers (Single row)
+                Barcode::where('orderhistory_id', $orderHistory->id)->delete();
+                
+                $orderHistory->startbarcode = null;
+                $orderHistory->total_page = null;
+                $orderHistory->save();
+            }
+
+            return response()->json([
+                'status' => 300, 
+                'message' => "<div class='alert alert-success'>Barcode cleared successfully.</div>"
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 303, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
 
     public function barcode($id)
     {
@@ -1815,10 +1857,13 @@ class OrderController extends Controller
         $user_id = $order->user_id;
         $user = User::where('id','=', $user_id)->first();
         $orderDtls = OrderHistory::where('order_id',  $id)->get();
+
+        // dd($orderDtls);
+
         return view('voucher.barcode')
-        ->with('user',$user)
-        ->with('order',$order)
-        ->with('orderDtls',$orderDtls);
+                ->with('user',$user)
+                ->with('order',$order)
+                ->with('orderDtls',$orderDtls);
 
     }
 

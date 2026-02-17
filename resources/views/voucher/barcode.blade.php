@@ -128,9 +128,14 @@
                                 </td>
                                 <td>
                                     @if($orderDtl->startbarcode)
-                                        <div class="d-inline-block p-2 bg-white border rounded text-center">
+                                        <div class="d-inline-block p-2 bg-white border rounded text-center position-relative">
                                             {!! DNS1D::getBarcodeHTML($orderDtl->startbarcode, 'PHARMA') !!}
-                                            <span class="d-block small mt-1 fw-bold tracking-tighter">{{$orderDtl->startbarcode}}</span>
+                                            <span class="d-block small mt-1 fw-bold">{{$orderDtl->startbarcode}}</span>
+                                            
+                                            <button type="button" class="btn btn-sm btn-danger py-0 px-1 mt-1 clear-barcode-btn" 
+                                                    data-id="{{$orderDtl->id}}" style="font-size: 10px;">
+                                                Clear
+                                            </button>
                                         </div>
                                     @else
                                         <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-outline-primary btn-sm acc" vtype="{{$orderDtl->voucher->type}}" mixedAmount="{{$orderDtl->mixed_value}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -341,6 +346,37 @@ $(document).ready(function() {
             }
         });
 
+    });
+
+    // Clear Barcode Logic
+    $(".clear-barcode-btn").click(function() {
+        if (!confirm("Are you sure you want to clear this barcode and delete all generated entries?")) {
+            return;
+        }
+
+        var orderhisid = $(this).data("id");
+        var clearUrl = "{{ route('admin.clearBarcode') }}";
+
+        $("#loading").css('display', 'flex'); // Show loader if you have one
+
+        $.ajax({
+            url: clearUrl,
+            method: "POST",
+            data: { orderhisid: orderhisid },
+            success: function(d) {
+                if (d.status == 300) {
+                    $(".ermsg").html(d.message);
+                    location.reload();
+                } else {
+                    $(".ermsg").html(d.message);
+                    $("#loading").hide();
+                }
+            },
+            error: function() {
+                alert("Something went wrong.");
+                $("#loading").hide();
+            }
+        });
     });
 
       //add startbarcode END

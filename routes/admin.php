@@ -242,6 +242,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/add-start-barcode', [OrderController::class, 'addStartBarcode']);
     Route::post('/add-pages', [OrderController::class, 'addNumberofpage']);
     Route::post('/cancel-pages', [OrderController::class, 'cancelVoucherBook']);
+    Route::post('/clear-barcode', [OrderController::class, 'clearBarcode'])->name('admin.clearBarcode');
 
     // commission
     Route::get('/commission', [OrderController::class, 'commission'])->name('commission');

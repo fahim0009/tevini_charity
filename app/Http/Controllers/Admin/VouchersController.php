@@ -64,8 +64,12 @@ class VouchersController extends Controller
 
             $from_barcode_number = $request->from_barcode_number;
             $to_barcode_number = $request->to_barcode_number;
-            
-            $chkBarcode = Barcode::whereBetween('barcode', [$from_barcode_number, $to_barcode_number])->get();
+
+            // We use whereRaw to cast the string column to an unsigned integer
+            $chkBarcode = Barcode::whereRaw('CAST(barcode AS UNSIGNED) BETWEEN ? AND ?', [
+                $from_barcode_number, 
+                $to_barcode_number
+            ])->get();
 
 
 

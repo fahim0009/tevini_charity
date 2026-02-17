@@ -285,7 +285,8 @@ class OrderController extends Controller
                         $vqtys = $qtys[$key];
                         
                         if ($voucherDtl->type == "Mixed") {
-                            $this->voucherDetailsStore($order, $voucher_id, $amount, $unique, $voucherDtl, $vqtys);
+                            $unique2 = time().rand(1,100);
+                            $this->voucherDetailsStore($order, $voucher_id, $amount, $unique2, $voucherDtl, $vqtys);
                         } else {
                             OrderHistory::create($input);
                         }
@@ -721,11 +722,13 @@ class OrderController extends Controller
         });
     }
 
-    public function voucherDetailsStore($order, $voucher_id, $unique)
+    public function voucherDetailsStore($order, $voucher_id, $unique2)
     {
         // Define mixed values based on ID
         $values = ($voucher_id == 176) ? ["3", "5", "10", "18"] : ["20", "25", "36", "50", "72"];
 
+        
+        $unique = time().rand(1,100);
         foreach ($values as $val) {
             OrderHistory::create([
                 'order_id' => $order->id,
@@ -1603,13 +1606,14 @@ class OrderController extends Controller
 
     }
 
-    public function addStartBarcode_old(Request $request)
+    public function addStartBarcode(Request $request)
     {
         if(empty($request->startbarcode)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please start barcode fill field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+        $voucherID = $request->voucherID;
         $mixedamount = $request->mixedamount;
         $voucherType = $request->voucherType;
 
@@ -1667,73 +1671,8 @@ class OrderController extends Controller
 
     }
 
-    public function addStartBarcode(Request $request)
-    {
-        if(empty($request->startbarcode)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill the start barcode field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-        }
 
-        $voucherType = $request->voucherType;
 
-        if ($voucherType == "Mixed") {
-            $startbarcode = $request->startbarcode;  
-            $unqid = OrderHistory::where('id', $request->orderhisid)->first()->o_unq;
-            $orderhis = OrderHistory::where('o_unq', $unqid)->get();
-
-            // --- VALIDATION STEP ---
-            // Calculate the total range first to check for duplicates before saving anything
-            $tempStart = $startbarcode;
-            foreach ($orderhis as $order) {
-                $rangeSize = ($order->mixed_value == 3 || $order->mixed_value == 5) ? 15 : 10;
-                $tempEnd = $tempStart + $rangeSize - 1;
-
-                // Check if any barcode in this specific range already exists
-                $exists = Barcode::whereRaw('CAST(barcode AS UNSIGNED) BETWEEN ? AND ?', [$tempStart, $tempEnd])->first();
-    
-                if ($exists) {
-                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Error: Barcode " . $exists->barcode . " already exists in the system.</b></div>";
-                    return response()->json(['status'=> 303, 'message'=>$message]);
-                }
-                $tempStart = $tempEnd + 1;
-            }
-            // --- END VALIDATION ---
-
-            // If we reached here, the range is clear. Now perform the save.
-            foreach ($orderhis as $order) {
-                $page = ($order->mixed_value == 3 || $order->mixed_value == 5) ? 15 : 10;
-                
-                $data = OrderHistory::find($order->id);
-                $data->startbarcode = $startbarcode;
-                $data->total_page = $page;
-                $data->save();
-
-                $endbarcode = $startbarcode + $page;
-
-                for($x = $startbarcode; $x < $endbarcode; $x++) {
-                    $addbarcode = new Barcode();
-                    $addbarcode->orderhistory_id = $data->id;
-                    $addbarcode->user_id = $request->user_id;
-                    $addbarcode->barcode = $x;
-                    $addbarcode->amount = $data->mixed_value;
-                    $addbarcode->save();
-                }
-                $startbarcode = $endbarcode; // Set start for next order in loop
-            }
-
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mixed Barcodes added successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-            
-        } else {
-            // Non-mixed logic (If you also generate a single barcode here, add a check too)
-            $user = OrderHistory::find($request->orderhisid);
-            $user->startbarcode = $request->startbarcode;
-            if($user->save()){
-                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Start Barcode added successfully.</b></div>";
-                return response()->json(['status'=> 300,'message'=>$message]);
-            }
-        } 
-    }
 
     public function addNumberofpage(Request $request)
     {
@@ -1809,63 +1748,123 @@ class OrderController extends Controller
     }
 
     public function clearBarcode(Request $request)
-    {
-        $orderHistory = OrderHistory::find($request->orderhisid);
+{
+    $orderHistory = OrderHistory::find($request->orderhisid);
 
-        if (!$orderHistory) {
-            return response()->json(['status' => 303, 'message' => 'Record not found.']);
+    if (!$orderHistory) {
+        return response()->json(['status' => 303, 'message' => 'Record not found.']);
+    }
+
+    try {
+
+        DB::beginTransaction();
+
+        // If o_unq is null or empty → generate one
+        if (empty($orderHistory->o_unq)) {
+
+            $unique = $orderHistory->order_id 
+                        . '_' . $orderHistory->voucher_id 
+                        . '_' . time();
+
+            OrderHistory::where('order_id', $orderHistory->order_id)
+                ->where('voucher_id', $orderHistory->voucher_id)
+                ->update(['o_unq' => $unique]);
         }
 
-        try {
-            // Handle Mixed Vouchers (Clearing the whole group sharing o_unq)
-            if ($orderHistory->voucher->type == "Mixed") {
-                $unqid = $orderHistory->o_unq;
-                $relatedOrders = OrderHistory::where('o_unq', $unqid)->get();
-                $relatedIds = $relatedOrders->pluck('id');
 
-                // 1. Delete all generated barcodes for this group
-                Barcode::whereIn('orderhistory_id', $relatedIds)->delete();
+        // Handle Mixed Voucher
+        if ($orderHistory->voucher->type == "Mixed") {
 
-                // 2. Reset fields for the whole group
-                OrderHistory::whereIn('id', $relatedIds)->update([
-                    'startbarcode' => null,
-                    'total_page' => null
-                ]);
-            } else {
-                // Handle Standard Vouchers (Single row)
-                Barcode::where('orderhistory_id', $orderHistory->id)->delete();
-                
-                $orderHistory->startbarcode = null;
-                $orderHistory->total_page = null;
-                $orderHistory->save();
-            }
+            $unqid = $orderHistory->o_unq;
 
-            return response()->json([
-                'status' => 300, 
-                'message' => "<div class='alert alert-success'>Barcode cleared successfully.</div>"
+            $relatedOrders = OrderHistory::where('o_unq', $unqid)->get();
+            $relatedIds = $relatedOrders->pluck('id');
+
+            // Delete barcodes
+            Barcode::whereIn('orderhistory_id', $relatedIds)->delete();
+
+            // Reset fields
+            OrderHistory::whereIn('id', $relatedIds)->update([
+                'startbarcode' => null,
+                'total_page' => null
             ]);
 
-        } catch (\Exception $e) {
-            return response()->json(['status' => 303, 'message' => 'Error: ' . $e->getMessage()]);
+        } else {
+
+            // Standard Voucher
+            Barcode::where('orderhistory_id', $orderHistory->id)->delete();
+
+            $orderHistory->update([
+                'startbarcode' => null,
+                'total_page' => null
+            ]);
         }
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 300,
+            'message' => "<div class='alert alert-success'>Barcode cleared successfully.</div>"
+        ]);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'status' => 303,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
     }
+}
+
+
 
     public function barcode($id)
     {
+        $order = Order::find($id);
 
-        $order = Order::where('id',$id)->first();
-        $user_id = $order->user_id;
-        $user = User::where('id','=', $user_id)->first();
-        $orderDtls = OrderHistory::where('order_id',  $id)->get();
+        if (!$order) {
+            abort(404);
+        }
 
-        // dd($orderDtls);
+        $user = User::find($order->user_id);
 
-        return view('voucher.barcode')
-                ->with('user',$user)
-                ->with('order',$order)
-                ->with('orderDtls',$orderDtls);
+        $orderDtls = OrderHistory::where('order_id', $id)->get();
 
+        $needsUpdate = $orderDtls
+            ->where('o_unq', 0)
+            ->whereNotNull('mixed_value')
+            ->groupBy(function ($item) {
+                return $item->order_id . '_' . $item->voucher_id;
+            });
+
+        $baseTime = time();
+
+        foreach ($needsUpdate as $group) {
+
+            // Split into chunks of 4 rows
+            $chunks = $group->chunk(4);
+
+            foreach ($chunks as $index => $chunk) {
+
+                $first = $chunk->first();
+
+                $unique = $first->order_id
+                            . '_' . $first->voucher_id
+                            . '_' . ($baseTime + $index);
+
+                OrderHistory::whereIn('id', $chunk->pluck('id'))
+                    ->update(['o_unq' => $unique]);
+            }
+        }
+
+        // Reload updated data
+        $orderDtls = OrderHistory::where('order_id', $id)->get();
+
+        return view('voucher.barcode', compact('user', 'order', 'orderDtls'));
     }
+
 
     // download voucher book invoice
     public function downloadpostage($id)

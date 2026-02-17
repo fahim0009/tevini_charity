@@ -9,6 +9,13 @@ class Barcode extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'orderhistory_id',
+        'user_id',
+        'barcode',
+        'amount',
+    ];
+
     public function user()
     {
         return $this->belongsTo('App\Models\User');

@@ -138,7 +138,7 @@
                                             </button>
                                         </div>
                                     @else
-                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-outline-primary btn-sm acc" vtype="{{$orderDtl->voucher->type}}" mixedAmount="{{$orderDtl->mixed_value}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <button type="button" order-id="{{$orderDtl->id}}" class="btn btn-outline-primary btn-sm acc" vtype="{{$orderDtl->voucher->type}}" mixedAmount="{{$orderDtl->mixed_value}}"  voucherID="{{$orderDtl->voucher_id}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             + Add Barcode
                                         </button>
                                     @endif
@@ -188,6 +188,7 @@
                     <label for="startbarcode" class="form-label small text-muted">Scan or Enter Barcode</label>
                     <input type="text" class="form-control form-control-lg" id="startbarcode">
                     <input type="hidden" id="orderhisid">
+                    <input type="hidden" id="voucherID">
                 </div>
             </div>
             <div class="modal-footer border-0">
@@ -297,9 +298,11 @@ $(document).ready(function() {
         var orderid = $(this).attr("order-id");
         var vtype = $(this).attr("vtype");
         var mixedamount = $(this).attr("mixedamount");
+        var voucherID = $(this).attr("voucherID");
         $('#orderhisid').val(orderid);
         $('#voucherType').val(vtype);
         $('#mixedamount').val(mixedamount);
+        $('#voucherID').val(voucherID);
     });
 
     $(".acc2").click(function(){
@@ -325,13 +328,14 @@ $(document).ready(function() {
         var user_id = $("#user_id").val();
         var voucherType = $("#voucherType").val();
         var mixedamount = $("#mixedamount").val();
+        var voucherID = $("#voucherID").val();
         
-        // console.log(orderhisid, voucherType, mixedamount, user_id);
+        console.log(orderhisid, voucherType, mixedamount, voucherID);
 
         $.ajax({
             url: starturl,
             method: "POST",
-            data: {orderhisid,startbarcode,user_id,voucherType,mixedamount},
+            data: {orderhisid,startbarcode,user_id,voucherType,mixedamount, voucherID},
             success: function (d) {
                 // console.log(d);
                 if (d.status == 303) {

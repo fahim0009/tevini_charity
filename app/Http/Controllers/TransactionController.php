@@ -72,10 +72,11 @@ class TransactionController extends Controller
                         DB::raw('SUM(amount) as total_paid'),
                         DB::raw('MAX(bank_payment_status) as current_status')
                     )
-                    ->where('t_type', 'Out') // Ensure we only look at payments out
+                    ->where('status', 1)
+                    ->where('t_type', 'Out')
                     ->groupBy('pay_date', 'charity_id');
 
-                $query = Usertransaction::query()
+                $query = Usertransaction::query()->where('status', 1)
                     ->whereNotNull('usertransactions.charity_id') 
                     ->whereDate('usertransactions.created_at', '<', now()->toDateString())
                     ->select([
@@ -319,9 +320,9 @@ class TransactionController extends Controller
     {
         // CASE 1: Paid amount clicked (Show the bulk record from transactions table)
         if ($request->type == 'paid') {
-            $data = Transaction::with('charity') // Assumes relationship 'charity' exists on Transaction model
+            $data = Transaction::with('charity')
                 ->where('charity_id', $request->charity_id)
-                ->where('t_type', 'Out')
+                ->where('t_type', 'Out')->where('status', 1)
                 ->whereDate('created_at', $request->date)
                 ->get();
 
@@ -330,13 +331,14 @@ class TransactionController extends Controller
                     'donor'  => $item->charity->name ?? 'N/A',
                     'amount' => '£' . number_format($item->amount, 2),
                     'ref'    => $item->t_id,
+                    'status'    => $item->status,
                     'date'   => $item->created_at->format('d/m/Y H:i')
                 ];
             }));
         }
 
         // CASE 2: Online/Standing/Voucher/Campaign clicked (Show individual usertransactions)
-        $query = Usertransaction::with('user')
+        $query = Usertransaction::with('user')->where('status', 1)
             ->where('charity_id', $request->charity_id)
             ->whereDate('created_at', $request->date);
 
@@ -352,6 +354,7 @@ class TransactionController extends Controller
                 'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
                 'amount' => '£' . number_format($item->amount, 2),
                 'ref'    => $item->cheque_no ?? $item->t_id,
+                'status'    => $item->status,
                 'date'   => $item->created_at->format('d/m/Y H:i')
             ];
         }));

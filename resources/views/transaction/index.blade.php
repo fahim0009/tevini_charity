@@ -257,7 +257,7 @@ $(function() {
                         <td>${item.donor}</td>
                         <td>${item.amount}</td>
                         <td>${item.ref}</td>
-                        <td>${item.date}</td>
+                        <td>${item.date} - (${item.status})</td>
                     </tr>`;
                 });
             }

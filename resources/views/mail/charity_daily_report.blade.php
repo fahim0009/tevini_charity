@@ -14,12 +14,23 @@
             <h2>Tevini Ltd - Remittance note</h2>
         </div>
         
-        <p>Dear {{ $name }},</p>
-        <p>Please find attached your <strong> Remittance report  </strong> for {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}.</p>
+        <p>Dear {{ $mailData['name'] }},</p>
 
-        <p>The total amount is: <strong>£{{ $total }}</strong>.</p>
+        <p>
+        Please find attached your 
+        <strong>Remittance report</strong> 
+        for {{ \Carbon\Carbon::parse($mailData['date'])->format('d/m/Y') }}.
+        </p>
 
-        <p>A payment with transaction ID {{$transactionid}} will be processed to your linked bank account shortly.</p>
+        <p>
+        The total amount is: <strong>£{{ $mailData['total'] }}</strong>.
+        </p>
+
+        <p>
+        A payment with transaction ID {{ $mailData['transactionid'] }} 
+        will be processed to your linked bank account shortly.
+        </p>
+
 
         <p>If you have any questions regarding these transactions, please contact us.</p>
 

@@ -22,6 +22,7 @@ class CharityDailyReport extends Mailable implements ShouldQueue
     {
         return $this->view('mail.charity_daily_report')
                     ->subject($this->mailData['subject'])
+                    ->with($this->mailData) 
                     ->attach($this->mailData['file'], [
                         'as' => 'Statement-' . $this->mailData['date'] . '.pdf',
                         'mime' => 'application/pdf',

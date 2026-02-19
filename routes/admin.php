@@ -385,5 +385,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // order history check for 360 amount order
     Route::get('/check-some-order', [VouchersController::class, 'checkOrder'])->name('checkOrder');
 
+    Route::get('/audit-charities', [AdminController::class, 'auditBalances'])->name('admin.audit.balances');
+
 
 });

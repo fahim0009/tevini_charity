@@ -23,7 +23,7 @@ class Charity extends Authenticatable
 
     public function transaction()
     {
-      return $this->hasOne('App\Models\Transaction');
+      return $this->hasMany('App\Models\Transaction');
     }
 
     public function commission()
@@ -38,7 +38,7 @@ class Charity extends Authenticatable
     
     public function usertransaction()
     {
-      return $this->hasOne('App\Models\Usertransaction');
+      return $this->hasMany('App\Models\Usertransaction');
     }
 
     public function campaign()

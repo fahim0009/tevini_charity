@@ -8,6 +8,9 @@ use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Admin\Validator;
+use App\Models\Charity;
+use App\Models\Transaction;
+use App\Models\Usertransaction;
 
 class AdminController extends Controller
 {
@@ -587,6 +590,60 @@ class AdminController extends Controller
     }
 
 
+    public function auditBalances()
+    {
+        $startDate = \Carbon\Carbon::parse('2026-02-09');
+        $today = now();
+        $report = [];
+
+        // 1. Get charities that were active in this period
+        $charities = Charity::whereHas('usertransaction', function($q) use ($startDate) {
+            $q->where('created_at', '>=', $startDate);
+        })->get();
+
+        // 2. Loop through each day from start until now
+        for ($date = clone $startDate; $date->lte($today); $date->addDay()) {
+            $dayStart = (clone $date)->startOfDay();
+            $dayEnd = (clone $date)->endOfDay();
+
+            foreach ($charities as $charity) {
+                // Money that came IN that day (Status 1)
+                $dailyIn = \App\Models\Usertransaction::where('charity_id', $charity->id)
+                    ->where('status', 1)
+                    ->whereBetween('created_at', [$dayStart, $dayEnd])
+                    ->sum('amount');
+
+                // Money that went OUT that day (The payout record)
+                $dailyOut = \App\Models\Transaction::where('charity_id', $charity->id)
+                    ->where('t_type', 'Out')
+                    ->where('status', 1)
+                    ->whereBetween('created_at', [$dayStart, $dayEnd])
+                    ->sum('amount');
+
+                // If there was any activity on this day, add to report
+                if ($dailyIn > 0 || $dailyOut > 0) {
+                    // Difference for this specific day
+                    $diff = $dailyIn - $dailyOut; 
+
+                    $report[] = [
+                        'date' => $date->toDateString(),
+                        'charity_id' => $charity->id,
+                        'name' => $charity->name,
+                        'in' => $dailyIn,
+                        'out' => $dailyOut,
+                        'diff' => $diff,
+                        // Typically 'In' should equal 'Out' if your cron runs daily
+                        'is_clean' => abs($diff) < 0.01 
+                    ];
+                }
+            }
+        }
+
+        // Sort report by date descending (newest first)
+        $report = collect($report)->sortByDesc('date')->values()->all();
+
+        return view('admin.audit_balances', compact('report'));
+    }
 
 
 

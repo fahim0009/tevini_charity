@@ -65,7 +65,7 @@ class AutoCharityPayment extends Command
             }
 
             // Check for manual 'Out' transactions in this window
-            $alreadyPaid = Transaction::where('charity_id', $charity->id)
+            $alreadyPaid = Transaction::where('charity_id', $charity->id)->where('status', 1)
                 ->where('t_type', 'Out')
                 ->whereBetween('created_at', [$startTime, $endTime])
                 ->sum('amount');
@@ -89,7 +89,7 @@ class AutoCharityPayment extends Command
                         $charity->decrement('balance', $amountToPayNow);
 
                         // PDF Generation
-                        $details = Usertransaction::where('charity_id', $charity->id)
+                        $details = Usertransaction::where('charity_id', $charity->id)->where('status', 1)
                             ->whereBetween('created_at', [$startTime, $endTime])
                             ->with('user')->get();
 

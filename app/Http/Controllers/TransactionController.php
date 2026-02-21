@@ -95,11 +95,7 @@ class TransactionController extends Controller
                     ->select(
                         DB::raw("
                             DATE(
-                                CASE 
-                                    WHEN TIME(created_at) > '$cutoffTime'
-                                    THEN DATE_ADD(created_at, INTERVAL 1 DAY)
-                                    ELSE created_at
-                                END
+                                DATE_ADD(created_at, INTERVAL 450 MINUTE)
                             ) as pay_date
                         "),
                         'charity_id',

@@ -56,7 +56,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index(Request $request)
+    public function index3(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');
@@ -281,7 +281,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index3(Request $request)
+    public function index(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');

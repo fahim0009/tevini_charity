@@ -56,7 +56,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index3(Request $request)
+    public function index(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');
@@ -116,36 +116,38 @@ class TransactionController extends Controller
                 |--------------------------------------------------------------------------
                 */
 
-                $query = Usertransaction::query()->orderBy('id','DESC')
-                    ->where('status', 1)
-                    ->whereNotNull('usertransactions.charity_id')
-                    ->select([
-                        DB::raw("$businessDateRaw as date_group"),
-                        'usertransactions.charity_id',
+                $query = Usertransaction::query()
+                        ->where('status', 1)
+                        ->whereNotNull('usertransactions.charity_id')
+                        ->select([
+                            DB::raw("$businessDateRaw as date_group"),
+                            'usertransactions.charity_id',
 
-                        DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
-                        DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
-                        DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
-                        DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
+                            DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
+                            DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
+                            DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
+                            DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
 
-                        DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
-                        DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
-                    ])
-                    ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime) {
+                            DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
+                            DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
+                        ])
+                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime) {
 
-                        $join->on(DB::raw("
-                            DATE(
-                                CASE 
-                                    WHEN TIME(usertransactions.created_at) > '$cutoffTime'
-                                    THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
-                                    ELSE usertransactions.created_at
-                                END
-                            )
-                        "), '=', 'paid_data.pay_date')
-                        ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
-                    })
-                    ->groupBy('date_group', 'usertransactions.charity_id')
-                    ->with('charity');
+                            $join->on(DB::raw("
+                                DATE(
+                                    CASE 
+                                        WHEN TIME(usertransactions.created_at) > '$cutoffTime'
+                                        THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
+                                        ELSE usertransactions.created_at
+                                    END
+                                )
+                            "), '=', 'paid_data.pay_date')
+                            ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
+                        })
+                        ->groupBy('date_group', 'usertransactions.charity_id')
+                        ->orderByRaw('date_group DESC')
+                        ->orderBy('usertransactions.charity_id')
+                        ->with('charity');
 
                 /*
                 |--------------------------------------------------------------------------
@@ -281,7 +283,7 @@ class TransactionController extends Controller
         return view('transaction.index');
     }
 
-    public function index(Request $request)
+    public function index3(Request $request)
     {
         if ($request->ajax()) {
             $type = $request->get('t_type');

@@ -52,31 +52,44 @@
                         <th>Donor Name</th>
                         <th>Type</th>
                         <th>Voucher #</th>
-                        <th>Donor Note</th>
+                        <th>Description</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $totalAmount = 0;
+                    @endphp
+
                     @foreach($details as $row)
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($row->created_at)->format('d/m/Y') }}</td>
                         <td>{{ $row->user ? $row->user->name . ' ' . $row->user->surname : 'Anonymous' }}</td>
                         <td>
-                            @if($row->donation_id) Online 
-                            @elseif($row->standing_donationdetails_id) Standing 
+                            @if($row->donation_id) Online Donation
+                            @elseif($row->standing_donationdetails_id) Standing Order
                             @elseif($row->cheque_no) Voucher 
                             @else Campaign @endif
                         </td>
                         <td>{{ $row->cheque_no ?? '-' }}</td>
-                        <td>{{ $row->note ?? '-' }}</td>
+                        <td>{{ $row->note ?? '-' }}
+                            @if($row->donation_id) {{$row->donation->mynote ?? ''}} <br>  {{$row->donation->charitynote ?? ''}}
+                            @elseif($row->standing_donationdetails_id) {{$row->standingDonationDetails->StandingDonation->mynote ?? ''}} <br>  {{$row->standingDonationDetails->StandingDonation->charitynote ?? ''}} 
+                            @elseif($row->campaign_id) {{ $row->campaign->campaign_title ?? '' }} 
+                            @elseif($row->cheque_no) Voucher ({{ $row->cheque_no }})
+                            @else Campaign  @endif
+                        </td>
                         <td>£{{ number_format($row->amount, 2) }}</td>
                     </tr>
+                    @php
+                        $totalAmount += $row->amount; 
+                    @endphp
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr style="font-weight: bold; background: #eee;">
                         <td colspan="5" class="text-right">Total Payment:</td>
-                        <td>£{{ number_format($total, 2) }}</td>
+                        <td>£{{ number_format($totalAmount, 2) }}</td>
                     </tr>
                 </tfoot>
             </table>

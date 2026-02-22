@@ -1945,7 +1945,7 @@ class OrderController extends Controller
 
     public function pvComplete(Request $request)
     {
-     if(empty($request->voucherIds)){
+        if(empty($request->voucherIds)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
@@ -1971,6 +1971,9 @@ class OrderController extends Controller
             $utransaction = Usertransaction::find($voucher->tran_id);
             $utransaction->status = '1';
             $utransaction->pending = '1';
+            $utransaction->voucher_create_date = $utransaction->created_at;
+            $utransaction->voucher_complete_date = date('Y-m-d');
+            $utransaction->created_at = date('Y-m-d H:i:s');
             $utransaction->save();
 
             $charity = Charity::find($voucher->charity_id);

@@ -23,28 +23,28 @@ class AutoCharityPayment extends Command
     public function handle()
     {
         set_time_limit(0);
-        Log::info("Payment Process: Starting charity payout for 16:30 cut-off.");
+        Log::info("Payment Process: Starting charity payout for 16:30 rolling window.");
 
-        // 1. Define the 16:30 cut-off for today
-        $endTime = now()->setHour(16)->setMinute(30)->setSecond(0);
+        // 1. Define the Rolling Time Window
+        // The "Base" is today at 16:30:00
+        $baseCutoff = now()->setTime(16, 30, 0);
 
-        // Define the "Day 1" start time (Midnight of today)
-        $startOfToday = (clone $endTime)->startOfDay();
-
-        // Standard 24-hour window start
-        $standardStartTime = (clone $endTime)->subDay();
-
-        $launchDate = '2026-02-15'; // Set this to your actual Day 1 date
-
-        if (now()->toDateString() === $launchDate) {
-            $startTime = $startOfToday;
-            Log::info("Payment Process: Day 1 detected. Setting start time to 00:00.");
-        } else {
-            $startTime = $standardStartTime;
+        // If this script runs before 16:30 today, we want to process the window that ended yesterday.
+        // This ensures we always target a "completed" window.
+        if (now()->lt($baseCutoff)) {
+            $baseCutoff->subDay();
         }
 
+        /**
+         * Start Time: Exactly 24 hours ago from the base cutoff (e.g., Yesterday 16:30:00)
+         * End Time: One second before the base cutoff (e.g., Today 16:29:59)
+         * This prevents a transaction at 16:30:00 from being counted in two different days.
+         */
+        $startTime = (clone $baseCutoff)->subDay(); 
+        $endTime   = (clone $baseCutoff)->subSecond(); 
 
-        
+        Log::info("Processing Window: From {$startTime->toDateTimeString()} to {$endTime->toDateTimeString()}");
+
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
         // 2. Get transactions within the window

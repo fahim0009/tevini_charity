@@ -68,6 +68,8 @@ return [
     */
 
     'timezone' => 'UTC',
+    // 'timezone' => 'Asia/Dhaka',
+    // 'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------

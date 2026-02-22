@@ -65,20 +65,22 @@ class TransactionController extends Controller
 
             if ($type === 'Summary') {
 
+                // Define the exact second where the next day starts
                 $cutoffTime = '16:30:00';
 
                 /*
                 |--------------------------------------------------------------------------
-                | Business Date Logic
+                | Business Date Logic (Updated)
                 |--------------------------------------------------------------------------
-                | If time > 16:30 → belongs to NEXT day
-                | If time <= 16:30 → belongs to SAME day
+                | If time >= 16:30:00 → belongs to NEXT day
+                | If time < 16:30:00 → belongs to SAME day
+                | This effectively closes the current day at 16:29:59.
                 */
 
                 $businessDateRaw = "
                     DATE(
                         CASE 
-                            WHEN TIME(usertransactions.created_at) > '$cutoffTime'
+                            WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
                             THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
                             ELSE usertransactions.created_at
                         END
@@ -87,7 +89,7 @@ class TransactionController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Paid Subquery (same business logic)
+                | Paid Subquery (Applying same logic to 'Out' transactions)
                 |--------------------------------------------------------------------------
                 */
 
@@ -96,7 +98,7 @@ class TransactionController extends Controller
                         DB::raw("
                             DATE(
                                 CASE 
-                                    WHEN TIME(created_at) > '$cutoffTime'
+                                    WHEN TIME(created_at) >= '$cutoffTime'
                                     THEN DATE_ADD(created_at, INTERVAL 1 DAY)
                                     ELSE created_at
                                 END
@@ -132,11 +134,11 @@ class TransactionController extends Controller
                             DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
                         ])
                         ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime) {
-
+                            // Ensure the join uses the same >= 16:30:00 logic
                             $join->on(DB::raw("
                                 DATE(
                                     CASE 
-                                        WHEN TIME(usertransactions.created_at) > '$cutoffTime'
+                                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
                                         THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
                                         ELSE usertransactions.created_at
                                     END

@@ -139,10 +139,10 @@
 
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
-                                    <textarea class="form-control border-dashed" name="charitynote" placeholder="Notes to Charity..." rows="3"></textarea>
+                                    <textarea class="form-control border-dashed" name="charitynote" id="charitynote" placeholder="Notes to Charity..." rows="3"></textarea>
                                 </div>
                                 <div class="col-md-6">
-                                    <textarea class="form-control border-dashed" name="mynote" placeholder="Personal Notes..." rows="3"></textarea>
+                                    <textarea class="form-control border-dashed" name="mynote" id="mynote" placeholder="Personal Notes..." rows="3"></textarea>
                                 </div>
                                 <div class="col-12 mt-4">
                                     <div class="alert alert-light border d-flex align-items-center">
@@ -206,6 +206,7 @@
                     var c_donation= $('#confirm_donation').prop('checked');
                     var charitynote= $("#charitynote").val();
                     var mynote= $("#mynote").val();
+
 
                     if($("#standard").is(":checked")) {
                         var url = "{{URL::to('/admin/make-stnddonation')}}";

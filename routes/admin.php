@@ -171,6 +171,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     
     // active deactive charity
     Route::get('active-charity', [CharityController::class, 'activeCharity']);
+    Route::get('auto-payment-charity', [CharityController::class, 'autoPaymentCharity']);
 
     // donor email
     Route::get('/donor-custom-mail', [DonorController::class, 'addDonorMail'])->name('admin.donor.email');

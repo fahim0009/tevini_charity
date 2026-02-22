@@ -48,8 +48,18 @@ class AutoCharityPayment extends Command
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
         // 2. Get transactions within the window
-        $pendingBalances = Usertransaction::whereNotNull('charity_id')->where('status', 1)
+        // $pendingBalances = Usertransaction::whereNotNull('charity_id')->where('status', 1)
+        //     ->whereBetween('created_at', [$startTime, $endTime])
+        //     ->select(['charity_id', DB::raw("SUM(amount) as total")])
+        //     ->groupBy('charity_id')
+        //     ->get();
+
+        $pendingBalances = Usertransaction::whereNotNull('charity_id')
+            ->where('status', 1)
             ->whereBetween('created_at', [$startTime, $endTime])
+            ->whereHas('charity', function ($q) {
+                $q->where('auto_payment', 1);
+            })
             ->select(['charity_id', DB::raw("SUM(amount) as total")])
             ->groupBy('charity_id')
             ->get();
@@ -61,6 +71,11 @@ class AutoCharityPayment extends Command
             
             if (!$charity || !$charity->email) {
                 Log::warning("Payment Process: Charity ID {$record->charity_id} not found or missing email.");
+                continue;
+            }
+
+            if ($charity->auto_payment != 1) {
+                Log::info("Payment Skipped: {$charity->name} has auto_payment disabled.");
                 continue;
             }
 

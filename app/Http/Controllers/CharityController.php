@@ -48,86 +48,96 @@ class CharityController extends Controller
 
 
     public function getData(Request $request)
-{
-    if ($request->ajax()) {
+    {
+        if ($request->ajax()) {
 
-        $data = Charity::orderBy('id','DESC');
+            $data = Charity::orderBy('id','DESC');
 
-        return DataTables::of($data)
+            return DataTables::of($data)
 
-        ->addColumn('pending', function($row){
-            $pending = Usertransaction::where([
-                ['t_type', 'Out'],
-                ['charity_id', $row->id],
-                ['pending', 0]
-            ])->sum('amount');
+            ->addColumn('pending', function($row){
+                $pending = Usertransaction::where([
+                    ['t_type', 'Out'],
+                    ['charity_id', $row->id],
+                    ['pending', 0]
+                ])->sum('amount');
 
-            return '£' . number_format($pending, 2);
-        })
+                return '£' . number_format($pending, 2);
+            })
 
-        ->addColumn('balance', function($row){
-            return '£' . number_format($row->balance, 2);
-        })
+            ->addColumn('balance', function($row){
+                return '£' . number_format($row->balance, 2);
+            })
 
-        ->addColumn('status', function($row){
-            $checked = $row->status == 1 ? 'checked' : '';
-            return '
-                <div class="form-check form-switch text-center">
-                    <input class="form-check-input campaignstatus"
-                      type="checkbox" '.$checked.' data-id="'.$row->id.'">
-                </div>
-            ';
-        })
+            ->addColumn('status', function($row){
+                $checked = $row->status == 1 ? 'checked' : '';
+                return '
+                    <div class="form-check form-switch text-center">
+                        <input class="form-check-input campaignstatus"
+                        type="checkbox" '.$checked.' data-id="'.$row->id.'">
+                    </div>
+                ';
+            })
 
-        ->addColumn('bank', function($row){
-            if (!$row->bank_statement) return '';
+            ->addColumn('auto_payment', function($row){
+                $checked = $row->auto_payment == 1 ? 'checked' : '';
+                return '
+                    <div class="form-check form-switch text-center">
+                        <input class="form-check-input auto_payment_status"
+                        type="checkbox" '.$checked.' data-id="'.$row->id.'">
+                    </div>
+                ';
+            })
 
-            return '
-                <a href="#" class="bg-dark text-white py-1 px-3 rounded mb-1 openBankModal" 
-                data-file="'.$row->bank_statement.'">
-                    <i class="fa fa-file" style="color:#4D617E;font-size:16px;"></i> Bank 
-                </a>
-            ';
-        })
+            ->addColumn('bank', function($row){
+                if (!$row->bank_statement) return '';
 
-
-        ->addColumn('action', function($row){
-
-
-            return '
-                <div class="d-flex flex-column text-center">
-                    <a class="bg-success text-white py-1 px-3 rounded mb-1"
-                        href="'.route('charity.pay',$row->id).'" target="_blank">Pay</a>
-
-                    <a class="bg-dark text-white py-1 px-3 rounded mb-1"
-                        href="'.route('charity.topup',$row->id).'" target="_blank">Top up</a>
-
-                </div>
-                
-
-                    <a href="'.route('charityemail',$row->id).'">
-                        <i class="fa fa-envelope-o" style="color:#4D617E;font-size:16px;"></i>
+                return '
+                    <a href="#" class="bg-dark text-white py-1 px-3 rounded mb-1 openBankModal" 
+                    data-file="'.$row->bank_statement.'">
+                        <i class="fa fa-file" style="color:#4D617E;font-size:16px;"></i> Bank 
                     </a>
+                ';
+            })
 
-                    <a href="'.route('charity.tranview',$row->id).'">
-                        <i class="fa fa-eye" style="color:#09a311;font-size:16px;"></i>
-                    </a>
 
-                    <a href="'.route('charity.edit', encrypt($row->id)).'">
-                        <i class="fa fa-edit" style="color:#2196f3;font-size:16px;"></i>
-                    </a>
+            ->addColumn('action', function($row){
 
-                    <a rid="'.$row->id.'" class="deleteBtn">
-                        <i class="fa fa-trash-o" style="color:red;font-size:16px;"></i>
-                    </a>
-            ';
-        })
 
-        ->rawColumns(['bank', 'status', 'action'])
-        ->make(true);
+                return '
+                    <div class="d-flex flex-column text-center">
+                        <a class="bg-success text-white py-1 px-3 rounded mb-1"
+                            href="'.route('charity.pay',$row->id).'" target="_blank">Pay</a>
+
+                        <a class="bg-dark text-white py-1 px-3 rounded mb-1"
+                            href="'.route('charity.topup',$row->id).'" target="_blank">Top up</a>
+
+                    </div>
+                    
+
+                        <a href="'.route('charityemail',$row->id).'">
+                            <i class="fa fa-envelope-o" style="color:#4D617E;font-size:16px;"></i>
+                        </a>
+
+                        <a href="'.route('charity.tranview',$row->id).'">
+                            <i class="fa fa-eye" style="color:#09a311;font-size:16px;"></i>
+                        </a>
+
+                        <a href="'.route('charity.edit', encrypt($row->id)).'">
+                            <i class="fa fa-edit" style="color:#2196f3;font-size:16px;"></i>
+                        </a>
+
+                        <a rid="'.$row->id.'" class="deleteBtn">
+                            <i class="fa fa-trash-o" style="color:red;font-size:16px;"></i>
+                        </a>
+                ';
+            })
+
+            ->rawColumns(['bank', 'status', 'action','auto_payment'])
+            ->make(true);
+        }
     }
-}
-    
+        
 
 
 
@@ -308,6 +318,25 @@ class CharityController extends Controller
             $deactive->status = $request->status;
             $deactive->save();
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Inactive Successfully.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+        }
+
+    }
+
+
+    public function autoPaymentCharity(Request $request)
+    {
+        if($request->status==1){
+            $active = Charity::find($request->id);
+            $active->auto_payment = $request->status;
+            $active->save();
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Automatic Payment Active Successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+        }else{
+            $deactive = Charity::find($request->id);
+            $deactive->auto_payment = $request->status;
+            $deactive->save();
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Automatic Payment Deactive Successfully.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
         }
 

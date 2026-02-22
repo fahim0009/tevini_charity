@@ -157,6 +157,7 @@
                                     <th>Balance</th>
                                     <th>Pending</th>
                                     <th>Status</th>
+                                    <th>Auto Payment</th>
                                     <th>Bank</th>
                                     <th>Action</th>
                                 </tr>
@@ -237,6 +238,22 @@
     // Campaign Status
     $(document).on('change','.campaignstatus',function(){
         var url = "{{URL::to('/admin/active-charity')}}";
+        var status = $(this).prop('checked') ? 1 : 0;
+        var id = $(this).data('id');
+
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: url,
+            data: {'status': status, 'id': id},
+            success: function(d){
+                $(".stsermsg").html(d.message);
+            }
+        });
+    });
+
+    $(document).on('change','.auto_payment_status',function(){
+        var url = "{{URL::to('/admin/auto-payment-charity')}}";
         var status = $(this).prop('checked') ? 1 : 0;
         var id = $(this).data('id');
 
@@ -430,6 +447,7 @@ $(document).ready(function() {
             { data: 'balance', name: 'balance', orderable:false, searchable:false },
             { data: 'pending', name: 'pending', orderable:false, searchable:false },
             { data: 'status', name: 'status', orderable:false, searchable:false },
+            { data: 'auto_payment', name: 'auto_payment', orderable:false, searchable:false },
             { data: 'bank', name: 'bank', orderable:false, searchable:false },
             { data: 'action', name: 'action', orderable:false, searchable:false },
         ]

@@ -176,18 +176,28 @@ $(document).ready(function() {
     var url = "{{ URL::to('/admin/donation-status') }}";
 
     $('.status').on('change', function() {
-        $("#loading").show();
-        var [status, did] = this.value.split("|");
+        let [status, did] = this.value.split("|");
 
-        $.post(url, { status, did })
-            .done(function(d) {
-                if (d.status == 300) {
-                    $(".ermsg").html(d.message);
-                    setTimeout(() => location.reload(), 500);
-                }
-            })
-            .always(() => $("#loading").hide())
-            .fail(console.log);
+        // confirm() returns true for OK (Yes), false for Cancel (No)
+        let userChoice = confirm("Do you want to send email in charity?");
+        let sendEmail = userChoice ? 1 : 2;
+
+        $("#loading").show();
+
+
+        $.post(url, { 
+            status: status, 
+            did: did, 
+            send_email: sendEmail 
+        })
+        .done(function(d) {
+            if (d.status == 300) {
+                $(".ermsg").html(d.message);
+                setTimeout(() => location.reload(), 500);
+            }
+        })
+        .always(() => $("#loading").hide())
+        .fail(console.log);
     });
 
     // Checkbox handler

@@ -1846,9 +1846,11 @@ class DonorController extends Controller
             $array['user'] = $user;
             $email = $charity->email;
 
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new DonationreportCharity($array));
+            if ($request->send_email == "1") {
+                Mail::to($email)
+                ->cc($contactmail)
+                ->send(new DonationreportCharity($array));
+            }
 
         }
 

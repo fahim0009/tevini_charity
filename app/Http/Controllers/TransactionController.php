@@ -543,9 +543,96 @@ class TransactionController extends Controller
 
         return view('transaction.index');
     }
-
+    
 
     public function getDayDetails(Request $request)
+    {
+        $cutoffHour = 16;
+        $cutoffMinute = 31;
+
+        // The date selected from the UI (Business Date)
+        $businessDate = Carbon::createFromFormat('Y-m-d', $request->date);
+
+        /**
+         * START TIME: Previous Day at 16:31:00
+         * Logic: (Selected Date - 1 Day) @ 16:31:00
+         */
+        $startDateTime = $businessDate->copy()
+            ->subDay()
+            ->setTime($cutoffHour, $cutoffMinute, 0);
+
+        /**
+         * END TIME: Today at 16:31:59
+         * Logic: Selected Date @ 16:31:59
+         */
+        $endDateTime = $businessDate->copy()
+            ->setTime($cutoffHour, $cutoffMinute, 59);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Query Implementation
+        |--------------------------------------------------------------------------
+        */
+        if ($request->type == 'paid') {
+
+            $data = Transaction::with('charity')
+                ->where('charity_id', $request->charity_id)
+                ->where('t_type', 'Out')
+                ->where('status', 1)
+                // This will capture everything from 16:31:00 yesterday 
+                // up to 16:31:59 today (inclusive)
+                ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                ->get();
+
+            return response()->json($data->map(function($item) {
+                return [
+                    'donor'  => $item->charity->name ?? 'N/A',
+                    'amount' => '£' . number_format($item->amount, 2),
+                    'ref'    => $item->t_id,
+                    'status' => $item->status,
+                    'date'   => $item->created_at->format('d/m/Y H:i:s')
+                ];
+            }));
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CASE 2: Usertransactions
+        |--------------------------------------------------------------------------
+        */
+
+        $query = Usertransaction::with('user')
+            ->where('status', 1)
+            ->where('charity_id', $request->charity_id)
+            ->whereBetween('created_at', [$startDateTime, $endDateTime]);
+
+        if ($request->type == 'online')
+            $query->whereNotNull('donation_id');
+
+        if ($request->type == 'standing')
+            $query->whereNotNull('standing_donationdetails_id');
+
+        if ($request->type == 'voucher')
+            $query->whereNotNull('cheque_no');
+
+        if ($request->type == 'campaign')
+            $query->whereNotNull('campaign_id');
+
+        $data = $query->get();
+
+        return response()->json($data->map(function($item) {
+            return [
+                'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
+                'amount' => '£' . number_format($item->amount, 2),
+                'ref'    => $item->cheque_no ?? $item->t_id,
+                'status' => $item->status,
+                'date'   => $item->created_at->format('d/m/Y H:i')
+            ];
+        }));
+    }
+
+
+    public function getDayDetails2(Request $request)
     {
         $cutoffTime = '16:30:00';
 

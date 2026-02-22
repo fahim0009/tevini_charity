@@ -1747,7 +1747,9 @@ class DonorController extends Controller
         $donation = Donation::where([
             ['standing_order','=', 'false'],
             ['status','=','0']
-        ])->get();
+        ])
+        ->latest() 
+        ->get();
         $charities = $donation->pluck('charity')->unique('id')->values();
         return view('donor.donationlist',compact('donation','charities'));
     }
@@ -1894,10 +1896,13 @@ class DonorController extends Controller
             $array['cc'] = $contactmail;
             $array['charity'] = $charity;
 
-            Mail::to($email)
-            ->send(new DonationreportCharity($array));
-            Mail::to($contactmail)
-            ->send(new DonationreportCharity($array));
+            
+            if ($request->send_email == "1") {
+                Mail::to($email)
+                ->send(new DonationreportCharity($array));
+                Mail::to($contactmail)
+                ->send(new DonationreportCharity($array));
+            }
             
         }
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";

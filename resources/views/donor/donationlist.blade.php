@@ -72,7 +72,7 @@
                                         <td class="text-center">
                                             <input type="checkbox" name="donation_id[]" value="{{ $data->id }}" class="donation-checkbox" data-charity="{{ $data->charity_id}}">
                                         </td>
-                                        <td>{{ $data->created_at->format('d/m/Y') }}</td>
+                                        <td data-order="{{ $data->created_at->timestamp }}">{{ $data->created_at->format('d/m/Y') }}</td>
                                         <td>{{ $data->user->name }} {{ $data->user->surname }}</td>
 
                                         <td data-search="{{ trim($data->charity->name) }}">
@@ -135,7 +135,7 @@ $(document).ready(function() {
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
         responsive: true,
         columnDefs: [{ type: 'date', targets: [0] }],
-        order: [[0, 'desc']],
+        order: [[1, 'desc']],
         dom: '<"html5buttons"B>lTfgitp',
         buttons: [
             { extend: 'copy' },
@@ -211,13 +211,19 @@ $(document).ready(function() {
         });
 
         let uniqueCharities = [...new Set(charity)];
-        console.log(selected);
+
+        
+        // confirm() returns true for OK (Yes), false for Cancel (No)
+        let userChoice = confirm("Do you want to send email in charity?");
+        let sendEmail = userChoice ? 1 : 2;
+
 
         if (selected.length > 0) {
             $("#loading").show();
             $.post("{{ URL::to('/admin/donation-complete') }}", { 
                 donation_ids: selected,
-                charity_ids: uniqueCharities
+                charity_ids: uniqueCharities,
+                send_email: sendEmail 
             })
                 .done(function(d) {
                     console.log(d);

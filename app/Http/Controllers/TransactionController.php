@@ -66,7 +66,8 @@ class TransactionController extends Controller
             if ($type === 'Summary') {
 
                 // Define the exact second where the next day starts
-                $cutoffTime = '16:30:00';
+                $cutoffTime = '16:31:00';
+                $cutoffTime2 = '16:30:00';
 
                 /*
                 |--------------------------------------------------------------------------
@@ -133,12 +134,12 @@ class TransactionController extends Controller
                             DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
                             DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
                         ])
-                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime) {
+                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime2) {
                             // Ensure the join uses the same >= 16:30:00 logic
                             $join->on(DB::raw("
                                 DATE(
                                     CASE 
-                                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
+                                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime2'
                                         THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
                                         ELSE usertransactions.created_at
                                     END

@@ -256,12 +256,36 @@ $(function() {
                     html += `<tr>
                         <td>${item.donor}</td>
                         <td>${item.amount}</td>
-                        <td>${item.ref}</td>
+                        <td>
+                            ${item.ref} 
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" data-ref="${item.ref}" title="Copy ID">
+                                <i class="fa fa-copy"></i> 
+                            </button>
+                        </td>
                         <td>${item.date} - (${item.status})</td>
                     </tr>`;
                 });
             }
             $('#details-content').html(html);
+        });
+    });
+
+    $(document).on('click', '.copy-btn', function() {
+        const refId = $(this).data('ref');
+        const $btn = $(this);
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(refId).then(() => {
+            // Optional: Provide visual feedback
+            const originalText = $btn.html();
+            $btn.addClass('btn-success').removeClass('btn-outline-secondary').text('Copied!');
+            
+            setTimeout(() => {
+                $btn.removeClass('btn-success').addClass('btn-outline-secondary').html(originalText);
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Failed to copy text.');
         });
     });
 

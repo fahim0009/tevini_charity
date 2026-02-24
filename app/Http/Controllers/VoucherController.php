@@ -50,6 +50,9 @@ class VoucherController extends Controller
             $utransaction = Usertransaction::find($voucher->tran_id);
             $utransaction->status = '1';
             $utransaction->pending = '1';
+            $utransaction->voucher_create_date = $utransaction->created_at;
+            $utransaction->voucher_complete_date = date('Y-m-d');
+            $utransaction->created_at = date('Y-m-d H:i:s');
             $utransaction->save();
 
             $charity = Charity::find($voucher->charity_id);
@@ -83,6 +86,7 @@ class VoucherController extends Controller
             $pstatus->save();
 
             }else {
+                
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->waiting = "No";
             $pstatus->save();

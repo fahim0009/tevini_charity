@@ -1419,22 +1419,19 @@ public function toggleCharityPayment(Request $request)
     {
         if ($request->isMethod('post')) {
 
-            $request->validate([
-                'tranId' => 'required|string|max:255',
-            ]);
+            // $request->validate([
+            //     'tranId' => 'required_without:voucher|string|max:255',
+            //     'voucher' => 'required_without:tranId|string|max:255',
+            // ]);
     
-
             $tranId = $request->tranId;
-            
-            $chktran = Usertransaction::where('t_id', $tranId)->get();
+            $voucher = $request->voucher;
 
-
+            $chktran = Usertransaction::where('t_id', $tranId)->orWhere('cheque_no', $voucher)->get();
 
             if ($chktran->count() > 0) {
-                
                 return view('transaction.delete', compact('chktran','tranId'))->with('success', 'Data found successfully.');
             } else {
-                
                 return redirect()->back()->with(['error' => 'Data not found.']);
             }
             
@@ -1447,7 +1444,8 @@ public function toggleCharityPayment(Request $request)
     public function changeTranStatus(Request $request)
     {
         $request->validate([
-            'tranId' => 'required|string|max:255',
+            'tranId' => 'required_without:voucher|string|max:255',
+            'voucher' => 'required_without:tranId|string|max:255',
         ]);
 
         $tranId = $request->tranId;
@@ -1503,5 +1501,39 @@ public function toggleCharityPayment(Request $request)
 
         return view('charity.charityTest', compact('charityData'));
     }
+
+
+    public function deleteTransactionUpdate(Request $request)
+    {
+        // 1. Validate the incoming data
+        $request->validate([
+            'transactionId' => 'required|exists:usertransactions,id',
+            'date' => 'required|date',
+        ]);
+
+        try {
+            // 2. Find the transaction
+            $transaction = UserTransaction::findOrFail($request->transactionId);
+            $transaction->voucher_create_date = $transaction->created_at;
+            $transaction->voucher_complete_date = date('Y-m-d');
+            $transaction->created_at = Carbon::parse($request->date)->setTimeFrom(now());
+            $transaction->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction date updated successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error("Transaction Update Error: " . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong while updating the record.'
+            ], 500);
+        }
+    }
+
 
 }

@@ -48,11 +48,6 @@ class AutoCharityPayment extends Command
         $contactmail = ContactMail::where('id', 1)->first()->name;
 
         // 2. Get transactions within the window
-        // $pendingBalances = Usertransaction::whereNotNull('charity_id')->where('status', 1)
-        //     ->whereBetween('created_at', [$startTime, $endTime])
-        //     ->select(['charity_id', DB::raw("SUM(amount) as total")])
-        //     ->groupBy('charity_id')
-        //     ->get();
 
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
             ->where('status', 1)

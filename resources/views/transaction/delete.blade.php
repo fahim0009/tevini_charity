@@ -47,6 +47,14 @@ use Illuminate\Support\Carbon;
                             </div>
                         </div>
 
+                        
+                        <div class="col-md-4">
+                            <div class="form-group my-2">
+                                <label for="voucher"><small> Voucher </small> </label>
+                                <input class="form-control mr-sm-2" id="voucher" name="voucher" type="text" value="">
+                            </div>
+                        </div>
+
                         <div class="col-md-4 d-flex align-items-center">
                             <div class="form-group d-flex mt-4">
                               <button class="text-white btn-theme m-1" type="submit">check</button>
@@ -78,9 +86,11 @@ use Illuminate\Support\Carbon;
                             <tr>
                                 <th>Date</th>
                                 <th>Donor Name</th>
+                                <th>TranID </th>
                                 <th>Barcode </th>
                                 <th>Amount </th>
                                 <th>Status </th>
+                                <th>Action </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,14 +99,17 @@ use Illuminate\Support\Carbon;
                             
                            
                             <tr>
-                                    <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
+                                    <td><span style="display:none;">{{ $transaction->id }}</span>{{ $transaction->created_at }}</td>
                                     
                                     
                                     <td>{{ $transaction->user->name}}</td>
                                     <td>{{ $transaction->t_id}}</td>
+                                    <td>{{ $transaction->cheque_no}}</td>
                                     <td>£{{ $transaction->amount}}</td>
                                     <td>{{ $transaction->status}}</td>
-                                    
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#updateModal" data-id="{{ $transaction->id }}" >Update</button>
+                                    </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -107,6 +120,37 @@ use Illuminate\Support\Carbon;
         </div>
     </div>
 </section>  
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">Update Transaction</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="updateForm">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" id="transactionId" name="transactionId">
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" name="date" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
 @endif
 
 
@@ -154,4 +198,65 @@ use Illuminate\Support\Carbon;
         });
     });
 </script>
+
+
+<script>
+    $(document).ready(function() {
+        // 1. Handle Modal Opening and Data Passing
+        $('#updateModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var id = button.data('id'); // Extract info from data-* attributes
+            
+            // Update the modal's content.
+            var modal = $(this);
+            modal.find('#transactionId').val(id);
+            
+            // Optional: Clear the date field or set it to today when opening
+            modal.find('#date').val(''); 
+        });
+
+        // 2. Handle Form Submission
+        $('#updateForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const transactionId = $('#transactionId').val();
+            const date = $('#date').val();
+
+            console.log('Submitting update for Transaction ID:', transactionId, 'with Date:', date);
+
+            if(!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            fetch("{{ route('admin.deleteTransactionUpdate') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    transactionId: transactionId,
+                    date: date
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Transaction updated successfully.');
+                    $('#updateModal').modal('hide'); // Close modal
+                    // window.location.reload(); // Reload to see changes
+                } else {
+                    alert(data.message || 'Failed to update transaction.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating transaction.');
+            });
+        });
+    });
+</script>
+
 @endsection

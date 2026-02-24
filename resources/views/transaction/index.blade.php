@@ -273,10 +273,8 @@ $(function() {
     $(document).on('click', '.copy-btn', function() {
         const refId = $(this).data('ref');
         const $btn = $(this);
-
-        // Copy to clipboard
+        
         navigator.clipboard.writeText(refId).then(() => {
-            // Optional: Provide visual feedback
             const originalText = $btn.html();
             $btn.addClass('btn-success').removeClass('btn-outline-secondary').text('Copied!');
             

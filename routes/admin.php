@@ -370,6 +370,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/transaction-delete', [TransactionController::class, 'checkTran'])->name('admin.transactionDelete');
     Route::post('/transaction-delete', [TransactionController::class, 'checkTran'])->name('admin.transactionSearch');
     Route::post('/transaction-status-change', [TransactionController::class, 'changeTranStatus'])->name('admin.transactionChangeStatus');
+    Route::post('/transaction-status-update', [TransactionController::class, 'deleteTransactionUpdate'])->name('admin.deleteTransactionUpdate');
 
 
 

@@ -860,7 +860,7 @@ class VoucherBookController extends Controller
             $array['client_no'] = $user->accountno;
             $email = $user->email;
             $array['order_id'] = $order->id;
-            $array['orderid'] = $order;
+            $array['orderid'] = $order->id;
             $array['delivery_option'] = $delivery_opt;
 
 

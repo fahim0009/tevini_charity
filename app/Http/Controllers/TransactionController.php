@@ -179,9 +179,28 @@ class TransactionController extends Controller
                         '</span>';
                     })
 
+                    // ->addColumn('charity_name', function ($row) {
+                    //     return ($row->charity->name ?? 'N/A') .
+                    //         ' (' . ($row->charity->balance ?? '0') . ')';
+                    // })
+
                     ->addColumn('charity_name', function ($row) {
-                        return ($row->charity->name ?? 'N/A') .
-                            ' (' . ($row->charity->balance ?? '0') . ')';
+                        $charity = $row->charity;
+                        $name = $charity->name ?? 'N/A';
+                        $balance = $charity->balance ?? '0';
+                        
+                        // Default values (Auto-payment ON)
+                        $title = '';
+                        $style = 'style="color: #28a745; font-weight: bold;"'; // Green for active
+
+                        // Check if auto_payment is 0 (Comparison ==)
+                        if ($charity && $charity->auto_payment == 0) {
+                            $title = ' title="Auto Payment Off"';
+                            $style = 'style="color: #dc3545; font-weight: bold;"'; // Red for warning
+                        }
+
+                        // Return the styled span
+                        return '<span' . $title . ' ' . $style . '>' . $name . ' (' . $balance . ')</span>';
                     })
 
                     ->addColumn('balance', function ($row) {
@@ -254,6 +273,7 @@ class TransactionController extends Controller
                         'voucher_sum',
                         'campaign_sum',
                         'paid_sum',
+                        'charity_name',
                         'action'
                     ])
 

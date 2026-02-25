@@ -593,7 +593,7 @@ class AdminController extends Controller
     public function auditBalances()
     {
         $startDate = \Carbon\Carbon::parse('2026-02-09');
-        $today = now();
+        $today = \Carbon\Carbon::parse('2026-02-22');
         $report = [];
 
         // 1. Get charities that were active in this period

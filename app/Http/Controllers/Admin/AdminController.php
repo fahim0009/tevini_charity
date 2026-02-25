@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\Validator;
 use App\Models\Charity;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
+use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -590,7 +593,7 @@ class AdminController extends Controller
     }
 
 
-    public function auditBalances()
+    public function auditBalances2()
     {
         $startDate = \Carbon\Carbon::parse('2026-02-09');
         $today = \Carbon\Carbon::parse('2026-02-22');
@@ -643,6 +646,210 @@ class AdminController extends Controller
         $report = collect($report)->sortByDesc('date')->values()->all();
 
         return view('admin.audit_balances', compact('report'));
+    }
+
+
+
+
+
+
+    public function auditBalances(Request $request)
+    {
+        if ($request->ajax()) {
+
+            // 1. Setup Date Ranges
+        $startDate = $request->get('fromDate') ?? '2026-02-09';
+        $endDate = $request->get('toDate') ?? '2026-02-22';
+
+        $cutoffTime = '16:31:00';
+        $cutoffTime2 = '16:30:00';
+
+        // Business Date Logic String
+        $businessDateRaw = "DATE(CASE 
+            WHEN TIME(usertransactions.created_at) >= '$cutoffTime' 
+            THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY) 
+            ELSE usertransactions.created_at END)";
+
+        // 2. Paid Subquery (ensure same logic)
+        $paidSubquery = DB::table('transactions')
+            ->select(
+                DB::raw("DATE(CASE WHEN TIME(created_at) >= '$cutoffTime' THEN DATE_ADD(created_at, INTERVAL 1 DAY) ELSE created_at END) as pay_date"),
+                'charity_id',
+                DB::raw('SUM(amount) as total_paid'),
+                DB::raw('MAX(bank_payment_status) as current_status')
+            )
+            ->where('status', 1)
+            ->where('t_type', 'Out')
+            ->groupBy('pay_date', 'charity_id');
+
+        // 3. Main Query
+        $query = Usertransaction::query()
+            ->whereNotNull('usertransactions.charity_id')
+            // FIX: Use whereRaw for the hardcoded audit range
+            ->whereRaw("$businessDateRaw BETWEEN ? AND ?", [$startDate, $endDate])
+            ->select([
+                DB::raw("$businessDateRaw as date_group"),
+                'usertransactions.charity_id',
+                DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
+                DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
+                DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
+                DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
+                DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
+                DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
+            ])
+            ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime2) {
+                $join->on(DB::raw("DATE(CASE WHEN TIME(usertransactions.created_at) >= '$cutoffTime2' THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY) ELSE usertransactions.created_at END)"), '=', 'paid_data.pay_date')
+                     ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
+            })
+            ->groupBy('date_group', 'usertransactions.charity_id')
+            ->orderByRaw('date_group DESC')
+            ->with('charity');
+
+
+
+            return DataTables::of($query)
+                ->addColumn('date_group', fn($row) => '<span data-raw="'.$row->date_group.'">'.\Carbon\Carbon::parse($row->date_group)->format('d/m/Y').'</span>')
+                ->addColumn('charity_name', function ($row) {
+                    $charity = $row->charity;
+                    $name = $charity->name ?? 'N/A';
+                    $balance = $charity->balance ?? '0';
+                    $style = ($charity && $charity->auto_payment == 0) ? 'color: #dc3545;' : 'color: #28a745;';
+                    return '<span style="'.$style.' font-weight: bold;">'.$name.' ('.$balance.')</span>';
+                })
+                ->addColumn('balance', function ($row) {
+                    $total = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                    return '£' . number_format($total - $row->paid_sum, 2);
+                })
+                ->addColumn('action', function ($row) {
+                    $total = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                    $isChecked = ($row->payment_status == 1) ? 'checked' : '';
+                    return '<div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input status-switch" type="checkbox" role="switch" '.$isChecked.' 
+                                data-charity-id="'.$row->charity_id.'" data-date="'.$row->date_group.'" data-total="'.$total.'">
+                            </div>';
+                })
+                
+                ->editColumn('paid_sum', function($row) {
+                    if ($row->paid_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    
+                    return '<a href="javascript:void(0)" class="view-details text-success text-decoration-none fw-bold" 
+                            data-type="paid" 
+                            data-charity="'.$row->charity_id.'" 
+                            data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">
+                            £' . number_format($row->paid_sum, 2) . '
+                            </a>';
+                })
+
+                ->editColumn('online_sum', function($row) {
+                    if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->online_sum, 2) . '</a>';
+                })
+                ->editColumn('standing_sum', function($row) {
+                    if ($row->standing_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="standing" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->standing_sum, 2) . '</a>';
+                })
+                ->editColumn('voucher_sum', function($row) {
+                    if ($row->voucher_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="voucher" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->voucher_sum, 2) . '</a>';
+                })
+                ->editColumn('campaign_sum', function($row) {
+                    if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->campaign_sum, 2) . '</a>';
+                })
+
+
+
+                ->rawColumns(['date_group', 'online_sum', 'standing_sum', 'voucher_sum', 'campaign_sum', 'paid_sum', 'charity_name', 'action'])
+                ->make(true);
+        }
+        return view('admin.audit_balances');
+    }
+
+
+    public function getDayDetails(Request $request)
+    {
+        $cutoffHour = 16;
+        $cutoffMinute = 31;
+
+        // The date selected from the UI (Business Date)
+        $businessDate = Carbon::createFromFormat('Y-m-d', $request->date);
+
+        /**
+         * START TIME: Previous Day at 16:31:00
+         * Logic: (Selected Date - 1 Day) @ 16:31:00
+         */
+        $startDateTime = $businessDate->copy()
+            ->subDay()
+            ->setTime($cutoffHour, $cutoffMinute, 0);
+
+        /**
+         * END TIME: Today at 16:31:59
+         * Logic: Selected Date @ 16:31:59
+         */
+        $endDateTime = $businessDate->copy()
+            ->setTime($cutoffHour, $cutoffMinute, 59);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Query Implementation
+        |--------------------------------------------------------------------------
+        */
+        if ($request->type == 'paid') {
+
+            $data = Transaction::with('charity')
+                ->where('charity_id', $request->charity_id)
+                ->where('t_type', 'Out')
+                // ->where('status', 1)
+                // This will capture everything from 16:31:00 yesterday 
+                // up to 16:31:59 today (inclusive)
+                ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                ->get();
+
+            return response()->json($data->map(function($item) {
+                return [
+                    'donor'  => $item->charity->name ?? 'N/A',
+                    'amount' => '£' . number_format($item->amount, 2),
+                    'ref'    => $item->t_id,
+                    'status' => $item->status,
+                    'date'   => $item->created_at->format('d/m/Y H:i:s')
+                ];
+            }));
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CASE 2: Usertransactions
+        |--------------------------------------------------------------------------
+        */
+
+        $query = Usertransaction::with('user')
+            // ->where('status', 1)
+            ->where('charity_id', $request->charity_id)
+            ->whereBetween('created_at', [$startDateTime, $endDateTime]);
+
+        if ($request->type == 'online')
+            $query->whereNotNull('donation_id');
+
+        if ($request->type == 'standing')
+            $query->whereNotNull('standing_donationdetails_id');
+
+        if ($request->type == 'voucher')
+            $query->whereNotNull('cheque_no');
+
+        if ($request->type == 'campaign')
+            $query->whereNotNull('campaign_id');
+
+        $data = $query->get();
+
+        return response()->json($data->map(function($item) {
+            return [
+                'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
+                'amount' => '£' . number_format($item->amount, 2),
+                'ref'    => $item->cheque_no ?? $item->t_id,
+                'status' => $item->status,
+                'date'   => $item->created_at->format('d/m/Y H:i')
+            ];
+        }));
     }
 
 

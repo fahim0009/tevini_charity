@@ -388,6 +388,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/check-some-order', [VouchersController::class, 'checkOrder'])->name('checkOrder');
 
     Route::get('/audit-charities', [AdminController::class, 'auditBalances'])->name('admin.audit.balances');
+    Route::get('/audit-transaction/details', [AdminController::class, 'getDayDetails'])->name('audit.dailytransaction.details');
 
 
 });

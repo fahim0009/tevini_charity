@@ -179,27 +179,17 @@ class TransactionController extends Controller
                         '</span>';
                     })
 
-                    // ->addColumn('charity_name', function ($row) {
-                    //     return ($row->charity->name ?? 'N/A') .
-                    //         ' (' . ($row->charity->balance ?? '0') . ')';
-                    // })
-
                     ->addColumn('charity_name', function ($row) {
                         $charity = $row->charity;
                         $name = $charity->name ?? 'N/A';
                         $balance = $charity->balance ?? '0';
-                        
-                        // Default values (Auto-payment ON)
                         $title = '';
-                        $style = 'style="color: #28a745; font-weight: bold;"'; // Green for active
+                        $style = 'style="color: #28a745; font-weight: bold;"'; 
 
-                        // Check if auto_payment is 0 (Comparison ==)
                         if ($charity && $charity->auto_payment == 0) {
                             $title = ' title="Auto Payment Off"';
-                            $style = 'style="color: #dc3545; font-weight: bold;"'; // Red for warning
+                            $style = 'style="color: #dc3545; font-weight: bold;"';
                         }
-
-                        // Return the styled span
                         return '<span' . $title . ' ' . $style . '>' . $name . ' (' . $balance . ')</span>';
                     })
 
@@ -653,125 +643,6 @@ class TransactionController extends Controller
     }
 
 
-    public function getDayDetails2(Request $request)
-    {
-        $cutoffTime = '16:30:00';
-
-        $businessDate = Carbon::createFromFormat('Y-m-d', $request->date);
-
-        $startDateTime = $businessDate->copy()
-            ->subDay()
-            ->setTime(16, 30, 0);
-
-        $endDateTime = $businessDate->copy()
-            ->setTime(16, 30, 0);
-
-        /*
-        |--------------------------------------------------------------------------
-        | CASE 1: Paid (transactions table)
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->type == 'paid') {
-
-            $data = Transaction::with('charity')
-                ->where('charity_id', $request->charity_id)
-                ->where('t_type', 'Out')
-                ->where('status', 1)
-                ->whereBetween('created_at', [$startDateTime, $endDateTime])
-                ->get();
-
-            return response()->json($data->map(function($item) {
-                return [
-                    'donor'  => $item->charity->name ?? 'N/A',
-                    'amount' => '£' . number_format($item->amount, 2),
-                    'ref'    => $item->t_id,
-                    'status' => $item->status,
-                    'date'   => $item->created_at->format('d/m/Y H:i')
-                ];
-            }));
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | CASE 2: Usertransactions
-        |--------------------------------------------------------------------------
-        */
-
-        $query = Usertransaction::with('user')
-            ->where('status', 1)
-            ->where('charity_id', $request->charity_id)
-            ->whereBetween('created_at', [$startDateTime, $endDateTime]);
-
-        if ($request->type == 'online')
-            $query->whereNotNull('donation_id');
-
-        if ($request->type == 'standing')
-            $query->whereNotNull('standing_donationdetails_id');
-
-        if ($request->type == 'voucher')
-            $query->whereNotNull('cheque_no');
-
-        if ($request->type == 'campaign')
-            $query->whereNotNull('campaign_id');
-
-        $data = $query->get();
-
-        return response()->json($data->map(function($item) {
-            return [
-                'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
-                'amount' => '£' . number_format($item->amount, 2),
-                'ref'    => $item->cheque_no ?? $item->t_id,
-                'status' => $item->status,
-                'date'   => $item->created_at->format('d/m/Y H:i')
-            ];
-        }));
-    }
-
-
-    public function getDayDetails_old(Request $request)
-    {
-        // CASE 1: Paid amount clicked (Show the bulk record from transactions table)
-        if ($request->type == 'paid') {
-            $data = Transaction::with('charity')
-                ->where('charity_id', $request->charity_id)
-                ->where('t_type', 'Out')->where('status', 1)
-                ->whereDate('created_at', $request->date)
-                ->get();
-
-            return response()->json($data->map(function($item) {
-                return [
-                    'donor'  => $item->charity->name ?? 'N/A',
-                    'amount' => '£' . number_format($item->amount, 2),
-                    'ref'    => $item->t_id,
-                    'status'    => $item->status,
-                    'date'   => $item->created_at->format('d/m/Y H:i')
-                ];
-            }));
-        }
-
-        // CASE 2: Online/Standing/Voucher/Campaign clicked (Show individual usertransactions)
-        $query = Usertransaction::with('user')->where('status', 1)
-            ->where('charity_id', $request->charity_id)
-            ->whereDate('created_at', $request->date);
-
-        if ($request->type == 'online')   $query->whereNotNull('donation_id');
-        if ($request->type == 'standing') $query->whereNotNull('standing_donationdetails_id');
-        if ($request->type == 'voucher')  $query->whereNotNull('cheque_no');
-        if ($request->type == 'campaign') $query->whereNotNull('campaign_id');
-
-        $data = $query->get();
-
-        return response()->json($data->map(function($item) {
-            return [
-                'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
-                'amount' => '£' . number_format($item->amount, 2),
-                'ref'    => $item->cheque_no ?? $item->t_id,
-                'status'    => $item->status,
-                'date'   => $item->created_at->format('d/m/Y H:i')
-            ];
-        }));
-    }
 
 
 

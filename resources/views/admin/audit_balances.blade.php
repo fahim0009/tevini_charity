@@ -55,7 +55,7 @@
 
 
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Transaction Details</h5>
@@ -70,10 +70,11 @@
                                 <th>Amount</th>
                                 <th>Reference</th>
                                 <th>Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="details-content">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -81,6 +82,46 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="adjustActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Adjust Transaction</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="adj_tran_id">
+                <input type="hidden" id="adj_charity_id">
+                
+                <div class="mb-3">
+                    <label class="small fw-bold">Adjustment Type</label>
+                    <select id="adj_type" class="form-select form-select-sm">
+                        <option value="increment">Increment (+)</option>
+                        <option value="decrement">Decrement (-)</option>
+                    </select>
+                </div>
+
+                
+                <div class="mb-3">
+                    <label class="small fw-bold">Table</label>
+                    <select id="table_name" class="form-select form-select-sm">
+                        <option value="Charity">Charity</option>
+                        <option value="Transaction">Transaction</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small fw-bold">Adjustment Amount</label>
+                    <input type="number" id="adj_amount" class="form-control form-control-sm" step="0.01" placeholder="0.00">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="submitAdjustment" class="btn btn-primary btn-sm w-100">Process Adjustment</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 @endsection
@@ -104,14 +145,14 @@ $(function() {
             }
         },
         columns: [
-            {data: 'date_group', name: 'date_group'},
-            {data: 'charity_name', name: 'charity.name'},
-            {data: 'online_sum', name: 'online_sum'},
-            {data: 'standing_sum', name: 'standing_sum'},
-            {data: 'voucher_sum', name: 'voucher_sum'},
-            {data: 'campaign_sum', name: 'campaign_sum'},
-            {data: 'paid_sum', name: 'paid_sum', className: 'text-success'},
-            {data: 'balance', name: 'balance', className: 'fw-bold text-primary'},
+            {data: 'date_group', name: 'date_group', searchable: false}, // Dates are usually filtered, not searched
+            {data: 'charity_name', name: 'charity.name', searchable: true}, // Keep this TRUE
+            {data: 'online_sum', name: 'online_sum', searchable: false},
+            {data: 'standing_sum', name: 'standing_sum', searchable: false},
+            {data: 'voucher_sum', name: 'voucher_sum', searchable: false},
+            {data: 'campaign_sum', name: 'campaign_sum', searchable: false},
+            {data: 'paid_sum', name: 'paid_sum', className: 'text-success', searchable: false},
+            {data: 'balance', name: 'balance', className: 'fw-bold text-primary', searchable: false},
             {data: 'action', name: 'action', orderable: false, searchable: false}
         ],
         order: [[0, 'desc']],
@@ -161,11 +202,74 @@ $(function() {
                             </button>
                         </td>
                         <td>${item.date} - (${item.status})</td>
+                        <td>${item.adjustBtn}</td>
                     </tr>`;
                 });
             }
             $('#details-content').html(html);
         });
     });
+
+
+    // 1. When the Adjust button in the table is clicked
+    $(document).on('click', '.adjust-transaction', function() {
+        const btn = $(this);
+        // Set hidden fields in the adjustment modal
+        $('#adj_tran_id').val(btn.data('tid'));
+        $('#adj_charity_id').val(btn.data('charity'));
+        
+        // Reset inputs
+        $('#adj_amount').val('');
+        $('#adj_type').val('increment');
+
+        // Show the adjustment modal
+        $('#adjustActionModal').modal('show');
+    });
+
+    // 2. When the "Process Adjustment" button inside the modal is clicked
+    $('#submitAdjustment').on('click', function() {
+        const btn = $(this);
+        const data = {
+            _token: "{{ csrf_token() }}",
+            transaction_id: $('#adj_tran_id').val(),
+            charity_id: $('#adj_charity_id').val(),
+            amount: $('#adj_amount').val(),
+            type: $('#adj_type').val(),
+            table_name: $('#table_name').val()
+        };
+
+        if (!data.amount || data.amount <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
+
+        $.ajax({
+            url: "{{ route('admin.audit.adjust') }}",
+            method: 'POST',
+            data: data,
+            success: function(response) {
+                if(response.success) {
+                    alert('Success: ' + response.message);
+                    $('#adjustActionModal').modal('hide');
+                    $('#detailsModal').modal('hide'); // Close the parent details modal
+                    if (typeof table !== 'undefined') table.draw(); // Refresh main dashboard
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Error processing adjustment.');
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                btn.prop('disabled', false).text('Process Adjustment');
+            }
+        });
+    });
+
+
+
 </script>
 @endsection

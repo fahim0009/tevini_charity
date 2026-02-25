@@ -8,6 +8,7 @@ use Illuminate\support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Admin\Validator;
+use App\Models\AuditTran;
 use App\Models\Charity;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
@@ -716,6 +717,12 @@ class AdminController extends Controller
                     $style = ($charity && $charity->auto_payment == 0) ? 'color: #dc3545;' : 'color: #28a745;';
                     return '<span style="'.$style.' font-weight: bold;">'.$name.' ('.$balance.')</span>';
                 })
+                ->filterColumn('charity_name', function($query, $keyword) {
+                    $query->whereHas('charity', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+
                 ->addColumn('balance', function ($row) {
                     $total = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
                     return '£' . number_format($total - $row->paid_sum, 2);
@@ -806,12 +813,18 @@ class AdminController extends Controller
                 ->get();
 
             return response()->json($data->map(function($item) {
+                $adjustBtn = '<button class="btn btn-sm btn-warning adjust-transaction" ' .
+                 'data-tid="' . $item->id . '" ' .
+                 'data-charity="' . $item->charity_id . '" ' .
+                 'data-donor="' . ($item->user_id ?? '') . '">Adjust</button>';
+
                 return [
                     'donor'  => $item->charity->name ?? 'N/A',
                     'amount' => '£' . number_format($item->amount, 2),
                     'ref'    => $item->t_id,
                     'status' => $item->status,
-                    'date'   => $item->created_at->format('d/m/Y H:i:s')
+                    'date'   => $item->created_at->format('d/m/Y H:i:s'),
+                    'adjustBtn'   => $adjustBtn
                 ];
             }));
         }
@@ -842,16 +855,82 @@ class AdminController extends Controller
         $data = $query->get();
 
         return response()->json($data->map(function($item) {
+
+
+        $adjustBtn = '<button class="btn btn-sm btn-warning adjust-transaction" ' .
+                 'data-tid="' . $item->id . '" ' .
+                 'data-charity="' . $item->charity_id . '" ' .
+                 'data-donor="' . ($item->user_id ?? '') . '">Adjust</button>';
+
             return [
                 'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
                 'amount' => '£' . number_format($item->amount, 2),
-                'ref'    => $item->cheque_no ?? $item->t_id,
+                'ref'    => ($item->cheque_no ?? $item->t_id),
                 'status' => $item->status,
-                'date'   => $item->created_at->format('d/m/Y H:i')
+                'date'   => $item->created_at->format('d/m/Y H:i'),
+                'adjustBtn'   => $adjustBtn
             ];
+
         }));
     }
 
 
+
+    public function adjustTransaction(Request $request)
+    {
+        $request->validate([
+            'transaction_id' => 'required',
+            'charity_id'     => 'required',
+            'amount'         => 'required|numeric|min:0.01',
+            'type'           => 'required|in:increment,decrement',
+            'table_name'     => 'required|in:Charity,Transaction' // Validation for your new field
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            $transaction = Usertransaction::findOrFail($request->transaction_id);
+            $charity = Charity::findOrFail($request->charity_id);
+
+            // Save Audit Backup
+            AuditTran::create([
+                'user_id'    => $transaction->user_id,
+                'charity_id' => $transaction->charity_id,
+                'date'       => $transaction->created_at->format('Y-m-d'),
+                'amount'     => $transaction->amount,
+                'tran_data'  => json_encode([
+                    'adjustment_target' => $request->table_name,
+                    'transaction' => $transaction->toArray(),
+                    'charity_snapshot' => ['balance' => $charity->balance]
+                ]),
+                'status'     => $transaction->status,
+                'updated_by' => auth()->user()->name,
+                'created_by' => "Adj: $request->table_name ($request->type, $request->transaction_id)"
+            ]);
+
+            // Logic for Charity Table
+            if ($request->table_name === 'Charity') {
+                if ($request->type === 'increment') {
+                    $charity->balance += $request->amount;
+                } else {
+                    $charity->balance -= $request->amount;
+                }
+                $charity->save();
+            }
+
+            // Logic for Transaction Table
+            if ($request->table_name === 'Transaction') {
+                if ($request->type === 'increment') {
+                    $transaction->amount += $request->amount;
+                } else {
+                    $transaction->amount -= $request->amount;
+                }
+                $transaction->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully updated $request->table_name. Charity Balance: £" . number_format($charity->balance, 2)
+            ]);
+        });
+    }
 
 }

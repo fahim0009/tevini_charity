@@ -125,14 +125,14 @@ $(function() {
 
     // Definition for Summary Tab
     const summaryColumns = [
-        {data: 'date_group', name: 'date_group', title: 'Date'},
-        {data: 'charity_name', name: 'charity.name', title: 'Charity'},
-        {data: 'online_sum', name: 'online_sum', title: 'Online'},
-        {data: 'standing_sum', name: 'standing_sum', title: 'Standing'},
-        {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher'},
-        {data: 'campaign_sum', name: 'campaign_sum', title: 'Campaign'},
-        {data: 'paid_sum', name: 'paid_sum', title: 'Paid', className: 'text-success'},
-        {data: 'balance', name: 'balance', title: 'Summary', className: 'fw-bold text-primary'},
+        {data: 'date_group', name: 'date_group', title: 'Date', searchable: true},
+        {data: 'charity_name', name: 'charity.name', title: 'Charity', searchable: true}, // This allows searching by Name
+        {data: 'online_sum', name: 'online_sum', title: 'Online', searchable: false},
+        {data: 'standing_sum', name: 'standing_sum', title: 'Standing', searchable: false},
+        {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher', searchable: false},
+        {data: 'campaign_sum', name: 'campaign_sum', title: 'Campaign', searchable: false},
+        {data: 'paid_sum', name: 'paid_sum', title: 'Paid', className: 'text-success', searchable: false},
+        {data: 'balance', name: 'balance', title: 'Summary', className: 'fw-bold text-primary', searchable: false},
         {data: 'action', name: 'action', title: 'Action', orderable: false, searchable: false}
     ];
 

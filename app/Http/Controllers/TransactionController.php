@@ -193,6 +193,12 @@ class TransactionController extends Controller
                         return '<span' . $title . ' ' . $style . '>' . $name . ' (' . $balance . ')</span>';
                     })
 
+                    ->filterColumn('charity_name', function($query, $keyword) {
+                        $query->whereHas('charity', function($q) use ($keyword) {
+                            $q->where('name', 'like', "%{$keyword}%");
+                        });
+                    })
+
                     ->addColumn('balance', function ($row) {
 
                         $totalGenerated =

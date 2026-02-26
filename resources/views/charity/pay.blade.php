@@ -90,6 +90,17 @@
                         <div class="row">
                             <div class="col-md-2"></div>
                             <div class="col-md-8">
+
+                                
+                                <div class="form-group my-2">
+                                    <label for="date"><small>Date & Time</small></label>
+                                    <input class="form-control mr-sm-2" 
+                                        type="datetime-local" 
+                                        name="created_at" 
+                                        id="date" 
+                                        required>
+                                </div>
+
                                 <div class="form-group my-2">
                                     <label for=""><small>Amount </small> </label>
                                     <input class="form-control mr-sm-2" type="text" name="balance" id="balance" required placeholder="Amount"  value="{{ $amount }}">

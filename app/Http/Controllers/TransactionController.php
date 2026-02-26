@@ -1326,7 +1326,7 @@ public function toggleCharityPayment(Request $request)
 
         $data = Transaction::where('t_id', 'Out-1770767163-195')->first();
         if ($data) {
-            $data->status = 0;
+            $data->status = 1;
             $data->save();
         }
 

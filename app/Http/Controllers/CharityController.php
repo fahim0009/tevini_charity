@@ -371,7 +371,7 @@ class CharityController extends Controller
     {
 
         $charity_bal = Charity::find($request->topupid);
-        $charity_bal->decrement('balance',$request->balance);
+        // $charity_bal->decrement('balance',$request->balance);
         $t_id = time() . "-" . $request->topupid;
         $createdAt = Carbon::parse($request->created_at);
 

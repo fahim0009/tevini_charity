@@ -93,6 +93,7 @@
             <div class="modal-body">
                 <input type="hidden" id="adj_tran_id">
                 <input type="hidden" id="adj_charity_id">
+                <input type="hidden" id="adj_tran_type">
                 
                 <div class="mb-3">
                     <label class="small fw-bold">Adjustment Type</label>
@@ -217,10 +218,11 @@ $(function() {
         // Set hidden fields in the adjustment modal
         $('#adj_tran_id').val(btn.data('tid'));
         $('#adj_charity_id').val(btn.data('charity'));
+        $('#adj_tran_type').val(btn.data('type'));
         
         // Reset inputs
         $('#adj_amount').val('');
-        $('#adj_type').val('increment');
+        $('#adj_type').val('');
 
         // Show the adjustment modal
         $('#adjustActionModal').modal('show');
@@ -235,6 +237,7 @@ $(function() {
             charity_id: $('#adj_charity_id').val(),
             amount: $('#adj_amount').val(),
             type: $('#adj_type').val(),
+            tran_type: $('#adj_tran_type').val(),
             table_name: $('#table_name').val()
         };
 

@@ -1,20 +1,21 @@
 <?php
-namespace App\Http\Controllers\Admin;
+    namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Role;
-use Illuminate\support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\Admin\Validator;
-use App\Models\AuditTran;
-use App\Models\Charity;
-use App\Models\Transaction;
-use App\Models\Usertransaction;
-use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\Facades\DataTables;
-use Carbon\Carbon;
+    use App\Http\Controllers\Controller;
+    use App\Models\User;
+    use App\Models\Role;
+    use Illuminate\support\Facades\Auth;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Hash;
+    use App\Http\Controllers\Admin\Validator;
+    use App\Models\AuditTran;
+    use App\Models\Charity;
+    use App\Models\Transaction;
+    use App\Models\Usertransaction;
+    use Illuminate\Support\Facades\DB;
+    use Yajra\DataTables\Facades\DataTables;
+    use Carbon\Carbon;
+    use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -816,6 +817,7 @@ class AdminController extends Controller
                 $adjustBtn = '<button class="btn btn-sm btn-warning adjust-transaction" ' .
                  'data-tid="' . $item->id . '" ' .
                  'data-charity="' . $item->charity_id . '" ' .
+                 'data-type="paid" ' .
                  'data-donor="' . ($item->user_id ?? '') . '">Adjust</button>';
 
                 return [
@@ -860,6 +862,7 @@ class AdminController extends Controller
         $adjustBtn = '<button class="btn btn-sm btn-warning adjust-transaction" ' .
                  'data-tid="' . $item->id . '" ' .
                  'data-charity="' . $item->charity_id . '" ' .
+                 'data-type="receive" ' .
                  'data-donor="' . ($item->user_id ?? '') . '">Adjust</button>';
 
             return [
@@ -876,61 +879,102 @@ class AdminController extends Controller
 
 
 
+
     public function adjustTransaction(Request $request)
     {
+        Log::info('Adjustment Started', [
+            'transaction_id' => $request->transaction_id,
+            'table' => $request->table_name,
+            'type' => $request->type,
+            'tran_type' => $request->tran_type,
+            'amount' => $request->amount
+        ]);
+
         $request->validate([
             'transaction_id' => 'required',
             'charity_id'     => 'required',
             'amount'         => 'required|numeric|min:0.01',
             'type'           => 'required|in:increment,decrement',
-            'table_name'     => 'required|in:Charity,Transaction' // Validation for your new field
+            'table_name'     => 'required|in:Charity,Transaction'
         ]);
 
-        return DB::transaction(function () use ($request) {
-            $transaction = Usertransaction::findOrFail($request->transaction_id);
-            $charity = Charity::findOrFail($request->charity_id);
+        try {
+            return DB::transaction(function () use ($request) {
+                // 1. Fetch Records
+                if ($request->tran_type === 'paid') {
+                    $transaction = Transaction::findOrFail($request->transaction_id);
+                } else {
+                    $transaction = Usertransaction::findOrFail($request->transaction_id);
+                }
+                
+                $charity = Charity::findOrFail($request->charity_id);
+                Log::info('Records Found', [
+                    'current_tran_amount' => $transaction->amount,
+                    'current_charity_balance' => $charity->balance
+                ]);
 
-            // Save Audit Backup
-            AuditTran::create([
-                'user_id'    => $transaction->user_id,
-                'charity_id' => $transaction->charity_id,
-                'date'       => $transaction->created_at->format('Y-m-d'),
-                'amount'     => $transaction->amount,
-                'tran_data'  => json_encode([
-                    'adjustment_target' => $request->table_name,
-                    'transaction' => $transaction->toArray(),
-                    'charity_snapshot' => ['balance' => $charity->balance]
-                ]),
-                'status'     => $transaction->status,
-                'updated_by' => auth()->user()->name,
-                'created_by' => "Adj: $request->table_name ($request->type, $request->transaction_id)"
+                // 2. Create Audit Log
+                $audit = AuditTran::create([
+                    'user_id'    => $transaction->user_id,
+                    'charity_id' => $transaction->charity_id,
+                    'date'       => $transaction->created_at->format('Y-m-d'),
+                    'amount'     => $transaction->amount,
+                    'tran_data'  => json_encode([
+                        'adjustment_target' => $request->table_name,
+                        'transaction' => $transaction->toArray(),
+                        'charity_snapshot' => ['balance' => $charity->balance]
+                    ]),
+                    'status'     => $transaction->status,
+                    'updated_by' => auth()->user()->name,
+                    'created_by' => "Adj: $request->table_name ($request->type, $request->transaction_id)"
+                ]);
+                Log::info('Audit Record Created', ['audit_id' => $audit->id]);
+
+                // 3. Logic for Charity Table
+                if ($request->table_name === 'Charity') {
+                    Log::info('Processing Charity Balance Adjustment');
+                    if ($request->type === 'increment') {
+                        $charity->balance += $request->amount;
+                    } else {
+                        $charity->balance -= $request->amount;
+                    }
+                    $charity->save();
+                    Log::info('Charity Saved', ['new_balance' => $charity->balance]);
+                }
+
+                // 4. Logic for Transaction Table
+                if ($request->table_name === 'Transaction') {
+                    Log::info('Processing Transaction Amount Adjustment');
+                    if ($request->type === 'increment') {
+                        $transaction->amount += $request->amount;
+                    } else {
+                        $transaction->amount -= $request->amount;
+                    }
+                    $transaction->save();
+                    Log::info('Transaction Saved', [
+                        'new_amount' => $transaction->amount,
+                        'new_status' => $transaction->status
+                    ]);
+                }
+
+                Log::info('Adjustment Transaction Committed Successfully');
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully updated $request->table_name. Charity Balance: £" . number_format($charity->balance, 2)
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Adjustment Failed', [
+                'error' => $e->getMessage(),
+                'line' => $e->getLine()
             ]);
-
-            // Logic for Charity Table
-            if ($request->table_name === 'Charity') {
-                if ($request->type === 'increment') {
-                    $charity->balance += $request->amount;
-                } else {
-                    $charity->balance -= $request->amount;
-                }
-                $charity->save();
-            }
-
-            // Logic for Transaction Table
-            if ($request->table_name === 'Transaction') {
-                if ($request->type === 'increment') {
-                    $transaction->amount += $request->amount;
-                } else {
-                    $transaction->amount -= $request->amount;
-                }
-                $transaction->save();
-            }
 
             return response()->json([
-                'success' => true,
-                'message' => "Successfully updated $request->table_name. Charity Balance: £" . number_format($charity->balance, 2)
-            ]);
-        });
+                'success' => false,
+                'message' => 'Adjustment failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 }

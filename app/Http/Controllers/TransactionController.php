@@ -1319,16 +1319,16 @@ public function toggleCharityPayment(Request $request)
             'new_date' => 'required'
         ]);
 
-        // $transaction = Transaction::findOrFail($request->transaction_id);
-        // $transaction->created_at = $request->new_date;
-        // $transaction->bank_payment_status = 0;
-        // $transaction->save(); 
+        $transaction = Transaction::findOrFail($request->transaction_id);
+        $transaction->created_at = $request->new_date;
+        $transaction->bank_payment_status = 0;
+        $transaction->save(); 
 
-        $data = Transaction::where('t_id', 'Out-1770767163-195')->first();
-        if ($data) {
-            $data->status = 1;
-            $data->save();
-        }
+        // $data = Transaction::where('t_id', 'Out-1770767163-195')->first();
+        // if ($data) {
+        //     $data->status = 1;
+        //     $data->save();
+        // }
 
 
         return back()->with('success', 'Date updated successfully!');

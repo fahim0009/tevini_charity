@@ -1319,9 +1319,9 @@ public function toggleCharityPayment(Request $request)
             'new_date' => 'required'
         ]);
 
-        // Assuming it's always from the 'Transaction' (External) table based on your 'Credit' logic
         $transaction = Transaction::findOrFail($request->transaction_id);
         $transaction->created_at = $request->new_date;
+        $transaction->status = 0;
         $transaction->save();
 
         return back()->with('success', 'Date updated successfully!');

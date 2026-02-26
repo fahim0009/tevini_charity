@@ -213,7 +213,18 @@
 
                                                 @foreach($finalLedger as $entry)
                                                     <tr>
-                                                        <td>{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d H:i') }}</td>
+                                                        <td>{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d H:i') }}
+                                                            @if($entry['credit'] > 0)
+                                                                <a href="javascript:void(0)" 
+                                                                class="text-primary ml-2 edit-date-btn" 
+                                                                data-id="{{ $entry['real_id'] }}" 
+                                                                data-date="{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d\TH:i') }}"
+                                                                data-toggle="modal" 
+                                                                data-target="#editDateModal">
+                                                                    <i class="fas fa-edit fa-sm"></i>
+                                                                </a>
+                                                            @endif
+                                                        </td>
                                                         <td><code>{{ $entry['t_id'] }}</code></td>
                                                         <td>{{ $entry['description'] }}</td>
                                                         <td class="text-danger">
@@ -443,12 +454,47 @@
 </div>
 
 
+<div class="modal fade" id="editDateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Transaction Date</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('transactions.update-date') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="transaction_id" id="modal_transaction_id">
+                    <div class="form-group">
+                        <label>Transaction Date & Time</label>
+                        <input type="datetime-local" name="new_date" id="modal_date_input" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Date</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @endsection
-
-
-
 @section('script')
-
+<script>
+$(document).ready(function() {
+    $('.edit-date-btn').on('click', function() {
+        const id = $(this).data('id');
+        const date = $(this).data('date');
+        
+        $('#modal_transaction_id').val(id);
+        $('#modal_date_input').val(date);
+    });
+});
+</script>
 <script>
     $(document).ready(function() {
         // 1. Convert the PHP Collection to a JS Object

@@ -130,6 +130,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     Route::get('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview');
     Route::post('/charity-transaction/{id}', [TransactionController::class, 'charityTransaction'])->name('charity.tranview_search');
+    Route::post('/charity-transaction-update-date', [TransactionController::class, 'updateDate'])->name('transactions.update-date');
 
     // this route for checking charity balance mitch-match
     Route::get('/charity-balance-check-transaction', [TransactionController::class, 'allCharityBalances'])->name('charity.checkTranBalance');

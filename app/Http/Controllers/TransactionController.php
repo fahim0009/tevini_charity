@@ -1266,6 +1266,7 @@ public function toggleCharityPayment(Request $request)
                 $finalDescription = implode(' - ', $descParts);
 
                 $ledgerEntries->push([
+                    'real_id' => $ut->id,
                     'date' => $ut->created_at,
                     't_id' => $ut->t_id ?? $ut->id, 
                     'description' => $finalDescription ?: 'User Transfer', // Fallback if empty
@@ -1277,6 +1278,7 @@ public function toggleCharityPayment(Request $request)
 
             foreach ($externalTransactionsledger as $et) {
                 $ledgerEntries->push([
+                    'real_id' => $et->id,
                     'date' => $et->created_at,
                     't_id' => $et->t_id ?? $et->id, // Ensure t_id is captured
                     'description' => 'Desc: ' . $et->note,
@@ -1308,6 +1310,21 @@ public function toggleCharityPayment(Request $request)
             'dailySummary', 'intransactions', 'outtransactions', 
             'reports', 'totalIN', 'totalOUT', 'pvouchers', 'id', 'paidDates','finalLedger','currentTotalBalance'
         ));
+    }
+
+    public function updateDate(Request $request)
+    {
+        $request->validate([
+            'transaction_id' => 'required',
+            'new_date' => 'required'
+        ]);
+
+        // Assuming it's always from the 'Transaction' (External) table based on your 'Credit' logic
+        $transaction = Transaction::findOrFail($request->transaction_id);
+        $transaction->created_at = $request->new_date;
+        $transaction->save();
+
+        return back()->with('success', 'Date updated successfully!');
     }
 
 

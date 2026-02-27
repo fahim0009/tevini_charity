@@ -661,7 +661,7 @@ class AdminController extends Controller
 
             // 1. Setup Date Ranges
         $startDate = $request->get('fromDate') ?? '2026-02-09';
-        $endDate = $request->get('toDate') ?? '2026-02-22';
+        $endDate = $request->get('toDate') ?? '2026-04-22';
 
         $cutoffTime = '16:31:00';
         $cutoffTime2 = '16:30:00';

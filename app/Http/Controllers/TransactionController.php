@@ -12,6 +12,7 @@ use App\Models\Usertransaction;
 use App\Models\Donation;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class TransactionController extends Controller
@@ -1319,16 +1320,21 @@ public function toggleCharityPayment(Request $request)
             'new_date' => 'required'
         ]);
 
-        $transaction = Transaction::findOrFail($request->transaction_id);
-        $transaction->created_at = $request->new_date;
-        $transaction->bank_payment_status = 0;
-        $transaction->save(); 
+        // $transaction = Transaction::findOrFail($request->transaction_id);
+        // $transaction->created_at = $request->new_date;
+        // $transaction->bank_payment_status = 0;
+        // $transaction->save(); 
 
-        // $data = Transaction::where('t_id', 'Out-1770767163-195')->first();
-        // if ($data) {
-        //     $data->status = 1;
-        //     $data->save();
-        // }
+        $data = Transaction::where('t_id', 'Out-1771864206-151')->first();
+        $data2 = Transaction::where('t_id', 'Out-1771777803-151')->first();
+
+        Log::info('Data-1771864206: ' . $data);
+        Log::info('Data-1771777803: ' . $data2);
+
+        if ($data) {
+            $data->status = 0;
+            $data->save();
+        }
 
 
         return back()->with('success', 'Date updated successfully!');

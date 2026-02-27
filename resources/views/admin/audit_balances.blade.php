@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Date To</label>
-                    <input type="date" id="toDate" class="form-control form-control-sm" value="2026-02-22">
+                    <input type="date" id="toDate" class="form-control form-control-sm" value="2026-04-22">
                 </div>
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>
@@ -171,7 +171,7 @@ $(function() {
 
     $('#reset-filter').on('click', function() { 
         $('#fromDate').val('2026-02-09'); // Reset to your specific start
-        $('#toDate').val('2026-02-22');   // Reset to your specific end
+        $('#toDate').val('2026-04-22');   // Reset to your specific end
         table.draw(); 
     });
 });

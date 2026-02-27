@@ -89,6 +89,12 @@
                     3. Top-Up using your card: <br> 
                     <a href="{{ route('stripeDonation')}}" class="btn-theme bg-ternary">Top up account</a>
                 </div>
+
+                
+                <div class="fs-24 fw-bold txt-secondary">
+                    Card payments will be manually added to your account-please wait for a confirmation email from us.
+                </div>
+
             </div>
         </div>
     </form>

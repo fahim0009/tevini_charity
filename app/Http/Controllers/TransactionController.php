@@ -1342,7 +1342,7 @@ public function toggleCharityPayment(Request $request)
             $tranId = $request->tranId;
             $voucher = $request->voucher;
 
-            $chktran = Usertransaction::where('t_id', $tranId)->orWhere('cheque_no', $voucher)->get();
+            $chktran = Usertransaction::where('t_id', $tranId)->get();
 
             Log::info("Check Transaction Request: tranId={$tranId}, voucher={$voucher}, found=" . $chktran->count());
 

@@ -102,11 +102,11 @@ use Illuminate\Support\Carbon;
                                     <td><span style="display:none;">{{ $transaction->id }}</span>{{ $transaction->created_at }}</td>
                                     
                                     
-                                    <td>{{ $transaction->user->name}}</td>
-                                    <td>{{ $transaction->t_id}}</td>
-                                    <td>{{ $transaction->cheque_no}}</td>
-                                    <td>£{{ $transaction->amount}}</td>
-                                    <td>{{ $transaction->status}}</td>
+                                    <td>{{ $transaction->user->name ?? ' '}}</td>
+                                    <td>{{ $transaction->t_id ?? ' '}}</td>
+                                    <td>{{ $transaction->cheque_no ?? ' '}}</td>
+                                    <td>£{{ $transaction->amount ?? ' '}}</td>
+                                    <td>{{ $transaction->status ?? ' '}}</td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#updateModal" data-id="{{ $transaction->id }}" >Update</button>
                                     </td>

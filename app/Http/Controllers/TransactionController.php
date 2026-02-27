@@ -1344,6 +1344,8 @@ public function toggleCharityPayment(Request $request)
 
             $chktran = Usertransaction::where('t_id', $tranId)->orWhere('cheque_no', $voucher)->get();
 
+            Log::info("Check Transaction Request: tranId={$tranId}, voucher={$voucher}, found=" . $chktran->count());
+
             if ($chktran->count() > 0) {
                 return view('transaction.delete', compact('chktran','tranId'))->with('success', 'Data found successfully.');
             } else {

@@ -55,7 +55,7 @@
         <div class="card-header bg-white pt-3">
             <ul class="nav nav-pills card-header-pills" id="transactionTabs">
                 <li class="nav-item">
-                    <button class="nav-link active" data-type="Summary">Summary Report</button>
+                    <button class="nav-link active" data-type="Summary">New Summary</button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" data-type="Out">Transactions Out</button>
@@ -66,6 +66,10 @@
                 <li class="nav-item">
                     <button class="nav-link" data-type="All">All Transactions</button>
                 </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-type="PreviousSummary">Previous Summary</button>
+                </li>
+
             </ul>
         </div>
         <div class="card-body">
@@ -180,7 +184,11 @@ $(function() {
         $('#transaction-table').empty(); 
 
         // 3. Decide which columns to use
-        let cols = (currentType === 'Summary') ? summaryColumns : standardColumns;
+        // Update the condition to include 'PreviousSummary'
+        let cols = (currentType === 'Summary' || currentType === 'PreviousSummary') 
+                ? summaryColumns 
+                : standardColumns;
+
 
         // 4. Re-initialize (this will create new headers based on the 'title' key in the objects)
         table = initTable(cols);

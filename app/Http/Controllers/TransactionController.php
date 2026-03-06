@@ -64,7 +64,7 @@ class TransactionController extends Controller
             $fromDate = $request->get('fromDate');
             $toDate = $request->get('toDate');
 
-            if ($type === 'Summary') {
+            if ($type === 'Summary' || $type === 'PreviousSummary') {
 
                 // Define the exact second where the next day starts
                 $cutoffTime = '16:31:00';
@@ -153,6 +153,18 @@ class TransactionController extends Controller
                         ->orderBy('usertransactions.charity_id')
                         ->with('charity');
 
+
+                if ($type === 'Summary') {
+
+                    $query->where(DB::raw($businessDateRaw), '>', '2026-02-09');
+                    // 2. Filter by the aggregated payment status
+                    $query->having('payment_status', '=', 0);
+
+                } elseif ($type === 'PreviousSummary') {
+                    // Only show items where bank_payment_status is 1
+                    $query->having('payment_status', '=', 1);
+                }
+
                 /*
                 |--------------------------------------------------------------------------
                 | Date Filter (based on business date)
@@ -168,11 +180,6 @@ class TransactionController extends Controller
                 }
 
                 return DataTables::of($query)
-
-                    // ->editColumn('date_group', function ($row) {
-                    //     return \Carbon\Carbon::parse($row->date_group)->format('d/m/Y');
-                    // })
-
                     ->addColumn('date_group', function ($row) {
 
                         return '<span data-raw="'.$row->date_group.'">'.
@@ -276,6 +283,7 @@ class TransactionController extends Controller
 
                     ->make(true);
             }
+
 
             $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
 

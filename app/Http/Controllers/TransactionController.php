@@ -156,7 +156,7 @@ class TransactionController extends Controller
 
                 if ($type === 'Summary') {
 
-                    $query->where(DB::raw($businessDateRaw), '>', '2026-02-09');
+                    $query->where(DB::raw($businessDateRaw), '>', '2026-02-07');
                     // 2. Filter by the aggregated payment status
                     $query->having('payment_status', '=', 0);
 

@@ -23,6 +23,7 @@ use Exception;
 use Twilio\Rest\Client;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\Schema;
 
 class CardServiceController extends Controller
 {
@@ -1076,7 +1077,7 @@ class CardServiceController extends Controller
     // {
     //     if ($request->msgType == 100) {
     //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
 
     //         $DateTime = now();
     //         $data = new Authorisation();
@@ -1185,7 +1186,7 @@ class CardServiceController extends Controller
     //     } elseif ($request->msgType == 420) {
 
     //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
 
     //         $DateTime = now();
     //         $data = new AuthReversal();
@@ -1294,7 +1295,7 @@ class CardServiceController extends Controller
     //     } elseif ($request->msgType == 120) {
 
     //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
 
     //         $DateTime = now();
     //         $data = new AuthReversal();
@@ -1371,7 +1372,7 @@ class CardServiceController extends Controller
     // public function settlement(Request $request)
     // {
     //     $cardNumber = substr($request->PAN, -4);
-    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
 
     //     $DateTime = now();
     //     $data = new Settlement();
@@ -1446,7 +1447,7 @@ class CardServiceController extends Controller
 
         
     //     $cardNumber = substr($request->PAN, -4);
-    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
     //     $DateTime = now();
 
     //     $data = new Expired();
@@ -1530,192 +1531,269 @@ class CardServiceController extends Controller
     // }
 
 
-    /**
-     * Handle Authorisation Requests (msgType 100, 120, 420)
-     */
 
     public function authorisation(Request $request)
     {
-        Log::info("Payment Auth: Request Received", ['msgType' => $request->msgType, 'Utid' => $request->Utid]);
+        try {
 
-        return DB::transaction(function () use ($request) {
+            Log::info("Auth Request", $request->all());
+
             $cardNumber = substr($request->PAN, -4);
-            $chkuser = CardProduct::where('cardNumber', $cardNumber)->first();
+            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+            $user = $card ? User::find($card->user_id) : null;
 
-            if (!$chkuser) {
-                Log::warning("Payment Auth: Card not found", ['last4' => $cardNumber]);
-                return redirect()->back()->with('error', 'User not found.');
-            }
+            $DateTime = now();
 
-            // 1. Determine Model
-            $data = match ((int)$request->msgType) {
-                100      => new Authorisation(),
-                420, 120 => new AuthReversal(),
-                default  => null,
-            };
+            DB::transaction(function () use ($request, $card, $user, $DateTime) {
 
-            if (!$data) {
-                Log::error("Payment Auth: Invalid msgType", ['type' => $request->msgType]);
-                return redirect()->back()->with('error', 'Invalid Message Type.');
-            }
+                if ($request->msgType == 100) {
 
-            // 2. Map & Save
-            $this->mapPaymentData($data, $request, $chkuser->user_id);
-            
-            if (!$data->save()) {
-                Log::emergency("Payment Auth: Database Save Failed", ['Utid' => $request->Utid]);
-                throw new \Exception("Failed to save authorisation data.");
-            }
-            Log::info("Payment Auth: Record Saved", ['id' => $data->id, 'type' => get_class($data)]);
+                    $data = new Authorisation();
 
-            // 3. Balance Adjustment
-            if ($request->actionCode === "000") {
-                Log::info("Payment Auth: Processing Balance", ['user_id' => $chkuser->user_id, 'amt' => $request->billAmt]);
-                $this->processBalanceAdjustment($request, $chkuser, $request->msgType);
-            } else {
-                Log::notice("Payment Auth: ActionCode not 000, skipping balance update", ['code' => $request->actionCode]);
-            }
+                    $this->storeAuthData($data, $request, $card);
+                    $data->save();
 
-            // 4. API Notify
-            $this->notifyExternalApi("AUTH", $request->Utid);
+                    if ($request->actionCode == "000" && $user) {
 
-            Log::info("Payment Auth: Completed Successfully", ['Utid' => $request->Utid]);
-            return response()->json(['status' => 'success']);
-        });
+                        $user->decrement('balance', $request->billAmt);
+
+                        $t_id = time() . "-" . $user->id;
+
+                        Usertransaction::create([
+                            't_id' => $t_id,
+                            'user_id' => $user->id,
+                            't_type' => "Out",
+                            'source' => "Tevini Card",
+                            'amount' => $request->billAmt,
+                            'crdAcptLoc' => $request->crdAcptLoc,
+                            'crdAcptID' => $request->crdAcptID,
+                            'title' => "Tevini Card Payment to " . $request->crdAcptLoc,
+                            'pending' => 1,
+                            'status' => 1
+                        ]);
+
+                        Transaction::create([
+                            't_id' => $t_id,
+                            'user_id' => $user->id,
+                            't_type' => "Out",
+                            'name' => "Tevini Card",
+                            'amount' => $request->billAmt,
+                            'crdAcptLoc' => $request->crdAcptLoc,
+                            'crdAcptID' => $request->crdAcptID,
+                            'title' => "Tevini Card Payment to " . $request->crdAcptLoc,
+                            'status' => 1
+                        ]);
+
+                        QpayBalance::find(1)->decrement('balance', $request->billAmt);
+                    }
+                }
+
+                if ($request->msgType == 420) {
+
+                    $data = new AuthReversal();
+                    $this->storeAuthData($data, $request, $card);
+                    $data->save();
+
+                    if ($request->actionCode == "000" && $user) {
+
+                        $user->increment('balance', $request->billAmt);
+
+                        $t_id = time() . "-" . $user->id;
+
+                        Usertransaction::create([
+                            't_id' => $t_id,
+                            'user_id' => $user->id,
+                            't_type' => "In",
+                            'source' => "Tevini Card",
+                            'amount' => $request->billAmt,
+                            'crdAcptLoc' => $request->crdAcptLoc,
+                            'crdAcptID' => $request->crdAcptID,
+                            'title' => "Tevini Card Reversal",
+                            'pending' => 1,
+                            'status' => 1
+                        ]);
+
+                        Transaction::create([
+                            't_id' => $t_id,
+                            'user_id' => $user->id,
+                            't_type' => "In",
+                            'name' => "Tevini Card",
+                            'amount' => $request->billAmt,
+                            'crdAcptLoc' => $request->crdAcptLoc,
+                            'crdAcptID' => $request->crdAcptID,
+                            'note' => "Tevini Card Reversal",
+                            'status' => 1
+                        ]);
+
+                        QpayBalance::find(1)->increment('balance', $request->billAmt);
+                    }
+                }
+
+                if ($request->msgType == 120) {
+
+                    $data = new AuthReversal();
+                    $this->storeAuthData($data, $request, $card);
+                    $data->save();
+                }
+
+                $this->sendApiResponse("AUTH", $DateTime);
+
+            });
+
+            return response()->json(['status' => true]);
+
+        } catch (\Exception $e) {
+
+            Log::error("Auth Error", ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Authorization error'
+            ], 500);
+        }
     }
+        
 
-    /**
-     * Handle Settlement Requests
-     */
     public function settlement(Request $request)
     {
-        Log::info("Payment Settlement: Request Received", ['Utid' => $request->Utid]);
+        try {
 
-        return DB::transaction(function () use ($request) {
-            $chkuser = CardProduct::where('cardNumber', substr($request->PAN, -4))->first();
-            
-            $data = new Settlement();
-            $this->mapPaymentData($data, $request, $chkuser->user_id ?? null);
-            $data->save();
-            Log::info("Payment Settlement: Record Saved");
+            Log::info("Settlement Request", $request->all());
 
-            // Adjust balance based on difference
-            $auth = Authorisation::where('Utid', $request->Utid)->first();
-            if ($auth && $chkuser) {
-                // Ensure both values are treated as numbers
-                $authAmt = (float)$auth->billAmt;
-                $settleAmt = (float)$request->billAmt;
-                
-                $diff = $authAmt - $settleAmt;
-                
-                if ($diff != 0) {
-                    // If diff is positive, it decrements; if negative, it increments automatically
-                    User::where('id', $chkuser->user_id)->decrement('balance', $diff);
+            $cardNumber = substr($request->PAN, -4);
+            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+            $user = $card ? User::find($card->user_id) : null;
+
+            $DateTime = now();
+
+            DB::transaction(function () use ($request, $user, $card, $DateTime) {
+
+                $data = new Settlement();
+                $this->storeSettlementData($data, $request, $card);
+                $data->save();
+
+                $authorization = Authorisation::where('Utid', $request->Utid)->first();
+
+                if ($authorization && $user) {
+
+                    $diffAmount = $authorization->billAmt - $request->billAmt;
+
+                    if ($diffAmount > 0) {
+                        $user->decrement('balance', $diffAmount);
+                    }
                 }
+
+                $this->sendApiResponse("SETTLEMENT", $DateTime);
+
+            });
+
+            return response()->json(['status' => true]);
+
+        } catch (\Exception $e) {
+
+            Log::error("Settlement Error", ['error' => $e->getMessage()]);
+
+            return response()->json(['status' => false], 500);
+        }
+    }
+
+
+
+    public function expired(Request $request)
+    {
+        try {
+
+            Log::info("Expired Request", $request->all());
+
+            $cardNumber = substr($request->PAN, -4);
+            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+            $user = $card ? User::find($card->user_id) : null;
+
+            $DateTime = now();
+
+            DB::transaction(function () use ($request, $card, $user, $DateTime) {
+
+                $data = new Expired();
+                $this->storeAuthData($data, $request, $card);
+                $data->save();
+
+                if ($user) {
+
+                    $user->increment('balance', $request->billAmt);
+
+                    QpayBalance::find(1)->increment('balance', $request->billAmt);
+                }
+
+                $this->sendApiResponse("EXPIRED", $DateTime);
+
+            });
+
+            return response()->json(['status' => true]);
+
+        } catch (\Exception $e) {
+
+            Log::error("Expired Error", ['error' => $e->getMessage()]);
+
+            return response()->json(['status' => false], 500);
+        }
+    }
+
+    private function storeAuthData($data, $request, $card)
+    {
+        if ($card) {
+            $data->user_id = $card->user_id;
+        }
+
+        foreach ($request->all() as $key => $value) {
+            if (Schema::hasColumn($data->getTable(), $key)) {
+                $data->$key = $value;
+            }
+        }
+    }
+
+    private function storeSettlementData($data, $request, $card)
+    {
+        if ($card) {
+            $data->user_id = $card->user_id;
+        }
+
+        foreach ($request->all() as $key => $value) {
+            if (Schema::hasColumn($data->getTable(), $key)) {
+                $data->$key = $value;
+            }
+        }
+    }
+
+    private function sendApiResponse($type, $dateTime)
+    {
+        try {
+            $response = Http::withBasicAuth(
+                config('services.tevini.user'),
+                config('services.tevini.pass')
+            )->post(
+                config('services.tevini.url'),
+                [
+                    'Type' => $type,
+                    'DateTime' => $dateTime
+                ]
+            );
+
+            if (!$response->successful()) {
+                Log::error("Tevini API Error", [
+                    'type' => $type,
+                    'response' => $response->body()
+                ]);
             }
 
-            $this->notifyExternalApi("SETTLEMENT", $request->Utid);
-            return response()->json(['status' => 'success']);
-        });
-    }
-
-
-
-    /**
-     * Helper: Map all incoming request fields to the model
-     */
-    private function mapPaymentData($model, Request $request, $userId)
-    {
-        $model->user_id = $userId;
-        // Collect all inputs and fill the model
-        // Ensure your models have $fillable defined for safety
-        $model->fill($request->all()); 
-        
-        // Manual override for specific fields if necessary
-        $model->Utid = $request->Utid; 
-        // ... add specific overrides here
-    }
-
-    /**
-     * Helper: Handle User and System Balance Logic
-     */
-
-    private function processBalanceAdjustment($request, $chkuser, $msgType)
-    {
-        $user = User::findOrFail($chkuser->user_id);
-        $qpay = QpayBalance::firstOrFail();
-
-        // Force the value to be a number
-        $amount = (float)($request->billAmt ?? 0);
-
-        if ($amount <= 0) {
-            Log::warning("Balance Update Skipped: Amount is zero or non-numeric", [
-                'Utid' => $request->Utid,
-                'raw_amt' => $request->billAmt
-            ]);
-            return;
-        }
-
-        if ($msgType == 100) {
-            $user->decrement('balance', $amount);
-            $qpay->decrement('balance', $amount);
-            $this->createTransactionRecords($request, $chkuser, 'Out');
-        } else if ($msgType == 420) {
-            $user->increment('balance', $amount);
-            $qpay->increment('balance', $amount);
-            $this->createTransactionRecords($request, $chkuser, 'In');
-        }
-    }
-
-
-    /**
-     * Helper: Create audit trails in transaction tables
-     */
-    private function createTransactionRecords($request, $chkuser, $type)
-    {
-        $tid = time() . "-" . $chkuser->user_id;
-        $title = $type === 'Out' ? "Payment to " : "Reversal from ";
-
-        $details = [
-            't_id' => $tid,
-            'user_id' => $chkuser->user_id,
-            't_type' => $type,
-            'amount' => $request->billAmt,
-            'crdAcptLoc' => $request->crdAcptLoc,
-            'status' => 1
-        ];
-
-        Usertransaction::create(array_merge($details, [
-            'source' => 'Tevini Card',
-            'title' => $title . $request->crdAcptLoc,
-            'pending' => 1
-        ]));
-
-        Transaction::create(array_merge($details, [
-            'name' => 'Tevini Card',
-            'note' => $title . $request->crdAcptLoc,
-        ]));
-
-        Log::info("Ledger: Transaction records created", ['type' => $type]);
-    }
-
-    /**
-     * Helper: Centralized API Notification
-     */
-    
-    private function notifyExternalApi(string $type, $utid)
-    {
-        Log::info("External API: Notifying", ['type' => $type, 'Utid' => $utid]);
-        try {
-            $response = Http::withBasicAuth(config('services.qcs.user'), config('services.qcs.pass'))
-                ->post(config('services.qcs.url'), [
-                    'Type' => $type,
-                    'DateTime' => now(),
-                ]);
-            
-            Log::info("External API: Response received", ['status' => $response->status()]);
         } catch (\Exception $e) {
-            Log::error("External API: Notification Failed", ['msg' => $e->getMessage()]);
+            Log::error("Tevini API Exception", [
+                'type' => $type,
+                'error' => $e->getMessage()
+            ]);
         }
     }
+
+
+
+
 }

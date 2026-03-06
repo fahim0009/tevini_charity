@@ -45,6 +45,12 @@ return [
         'user' => env('QCS_API_USER'),
         'pass' => env('QCS_API_PASS'),
     ],
+
+    'tevini' => [
+        'user' => env('TEVINI_USER'),
+        'pass' => env('TEVINI_PASS'),
+        'url'  => env('TEVINI_URL'),
+    ],
    
 
   

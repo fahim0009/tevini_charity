@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Authorisation;
 use App\Models\Batchprov;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -1123,6 +1124,13 @@ public function toggleCharityPayment(Request $request)
 
         $report = $reportQuery->orderByDesc('id')->get();
 
+
+
+        $cardTransactions = Usertransaction::where('user_id', $id)->where('source', '=', 'Tevini Card')->whereNotNull('crdAcptLoc')->get();
+        
+        $authorizations = Authorisation::where('user_id', $id)->where('actionCode', '=', '000')->get();
+
+
         // In Transactions
         $inTransactions = Usertransaction::where('t_type', 'In')
             ->where('user_id', $id)
@@ -1162,6 +1170,8 @@ public function toggleCharityPayment(Request $request)
             'toDate' => $request->input('toDate') ?? '',
             'user' => $user,
             'donor_id' => $id,
+            'cardTransactions' => $cardTransactions,
+            'authorizations' => $authorizations,
             'tamount' => $totalTransactions,
         ]);
     }

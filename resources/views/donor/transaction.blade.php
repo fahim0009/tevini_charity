@@ -422,14 +422,7 @@ use Illuminate\Support\Carbon;
                                 <th>Date</th>
                                 <th>Transaction Id</th>
                                 <th>transaction type</th>
-                                <th>Voucher Number</th>
-                                <th>Charity Name</th>
-                                <th>Note</th>
-                                <th>Donate By</th>
-                                <th>Status</th>
-                                <th>Credit</th>
-                                <th>Debit</th>
-                                <th>Balance</th>
+                                <th>Amount</th>
                             </tr>
                             </thead>
 
@@ -444,47 +437,10 @@ use Illuminate\Support\Carbon;
                                     <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                     <td>{{$data->t_id}} </td>
                                     <td>{{$data->title}} </td>
-                                    <td>
-                                    
-                                    @if($data->crdAcptID){{ $data->crdAcptID}} this @endif
-
-                                    </td>
-                                    <td>
-                                        @if($data->charity_id){{ $data->charity->name}}@endif
-                                        @if($data->crdAcptID){{ $data->crdAcptLoc}} @endif 
-                                    </td>
-                                    <td>
-                                    {{$data->donation_id ? $data->donation->mynote : $data->note }} <br>
-                                    {{$data->donation_id ? $data->donation->charitynote : ''}}
-                                    </td>
-                                    <td>{{$data->donation_by}}</td>
-                                    <td>@if($data->pending == "0") Pending @endif <br>
-                                    @if ($data->provoucher)
-                                        {{ $data->provoucher->expired == "Yes" ? 'Expired' : '' }}
-                                    @endif
-                                    </td>
-
-                                    <td></td>
-                                    <td>-£{{number_format($data->amount, 2) }}</td>
-                                    <td> £{{ number_format($tbalance, 2) }} </td>
+                                    <td>£{{number_format($data->amount, 2) }}</td>
                                         
-
-
                                 </tr>
                                 @endforeach
-                                <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>Previous Balance</td>
-                                <td>£{{ number_format($tbalance, 2) }}</td>
-                                </tr>
                             </tbody>
                         </table>
                         </div>

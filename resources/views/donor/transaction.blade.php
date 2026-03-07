@@ -520,13 +520,15 @@ use Illuminate\Support\Carbon;
 
                                 @php
                                     $cardProduct = \App\Models\CardProduct::where('user_id', $donor_id)->first();
+                                    $realDonor = \App\Models\CardProduct::where('CardProxyId', $data->cardID)->first();
+                                    $realDonorId = $realDonor ? $realDonor->user_id : null;
                                 @endphp
 
 
                                 <tr>
                                     <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                     <td>{{$data->Utid}} </td>
-                                    <td>{{$data->cardID}} </td>
+                                    <td>{{$data->cardID}} - {{ $realDonorId ?? ''}} </td>
                                     <td>
                                         @if ($data->cardID == $cardProduct->CardProxyId)
                                             <span class="badge bg-success">
@@ -552,7 +554,25 @@ use Illuminate\Support\Carbon;
                                     <td>{{$data->crdAcptLoc}}</td>
                                     <td>{{$data->msgType}}</td>
                                     <td>£{{number_format($data->billAmt, 2) }}</td>
-                                    <td></td>
+
+                                    <td>
+
+                                        @if ($data->cardID != $cardProduct->CardProxyId)
+                                            <button 
+                                                class="btn btn-sm btn-primary openChangeDonorModal"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#changeDonorModal"
+                                                data-user="{{ $donor_id }}"
+                                                data-real-donor="{{ $realDonorId }}"
+                                                data-auth="{{ $data->Utid }}"
+                                                data-card="{{ $cardProduct->CardProxyId ?? '' }}"
+                                            >
+                                                Change to Real Donor
+                                            </button>
+                                        @endif
+
+                                        
+                                    </td>
                                         
                                 </tr>
                                 @endforeach
@@ -561,6 +581,48 @@ use Illuminate\Support\Carbon;
                         </table>
                         </div>
                     </div>
+
+                    <div class="modal fade" id="changeDonorModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Change Real Donor</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <p><strong>User ID:</strong> <span id="modalUserId"></span></p>
+                                    <p><strong>Authorization ID:</strong> <span id="modalAuthId"></span></p>
+                                    <p><strong>Card Proxy ID:</strong> <span id="modalCardProxy"></span></p>
+                                    <p><strong>Card Original Donor:</strong> <span id="modalrealDonor"></span></p>
+
+                                    <form method="POST" action="{{ route('change.real.donor') }}">
+                                        @csrf
+
+                                        <input type="hidden" name="user_id" id="formUserId">
+                                        <input type="hidden" name="authorization_id" id="formAuthId">
+                                        <input type="hidden" name="card_proxy_id" id="formCardProxy">
+                                        <input type="hidden" name="real_donor_id" id="formrealDonor">
+
+                                        <input type="text" name="usertranid" class="form-control m-3" placeholder="Enter Transaction ID" required>
+
+                                        <button type="submit" class="btn btn-danger">
+                                            Change Real Donor
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
                 </div>
 
 
@@ -572,4 +634,27 @@ use Illuminate\Support\Carbon;
     </div>
   </section>
 </div>
+@endsection
+
+@section('script')
+<script>
+$(document).on('click', '.openChangeDonorModal', function () {
+
+    let userId = $(this).data('user');
+    let authId = $(this).data('auth');
+    let cardId = $(this).data('card');
+    let realDonor = $(this).data('real-donor');
+
+    $('#modalUserId').text(userId);
+    $('#modalAuthId').text(authId);
+    $('#modalCardProxy').text(cardId); 
+    $('#modalrealDonor').text(realDonor); 
+
+    $('#formUserId').val(userId);
+    $('#formAuthId').val(authId);
+    $('#formCardProxy').val(cardId);
+    $('#formrealDonor').val(realDonor);
+
+});
+</script>
 @endsection

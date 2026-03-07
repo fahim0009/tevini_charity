@@ -392,6 +392,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/audit-transaction/details', [AdminController::class, 'getDayDetails'])->name('audit.dailytransaction.details');
     Route::post('/admin/audit/adjust-transaction', [AdminController::class, 'adjustTransaction'])
     ->name('admin.audit.adjust');
+    Route::post('/change-card-donor', [AdminController::class, 'changeRealDonor'])->name('change.real.donor');
 
 
 });

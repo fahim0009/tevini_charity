@@ -1077,7 +1077,7 @@ class CardServiceController extends Controller
     // {
     //     if ($request->msgType == 100) {
     //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
 
     //         $DateTime = now();
     //         $data = new Authorisation();
@@ -1186,7 +1186,7 @@ class CardServiceController extends Controller
     //     } elseif ($request->msgType == 420) {
 
     //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
 
     //         $DateTime = now();
     //         $data = new AuthReversal();
@@ -1295,7 +1295,7 @@ class CardServiceController extends Controller
     //     } elseif ($request->msgType == 120) {
 
     //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
 
     //         $DateTime = now();
     //         $data = new AuthReversal();
@@ -1372,7 +1372,7 @@ class CardServiceController extends Controller
     // public function settlement(Request $request)
     // {
     //     $cardNumber = substr($request->PAN, -4);
-    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
 
     //     $DateTime = now();
     //     $data = new Settlement();
@@ -1447,7 +1447,7 @@ class CardServiceController extends Controller
 
         
     //     $cardNumber = substr($request->PAN, -4);
-    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
     //     $DateTime = now();
 
     //     $data = new Expired();
@@ -1539,7 +1539,7 @@ class CardServiceController extends Controller
             Log::info("Auth Request", $request->all());
 
             $cardNumber = substr($request->PAN, -4);
-            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
             $user = $card ? User::find($card->user_id) : null;
 
             $DateTime = now();
@@ -1661,7 +1661,7 @@ class CardServiceController extends Controller
             Log::info("Settlement Request", $request->all());
 
             $cardNumber = substr($request->PAN, -4);
-            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
             $user = $card ? User::find($card->user_id) : null;
 
             $DateTime = now();
@@ -1706,7 +1706,7 @@ class CardServiceController extends Controller
             Log::info("Expired Request", $request->all());
 
             $cardNumber = substr($request->PAN, -4);
-            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $$request->cardID)->first();
+            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
             $user = $card ? User::find($card->user_id) : null;
 
             $DateTime = now();

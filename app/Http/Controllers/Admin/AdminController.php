@@ -9,7 +9,8 @@
     use Illuminate\Support\Facades\Hash;
     use App\Http\Controllers\Admin\Validator;
     use App\Models\AuditTran;
-    use App\Models\Charity;
+use App\Models\Authorisation;
+use App\Models\Charity;
     use App\Models\Transaction;
     use App\Models\Usertransaction;
     use Illuminate\Support\Facades\DB;
@@ -974,6 +975,78 @@ class AdminController extends Controller
                 'success' => false,
                 'message' => 'Adjustment failed: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+
+    public function changeRealDonor(Request $request)
+    {
+        try {
+
+            DB::transaction(function () use ($request) {
+
+                $wrongUserId = $request->user_id;
+                $realUserId  = $request->real_donor_id;
+                $authId      = $request->authorization_id;
+                $usertranid  = $request->usertranid;
+
+                $wrongUser = User::findOrFail($wrongUserId);
+                $realUser  = User::findOrFail($realUserId);
+
+                $transaction = Usertransaction::where('t_id', 'LIKE', '%' . $usertranid)->first();
+
+                if (!$transaction) {
+                    throw new \Exception("Transaction not found");
+                }
+
+                $amount = $transaction->amount;
+
+                /*
+                -------------------------
+                FIX BALANCES
+                -------------------------
+                */
+
+                $wrongUser->increment('balance', $amount);
+                $realUser->decrement('balance', $amount);
+
+                /*
+                -------------------------
+                UPDATE TRANSACTIONS
+                -------------------------
+                */
+
+                $transaction->update([
+                    'user_id' => $realUserId
+                ]);
+
+                Transaction::where('t_id', $transaction->t_id)
+                    ->update([
+                        'user_id' => $realUserId
+                    ]);
+
+                /*
+                -------------------------
+                UPDATE AUTHORISATION
+                -------------------------
+                */
+
+                Authorisation::where('Utid', $authId)
+                    ->update([
+                        'user_id' => $realUserId
+                    ]);
+
+            });
+
+            return back()->with('success', 'Real donor updated successfully.');
+
+        } catch (\Exception $e) {
+
+            Log::error("Change Donor Error", [
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->with('error', 'Something went wrong.');
         }
     }
 

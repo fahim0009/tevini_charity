@@ -1073,725 +1073,725 @@ class CardServiceController extends Controller
 
 
     // return url
-    // public function authorisation(Request $request)
-    // {
-    //     if ($request->msgType == 100) {
-    //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-
-    //         $DateTime = now();
-    //         $data = new Authorisation();
-    //         if (isset($chkuser)) {
-    //             $data->user_id = $chkuser->user_id;
-    //         }
-
-    //         $data->Utid = $request->Utid;
-    //         $data->messageID = $request->messageID;
-    //         $data->instCode = $request->instCode;
-    //         $data->txnType = $request->txnType;
-    //         $data->msgType = $request->msgType;
-    //         $data->tlogId = $request->tlogId;
-    //         $data->orgTlogID = $request->orgTlogID;
-    //         $data->timeout = $request->timeout;
-    //         $data->repeat = $request->repeat;
-    //         $data->PAN = $request->PAN;
-    //         $data->cardID = $request->cardID;
-    //         $data->accNo = $request->accNo;
-    //         $data->curBill = $request->curBill;
-    //         $data->avlBal = $request->avlBal;
-    //         $data->blkAmt = $request->blkAmt;
-    //         $data->localDate = $request->localDate;
-    //         $data->localTime = $request->localTime;
-    //         $data->amtTxn = $request->amtTxn;
-    //         $data->curTxn = $request->curTxn;
-    //         $data->billAmt = $request->billAmt;
-    //         $data->billConvRate = $request->billConvRate;
-    //         $data->amtCom = $request->amtCom;
-    //         $data->amtPad = $request->amtPad;
-    //         $data->txnCode = $request->txnCode;
-    //         $data->termCode = $request->termCode;
-    //         $data->crdAcptID = $request->crdAcptID;
-    //         $data->crdAcptLoc = $request->crdAcptLoc;
-    //         $data->MCC = $request->MCC;
-    //         $data->poschp = $request->poschp;
-    //         $data->poscdim = $request->poscdim;
-    //         $data->poscham = $request->poscham;
-    //         $data->poscp = $request->poscp;
-    //         $data->approvalCode = $request->approvalCode;
-    //         $data->sysDate = $request->sysDate;
-    //         $data->rev = $request->rev;
-    //         $data->orgItemId = $request->orgItemId;
-    //         $data->itemSrc = $request->itemSrc;
-    //         $data->amtFee = $request->amtFee;
-    //         $data->crdproduct = $request->crdproduct;
-    //         $data->ctxLocalDate = $request->ctxLocalDate;
-    //         $data->ctxLocalTime = $request->ctxLocalTime;
-    //         $data->aVSChkRs = $request->aVSChkRs;
-    //         $data->threeDSecChkRs = $request->threeDSecChkRs;
-    //         $data->actionCode = $request->actionCode;
-    //         $data->amtCashback = $request->amtCashback;
-    //         $data->trn = $request->trn;
-    //         $data->txnSubCode = $request->txnSubCode;
-    //         if ($data->save()) {
-
-    //             if ($request->actionCode == "000") {
-    //                 if (isset($chkuser)) {
-    //                     $user = User::find($chkuser->user_id);
-    //                     $user->balance = $user->balance - $request->billAmt;
-    //                     $user->save();
-    
-    //                     $utran = new Usertransaction;
-    //                     $utran->t_id =  time() . "-" . $chkuser->user_id;
-    //                     $utran->user_id = $chkuser->user_id;
-    //                     $utran->t_type = "Out";
-    //                     $utran->source = "Tevini Card";
-    //                     $utran->amount = $request->billAmt;
-    //                     $utran->crdAcptLoc = $request->crdAcptLoc;
-    //                     $utran->crdAcptID = $request->crdAcptID;
-    //                     $utran->title = "Tevini Card Payment to ".$request->crdAcptLoc;
-    //                     $utran->pending = 1;
-    //                     $utran->status = 1;
-    //                     $utran->save();
-    
-    //                     $chtran = new Transaction();
-    //                     $chtran->t_id =  $utran->t_id;
-    //                     $chtran->user_id = $chkuser->user_id;
-    //                     $chtran->t_type = "Out";
-    //                     $chtran->name = "Tevini Card";
-    //                     $chtran->amount = $request->billAmt;
-    //                     $chtran->crdAcptLoc = $request->crdAcptLoc;
-    //                     $chtran->crdAcptID = $request->crdAcptID;
-    //                     $utran->title = "Tevini Card Payment to ".$request->crdAcptLoc;
-    //                     $chtran->status = 1;
-    //                     $chtran->save();
-
-    //                     $id = QpayBalance::where('id', 1)->first()->id;
-    //                     $qbalance = QpayBalance::findOrFail($id);
-    //                     $qbalance->balance = $qbalance->balance - $request->billAmt;
-    //                     $qbalance->save();
-    //                 }
-    //             }
-    //             // Send a POST request to the API with the updated finance fee value
-    //             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-    //             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
-                    
-    //                 'Type' => "AUTH",
-    //                 'DateTime' => $DateTime,
-                    
-    //             ]);
-    //         } else {
-    //             return redirect()->back()->with('error', 'Authorization error.');
-    //         }
-        
-    //     } elseif ($request->msgType == 420) {
-
-    //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-
-    //         $DateTime = now();
-    //         $data = new AuthReversal();
-    //         if (isset($chkuser)) {
-    //             $data->user_id = $chkuser->user_id;
-    //         }
-
-    //         $data->Utid = $request->Utid;
-    //         $data->messageID = $request->messageID;
-    //         $data->instCode = $request->instCode;
-    //         $data->txnType = $request->txnType;
-    //         $data->msgType = $request->msgType;
-    //         $data->tlogId = $request->tlogId;
-    //         $data->orgTlogID = $request->orgTlogID;
-    //         $data->timeout = $request->timeout;
-    //         $data->repeat = $request->repeat;
-    //         $data->PAN = $request->PAN;
-    //         $data->cardID = $request->cardID;
-    //         $data->accNo = $request->accNo;
-    //         $data->curBill = $request->curBill;
-    //         $data->avlBal = $request->avlBal;
-    //         $data->blkAmt = $request->blkAmt;
-    //         $data->localDate = $request->localDate;
-    //         $data->localTime = $request->localTime;
-    //         $data->amtTxn = $request->amtTxn;
-    //         $data->curTxn = $request->curTxn;
-    //         $data->billAmt = $request->billAmt;
-    //         $data->billConvRate = $request->billConvRate;
-    //         $data->amtCom = $request->amtCom;
-    //         $data->amtPad = $request->amtPad;
-    //         $data->txnCode = $request->txnCode;
-    //         $data->termCode = $request->termCode;
-    //         $data->crdAcptID = $request->crdAcptID;
-    //         $data->crdAcptLoc = $request->crdAcptLoc;
-    //         $data->MCC = $request->MCC;
-    //         $data->poschp = $request->poschp;
-    //         $data->poscdim = $request->poscdim;
-    //         $data->poscham = $request->poscham;
-    //         $data->poscp = $request->poscp;
-    //         $data->approvalCode = $request->approvalCode;
-    //         $data->sysDate = $request->sysDate;
-    //         $data->rev = $request->rev;
-    //         $data->orgItemId = $request->orgItemId;
-    //         $data->itemSrc = $request->itemSrc;
-    //         $data->amtFee = $request->amtFee;
-    //         $data->crdproduct = $request->crdproduct;
-    //         $data->ctxLocalDate = $request->ctxLocalDate;
-    //         $data->ctxLocalTime = $request->ctxLocalTime;
-    //         $data->aVSChkRs = $request->aVSChkRs;
-    //         $data->threeDSecChkRs = $request->threeDSecChkRs;
-    //         $data->actionCode = $request->actionCode;
-    //         $data->amtCashback = $request->amtCashback;
-    //         $data->trn = $request->trn;
-    //         $data->txnSubCode = $request->txnSubCode;
-    //         if ($data->save()) {
-
-    //             if ($request->actionCode == "000") {
-    //                 if (isset($chkuser)) {
-    //                     $user = User::find($chkuser->user_id);
-    //                     $user->balance = $user->balance - $request->billAmt;
-    //                     $user->save();
-    
-    //                     $utran = new Usertransaction;
-    //                     $utran->t_id =  time() . "-" . $chkuser->user_id;
-    //                     $utran->user_id = $chkuser->user_id;
-    //                     $utran->t_type = "In";
-    //                     $utran->source = "Tevini Card";
-    //                     $utran->amount = $request->billAmt;
-    //                     $utran->crdAcptLoc = $request->crdAcptLoc;
-    //                     $utran->crdAcptID = $request->crdAcptID;
-    //                     $utran->title = "Tevini Card Reversal";
-    //                     $utran->pending = 1;
-    //                     $utran->status = 1;
-    //                     $utran->save();
-    
-    //                     $chtran = new Transaction();
-    //                     $chtran->t_id =  $utran->t_id;
-    //                     $chtran->user_id = $chkuser->user_id;
-    //                     $chtran->t_type = "In";
-    //                     $chtran->name = "Tevini Card";
-    //                     $chtran->amount = $request->billAmt;
-    //                     $chtran->crdAcptLoc = $request->crdAcptLoc;
-    //                     $chtran->crdAcptID = $request->crdAcptID;
-    //                     $chtran->note = "Tevini Card Reversal";
-    //                     $chtran->status = 1;
-    //                     $chtran->save();
-
-    //                     $id = QpayBalance::where('id', 1)->first()->id;
-    //                     $qbalance = QpayBalance::findOrFail($id);
-    //                     $qbalance->balance = $qbalance->balance + $request->billAmt;
-    //                     $qbalance->save();
-    //                 }
-    //             }
-    //             // Send a POST request to the API with the updated finance fee value
-    //             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-    //             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
-                    
-    //                 'Type' => "AUTH",
-    //                 'DateTime' => $DateTime,
-                    
-    //             ]);
-    //         } else {
-    //             return redirect()->back()->with('error', 'Authorization error.');
-    //         }
-        
-    //     } elseif ($request->msgType == 120) {
-
-    //         $cardNumber = substr($request->PAN, -4);
-    //         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-
-    //         $DateTime = now();
-    //         $data = new AuthReversal();
-    //         if (isset($chkuser)) {
-    //             $data->user_id = $chkuser->user_id;
-    //         }
-
-    //         $data->Utid = $request->Utid;
-    //         $data->messageID = $request->messageID;
-    //         $data->instCode = $request->instCode;
-    //         $data->txnType = $request->txnType;
-    //         $data->msgType = $request->msgType;
-    //         $data->tlogId = $request->tlogId;
-    //         $data->orgTlogID = $request->orgTlogID;
-    //         $data->timeout = $request->timeout;
-    //         $data->repeat = $request->repeat;
-    //         $data->PAN = $request->PAN;
-    //         $data->cardID = $request->cardID;
-    //         $data->accNo = $request->accNo;
-    //         $data->curBill = $request->curBill;
-    //         $data->avlBal = $request->avlBal;
-    //         $data->blkAmt = $request->blkAmt;
-    //         $data->localDate = $request->localDate;
-    //         $data->localTime = $request->localTime;
-    //         $data->amtTxn = $request->amtTxn;
-    //         $data->curTxn = $request->curTxn;
-    //         $data->billAmt = $request->billAmt;
-    //         $data->billConvRate = $request->billConvRate;
-    //         $data->amtCom = $request->amtCom;
-    //         $data->amtPad = $request->amtPad;
-    //         $data->txnCode = $request->txnCode;
-    //         $data->termCode = $request->termCode;
-    //         $data->crdAcptID = $request->crdAcptID;
-    //         $data->crdAcptLoc = $request->crdAcptLoc;
-    //         $data->MCC = $request->MCC;
-    //         $data->poschp = $request->poschp;
-    //         $data->poscdim = $request->poscdim;
-    //         $data->poscham = $request->poscham;
-    //         $data->poscp = $request->poscp;
-    //         $data->approvalCode = $request->approvalCode;
-    //         $data->sysDate = $request->sysDate;
-    //         $data->rev = $request->rev;
-    //         $data->orgItemId = $request->orgItemId;
-    //         $data->itemSrc = $request->itemSrc;
-    //         $data->amtFee = $request->amtFee;
-    //         $data->crdproduct = $request->crdproduct;
-    //         $data->ctxLocalDate = $request->ctxLocalDate;
-    //         $data->ctxLocalTime = $request->ctxLocalTime;
-    //         $data->aVSChkRs = $request->aVSChkRs;
-    //         $data->threeDSecChkRs = $request->threeDSecChkRs;
-    //         $data->actionCode = $request->actionCode;
-    //         $data->amtCashback = $request->amtCashback;
-    //         $data->trn = $request->trn;
-    //         $data->txnSubCode = $request->txnSubCode;
-    //         if ($data->save()) {
-    //             // Send a POST request to the API with the updated finance fee value
-    //             $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-    //             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
-                    
-    //                 'Type' => "AUTH",
-    //                 'DateTime' => $DateTime,
-                    
-    //             ]);
-    //         } else {
-    //             return redirect()->back()->with('error', 'Authorization error.');
-    //         }
-        
-    //     } else {
-    //         return redirect()->back()->with('error', 'Authorization error.');
-    //     }
-            
-    // }
-
-    // public function settlement(Request $request)
-    // {
-    //     $cardNumber = substr($request->PAN, -4);
-    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-
-    //     $DateTime = now();
-    //     $data = new Settlement();
-    //     if (isset($chkuser)) {
-    //         $data->user_id = $chkuser->user_id;
-    //     }
-    //     $data->MTID = $request->MTID;
-    //     $data->localDate = $request->localDate;
-    //     $data->localTime = $request->localTime;
-    //     $data->tlogId = $request->tlogId;
-    //     $data->orgTlogID = $request->orgTlogID;
-    //     $data->orgItemId = $request->orgItemId;
-    //     $data->PAN = $request->PAN;
-    //     $data->cardID = $request->cardID;
-    //     $data->txnCode = $request->txnCode;
-    //     $data->txnSubCode = $request->txnSubCode;
-    //     $data->amtFee = $request->amtFee;
-    //     $data->curTxn = $request->curTxn;
-    //     $data->amtTxn = $request->amtTxn;
-    //     $data->amtCashback = $request->amtCashback;
-    //     $data->billAmt = $request->billAmt;
-    //     $data->curBill = $request->curBill;
-    //     $data->billConvRate = $request->billConvRate;
-    //     $data->CURSET = $request->CURSET;
-    //     $data->AMTSET = $request->AMTSET;
-    //     $data->RATESET = $request->RATESET;
-    //     $data->RATESETECB = $request->RATESETECB;
-    //     $data->approvalCode = $request->approvalCode;
-    //     $data->crdAcptID = $request->crdAcptID;
-    //     $data->crdAcptLoc = $request->crdAcptLoc;
-    //     $data->termCode = $request->termCode;
-    //     $data->MCC = $request->MCC;
-    //     $data->ctxLocalDate = $request->ctxLocalDate;
-    //     $data->ctxLocalTime = $request->ctxLocalTime;
-    //     $data->PRODCODE = $request->PRODCODE;
-    //     $data->trn = $request->trn;
-    //     $data->poschp = $request->poschp;
-    //     $data->poscp = $request->poscp;
-    //     $data->poscdim = $request->poscdim;
-    //     $data->poscham = $request->poscham;
-    //     $data->settlementActionCode = $request->settlementActionCode;
-    //     $data->Utid = $request->Utid;
-    //     if ($data->save()) {
-
-    //         $authorization = Authorisation::where('Utid', $request->Utid)->first();
-
-    //         if (isset($authorization)) {
-    //             $diffamnt = $authorization->billAmt - $request->billAmt;
-    //             $user = User::find($chkuser->user_id);
-    //             $user->balance = $user->balance - $diffamnt;
-    //             $user->save();
-    //         }
-
-
-    //         // Send a POST request to the API with the updated finance fee value
-    //         $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-    //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
-                
-    //             'Type' => "SETTLEMENT",
-    //             'DateTime' => $DateTime,
-                
-    //         ]);
-    //     } else {
-    //         return redirect()->back()->with('error', 'SETTLEMENT ERROR.');
-    //     }
-        
-        
-    // }
-
-    // public function expired(Request $request)
-    // {
-
-        
-    //     $cardNumber = substr($request->PAN, -4);
-    //     $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-    //     $DateTime = now();
-
-    //     $data = new Expired();
-    //     if (isset($chkuser)) {
-    //         $data->user_id = $chkuser->user_id;
-    //     }
-    //     $data->Utid = $request->Utid;
-    //     $data->messageID = $request->messageID;
-    //     $data->instCode = $request->instCode;
-    //     $data->txnType = $request->txnType;
-    //     $data->msgType = $request->msgType;
-    //     $data->tlogId = $request->tlogId;
-    //     $data->orgTlogID = $request->orgTlogID;
-    //     $data->timeout = $request->timeout;
-    //     $data->repeat = $request->repeat;
-    //     $data->PAN = $request->PAN;
-    //     $data->cardID = $request->cardID;
-    //     $data->accNo = $request->accNo;
-    //     $data->curBill = $request->curBill;
-    //     $data->avlBal = $request->avlBal;
-    //     $data->blkAmt = $request->blkAmt;
-    //     $data->localDate = $request->localDate;
-    //     $data->localTime = $request->localTime;
-    //     $data->amtTxn = $request->amtTxn;
-    //     $data->curTxn = $request->curTxn;
-    //     $data->billAmt = $request->billAmt;
-    //     $data->billConvRate = $request->billConvRate;
-    //     $data->amtCom = $request->amtCom;
-    //     $data->amtPad = $request->amtPad;
-    //     $data->txnCode = $request->txnCode;
-    //     $data->termCode = $request->termCode;
-    //     $data->crdAcptID = $request->crdAcptID;
-    //     $data->crdAcptLoc = $request->crdAcptLoc;
-    //     $data->MCC = $request->MCC;
-    //     $data->poschp = $request->poschp;
-    //     $data->poscdim = $request->poscdim;
-    //     $data->poscham = $request->poscham;
-    //     $data->poscp = $request->poscp;
-    //     $data->approvalCode = $request->approvalCode;
-    //     $data->sysDate = $request->sysDate;
-    //     $data->rev = $request->rev;
-    //     $data->orgItemId = $request->orgItemId;
-    //     $data->itemSrc = $request->itemSrc;
-    //     $data->amtFee = $request->amtFee;
-    //     $data->crdproduct = $request->crdproduct;
-    //     $data->ctxLocalDate = $request->ctxLocalDate;
-    //     $data->ctxLocalTime = $request->ctxLocalTime;
-    //     $data->aVSChkRs = $request->aVSChkRs;
-    //     $data->threeDSecChkRs = $request->threeDSecChkRs;
-    //     $data->actionCode = $request->actionCode;
-    //     $data->amtCashback = $request->amtCashback;
-    //     $data->trn = $request->trn;
-    //     $data->txnSubCode = $request->txnSubCode;
-    //     if ($data->save()) {
-
-    //         if (isset($chkuser)) {
-    //             $user = User::find($chkuser->user_id);
-    //             $user->balance = $user->balance + $request->billAmt;
-    //             $user->save();
-
-    //             $id = QpayBalance::where('id', 1)->first()->id;
-    //             $qbalance = QpayBalance::findOrFail($id);
-    //             $qbalance->balance = $qbalance->balance + $request->billAmt;
-    //             $qbalance->save();
-    //         }
-
-    //         // Send a POST request to the API with the updated finance fee value
-    //         $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-    //         ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
-                
-    //             'Type' => "EXPIRED",
-    //             'DateTime' => $DateTime,
-                
-    //         ]);
-    //     } else {
-    //         return redirect()->back()->with('error', 'EXPIRED ERROR.');
-    //     }
-        
-        
-        
-    // }
-
-
-
     public function authorisation(Request $request)
     {
-        try {
-
-            Log::info("Auth Request", $request->all());
-
+        if ($request->msgType == 100) {
             $cardNumber = substr($request->PAN, -4);
-            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-            $user = $card ? User::find($card->user_id) : null;
+            $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
 
             $DateTime = now();
+            $data = new Authorisation();
+            if (isset($chkuser)) {
+                $data->user_id = $chkuser->user_id;
+            }
 
-            DB::transaction(function () use ($request, $card, $user, $DateTime) {
+            $data->Utid = $request->Utid;
+            $data->messageID = $request->messageID;
+            $data->instCode = $request->instCode;
+            $data->txnType = $request->txnType;
+            $data->msgType = $request->msgType;
+            $data->tlogId = $request->tlogId;
+            $data->orgTlogID = $request->orgTlogID;
+            $data->timeout = $request->timeout;
+            $data->repeat = $request->repeat;
+            $data->PAN = $request->PAN;
+            $data->cardID = $request->cardID;
+            $data->accNo = $request->accNo;
+            $data->curBill = $request->curBill;
+            $data->avlBal = $request->avlBal;
+            $data->blkAmt = $request->blkAmt;
+            $data->localDate = $request->localDate;
+            $data->localTime = $request->localTime;
+            $data->amtTxn = $request->amtTxn;
+            $data->curTxn = $request->curTxn;
+            $data->billAmt = $request->billAmt;
+            $data->billConvRate = $request->billConvRate;
+            $data->amtCom = $request->amtCom;
+            $data->amtPad = $request->amtPad;
+            $data->txnCode = $request->txnCode;
+            $data->termCode = $request->termCode;
+            $data->crdAcptID = $request->crdAcptID;
+            $data->crdAcptLoc = $request->crdAcptLoc;
+            $data->MCC = $request->MCC;
+            $data->poschp = $request->poschp;
+            $data->poscdim = $request->poscdim;
+            $data->poscham = $request->poscham;
+            $data->poscp = $request->poscp;
+            $data->approvalCode = $request->approvalCode;
+            $data->sysDate = $request->sysDate;
+            $data->rev = $request->rev;
+            $data->orgItemId = $request->orgItemId;
+            $data->itemSrc = $request->itemSrc;
+            $data->amtFee = $request->amtFee;
+            $data->crdproduct = $request->crdproduct;
+            $data->ctxLocalDate = $request->ctxLocalDate;
+            $data->ctxLocalTime = $request->ctxLocalTime;
+            $data->aVSChkRs = $request->aVSChkRs;
+            $data->threeDSecChkRs = $request->threeDSecChkRs;
+            $data->actionCode = $request->actionCode;
+            $data->amtCashback = $request->amtCashback;
+            $data->trn = $request->trn;
+            $data->txnSubCode = $request->txnSubCode;
+            if ($data->save()) {
 
-                if ($request->msgType == 100) {
+                if ($request->actionCode == "000") {
+                    if (isset($chkuser)) {
+                        $user = User::find($chkuser->user_id);
+                        $user->balance = $user->balance - $request->billAmt;
+                        $user->save();
+    
+                        $utran = new Usertransaction;
+                        $utran->t_id =  time() . "-" . $chkuser->user_id;
+                        $utran->user_id = $chkuser->user_id;
+                        $utran->t_type = "Out";
+                        $utran->source = "Tevini Card";
+                        $utran->amount = $request->billAmt;
+                        $utran->crdAcptLoc = $request->crdAcptLoc;
+                        $utran->crdAcptID = $request->crdAcptID;
+                        $utran->title = "Tevini Card Payment to ".$request->crdAcptLoc;
+                        $utran->pending = 1;
+                        $utran->status = 1;
+                        $utran->save();
+    
+                        $chtran = new Transaction();
+                        $chtran->t_id =  $utran->t_id;
+                        $chtran->user_id = $chkuser->user_id;
+                        $chtran->t_type = "Out";
+                        $chtran->name = "Tevini Card";
+                        $chtran->amount = $request->billAmt;
+                        $chtran->crdAcptLoc = $request->crdAcptLoc;
+                        $chtran->crdAcptID = $request->crdAcptID;
+                        $utran->title = "Tevini Card Payment to ".$request->crdAcptLoc;
+                        $chtran->status = 1;
+                        $chtran->save();
 
-                    $data = new Authorisation();
-
-                    $this->storeAuthData($data, $request, $card);
-                    $data->save();
-
-                    if ($request->actionCode == "000" && $user) {
-
-                        $user->decrement('balance', $request->billAmt);
-
-                        $t_id = time() . "-" . $user->id;
-
-                        Usertransaction::create([
-                            't_id' => $t_id,
-                            'user_id' => $user->id,
-                            't_type' => "Out",
-                            'source' => "Tevini Card",
-                            'amount' => $request->billAmt,
-                            'crdAcptLoc' => $request->crdAcptLoc,
-                            'crdAcptID' => $request->crdAcptID,
-                            'title' => "Tevini Card Payment to " . $request->crdAcptLoc,
-                            'pending' => 1,
-                            'status' => 1
-                        ]);
-
-                        Transaction::create([
-                            't_id' => $t_id,
-                            'user_id' => $user->id,
-                            't_type' => "Out",
-                            'name' => "Tevini Card",
-                            'amount' => $request->billAmt,
-                            'crdAcptLoc' => $request->crdAcptLoc,
-                            'crdAcptID' => $request->crdAcptID,
-                            'title' => "Tevini Card Payment to " . $request->crdAcptLoc,
-                            'status' => 1
-                        ]);
-
-                        QpayBalance::find(1)->decrement('balance', $request->billAmt);
+                        $id = QpayBalance::where('id', 1)->first()->id;
+                        $qbalance = QpayBalance::findOrFail($id);
+                        $qbalance->balance = $qbalance->balance - $request->billAmt;
+                        $qbalance->save();
                     }
                 }
-
-                if ($request->msgType == 420) {
-
-                    $data = new AuthReversal();
-                    $this->storeAuthData($data, $request, $card);
-                    $data->save();
-
-                    if ($request->actionCode == "000" && $user) {
-
-                        $user->increment('balance', $request->billAmt);
-
-                        $t_id = time() . "-" . $user->id;
-
-                        Usertransaction::create([
-                            't_id' => $t_id,
-                            'user_id' => $user->id,
-                            't_type' => "In",
-                            'source' => "Tevini Card",
-                            'amount' => $request->billAmt,
-                            'crdAcptLoc' => $request->crdAcptLoc,
-                            'crdAcptID' => $request->crdAcptID,
-                            'title' => "Tevini Card Reversal",
-                            'pending' => 1,
-                            'status' => 1
-                        ]);
-
-                        Transaction::create([
-                            't_id' => $t_id,
-                            'user_id' => $user->id,
-                            't_type' => "In",
-                            'name' => "Tevini Card",
-                            'amount' => $request->billAmt,
-                            'crdAcptLoc' => $request->crdAcptLoc,
-                            'crdAcptID' => $request->crdAcptID,
-                            'note' => "Tevini Card Reversal",
-                            'status' => 1
-                        ]);
-
-                        QpayBalance::find(1)->increment('balance', $request->billAmt);
-                    }
-                }
-
-                if ($request->msgType == 120) {
-
-                    $data = new AuthReversal();
-                    $this->storeAuthData($data, $request, $card);
-                    $data->save();
-                }
-
-                $this->sendApiResponse("AUTH", $DateTime);
-
-            });
-
-            return response()->json(['status' => true]);
-
-        } catch (\Exception $e) {
-
-            Log::error("Auth Error", ['error' => $e->getMessage()]);
-
-            return response()->json([
-                'status' => false,
-                'message' => 'Authorization error'
-            ], 500);
-        }
-    }
+                // Send a POST request to the API with the updated finance fee value
+                $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                    
+                    'Type' => "AUTH",
+                    'DateTime' => $DateTime,
+                    
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Authorization error.');
+            }
         
+        } elseif ($request->msgType == 420) {
+
+            $cardNumber = substr($request->PAN, -4);
+            $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+
+            $DateTime = now();
+            $data = new AuthReversal();
+            if (isset($chkuser)) {
+                $data->user_id = $chkuser->user_id;
+            }
+
+            $data->Utid = $request->Utid;
+            $data->messageID = $request->messageID;
+            $data->instCode = $request->instCode;
+            $data->txnType = $request->txnType;
+            $data->msgType = $request->msgType;
+            $data->tlogId = $request->tlogId;
+            $data->orgTlogID = $request->orgTlogID;
+            $data->timeout = $request->timeout;
+            $data->repeat = $request->repeat;
+            $data->PAN = $request->PAN;
+            $data->cardID = $request->cardID;
+            $data->accNo = $request->accNo;
+            $data->curBill = $request->curBill;
+            $data->avlBal = $request->avlBal;
+            $data->blkAmt = $request->blkAmt;
+            $data->localDate = $request->localDate;
+            $data->localTime = $request->localTime;
+            $data->amtTxn = $request->amtTxn;
+            $data->curTxn = $request->curTxn;
+            $data->billAmt = $request->billAmt;
+            $data->billConvRate = $request->billConvRate;
+            $data->amtCom = $request->amtCom;
+            $data->amtPad = $request->amtPad;
+            $data->txnCode = $request->txnCode;
+            $data->termCode = $request->termCode;
+            $data->crdAcptID = $request->crdAcptID;
+            $data->crdAcptLoc = $request->crdAcptLoc;
+            $data->MCC = $request->MCC;
+            $data->poschp = $request->poschp;
+            $data->poscdim = $request->poscdim;
+            $data->poscham = $request->poscham;
+            $data->poscp = $request->poscp;
+            $data->approvalCode = $request->approvalCode;
+            $data->sysDate = $request->sysDate;
+            $data->rev = $request->rev;
+            $data->orgItemId = $request->orgItemId;
+            $data->itemSrc = $request->itemSrc;
+            $data->amtFee = $request->amtFee;
+            $data->crdproduct = $request->crdproduct;
+            $data->ctxLocalDate = $request->ctxLocalDate;
+            $data->ctxLocalTime = $request->ctxLocalTime;
+            $data->aVSChkRs = $request->aVSChkRs;
+            $data->threeDSecChkRs = $request->threeDSecChkRs;
+            $data->actionCode = $request->actionCode;
+            $data->amtCashback = $request->amtCashback;
+            $data->trn = $request->trn;
+            $data->txnSubCode = $request->txnSubCode;
+            if ($data->save()) {
+
+                if ($request->actionCode == "000") {
+                    if (isset($chkuser)) {
+                        $user = User::find($chkuser->user_id);
+                        $user->balance = $user->balance - $request->billAmt;
+                        $user->save();
+    
+                        $utran = new Usertransaction;
+                        $utran->t_id =  time() . "-" . $chkuser->user_id;
+                        $utran->user_id = $chkuser->user_id;
+                        $utran->t_type = "In";
+                        $utran->source = "Tevini Card";
+                        $utran->amount = $request->billAmt;
+                        $utran->crdAcptLoc = $request->crdAcptLoc;
+                        $utran->crdAcptID = $request->crdAcptID;
+                        $utran->title = "Tevini Card Reversal";
+                        $utran->pending = 1;
+                        $utran->status = 1;
+                        $utran->save();
+    
+                        $chtran = new Transaction();
+                        $chtran->t_id =  $utran->t_id;
+                        $chtran->user_id = $chkuser->user_id;
+                        $chtran->t_type = "In";
+                        $chtran->name = "Tevini Card";
+                        $chtran->amount = $request->billAmt;
+                        $chtran->crdAcptLoc = $request->crdAcptLoc;
+                        $chtran->crdAcptID = $request->crdAcptID;
+                        $chtran->note = "Tevini Card Reversal";
+                        $chtran->status = 1;
+                        $chtran->save();
+
+                        $id = QpayBalance::where('id', 1)->first()->id;
+                        $qbalance = QpayBalance::findOrFail($id);
+                        $qbalance->balance = $qbalance->balance + $request->billAmt;
+                        $qbalance->save();
+                    }
+                }
+                // Send a POST request to the API with the updated finance fee value
+                $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                    
+                    'Type' => "AUTH",
+                    'DateTime' => $DateTime,
+                    
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Authorization error.');
+            }
+        
+        } elseif ($request->msgType == 120) {
+
+            $cardNumber = substr($request->PAN, -4);
+            $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+
+            $DateTime = now();
+            $data = new AuthReversal();
+            if (isset($chkuser)) {
+                $data->user_id = $chkuser->user_id;
+            }
+
+            $data->Utid = $request->Utid;
+            $data->messageID = $request->messageID;
+            $data->instCode = $request->instCode;
+            $data->txnType = $request->txnType;
+            $data->msgType = $request->msgType;
+            $data->tlogId = $request->tlogId;
+            $data->orgTlogID = $request->orgTlogID;
+            $data->timeout = $request->timeout;
+            $data->repeat = $request->repeat;
+            $data->PAN = $request->PAN;
+            $data->cardID = $request->cardID;
+            $data->accNo = $request->accNo;
+            $data->curBill = $request->curBill;
+            $data->avlBal = $request->avlBal;
+            $data->blkAmt = $request->blkAmt;
+            $data->localDate = $request->localDate;
+            $data->localTime = $request->localTime;
+            $data->amtTxn = $request->amtTxn;
+            $data->curTxn = $request->curTxn;
+            $data->billAmt = $request->billAmt;
+            $data->billConvRate = $request->billConvRate;
+            $data->amtCom = $request->amtCom;
+            $data->amtPad = $request->amtPad;
+            $data->txnCode = $request->txnCode;
+            $data->termCode = $request->termCode;
+            $data->crdAcptID = $request->crdAcptID;
+            $data->crdAcptLoc = $request->crdAcptLoc;
+            $data->MCC = $request->MCC;
+            $data->poschp = $request->poschp;
+            $data->poscdim = $request->poscdim;
+            $data->poscham = $request->poscham;
+            $data->poscp = $request->poscp;
+            $data->approvalCode = $request->approvalCode;
+            $data->sysDate = $request->sysDate;
+            $data->rev = $request->rev;
+            $data->orgItemId = $request->orgItemId;
+            $data->itemSrc = $request->itemSrc;
+            $data->amtFee = $request->amtFee;
+            $data->crdproduct = $request->crdproduct;
+            $data->ctxLocalDate = $request->ctxLocalDate;
+            $data->ctxLocalTime = $request->ctxLocalTime;
+            $data->aVSChkRs = $request->aVSChkRs;
+            $data->threeDSecChkRs = $request->threeDSecChkRs;
+            $data->actionCode = $request->actionCode;
+            $data->amtCashback = $request->amtCashback;
+            $data->trn = $request->trn;
+            $data->txnSubCode = $request->txnSubCode;
+            if ($data->save()) {
+                // Send a POST request to the API with the updated finance fee value
+                $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                    
+                    'Type' => "AUTH",
+                    'DateTime' => $DateTime,
+                    
+                ]);
+            } else {
+                return redirect()->back()->with('error', 'Authorization error.');
+            }
+        
+        } else {
+            return redirect()->back()->with('error', 'Authorization error.');
+        }
+            
+    }
 
     public function settlement(Request $request)
     {
-        try {
+        $cardNumber = substr($request->PAN, -4);
+        $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
 
-            Log::info("Settlement Request", $request->all());
-
-            $cardNumber = substr($request->PAN, -4);
-            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-            $user = $card ? User::find($card->user_id) : null;
-
-            $DateTime = now();
-
-            DB::transaction(function () use ($request, $user, $card, $DateTime) {
-
-                $data = new Settlement();
-                $this->storeSettlementData($data, $request, $card);
-                $data->save();
-
-                $authorization = Authorisation::where('Utid', $request->Utid)->first();
-
-                if ($authorization && $user) {
-
-                    $diffAmount = $authorization->billAmt - $request->billAmt;
-
-                    if ($diffAmount > 0) {
-                        $user->decrement('balance', $diffAmount);
-                    }
-                }
-
-                $this->sendApiResponse("SETTLEMENT", $DateTime);
-
-            });
-
-            return response()->json(['status' => true]);
-
-        } catch (\Exception $e) {
-
-            Log::error("Settlement Error", ['error' => $e->getMessage()]);
-
-            return response()->json(['status' => false], 500);
+        $DateTime = now();
+        $data = new Settlement();
+        if (isset($chkuser)) {
+            $data->user_id = $chkuser->user_id;
         }
+        $data->MTID = $request->MTID;
+        $data->localDate = $request->localDate;
+        $data->localTime = $request->localTime;
+        $data->tlogId = $request->tlogId;
+        $data->orgTlogID = $request->orgTlogID;
+        $data->orgItemId = $request->orgItemId;
+        $data->PAN = $request->PAN;
+        $data->cardID = $request->cardID;
+        $data->txnCode = $request->txnCode;
+        $data->txnSubCode = $request->txnSubCode;
+        $data->amtFee = $request->amtFee;
+        $data->curTxn = $request->curTxn;
+        $data->amtTxn = $request->amtTxn;
+        $data->amtCashback = $request->amtCashback;
+        $data->billAmt = $request->billAmt;
+        $data->curBill = $request->curBill;
+        $data->billConvRate = $request->billConvRate;
+        $data->CURSET = $request->CURSET;
+        $data->AMTSET = $request->AMTSET;
+        $data->RATESET = $request->RATESET;
+        $data->RATESETECB = $request->RATESETECB;
+        $data->approvalCode = $request->approvalCode;
+        $data->crdAcptID = $request->crdAcptID;
+        $data->crdAcptLoc = $request->crdAcptLoc;
+        $data->termCode = $request->termCode;
+        $data->MCC = $request->MCC;
+        $data->ctxLocalDate = $request->ctxLocalDate;
+        $data->ctxLocalTime = $request->ctxLocalTime;
+        $data->PRODCODE = $request->PRODCODE;
+        $data->trn = $request->trn;
+        $data->poschp = $request->poschp;
+        $data->poscp = $request->poscp;
+        $data->poscdim = $request->poscdim;
+        $data->poscham = $request->poscham;
+        $data->settlementActionCode = $request->settlementActionCode;
+        $data->Utid = $request->Utid;
+        if ($data->save()) {
+
+            $authorization = Authorisation::where('Utid', $request->Utid)->first();
+
+            if (isset($authorization)) {
+                $diffamnt = $authorization->billAmt - $request->billAmt;
+                $user = User::find($chkuser->user_id);
+                $user->balance = $user->balance - $diffamnt;
+                $user->save();
+            }
+
+
+            // Send a POST request to the API with the updated finance fee value
+            $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                
+                'Type' => "SETTLEMENT",
+                'DateTime' => $DateTime,
+                
+            ]);
+        } else {
+            return redirect()->back()->with('error', 'SETTLEMENT ERROR.');
+        }
+        
+        
     }
-
-
 
     public function expired(Request $request)
     {
-        try {
 
-            Log::info("Expired Request", $request->all());
+        
+        $cardNumber = substr($request->PAN, -4);
+        $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+        $DateTime = now();
 
-            $cardNumber = substr($request->PAN, -4);
-            $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
-            $user = $card ? User::find($card->user_id) : null;
-
-            $DateTime = now();
-
-            DB::transaction(function () use ($request, $card, $user, $DateTime) {
-
-                $data = new Expired();
-                $this->storeAuthData($data, $request, $card);
-                $data->save();
-
-                if ($user) {
-
-                    $user->increment('balance', $request->billAmt);
-
-                    QpayBalance::find(1)->increment('balance', $request->billAmt);
-                }
-
-                $this->sendApiResponse("EXPIRED", $DateTime);
-
-            });
-
-            return response()->json(['status' => true]);
-
-        } catch (\Exception $e) {
-
-            Log::error("Expired Error", ['error' => $e->getMessage()]);
-
-            return response()->json(['status' => false], 500);
+        $data = new Expired();
+        if (isset($chkuser)) {
+            $data->user_id = $chkuser->user_id;
         }
-    }
+        $data->Utid = $request->Utid;
+        $data->messageID = $request->messageID;
+        $data->instCode = $request->instCode;
+        $data->txnType = $request->txnType;
+        $data->msgType = $request->msgType;
+        $data->tlogId = $request->tlogId;
+        $data->orgTlogID = $request->orgTlogID;
+        $data->timeout = $request->timeout;
+        $data->repeat = $request->repeat;
+        $data->PAN = $request->PAN;
+        $data->cardID = $request->cardID;
+        $data->accNo = $request->accNo;
+        $data->curBill = $request->curBill;
+        $data->avlBal = $request->avlBal;
+        $data->blkAmt = $request->blkAmt;
+        $data->localDate = $request->localDate;
+        $data->localTime = $request->localTime;
+        $data->amtTxn = $request->amtTxn;
+        $data->curTxn = $request->curTxn;
+        $data->billAmt = $request->billAmt;
+        $data->billConvRate = $request->billConvRate;
+        $data->amtCom = $request->amtCom;
+        $data->amtPad = $request->amtPad;
+        $data->txnCode = $request->txnCode;
+        $data->termCode = $request->termCode;
+        $data->crdAcptID = $request->crdAcptID;
+        $data->crdAcptLoc = $request->crdAcptLoc;
+        $data->MCC = $request->MCC;
+        $data->poschp = $request->poschp;
+        $data->poscdim = $request->poscdim;
+        $data->poscham = $request->poscham;
+        $data->poscp = $request->poscp;
+        $data->approvalCode = $request->approvalCode;
+        $data->sysDate = $request->sysDate;
+        $data->rev = $request->rev;
+        $data->orgItemId = $request->orgItemId;
+        $data->itemSrc = $request->itemSrc;
+        $data->amtFee = $request->amtFee;
+        $data->crdproduct = $request->crdproduct;
+        $data->ctxLocalDate = $request->ctxLocalDate;
+        $data->ctxLocalTime = $request->ctxLocalTime;
+        $data->aVSChkRs = $request->aVSChkRs;
+        $data->threeDSecChkRs = $request->threeDSecChkRs;
+        $data->actionCode = $request->actionCode;
+        $data->amtCashback = $request->amtCashback;
+        $data->trn = $request->trn;
+        $data->txnSubCode = $request->txnSubCode;
+        if ($data->save()) {
 
-    private function storeAuthData($data, $request, $card)
-    {
-        if ($card) {
-            $data->user_id = $card->user_id;
-        }
+            if (isset($chkuser)) {
+                $user = User::find($chkuser->user_id);
+                $user->balance = $user->balance + $request->billAmt;
+                $user->save();
 
-        foreach ($request->all() as $key => $value) {
-            if (Schema::hasColumn($data->getTable(), $key)) {
-                $data->$key = $value;
-            }
-        }
-    }
-
-    private function storeSettlementData($data, $request, $card)
-    {
-        if ($card) {
-            $data->user_id = $card->user_id;
-        }
-
-        foreach ($request->all() as $key => $value) {
-            if (Schema::hasColumn($data->getTable(), $key)) {
-                $data->$key = $value;
-            }
-        }
-    }
-
-    private function sendApiResponse($type, $dateTime)
-    {
-        try {
-            $response = Http::withBasicAuth(
-                config('services.tevini.user'),
-                config('services.tevini.pass')
-            )->post(
-                config('services.tevini.url'),
-                [
-                    'Type' => $type,
-                    'DateTime' => $dateTime
-                ]
-            );
-
-            if (!$response->successful()) {
-                Log::error("Tevini API Error", [
-                    'type' => $type,
-                    'response' => $response->body()
-                ]);
+                $id = QpayBalance::where('id', 1)->first()->id;
+                $qbalance = QpayBalance::findOrFail($id);
+                $qbalance->balance = $qbalance->balance + $request->billAmt;
+                $qbalance->save();
             }
 
-        } catch (\Exception $e) {
-            Log::error("Tevini API Exception", [
-                'type' => $type,
-                'error' => $e->getMessage()
+            // Send a POST request to the API with the updated finance fee value
+            $Response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/redundantposts', [
+                
+                'Type' => "EXPIRED",
+                'DateTime' => $DateTime,
+                
             ]);
+        } else {
+            return redirect()->back()->with('error', 'EXPIRED ERROR.');
         }
+        
+        
+        
     }
+
+
+
+    // public function authorisation(Request $request)
+    // {
+    //     try {
+
+    //         Log::info("Auth Request", $request->all());
+
+    //         $cardNumber = substr($request->PAN, -4);
+    //         $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+    //         $user = $card ? User::find($card->user_id) : null;
+
+    //         $DateTime = now();
+
+    //         DB::transaction(function () use ($request, $card, $user, $DateTime) {
+
+    //             if ($request->msgType == 100) {
+
+    //                 $data = new Authorisation();
+
+    //                 $this->storeAuthData($data, $request, $card);
+    //                 $data->save();
+
+    //                 if ($request->actionCode == "000" && $user) {
+
+    //                     $user->decrement('balance', $request->billAmt);
+
+    //                     $t_id = time() . "-" . $user->id;
+
+    //                     Usertransaction::create([
+    //                         't_id' => $t_id,
+    //                         'user_id' => $user->id,
+    //                         't_type' => "Out",
+    //                         'source' => "Tevini Card",
+    //                         'amount' => $request->billAmt,
+    //                         'crdAcptLoc' => $request->crdAcptLoc,
+    //                         'crdAcptID' => $request->crdAcptID,
+    //                         'title' => "Tevini Card Payment to " . $request->crdAcptLoc,
+    //                         'pending' => 1,
+    //                         'status' => 1
+    //                     ]);
+
+    //                     Transaction::create([
+    //                         't_id' => $t_id,
+    //                         'user_id' => $user->id,
+    //                         't_type' => "Out",
+    //                         'name' => "Tevini Card",
+    //                         'amount' => $request->billAmt,
+    //                         'crdAcptLoc' => $request->crdAcptLoc,
+    //                         'crdAcptID' => $request->crdAcptID,
+    //                         'title' => "Tevini Card Payment to " . $request->crdAcptLoc,
+    //                         'status' => 1
+    //                     ]);
+
+    //                     QpayBalance::find(1)->decrement('balance', $request->billAmt);
+    //                 }
+    //             }
+
+    //             if ($request->msgType == 420) {
+
+    //                 $data = new AuthReversal();
+    //                 $this->storeAuthData($data, $request, $card);
+    //                 $data->save();
+
+    //                 if ($request->actionCode == "000" && $user) {
+
+    //                     $user->increment('balance', $request->billAmt);
+
+    //                     $t_id = time() . "-" . $user->id;
+
+    //                     Usertransaction::create([
+    //                         't_id' => $t_id,
+    //                         'user_id' => $user->id,
+    //                         't_type' => "In",
+    //                         'source' => "Tevini Card",
+    //                         'amount' => $request->billAmt,
+    //                         'crdAcptLoc' => $request->crdAcptLoc,
+    //                         'crdAcptID' => $request->crdAcptID,
+    //                         'title' => "Tevini Card Reversal",
+    //                         'pending' => 1,
+    //                         'status' => 1
+    //                     ]);
+
+    //                     Transaction::create([
+    //                         't_id' => $t_id,
+    //                         'user_id' => $user->id,
+    //                         't_type' => "In",
+    //                         'name' => "Tevini Card",
+    //                         'amount' => $request->billAmt,
+    //                         'crdAcptLoc' => $request->crdAcptLoc,
+    //                         'crdAcptID' => $request->crdAcptID,
+    //                         'note' => "Tevini Card Reversal",
+    //                         'status' => 1
+    //                     ]);
+
+    //                     QpayBalance::find(1)->increment('balance', $request->billAmt);
+    //                 }
+    //             }
+
+    //             if ($request->msgType == 120) {
+
+    //                 $data = new AuthReversal();
+    //                 $this->storeAuthData($data, $request, $card);
+    //                 $data->save();
+    //             }
+
+    //             $this->sendApiResponse("AUTH", $DateTime);
+
+    //         });
+
+    //         return response()->json(['status' => true]);
+
+    //     } catch (\Exception $e) {
+
+    //         Log::error("Auth Error", ['error' => $e->getMessage()]);
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Authorization error'
+    //         ], 500);
+    //     }
+    // }
+        
+
+    // public function settlement(Request $request)
+    // {
+    //     try {
+
+    //         Log::info("Settlement Request", $request->all());
+
+    //         $cardNumber = substr($request->PAN, -4);
+    //         $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+    //         $user = $card ? User::find($card->user_id) : null;
+
+    //         $DateTime = now();
+
+    //         DB::transaction(function () use ($request, $user, $card, $DateTime) {
+
+    //             $data = new Settlement();
+    //             $this->storeSettlementData($data, $request, $card);
+    //             $data->save();
+
+    //             $authorization = Authorisation::where('Utid', $request->Utid)->first();
+
+    //             if ($authorization && $user) {
+
+    //                 $diffAmount = $authorization->billAmt - $request->billAmt;
+
+    //                 if ($diffAmount > 0) {
+    //                     $user->decrement('balance', $diffAmount);
+    //                 }
+    //             }
+
+    //             $this->sendApiResponse("SETTLEMENT", $DateTime);
+
+    //         });
+
+    //         return response()->json(['status' => true]);
+
+    //     } catch (\Exception $e) {
+
+    //         Log::error("Settlement Error", ['error' => $e->getMessage()]);
+
+    //         return response()->json(['status' => false], 500);
+    //     }
+    // }
+
+
+
+    // public function expired(Request $request)
+    // {
+    //     try {
+
+    //         Log::info("Expired Request", $request->all());
+
+    //         $cardNumber = substr($request->PAN, -4);
+    //         $card = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+    //         $user = $card ? User::find($card->user_id) : null;
+
+    //         $DateTime = now();
+
+    //         DB::transaction(function () use ($request, $card, $user, $DateTime) {
+
+    //             $data = new Expired();
+    //             $this->storeAuthData($data, $request, $card);
+    //             $data->save();
+
+    //             if ($user) {
+
+    //                 $user->increment('balance', $request->billAmt);
+
+    //                 QpayBalance::find(1)->increment('balance', $request->billAmt);
+    //             }
+
+    //             $this->sendApiResponse("EXPIRED", $DateTime);
+
+    //         });
+
+    //         return response()->json(['status' => true]);
+
+    //     } catch (\Exception $e) {
+
+    //         Log::error("Expired Error", ['error' => $e->getMessage()]);
+
+    //         return response()->json(['status' => false], 500);
+    //     }
+    // }
+
+    // private function storeAuthData($data, $request, $card)
+    // {
+    //     if ($card) {
+    //         $data->user_id = $card->user_id;
+    //     }
+
+    //     foreach ($request->all() as $key => $value) {
+    //         if (Schema::hasColumn($data->getTable(), $key)) {
+    //             $data->$key = $value;
+    //         }
+    //     }
+    // }
+
+    // private function storeSettlementData($data, $request, $card)
+    // {
+    //     if ($card) {
+    //         $data->user_id = $card->user_id;
+    //     }
+
+    //     foreach ($request->all() as $key => $value) {
+    //         if (Schema::hasColumn($data->getTable(), $key)) {
+    //             $data->$key = $value;
+    //         }
+    //     }
+    // }
+
+    // private function sendApiResponse($type, $dateTime)
+    // {
+    //     try {
+    //         $response = Http::withBasicAuth(
+    //             config('services.tevini.user'),
+    //             config('services.tevini.pass')
+    //         )->post(
+    //             config('services.tevini.url'),
+    //             [
+    //                 'Type' => $type,
+    //                 'DateTime' => $dateTime
+    //             ]
+    //         );
+
+    //         if (!$response->successful()) {
+    //             Log::error("Tevini API Error", [
+    //                 'type' => $type,
+    //                 'response' => $response->body()
+    //             ]);
+    //         }
+
+    //     } catch (\Exception $e) {
+    //         Log::error("Tevini API Exception", [
+    //             'type' => $type,
+    //             'error' => $e->getMessage()
+    //         ]);
+    //     }
+    // }
 
 
 

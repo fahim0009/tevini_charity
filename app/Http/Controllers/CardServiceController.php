@@ -1078,6 +1078,7 @@ class CardServiceController extends Controller
         if ($request->msgType == 100) {
             $cardNumber = substr($request->PAN, -4);
             $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+            Log::info('Authorization Request', ['cardNumber' => $cardNumber, 'cardID' => $request->cardID, 'chkuser' => $chkuser]);
 
             $DateTime = now();
             $data = new Authorisation();
@@ -1373,6 +1374,8 @@ class CardServiceController extends Controller
     {
         $cardNumber = substr($request->PAN, -4);
         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+        
+            Log::info('Authorization Request', ['cardNumber' => $cardNumber, 'cardID' => $request->cardID, 'chkuser' => $chkuser]);
 
         $DateTime = now();
         $data = new Settlement();
@@ -1448,6 +1451,8 @@ class CardServiceController extends Controller
         
         $cardNumber = substr($request->PAN, -4);
         $chkuser = CardProduct::where('cardNumber', $cardNumber)->where('CardProxyId', $request->cardID)->first();
+        
+            Log::info('Authorization Request', ['cardNumber' => $cardNumber, 'cardID' => $request->cardID, 'chkuser' => $chkuser]);
         $DateTime = now();
 
         $data = new Expired();

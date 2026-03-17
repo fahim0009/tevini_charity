@@ -135,8 +135,8 @@ use app\Models\Provoucher;
                 $previous_pending_net = $previous_pending - $total_pending;
                 @endphp
                 <div class="left">
-                    Total wallet amount: £{{ number_format($charity->balance, 2)}}  <br>
-                    Total Previous pending: £{{ number_format($previous_pending_net, 2)}} <br>
+                    {{-- Total wallet amount: £{{ number_format($charity->balance, 2)}}  <br>
+                    Total Previous pending: £{{ number_format($previous_pending_net, 2)}} <br> --}}
                 </div>
 
 

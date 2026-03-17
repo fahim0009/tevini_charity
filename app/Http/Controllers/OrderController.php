@@ -2785,24 +2785,34 @@ public function watingvoucherCancel(Request $request)
     public function commission(Request $request)
     {
         if ($request->ajax()) {
+            // Handle Commission Table
+            if ($request->get('type') === 'commission') {
+                $query = Commission::with('user')->orderBy('id', 'DESC');
+                return DataTables::of($query)
+                    ->addColumn('date', fn($c) => $c->created_at->format('d/m/Y'))
+                    ->addColumn('donor', fn($c) => ($c->user->name ?? 'N/A') . ' ' . ($c->user->surname ?? ''))
+                    ->addColumn('amount', fn($c) => '<strong>£' . number_format($c->commission, 2) . '</strong>')
+                    ->rawColumns(['amount'])
+                    ->make(true);
+            }
 
-            $query = Commission::with('user')->orderBy('id', 'DESC');
-
-            return DataTables::of($query)
-                ->addColumn('date', function($c){
-                    return $c->created_at->format('d/m/Y');
-                })
-                ->addColumn('donor', function($c){
-                    return $c->user->name.' '.$c->user->surname;
-                })
-                ->addColumn('amount', function($c){
-                    return '£' . $c->commission;
-                })
-                ->rawColumns(['amount'])
-                ->make(true);
+            // Handle All Transactions Table
+            if ($request->get('type') === 'all_transactions') {
+                $alltrans = Usertransaction::with(['user', 'charity'])->where('status', 1)->orderBy('id', 'DESC');
+                return DataTables::of($alltrans)
+                    ->addColumn('date', fn($t) => $t->created_at->format('d/m/Y'))
+                    ->addColumn('user', fn($t) => ($t->user->name ?? 'System') . ' ' . ($t->user->surname ?? ''))
+                    ->addColumn('charity', fn($t) => $t->charity->name ?? 'N/A')
+                    ->addColumn('t_id', fn($t) => $t->t_id ?? 'N/A')
+                    ->addColumn('amount', fn($t) => '£' . number_format($t->amount, 2))
+                    ->rawColumns(['amount'])
+                    ->make(true);
+            }
         }
 
-        return view('others.commission');
+        // View data
+        $totalCommission = Commission::sum('commission');
+        return view('others.commission', compact('totalCommission'));
     }
 
 

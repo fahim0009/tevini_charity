@@ -1915,7 +1915,7 @@ class OrderController extends Controller
             }
         }
 
-        public function getCharitybarCode(Request $request)
+        public function getCharitybarCode_old(Request $request)
         {
 
             $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
@@ -1931,6 +1931,12 @@ class OrderController extends Controller
                 $orderHistory = OrderHistory::where('id', $orderDtl->orderhistory_id)->first();
                 $voucher = Voucher::where('id', $orderHistory->voucher_id)->first();
 
+                if ($voucher->single_amount == .50 || $voucher->single_amount == 1.00 || $voucher->single_amount == 2.00) {
+                    $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This voucher will not accepted.</b></div>";
+                    return response()->json(['status'=> 303,'message'=>$message, 'vouchertype'=>$voucher->type]);
+                    exit();
+                }
+
                 if ($voucher->type == "Blank") {
                     $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>This is blank voucher.You can't process.</b></div>";
                     return response()->json(['status'=> 303,'message'=>$message, 'vouchertype'=>$voucher->type]);
@@ -1942,6 +1948,51 @@ class OrderController extends Controller
             }
 
         }
+
+
+        public function getCharitybarCode(Request $request)
+        {
+            $barcode = Barcode::with(['user', 'orderhistory.voucher'])
+                ->where('barcode', $request->barcode)
+                ->first();
+
+            if (!$barcode) {
+                return response()->json([
+                    'status' => 303,
+                    'message' => "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times; </a><b> No data found. </b></div>"
+                ]);
+            }
+
+            $voucher = $barcode->orderhistory->voucher ?? null;
+
+            $invalidAmounts = [0.50, 1.00, 2.00];
+            if (in_array($voucher?->single_amount, $invalidAmounts)) {
+                return response()->json([
+                    'status' => 303,
+                    'vouchertype' => $voucher?->type,
+                    'message' => "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times; </a><b> This voucher will not be accepted.</b></div>"
+                ]);
+            }
+
+            if ($voucher?->type === "Blank") {
+                return response()->json([
+                    'status' => 303,
+                    'vouchertype' => $voucher->type,
+                    'message' => "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times; </a><b> This is a blank voucher. You can't process it.</b></div>"
+                ]);
+            }
+
+            return response()->json([
+                'status' => 300,
+                'donorname' => $barcode->user->name ?? 'Unknown',
+                'donorid' => $barcode->user_id,
+                'donoracc' => $barcode->user->accountno ?? 'N/A',
+                'amount' => $barcode->amount,
+                'vouchertype' => $voucher?->type 
+            ]);
+        }
+
+
 
     public function pvComplete(Request $request)
     {

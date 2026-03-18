@@ -64,13 +64,22 @@
                             </tr>
                         </table>
 
-                        <div>
-                            <div class="row"  style="opacity:0">
-                                <div class="col-md-1">
-                                    <input style="min-width: 200px;" id="barcode"  type="text" class="form-control">
+
+                        
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label for="barcode">***To process your vouchers, please enter the voucher number in the box below and press Enter.</label>
+                                        <input style="min-width: 200px;" id="barcode" type="text" class="form-control">
+                                    </div>
+
+                                    
+                                    <div class="col-md-12 mt-3">
+                                        <p>Note:  the following vouchers will not be accepted: 50p, £1, £2
+                                        </p>
+                                    </div>
+
+
                                 </div>
-                            </div>
-                        </div>
 
                     </div>
                 </div>

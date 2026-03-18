@@ -160,6 +160,10 @@ class TransactionController extends Controller
                     $query->where(DB::raw($businessDateRaw), '>', '2026-02-07');
                     // 2. Filter by the aggregated payment status
                     $query->having('payment_status', '=', 0);
+                    // 3. NEW: Only show charities where auto_payment is enabled (1)
+                    $query->whereHas('charity', function($q) {
+                        $q->where('auto_payment', 1);
+                    });
 
                 } elseif ($type === 'PreviousSummary') {
                     // Only show items where bank_payment_status is 1

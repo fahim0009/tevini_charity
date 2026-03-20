@@ -17,6 +17,7 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\QpayBalanceController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\ProductFeeController;
 use App\Http\Controllers\Admin\CardProfileController;
 use App\Http\Controllers\Admin\CompanyDetailController;
@@ -346,8 +347,6 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/donor-balance-transfer/{id}', [BalanceTransferController::class, 'getDonorBalanceTransferByAdmin'])->name('donor.balanceTransfer');
     Route::post('/balance-transfer-status', [BalanceTransferController::class, 'changeStatus']);
 
-    
-
     // donor balance check
     Route::get('/get-donor-balance', [DonorBalanceController::class, 'index'])->name('donorBalance');
     Route::post('/get-donor-balance', [DonorBalanceController::class, 'balanceUpdate']);
@@ -355,8 +354,6 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     // voucher search
     Route::get('/get-voucher', [VouchersController::class, 'getVoucher'])->name('getVoucher');
     Route::post('/get-voucher', [VouchersController::class, 'getVoucher'])->name('voucherSearch');
-
-
 
     // get users account delete request
     Route::get('/user-delete-request', [AdminController::class, 'getUserDeleteRequest'])->name('allUserDeleteReq');
@@ -374,13 +371,16 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/transaction-status-update', [TransactionController::class, 'deleteTransactionUpdate'])->name('admin.deleteTransactionUpdate');
 
 
-
-    
     Route::post('/new-information', [CredentialController::class, 'newUserCredentialStore'])->name('newUserCredentialStore');
     Route::put('/user-email/update/{id}', [CredentialController::class, 'update'])->name('useremail.update');
     Route::delete('/user-email/delete/{id}', [CredentialController::class, 'destroy'])->name('useremail.destroy');
     Route::post('/useremail-store', [CredentialController::class, 'charityEmailStore'])->name('useremail.store');
     Route::post('/useremail-update', [CredentialController::class, 'charityEmailupdate'])->name('charityemail.update');
+
+
+    
+    Route::get('/batch', [BatchController::class, 'index'])->name('admin.batches');
+    Route::post('/voucher-upload-barcode-image', [BatchController::class, 'uploadBarcode'])->name('voucher.upload.barcode');
 
 
 

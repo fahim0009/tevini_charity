@@ -25,6 +25,7 @@ use App\Mail\WaitingVoucherCancel;
 use App\Mail\WaitingvoucherReport;
 use App\Models\VoucherCart;
 use App\Models\ProcessedBarcode;
+use App\Models\ProvoucherBatch;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\File;
 use Yajra\DataTables\Facades\DataTables;
@@ -1267,6 +1268,10 @@ class OrderController extends Controller
             return $this->errorResponse('Please select a charity first.');
         }
 
+        if (empty($request->batch_no)) {
+            return $this->errorResponse('Please add a batch no first.');
+        }
+
         // Check for duplicate voucher entries in the request
         $duplicateCheques = array_filter(array_count_values($chequeNos), fn($count) => $count > 1);
         if (!empty($duplicateCheques)) {
@@ -1306,6 +1311,19 @@ class OrderController extends Controller
             return $this->errorResponse('Failed to save voucher batch.');
         }
 
+        // 1. First, create the Batch record before the loop
+        $batchNo = $request->batch_no;
+        $totalBatchAmount = array_sum($amounts);
+
+        $batch = new ProvoucherBatch();
+        $batch->charity_id = $charityId;
+        $batch->batch_no = $batchNo;
+        $batch->date = now()->format('Y-m-d');
+        $batch->total_amount = $totalBatchAmount;
+        $batch->status = 1; 
+        $batch->created_by = auth()->user()->name ?? 'System';
+        $batch->save();
+
         foreach ($donorIds as $index => $donorId) {
             $user = User::find($donorId);
             if (!$user) continue;
@@ -1330,10 +1348,14 @@ class OrderController extends Controller
             $transaction->barcode_image = $barcodeImagePath;
             $transaction->pending = $isPending ? 0 : 1;
             $transaction->status = $isPending ? 0 : 1;
+            $transaction->provoucher_batch_id = $batch->id;
+            $transaction->batch_no = $batchNo;
             $transaction->save();
 
             // Create ProVoucher record
             $voucher = new Provoucher();
+            $voucher->batch_no = $batchNo;
+            $voucher->provoucher_batch_id = $batch->id;
             $voucher->charity_id = $charityId;
             $voucher->user_id = $donorId;
             $voucher->batch_id = $batch->id;

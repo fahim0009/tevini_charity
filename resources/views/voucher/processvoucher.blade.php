@@ -20,7 +20,13 @@
             <div>
                 <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                 Process Voucher
+
             </div>
+
+            <div class="ml-auto" >
+                <input type="text" id="batch_number" class="form-control" placeholder="Batch Number">
+            </div>
+
             <div class="ml-auto">
                 <button class="iconify" data-icon="mdi:book" data-inline="false" data-toggle="modal" data-target="#fullWidthModal" style="cursor: pointer;"></button>
 
@@ -395,6 +401,13 @@
         $("body").delegate("#addvoucher", "click", function(event) {
             event.preventDefault();
             $("#loading").show();
+            var batch_no = $("#batch_number").val();
+
+            if (!batch_no) {
+                $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Batch number is required.</b></div>");
+                $("#loading").hide();
+                return;
+            }
 
             var charityId = $("select[name='charity']").val();
             var donorIds = $("input[name='donor[]']").map(function() { return $(this).val(); }).get();
@@ -408,7 +421,7 @@
             $.ajax({
                 url: url,
                 method: "POST",
-                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings, expireds },
+                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings, expireds, batch_no },
                 success: function(d) {
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);

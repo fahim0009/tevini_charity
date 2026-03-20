@@ -25,6 +25,15 @@
             <!--        Staff Role-->
             <!--    </a>-->
             <!--</li>-->
+
+            
+            <li class="nav-item {{ (request()->is('admin/batch')) ? 'active' : '' }}" id="">
+                <a href="{{ route('admin.batches') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Batch
+                </a>
+            </li>
+
             <li class="nav-item {{ (request()->is('admin/transaction*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('transaction') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>

@@ -1724,7 +1724,7 @@ class DonorController extends Controller
     {
         $donation = StandingDonation::where([
             ['user_id','=', auth()->user()->id]
-        ])->get();
+        ])->where('status', 1)->get();
 
         return view('frontend.user.standingdonationrecord')
         ->with('donation',$donation);

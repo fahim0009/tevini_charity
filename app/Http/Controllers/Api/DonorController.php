@@ -171,7 +171,7 @@ class DonorController extends Controller
     {
         $data = StandingDonation::where([
             ['user_id','=', auth()->user()->id]
-        ])->orderBy('id','DESC')->get();
+        ])->where('status', 1)->orderBy('id','DESC')->get();
 
         $success['data'] = $data;
         return response()->json(['success'=>true,'response'=> $success], 200);

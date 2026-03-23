@@ -1,12 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+    namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\ProvoucherBatch;
-use App\Models\Usertransaction;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+    use App\Http\Controllers\Controller;
+    use App\Models\ProvoucherBatch;
+    use App\Models\Usertransaction;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Storage;
+
+    use Illuminate\Support\Facades\DB;
+    use thiagoalessio\TesseractOCR\TesseractOCR;
+    use Spatie\PdfToImage\Pdf;
+    use Imagick;
 
 class BatchController extends Controller
 {
@@ -52,25 +57,110 @@ class BatchController extends Controller
         return response()->json(['success' => false], 400);
     }
 
-    public function uploadPdf(Request $request) {
+
+    public function uploadPdf(Request $request)
+    {
         $request->validate([
-            'batch_id' => 'required|exists:batches,id',
-            'pdf_file' => 'required|mimes:pdf|max:2048', // 2MB limit
+            'batch_id' => 'required|exists:provoucher_batches,id',
+            'pdf_file' => 'required|mimes:pdf|max:10048',
         ]);
 
-        $batch = ProvoucherBatch::find($request->batch_id);
-        
-        if ($request->hasFile('pdf_file')) {
-            $path = $request->file('pdf_file')->store('batch_pdfs', 'public');
-            
-            // Update your database column (e.g., pdf_path)
-            $batch->update(['pdf_path' => $path]);
+        set_time_limit(300);
 
-            return response()->json(['message' => 'File uploaded successfully!'], 200);
+        // $tesseractPath = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe";
+        
+        $tesseractPath = "/usr/bin/tesseract";
+
+        // ✅ Store PDF (keep as-is or move to public if needed)
+        $pdfPath = $request->file('pdf_file')->store('public/pdfs');
+        $pdfFullPath = storage_path('app/' . $pdfPath);
+
+        // ✅ NEW: Use public folder (same as your barcode_image upload)
+        $imageFolder = public_path('/images/barcodes/');
+        if (!file_exists($imageFolder)) {
+            mkdir($imageFolder, 0777, true);
         }
 
-        return response()->json(['message' => 'No file found.'], 400);
+        $batch = DB::table('provoucher_batches')
+            ->where('id', $request->batch_id)
+            ->first();
+
+        $pdf = new Pdf($pdfFullPath);
+        $totalPages = $pdf->getNumberOfPages();
+
+        for ($i = 1; $i <= $totalPages; $i++) {
+
+            // ✅ Generate image name
+            $imageName = "batch_{$request->batch_id}_page_{$i}_" . time() . ".jpg";
+            $tempImagePath = storage_path('app/temp_' . $imageName); // temp save
+            $finalImagePath = $imageFolder . $imageName;
+
+            // ✅ Save from PDF (temporary)
+            $pdf->setPage($i)->saveImage($tempImagePath);
+
+            if (!$this->isValidImage($tempImagePath)) {
+                unlink($tempImagePath);
+                continue;
+            }
+
+            // ✅ Move to public/images/barcodes
+            rename($tempImagePath, $finalImagePath);
+
+            // ✅ OCR
+            try {
+                $text = (new TesseractOCR($finalImagePath))
+                    ->executable($tesseractPath)
+                    ->lang('eng')
+                    ->psm(6)
+                    ->oem(1)
+                    ->run();
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            // ✅ Extract number
+            if (preg_match('/NO\.\s*(\d{6,})/', $text, $matches)) {
+                $number = $matches[1];
+            } elseif (preg_match('/\b\d{6,}\b/', $text, $matches)) {
+                $number = $matches[0];
+            } else {
+                $number = 'Not Found';
+            }
+
+            // ✅ Update transaction
+            Usertransaction::where('provoucher_batch_id', $request->batch_id)
+                ->where('cheque_no', $number)
+                ->update(['barcode_image' => 'images/barcodes/' . $imageName]);
+
+            DB::table('processed_barcodes')->insert([
+                'file'       => 'images/barcodes/' . $imageName, 
+                'barcode'    => $number,
+                'provoucher_batch_id' => $batch->id ?? null,
+                'batch_no'            => $batch->batch_no ?? null,
+                'status'     => 'Processed',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'PDF processed successfully'
+        ]);
     }
 
+    private function isValidImage($imagePath)
+    {
+        $image = new \Imagick($imagePath);
+
+        if ($image->getImageWidth() < 100 || $image->getImageHeight() < 100) {
+            return false;
+        }
+
+        if ($image->getImageLength() < 5000) {
+            return false;
+        }
+
+        return true;
+    }
 
 }

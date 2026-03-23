@@ -10,8 +10,8 @@
     }
 </style>
 @php
-    $readableBarcode = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')->get();
-    $notReadableBarcode = \App\Models\ProcessedBarcode::where('barcode', '=', 'Not Found')->get();
+    $readableBarcode = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')->whereNull('provoucher_batch_id')->get();
+    $notReadableBarcode = \App\Models\ProcessedBarcode::where('barcode', '=', 'Not Found')->whereNull('provoucher_batch_id')->get();
 @endphp
 
 <div class="dashboard-content" id="focusBcode">

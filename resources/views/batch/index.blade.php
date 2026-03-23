@@ -118,7 +118,7 @@
                                             </div>
                                             <input type="file" class="file-upload-input pdf-input" id="pdf-{{ $batch->id }}" accept="application/pdf" data-id="{{ $batch->id }}">
                                         </div>
-                                        <button class="btn btn-dark upload-pdf-btn" data-id="{{ $batch->id }}">Submit</button>
+                                        <button class="btn btn-dark upload-pdf-btn" data-id="{{ $batch->id }}"  data-batch_no="{{ $batch->batch_no }}">Submit</button>
                                     </div>
                                     <small class="status-msg" id="status-{{ $batch->id }}"></small>
                                 </div>
@@ -191,6 +191,7 @@ $(document).ready(function () {
     // PDF Upload logic
     $('.upload-pdf-btn').on('click', function() {
         let batchId = $(this).data('id');
+        let batch_no = $(this).data('batch_no');
         let fileInput = $('#pdf-' + batchId)[0];
         let $btn = $(this);
         let $statusMsg = $('#status-' + batchId);
@@ -200,6 +201,7 @@ $(document).ready(function () {
         let formData = new FormData();
         formData.append('pdf_file', fileInput.files[0]);
         formData.append('batch_id', batchId);
+        formData.append('batch_no', batch_no);
 
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 

@@ -1315,14 +1315,14 @@ class OrderController extends Controller
         $batchNo = $request->batch_no;
         $totalBatchAmount = array_sum($amounts);
 
-        $batch = new ProvoucherBatch();
-        $batch->charity_id = $charityId;
-        $batch->batch_no = $batchNo;
-        $batch->date = now()->format('Y-m-d');
-        $batch->total_amount = $totalBatchAmount;
-        $batch->status = 1; 
-        $batch->created_by = auth()->user()->name ?? 'System';
-        $batch->save();
+        $probatch = new ProvoucherBatch();
+        $probatch->charity_id = $charityId;
+        $probatch->batch_no = $batchNo;
+        $probatch->date = now()->format('Y-m-d');
+        $probatch->total_amount = $totalBatchAmount;
+        $probatch->status = 1; 
+        $probatch->created_by = auth()->user()->name ?? 'System';
+        $probatch->save();
 
         foreach ($donorIds as $index => $donorId) {
             $user = User::find($donorId);
@@ -1348,14 +1348,14 @@ class OrderController extends Controller
             $transaction->barcode_image = $barcodeImagePath;
             $transaction->pending = $isPending ? 0 : 1;
             $transaction->status = $isPending ? 0 : 1;
-            $transaction->provoucher_batch_id = $batch->id;
+            $transaction->provoucher_batch_id = $probatch->id;
             $transaction->batch_no = $batchNo;
             $transaction->save();
 
             // Create ProVoucher record
             $voucher = new Provoucher();
             $voucher->batch_no = $batchNo;
-            $voucher->provoucher_batch_id = $batch->id;
+            $voucher->provoucher_batch_id = $probatch->id;
             $voucher->charity_id = $charityId;
             $voucher->user_id = $donorId;
             $voucher->batch_id = $batch->id;

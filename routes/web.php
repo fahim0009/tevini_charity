@@ -265,7 +265,6 @@ Route::post('make-online-donation', [DonorController::class, 'userOnlineDonation
 // api for campaign
 Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
 Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
-Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 
 
 Route::post('/cardEnrolFingerprint', [App\Http\Controllers\HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
@@ -281,6 +280,7 @@ Route::post('/change-user-password', [App\Http\Controllers\HomeController::class
 
 
 // chatiry login
+Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 Route::post('charity_login', [CharityAuthController::class, 'login'])->name('charity.login');
 
 // charity registration

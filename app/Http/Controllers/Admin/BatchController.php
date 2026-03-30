@@ -3,8 +3,10 @@
     namespace App\Http\Controllers\Admin;
 
     use App\Http\Controllers\Controller;
-    use App\Models\ProvoucherBatch;
-    use App\Models\Usertransaction;
+use App\Models\Charity;
+use App\Models\ProvoucherBatch;
+use App\Models\User;
+use App\Models\Usertransaction;
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\Storage;
 
@@ -161,6 +163,22 @@ class BatchController extends Controller
         }
 
         return true;
+    }
+
+
+    public function edit($id)
+    {
+        
+        $batches = ProvoucherBatch::with(['transaction', 'provoucher'])->where('id', $id)->first();
+        // dd( $batches );
+
+        $charities = Charity::all();
+        $donors = User::where([
+            ['is_type', '=', 'user'],
+            ['status', '=', '1']
+        ])->get();
+
+        return view('batch.edit', compact('batches', 'charities', 'donors' ));
     }
 
 }

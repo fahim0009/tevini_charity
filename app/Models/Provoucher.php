@@ -42,6 +42,15 @@ class Provoucher extends Model
         });
       }
 
+      public function getDonorNameAttribute()
+        {
+            return $this->user?->name;
+        }
+
+        public function getAccountNoAttribute()
+        {
+            return $this->user?->accountno;
+        }
       
       public function transaction()
       {

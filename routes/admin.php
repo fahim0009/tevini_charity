@@ -382,7 +382,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/batch', [BatchController::class, 'index'])->name('admin.batches');
     Route::post('/voucher-upload-barcode-image', [BatchController::class, 'uploadBarcode'])->name('voucher.upload.barcode');
     Route::post('/batch/upload-pdf', [BatchController::class, 'uploadPdf'])->name('batch.upload.pdf');
-
+    Route::get('/batch-edit/{id}', [BatchController::class, 'edit'])->name('admin.batchesEdit');
 
 
 

@@ -32,6 +32,7 @@
                             <th>Total Amount</th>
                             <th class="text-end">Vouchers</th>
                             <th class="text-end">Upload PDF</th>
+                            <th class="text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -121,6 +122,12 @@
                                         <button class="btn btn-dark upload-pdf-btn" data-id="{{ $batch->id }}"  data-batch_no="{{ $batch->batch_no }}">Submit</button>
                                     </div>
                                     <small class="status-msg" id="status-{{ $batch->id }}"></small>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-column align-items-end gap-2">
+                                    <a href="{{ route('admin.batchesEdit', $batch->id)}}" class="btn btn-sm btn-view-vouchers px-3">Edit</a>
                                 </div>
                             </td>
                         </tr>

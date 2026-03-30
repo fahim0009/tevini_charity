@@ -23,6 +23,7 @@
             <div class="ml-auto" >
                 <input type="text" id="batch_number" class="form-control" placeholder="Batch Number" value="{{$batches->batch_no}}" readonly>
                 <input type="hidden" id="batchID" class="form-control" value="{{$batches->id}}" readonly>
+                <input type="hidden" id="bid" class="form-control" value="{{$bid}}" readonly>
             </div>
 
             <div class="ermsg"></div>
@@ -231,11 +232,13 @@
         // CSRF token setup for AJAX
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        var url = "{{ URL::to('/admin/pvoucher-store') }}";
+        var url = "{{ URL::to('/admin/pvoucher-update') }}";
         $("body").delegate("#addvoucher", "click", function(event) {
             event.preventDefault();
             $("#loading").show();
             var batch_no = $("#batch_number").val();
+            var batchID = $("#batchID").val();
+            var bid = $("#bid").val();
 
             if (!batch_no) {
                 $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Batch number is required.</b></div>");
@@ -255,7 +258,7 @@
             $.ajax({
                 url: url,
                 method: "POST",
-                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings, expireds, batch_no },
+                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings, expireds, batch_no, batchID, bid },
                 success: function(d) {
                     if (d.status == 303) {
                         $(".ermsg").html(d.message);

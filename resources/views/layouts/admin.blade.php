@@ -7,7 +7,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charity</title>
+    <title>Tevini</title>
+
+    <meta name="description" content="Tevini Charity Admin Dashboard">
+    <meta name="theme-color" content="#ffffff">
+
     <link href="{{ asset('assets/admin/css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/swiper-bundle.min.css') }}" />
@@ -19,13 +23,10 @@
     <link href="{{URL::to('/css/common.css')}}" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-
-
-
-
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 
     @yield('css')
+    
 </head>
 
 <body>

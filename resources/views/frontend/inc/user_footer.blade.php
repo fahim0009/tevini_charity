@@ -8,7 +8,7 @@
                 <div class=" flex-fill bd-highlight ">
                     <ul class="m-0 text-white">
                         <li class="list-style-none">+44 7490956227</li>
-                        <li class="list-style-none">tevinivouchers@gmail.com</li>
+                        <li class="list-style-none">info@tevini.co.uk</li>
                         <li class="list-style-none"> 5A Holmdale Terrace</li>
                         <li class="list-style-none"> London, N156PP </li>
                     </ul>

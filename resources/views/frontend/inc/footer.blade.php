@@ -23,7 +23,7 @@
                 </div>
                 <p class="footer-bottom mt-3 mb-0">
                     <span class="mx-4">  5A Holmdale Terrace,    London, N15 6PP </span> | <span class="mx-4">PHONE: +44 7490956227</span>
-                    | <span class="mx-4">EMAIL: tevinivouchers@gmail.com</span>
+                    | <span class="mx-4">EMAIL: info@tevini.co.uk</span>
                 </p>
             </div>
         </div>

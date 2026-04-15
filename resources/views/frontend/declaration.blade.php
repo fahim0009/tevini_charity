@@ -11,7 +11,7 @@
 
     
 
-    <p>If a user contacts us via ( tevinivouchers@gmail.com ) for bug report or help & feedback, their email will be collected by us for the sole purpose of communication
+    <p>If a user contacts us via ( info@tevini.co.uk ) for bug report or help & feedback, their email will be collected by us for the sole purpose of communication
         And resolving the issue. However. If the user wishes to exercise their data deletion right. They can request us to delete their email and associated data from our records by contacting us through the same email address.
         We will promptly respond to the user’s request take necessary actions to delete their from our records.</p>
 

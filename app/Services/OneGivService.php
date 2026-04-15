@@ -8,13 +8,14 @@ use App\Models\OneGiv\OneGivCardOrder;
 
 class OneGivService
 {
-    protected ?string $baseUrl; 
-    protected ?string $token;
+    protected string $baseUrl;
+    protected string $token;
 
     public function __construct()
     {
-        $this->baseUrl = config('onegiv.base_url');
-        $this->token   = config('onegiv.token');
+        $this->baseUrl = config('onegiv.base_url') 
+                        ?? 'https://cardissuerapitest.onegiv.co.uk';
+        $this->token   = config('onegiv.token') ?? '';
     }
 
     private function client()

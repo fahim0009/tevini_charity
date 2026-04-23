@@ -35,7 +35,7 @@ class OneGivCardController extends Controller
     {
         $request->validate([
             'card_holder'  => 'required|string|max:100',
-            'amount'       => 'required|numeric|min:1',
+            'amount'       => 'nullable|numeric',
             'pin'          => 'required|digits:4',
             'fixed_amount' => 'required|boolean',
         ]);

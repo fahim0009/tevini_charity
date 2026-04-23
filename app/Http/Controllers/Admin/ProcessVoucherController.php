@@ -38,9 +38,11 @@ class ProcessVoucherController extends Controller
             set_time_limit(3600);
 
             // ✅ Set Ghostscript and Tesseract paths
-            putenv("MAGICK_HOME=C:\\Program Files\\gs\\gs10.05.0\\bin");
+            putenv("MAGICK_HOME=C:\\Program Files\\gs\\gs10.07.0\\bin");
             putenv("PATH=" . getenv("MAGICK_HOME") . ";" . getenv("PATH"));
-            putenv("GS_PROG=C:\\Program Files\\gs\\gs10.05.0\\bin\\gswin64c.exe");
+            putenv("GS_PROG=C:\\Program Files\\gs\\gs10.07.0\\bin\\gswin64c.exe");
+
+            
             $tesseractPath = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe";
 
             // ✅ Validate uploaded files

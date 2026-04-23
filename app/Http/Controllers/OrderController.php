@@ -1253,7 +1253,7 @@ class OrderController extends Controller
 
     }
 
-    public function pvoucherStore(Request $request)
+    public function pvoucherStore2(Request $request)
     {
         $charityId = $request->charityId;
         $donorIds = $request->donorIds;
@@ -1391,6 +1391,131 @@ class OrderController extends Controller
         ]);
     }
 
+    public function pvoucherStore(Request $request)
+    {
+        $charityId = $request->charityId;
+        $batchNo   = $request->batch_no;
+        // Decode the rows array sent as JSON
+        $rows      = $request->rows; // Laravel auto-decodes JSON body
+
+        if (empty($charityId)) {
+            return $this->errorResponse('Please select a charity first.');
+        }
+        if (empty($batchNo)) {
+            return $this->errorResponse('Please add a batch no first.');
+        }
+
+        // Extract fields from rows
+        $chequeNos = array_column($rows, 'chqNo');
+        $amounts   = array_column($rows, 'amount');
+
+        // Duplicate check
+        $duplicateCheques = array_filter(array_count_values($chequeNos), fn($c) => $c > 1);
+        if (!empty($duplicateCheques)) {
+            return $this->errorResponse("Voucher " . array_key_first($duplicateCheques) . " is entered more than once.");
+        }
+
+        // Already processed check
+        $existingCheques = Provoucher::pluck('cheque_no')->toArray();
+        foreach ($chequeNos as $chequeNo) {
+            if (in_array($chequeNo, $existingCheques)) {
+                return $this->errorResponse("Voucher number $chequeNo is already processed.");
+            }
+        }
+
+        // Cancelled check
+        foreach ($chequeNos as $chequeNo) {
+            if (Barcode::where('barcode', $chequeNo)->where('status', 1)->exists()) {
+                return $this->errorResponse("Voucher number $chequeNo is already cancelled.");
+            }
+        }
+
+        // Required fields check
+        foreach ($rows as $index => $row) {
+            if (empty($row['donorId']) || empty($row['donorAcc']) || empty($row['chqNo']) || empty($row['amount'])) {
+                return $this->errorResponse('Please fill in all required fields (row ' . ($index + 1) . ').');
+            }
+        }
+
+        // Create batch records
+        $batch           = new Batchprov();
+        $batch->charity_id = $charityId;
+        $batch->status   = 0;
+        $batch->save();
+
+        $probatch                = new ProvoucherBatch();
+        $probatch->charity_id    = $charityId;
+        $probatch->batch_no      = $batchNo;
+        $probatch->date          = now()->format('Y-m-d');
+        $probatch->total_amount  = array_sum($amounts);
+        $probatch->status        = 1;
+        $probatch->created_by    = auth()->user()->name ?? 'System';
+        $probatch->save();
+
+        // Process each row
+        foreach ($rows as $row) {
+            $donorId  = $row['donorId'];
+            $amount   = $row['amount'];
+            $chequeNo = $row['chqNo'];
+
+            $user = User::find($donorId);
+            if (!$user) continue;
+
+            $limit     = $user->getAvailableLimit();
+            $isPending = ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes');
+
+            $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
+
+            $transaction                     = new Usertransaction();
+            $transaction->t_id               = time() . "-" . $donorId;
+            $transaction->user_id            = $donorId;
+            $transaction->charity_id         = $charityId;
+            $transaction->t_type             = "Out";
+            $transaction->amount             = $amount;
+            $transaction->cheque_no          = $chequeNo;
+            $transaction->title              = "Voucher";
+            $transaction->barcode_image      = $barcodeImagePath;
+            $transaction->pending            = $isPending ? 0 : 1;
+            $transaction->status             = $isPending ? 0 : 1;
+            $transaction->provoucher_batch_id = $probatch->id;
+            $transaction->batch_no           = $batchNo;
+            $transaction->save();
+
+            $voucher                       = new Provoucher();
+            $voucher->batch_no             = $batchNo;
+            $voucher->provoucher_batch_id  = $probatch->id;
+            $voucher->charity_id           = $charityId;
+            $voucher->user_id              = $donorId;
+            $voucher->batch_id             = $batch->id;
+            $voucher->donor_acc            = $row['donorAcc'];
+            $voucher->cheque_no            = $chequeNo;
+            $voucher->amount               = $amount;
+            $voucher->note                 = $row['note'];
+            $voucher->waiting              = $row['waiting'] ?? 'No';
+            $voucher->expired              = $row['expired'] ?? 'No';
+            $voucher->status               = $isPending ? 0 : 1;
+            $voucher->tran_id              = $transaction->id;
+            $voucher->save();
+
+            if (!$isPending) {
+                Charity::where('id', $charityId)->increment('balance', $amount);
+                $user->decrement('balance', $amount);
+                if ($user->CreditProfileId) {
+                    $this->updateCardBalance($user->CreditProfileId, $user->name, -$amount);
+                }
+            }
+        }
+
+        Draft::truncate();
+
+        return response()->json([
+            'status'     => 300,
+            'message'    => $this->successMessage('Voucher processed successfully.'),
+            'charity_id' => $charityId,
+            'batch_id'   => $batch->id,
+        ]);
+    }
+
     private function moveBarcodeImageAndGetPath(string $barcode): ?string
     {
         $processedBarcode = \App\Models\ProcessedBarcode::where('barcode', $barcode)->first();
@@ -1429,15 +1554,46 @@ class OrderController extends Controller
         return "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>$message</b></div>";
     }
 
-    private function updateCardBalance($profileId, $profileName, $balanceChange)
+    private function updateCardBalance2($profileId, $profileName, $balanceChange)
     {
         Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->withoutVerifying() // ⚠️ remove in production, use cacert.pem instead
+            ->timeout(15)
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
                 'CreditProfileId' => $profileId,
                 'CreditProfileName' => $profileName,
                 'AvailableBalance' => $balanceChange,
                 'comment' => 'Pending Voucher Balance update',
             ]);
+    }
+
+    private function updateCardBalance($profileId, $profileName, $balanceChange)
+    {
+        try {
+            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
+            ->withoutVerifying() // ⚠️ remove in production, use cacert.pem instead
+            ->timeout(15)
+            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
+                'CreditProfileId' => $profileId,
+                'CreditProfileName' => $profileName,
+                'AvailableBalance' => $balanceChange,
+                'comment' => 'Pending Voucher Balance update',
+            ]);
+
+            if ($response->failed()) {
+                \Log::error('Card balance update failed', [
+                    'profileId' => $profileId,
+                    'status'    => $response->status(),
+                    'body'      => $response->body(),
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Card balance update exception', [
+                'profileId' => $profileId,
+                'error'     => $e->getMessage(),
+            ]);
+        }
     }
 
 

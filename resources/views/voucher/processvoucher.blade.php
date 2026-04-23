@@ -404,43 +404,47 @@
             var batch_no = $("#batch_number").val();
 
             if (!batch_no) {
-                $(".ermsg").html("<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Batch number is required.</b></div>");
+                $(".ermsg").html("<div class='alert alert-danger'>...<b>Batch number is required.</b></div>");
                 $("#loading").hide();
                 return;
             }
 
-            var charityId = $("select[name='charity']").val();
-            var donorIds = $("input[name='donor[]']").map(function() { return $(this).val(); }).get();
-            var donorAccs = $("input[name='donor_acc[]']").map(function() { return $(this).val(); }).get();
-            var chqNos = $("input[name='check[]']").map(function() { return $(this).val(); }).get();
-            var amts = $("input[name='amount[]']").map(function() { return $(this).val(); }).get();
-            var notes = $("input[name='note[]']").map(function() { return $(this).val(); }).get();
-            var waitings = $("select[name='waiting[]']").map(function() { return $(this).val(); }).get();
-            var expireds = $("select[name='expired[]']").map(function() { return $(this).val(); }).get();
+            
+            var rows = [];
+            $(".item-row").each(function() {
+                rows.push({
+                    donorId:  $(this).find('.donorid').val(),
+                    donorAcc: $(this).find('.donor').val(),
+                    chqNo:    $(this).find('.check').val(),
+                    amount:   $(this).find('.amount').val(),
+                    note:     $(this).find('.note').val(),
+                    waiting:  $(this).find('select[name="waiting[]"]').val(),
+                    expired:  $(this).find('select[name="expired[]"]').val(),
+                });
+            });
 
             $.ajax({
                 url: url,
                 method: "POST",
-                data: { charityId, donorIds, donorAccs, chqNos, amts, notes, waitings, expireds, batch_no },
+                contentType: "application/json",
+                data: JSON.stringify({
+                    _token:    $('meta[name="csrf-token"]').attr('content'),
+                    charityId: $("select[name='charity']").val(),
+                    batch_no:  batch_no,
+                    rows:      rows,
+                }),
                 success: function(d) {
                     if (d.status == 303) {
-                        $(".ermsg").html(d.message);
-                        pagetop();
+                        $(".ermsg").html(d.message); pagetop();
                     } else if (d.status == 300) {
-                        $(".ermsg").html(d.message);
-                        pagetop();
+                        $(".ermsg").html(d.message); pagetop();
                         window.setTimeout(function() {
                             window.location.href = "{{ route('instreport', ':id') }}".replace(':id', d.batch_id);
                         }, 2000);
                     }
                 },
-
-                complete: function() {
-                    $("#loading").hide();
-                },
-                error: function(d) {
-                    console.log(d);
-                }
+                complete: function() { $("#loading").hide(); },
+                error: function(d) { console.log(d); }
             });
         });
 

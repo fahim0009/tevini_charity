@@ -88,6 +88,7 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/report', [ReportController::class, 'index'])->name('report');
     Route::get('/transaction/details', [TransactionController::class, 'getDayDetails'])->name('dailytransaction.details');
     Route::post('/transaction/toggle-payment', [TransactionController::class, 'toggleCharityPayment'])->name('transaction.toggle');
+    Route::post('/transaction/export-summary-csv', [TransactionController::class, 'exportSummaryCsv'])->name('transaction.export-csv');
 
 
     // donor details

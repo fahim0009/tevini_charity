@@ -24,6 +24,20 @@
     }
 </style>
 
+<style>
+    .row-checkbox {
+        cursor: pointer;
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+    #select-all {
+        cursor: pointer;
+        width: 1.2em;
+        height: 1.2em;
+    }
+</style>
+
 <div class="dashboard-content">
     <section class="profile purchase-status mb-4">
         <div class="title-section d-flex align-items-center">
@@ -46,6 +60,9 @@
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>
                     <button type="button" id="reset-filter" class="btn btn-light btn-sm px-4">Reset</button>
+                    <button type="button" id="export-csv-btn" class="btn btn-outline-success btn-sm px-4 ms-2">
+                        <i class="fas fa-file-csv me-1"></i> Export CSV
+                    </button>
                 </div>
             </form>
         </div>
@@ -115,8 +132,8 @@
 
 @section('script')
 <script>
-$(function() {
-    let currentType = 'Summary'; // Default tab
+ $(function() {
+    let currentType = 'Summary';
 
     // Definition for Standard Tabs (In, Out, All)
     const standardColumns = [
@@ -127,10 +144,11 @@ $(function() {
         {data: 'amount', name: 'amount', title: 'Amount', className: 'fw-bold'}
     ];
 
-    // Definition for Summary Tab
+    // Definition for Summary Tab (with checkbox column)
     const summaryColumns = [
+        {data: 'checkbox', name: 'checkbox', title: '<input type="checkbox" id="select-all" class="form-check-input">', orderable: false, searchable: false, className: 'text-center', width: '50px'},
         {data: 'date_group', name: 'date_group', title: 'Date', searchable: true},
-        {data: 'charity_name', name: 'charity.name', title: 'Charity', searchable: true}, // This allows searching by Name
+        {data: 'charity_name', name: 'charity.name', title: 'Charity', searchable: true},
         {data: 'online_sum', name: 'online_sum', title: 'Online', searchable: false},
         {data: 'standing_sum', name: 'standing_sum', title: 'Standing', searchable: false},
         {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher', searchable: false},
@@ -141,12 +159,11 @@ $(function() {
     ];
 
     function initTable(cols) {
-        // We use 'destroy: true' and 'columns' with 'title' to rebuild the header
         return $('#transaction-table').DataTable({
             processing: true,
             serverSide: true,
-            destroy: true, 
-            scrollX: true, // Useful for the wide Summary table
+            destroy: true,
+            scrollX: true,
             lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
             ajax: {
                 url: "{{ route('transaction') }}",
@@ -157,17 +174,60 @@ $(function() {
                 }
             },
             columns: cols,
-            order: [[0, 'desc']],
+            order: [[1, 'desc']], // Order by Date column (index 1 because checkbox is 0)
+            columnDefs: [
+                {
+                    targets: 0, // Checkbox column
+                    render: function(data, type, row, meta) {
+                        // Only render for summary types
+                        if (currentType === 'Summary' || currentType === 'PreviousSummary') {
+                            return `<input type="checkbox" class="row-checkbox form-check-input" 
+                                data-date="${row.raw_date}" 
+                                data-charity-id="${row.charity_id}" 
+                                data-amount="${row.raw_total}">`;
+                        }
+                        return '';
+                    }
+                }
+            ],
             dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',
             buttons: [
                 { extend: 'excel', className: 'btn btn-sm btn-outline-success' },
                 { extend: 'pdf', className: 'btn btn-sm btn-outline-danger', orientation: 'landscape' }
-            ]
+            ],
+            drawCallback: function() {
+                // Reset select-all checkbox on page change
+                $('#select-all').prop('checked', false);
+                updateExportBtn();
+            }
         });
     }
 
     // First initialization
     let table = initTable(summaryColumns);
+
+    // Show/hide export button based on tab type
+    function updateExportBtnVisibility() {
+        if (currentType === 'Summary' || currentType === 'PreviousSummary') {
+            $('#export-csv-btn').show();
+        } else {
+            $('#export-csv-btn').hide();
+        }
+    }
+
+    // Update export button state
+    function updateExportBtn() {
+        const checkedCount = $('.row-checkbox:checked').length;
+        const btn = $('#export-csv-btn');
+        
+        if (checkedCount > 0) {
+            btn.html(`<i class="fas fa-file-csv me-1"></i> Export CSV (${checkedCount})`);
+            btn.removeClass('btn-outline-success').addClass('btn-success');
+        } else {
+            btn.html(`<i class="fas fa-file-csv me-1"></i> Export CSV`);
+            btn.removeClass('btn-success').addClass('btn-outline-success');
+        }
+    }
 
     // Tab Switching Logic
     $('#transactionTabs .nav-link').on('click', function() {
@@ -175,23 +235,18 @@ $(function() {
         $(this).addClass('active');
         currentType = $(this).data('type');
         
-        // 1. Completely destroy the instance
         if ($.fn.DataTable.isDataTable('#transaction-table')) {
             $('#transaction-table').DataTable().destroy();
         }
 
-        // 2. Wipe the HTML inside the table (clears the thead/tbody)
-        $('#transaction-table').empty(); 
+        $('#transaction-table').empty();
 
-        // 3. Decide which columns to use
-        // Update the condition to include 'PreviousSummary'
         let cols = (currentType === 'Summary' || currentType === 'PreviousSummary') 
                 ? summaryColumns 
                 : standardColumns;
 
-
-        // 4. Re-initialize (this will create new headers based on the 'title' key in the objects)
         table = initTable(cols);
+        updateExportBtnVisibility();
     });
 
     // Filter Handlers
@@ -203,6 +258,80 @@ $(function() {
     $('#reset-filter').on('click', function() {
         $('#fromDate, #toDate').val('');
         table.draw();
+    });
+
+    // Select All Checkbox
+    $(document).on('change', '#select-all', function() {
+        const isChecked = $(this).is(':checked');
+        // Only select checkboxes on current page
+        $('.row-checkbox').prop('checked', isChecked);
+        updateExportBtn();
+    });
+
+    // Individual Row Checkbox
+    $(document).on('change', '.row-checkbox', function() {
+        // Update select-all state
+        const totalCheckboxes = $('.row-checkbox').length;
+        const checkedCheckboxes = $('.row-checkbox:checked').length;
+        
+        if (checkedCheckboxes === 0) {
+            $('#select-all').prop('checked', false).prop('indeterminate', false);
+        } else if (checkedCheckboxes === totalCheckboxes) {
+            $('#select-all').prop('checked', true).prop('indeterminate', false);
+        } else {
+            $('#select-all').prop('checked', false).prop('indeterminate', true);
+        }
+        
+        updateExportBtn();
+    });
+
+    // Export CSV Button Click
+    $(document).on('click', '#export-csv-btn', function() {
+        const selectedItems = [];
+        
+        $('.row-checkbox:checked').each(function() {
+            selectedItems.push({
+                date: $(this).data('date'),
+                charity_id: $(this).data('charity-id'),
+                amount: $(this).data('amount')
+            });
+        });
+        
+        if (selectedItems.length === 0) {
+            alert('Please select at least one row to export.');
+            return;
+        }
+        
+        console.log('Selected Items for CSV Export:', selectedItems);
+        
+        const btn = $(this);
+        const originalText = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Exporting...').prop('disabled', true);
+        
+        $.ajax({
+            url: "{{ route('transaction.export-csv') }}",
+            method: 'POST',
+            data: {
+                items: selectedItems,
+                _token: "{{ csrf_token() }}"
+            },
+            success: function(response, status, xhr) {
+                const blob = new Blob([xhr.responseText], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'summary-export.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function(xhr) {
+                console.error('Export Error:', xhr.responseText);
+                alert('Error occurred during export.');
+            },
+            complete: function() {
+                btn.html(originalText).prop('disabled', false);
+            }
+        });
     });
 
     // Listener for the Status Switch
@@ -226,25 +355,24 @@ $(function() {
                 data: data,
                 success: function(response) {
                     if(response.success) {
-                        // Refresh the table to update the 'Paid' and 'Balance' columns
                         $('#transaction-table').DataTable().ajax.reload(null, false);
                         alert(response.message);
                     } else {
                         alert('Error: ' + response.message);
-                        el.prop('checked', !isChecked); // Revert switch UI
+                        el.prop('checked', !isChecked);
                     }
                 },
                 error: function() {
                     alert('Server error occurred.');
-                    el.prop('checked', !isChecked); // Revert switch UI
+                    el.prop('checked', !isChecked);
                 }
             });
         } else {
-            el.prop('checked', !isChecked); // User cancelled, revert switch UI
+            el.prop('checked', !isChecked);
         }
     });
 
-
+    // View Details Modal
     $(document).on('click', '.view-details', function() {
         const data = {
             type: $(this).data('type'),
@@ -278,6 +406,7 @@ $(function() {
         });
     });
 
+    // Copy Button
     $(document).on('click', '.copy-btn', function() {
         const refId = $(this).data('ref');
         const $btn = $(this);
@@ -295,7 +424,8 @@ $(function() {
         });
     });
 
-
+    // Initial visibility
+    updateExportBtnVisibility();
 });
 </script>
 @endsection

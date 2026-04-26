@@ -159,7 +159,7 @@
     ];
 
     function initTable(cols) {
-        return $('#transaction-table').DataTable({
+        let options = {
             processing: true,
             serverSide: true,
             destroy: true,
@@ -174,33 +174,36 @@
                 }
             },
             columns: cols,
-            order: [[1, 'desc']], // Order by Date column (index 1 because checkbox is 0)
-            columnDefs: [
-                {
-                    targets: 0, // Checkbox column
-                    render: function(data, type, row, meta) {
-                        // Only render for summary types
-                        if (currentType === 'Summary' || currentType === 'PreviousSummary') {
-                            return `<input type="checkbox" class="row-checkbox form-check-input" 
-                                data-date="${row.raw_date}" 
-                                data-charity-id="${row.charity_id}" 
-                                data-amount="${row.raw_total}">`;
-                        }
-                        return '';
-                    }
-                }
-            ],
+            order: [[0, 'desc']],
             dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',
             buttons: [
                 { extend: 'excel', className: 'btn btn-sm btn-outline-success' },
                 { extend: 'pdf', className: 'btn btn-sm btn-outline-danger', orientation: 'landscape' }
             ],
             drawCallback: function() {
-                // Reset select-all checkbox on page change
                 $('#select-all').prop('checked', false);
                 updateExportBtn();
             }
-        });
+        };
+
+        // ONLY apply checkbox column logic for Summary tabs
+        if (currentType === 'Summary' || currentType === 'PreviousSummary') {
+            options.columnDefs = [
+                {
+                    targets: 0,
+                    render: function(data, type, row, meta) {
+                        return `<input type="checkbox" class="row-checkbox form-check-input" 
+                            data-date="${row.raw_date}" 
+                            data-charity-id="${row.charity_id}" 
+                            data-amount="${row.raw_total}">`;
+                    }
+                }
+            ];
+            // Order by Date column (index 1) for Summary
+            options.order = [[1, 'desc']];
+        }
+
+        return $('#transaction-table').DataTable(options);
     }
 
     // First initialization

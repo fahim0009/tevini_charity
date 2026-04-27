@@ -38,8 +38,7 @@ Route::group(['prefix' => 'api/webhooks/onegiv', 'middleware' => ['onegiv.auth']
 
 });
 
-// routes/onegiv.php 
-Route::get('onegiv/test-simulate/{orderNumber}', function($orderNumber) {
+Route::get('user/onegiv/test-simulate/{orderNumber}', function($orderNumber) {
     $onegiv = new \App\Services\OneGivService();
     $result = $onegiv->simulateCardOrderProcessed($orderNumber);
     return response()->json($result);

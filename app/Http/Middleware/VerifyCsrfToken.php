@@ -21,7 +21,6 @@ class VerifyCsrfToken extends Middleware
         'https://www.tevini.co.uk/cardIsFingerprintUserEnrolled',
         'https://www.tevini.co.uk/cardDeregisterFingerprint',
 
-        
         'https://www.tevini.co.uk/api/make-donation',
         'https://www.tevini.co.uk/make-online-donation',
         'https://www.tevini.co.uk/user/make-donation',
@@ -30,7 +29,10 @@ class VerifyCsrfToken extends Middleware
         'http://127.0.0.1:8000/all-donor',
         'https://www.tevini.co.uk/app-version',
         'http://127.0.0.1:8000/transaction-store',
-        'http://127.0.0.1:8000/api/transaction-store'
-        
+        'http://127.0.0.1:8000/api/transaction-store',
+
+        // 👇 OneGiv Webhooks add করো
+        'api/webhooks/onegiv/*',
+        'https://www.tevini.co.uk/api/webhooks/onegiv/*',
     ];
 }

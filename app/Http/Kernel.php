@@ -79,5 +79,6 @@ class Kernel extends HttpKernel
         'is_agent' => \App\Http\Middleware\IsAgent::class,
         'charity' => \App\Http\Middleware\Charity::class,
         'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class,
+        'onegiv.auth'          => \App\Http\Middleware\VerifyOneGivToken::class,
     ];
 }

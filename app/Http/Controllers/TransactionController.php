@@ -444,7 +444,7 @@ public function exportSummaryCsv(Request $request)
                 $charity->name ?? 'N/A',
                 $charity->account_number ?? 'N/A',
                 $charity->account_sortcode ?? 'N/A',
-                ' ',
+                'Business',
                 ' ',
                 $item['amount']
             ]);

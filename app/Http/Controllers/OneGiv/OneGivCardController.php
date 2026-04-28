@@ -73,6 +73,8 @@ class OneGivCardController extends Controller
                            ->latest()
                            ->get();
 
+        dd( $cards);
+
         return view('frontend.user.onegiv.my-cards', compact('cards'));
     }
 

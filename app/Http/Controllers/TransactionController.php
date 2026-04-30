@@ -408,8 +408,84 @@ public function toggleCharityPayment(Request $request)
 }
 
 
-
 public function exportSummaryCsv(Request $request)
+{
+    $items = $request->get('items', []);
+    
+    if (empty($items)) {
+        return response()->json(['success' => false, 'message' => 'No items selected']);
+    }
+    
+    $filename = 'summary-export-' . date('Y-m-d-His') . '.csv';
+    
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ];
+    
+    $callback = function() use ($items) {
+        $file = fopen('php://output', 'w');
+        fputcsv($file, ['Charity Name', 'Account number', 'Sort Code', 'Account type', 'Reference', 'Amount']);
+        
+        // Same cutoff logic as getDayDetails
+        $cutoffHour = 16;
+        $cutoffMinute = 31;
+        
+        foreach ($items as $item) {
+            $charity = Charity::find($item['charity_id']);
+            
+            /*
+            |--------------------------------------------------------------------------
+            | Calculate Business Date Range (Same as getDayDetails)
+            |--------------------------------------------------------------------------
+            */
+            $businessDate = \Carbon\Carbon::createFromFormat('Y-m-d', $item['date']);
+            
+            // START TIME: Previous Day at 16:31:00
+            $startDateTime = $businessDate->copy()
+                ->subDay()
+                ->setTime($cutoffHour, $cutoffMinute, 0);
+            
+            // END TIME: Today at 16:31:59
+            $endDateTime = $businessDate->copy()
+                ->setTime($cutoffHour, $cutoffMinute, 59);
+            
+            /*
+            |--------------------------------------------------------------------------
+            | Fetch Paid Transaction IDs
+            |--------------------------------------------------------------------------
+            */
+            $paidTransactionIds = Transaction::where('charity_id', $item['charity_id'])
+                ->where('t_type', 'Out')
+                ->where('status', 1)
+                ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                ->pluck('t_id')
+                ->toArray();
+            
+            // Join all reference IDs with comma separator
+            $references = !empty($paidTransactionIds) 
+                ? implode(', ', $paidTransactionIds) 
+                : '';
+            
+            fputcsv($file, [
+                $charity->name ?? 'N/A',
+                $charity->account_number ?? 'N/A',
+                $charity->account_sortcode ?? 'N/A',
+                'Business',
+                $references,  
+                $item['amount']
+            ]);
+        }
+        
+        fclose($file);
+    };
+    
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+public function exportSummaryCsv2(Request $request)
 {
     $items = $request->get('items', []);
     

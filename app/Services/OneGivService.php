@@ -33,6 +33,14 @@ class OneGivService
     {
         $response = $this->client()->post('/order-cards', $cards);
 
+        Log::info('OneGiv orderCards debug', [
+            'url'        => config('onegiv.base_url') . '/order-cards',
+            'status'     => $response->status(),
+            'body'       => $response->body(),
+            'headers'    => $response->headers(),
+            'payload'    => $cards,
+        ]);
+
         if ($response->failed()) {
             Log::error('OneGiv orderCards failed', ['body' => $response->body()]);
             throw new \Exception('OneGiv API Error: ' . $response->body());

@@ -1396,7 +1396,7 @@ class OrderController extends Controller
         $charityId = $request->charityId;
         $batchNo   = $request->batch_no;
         // Decode the rows array sent as JSON
-        $rows      = $request->rows; // Laravel auto-decodes JSON body
+        $rows      = $request->rows; 
 
         if (empty($charityId)) {
             return $this->errorResponse('Please select a charity first.');
@@ -1462,7 +1462,7 @@ class OrderController extends Controller
             if (!$user) continue;
 
             $limit     = $user->getAvailableLimit();
-            $isPending = ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes');
+            $isPending = ($limit < $amount || $row['waiting'] === 'Yes');
 
             $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
 
@@ -1477,6 +1477,7 @@ class OrderController extends Controller
             $transaction->barcode_image      = $barcodeImagePath;
             $transaction->pending            = $isPending ? 0 : 1;
             $transaction->status             = $isPending ? 0 : 1;
+            $transaction->expired            = $row['expired'] === 'Yes' ? 0 : 1;
             $transaction->provoucher_batch_id = $probatch->id;
             $transaction->batch_no           = $batchNo;
             $transaction->save();
@@ -1571,7 +1572,7 @@ class OrderController extends Controller
     {
         try {
             $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            ->withoutVerifying() // ⚠️ remove in production, use cacert.pem instead
+            ->withoutVerifying() 
             ->timeout(15)
             ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
                 'CreditProfileId' => $profileId,

@@ -74,7 +74,7 @@ class OneGivWebhookController extends Controller
             'terminalId'          => 'required|string',
             'oneGivTransactionId' => 'required|string',
             'cardSerialNumber'    => 'required|string',
-            'amount'              => 'required|integer',
+            'amount'              => 'required|integer', // pennies
             'reference'           => 'nullable|string',
             'charityNumber'       => 'required|string',
             'accountReference'    => 'nullable|string',
@@ -82,19 +82,44 @@ class OneGivWebhookController extends Controller
             'sortcode'            => 'required|string',
         ]);
 
-        // Card active  check 
-        $card = OneGivCard::where('serial_number', $data['cardSerialNumber'])
-                          ->where('status', 'active')
-                          ->first();
+        $card = \App\Models\OneGiv\OneGivCard::where('serial_number', $data['cardSerialNumber'])
+                                            ->where('status', 'active')
+                                            ->first();
 
         if (!$card) {
-            Log::warning('OneGiv: Card not found or inactive', ['serial' => $data['cardSerialNumber']]);
+            Log::warning('OneGiv: Card not found or inactive', [
+                'serial' => $data['cardSerialNumber']
+            ]);
             return response()->json(['status' => 'declined']);
         }
 
+        $amountInPounds = $data['amount'] / 100;
+
+        $user = \App\Models\User::find($card->user_id);
+
+        if (!$user) {
+            Log::warning('OneGiv: User not found for card', [
+                'serial'  => $data['cardSerialNumber'],
+                'user_id' => $card->user_id,
+            ]);
+            return response()->json(['status' => 'declined']);
+        }
+
+        $availableBalance = $user->getAvailableLimit();
+
+        if ($availableBalance < $amountInPounds) {
+            Log::warning('OneGiv: Insufficient balance', [
+                'user_id'   => $user->id,
+                'balance'   => $availableBalance,
+                'requested' => $amountInPounds,
+            ]);
+            return response()->json(['status' => 'declined']);
+        }
+
+        
         $transactionId = 'CI-TXN-' . strtoupper(uniqid());
 
-        OneGivTransaction::create([
+        $onegivTxn = \App\Models\OneGiv\OneGivTransaction::create([
             'terminal_id'                => $data['terminalId'],
             'onegiv_transaction_id'      => $data['oneGivTransactionId'],
             'card_issuer_transaction_id' => $transactionId,
@@ -107,7 +132,27 @@ class OneGivWebhookController extends Controller
             'status'                     => 'success',
         ]);
 
-        Log::info('OneGiv: Transaction approved', ['txn' => $transactionId]);
+        $user->balance = $user->balance - $amountInPounds;
+        $user->save();
+
+        $utran = new \App\Models\Usertransaction();
+        $utran->t_id                  = time() . '-' . $user->id;
+        $utran->user_id               = $user->id;
+        $utran->t_type                = 'Out';
+        $utran->source                = 'OneGiv Card';
+        $utran->amount                = $amountInPounds;
+        $utran->title                 = 'OneGiv Card Donation - ' . $data['charityNumber'];
+        $utran->onegiv_transaction_id = $onegivTxn->id; 
+        $utran->pending               = 1;
+        $utran->status                = 1;
+        $utran->save();
+
+        Log::info('OneGiv: Transaction approved', [
+            'txn'     => $transactionId,
+            'user_id' => $user->id,
+            'amount'  => $amountInPounds,
+            'balance' => $availableBalance,
+        ]);
 
         return response()->json([
             'status'        => 'success',
@@ -149,12 +194,40 @@ class OneGivWebhookController extends Controller
             'data'             => 'required|string',
         ]);
 
+        $payload = json_decode($data['data'], true);
+
+        \App\Models\OneGiv\OneGivNotification::create([
+            'reason'            => $data['reason'],
+            'card_serial_number'=> $data['cardSerialNumber'],
+            'payload'           => $data['data'],
+        ]);
+
+        if ($data['reason'] === 'invalid PIN') {
+            $attempts = \App\Models\OneGiv\OneGivNotification::where('card_serial_number', $data['cardSerialNumber'])
+                            ->where('reason', 'invalid PIN')
+                            ->count();
+
+            if ($attempts >= 3) {
+                
+                \App\Models\OneGiv\OneGivCard::where('serial_number', $data['cardSerialNumber'])
+                    ->update(['status' => 'blocked']);
+
+                Log::warning('OneGiv: Card blocked due to invalid PIN attempts', [
+                    'card' => $data['cardSerialNumber'],
+                ]);
+            }
+        }
+
         Log::warning('OneGiv: Notify', [
             'reason'  => $data['reason'],
             'card'    => $data['cardSerialNumber'],
-            'payload' => json_decode($data['data'], true),
+            'payload' => $payload,
         ]);
 
         return response()->json(null, 200);
     }
+
+
+
+
 }

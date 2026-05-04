@@ -38,8 +38,8 @@ Route::group(['prefix' => 'api/webhooks/onegiv', 'middleware' => ['onegiv.auth']
 
 });
 
-Route::get('user/onegiv/test-simulate/{orderNumber}', function($orderNumber) {
-    $onegiv = new \App\Services\OneGivService();
-    $result = $onegiv->simulateCardOrderProcessed($orderNumber);
-    return response()->json($result);
-})->middleware(['auth', 'is_user']);
+// Route::get('user/onegiv/test-simulate/{orderNumber}', function($orderNumber) {
+//     $onegiv = new \App\Services\OneGivService();
+//     $result = $onegiv->simulateCardOrderProcessed($orderNumber);
+//     return response()->json($result);
+// })->middleware(['auth', 'is_user']);

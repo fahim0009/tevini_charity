@@ -76,6 +76,7 @@
                     <div class="text-end">
                         <small style="opacity:0.5; font-size:10px;">SERIAL</small>
                         <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->serial_number }}</p>
+                        <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->created_at }}</p>
                     </div>
                 </div>
             </div>

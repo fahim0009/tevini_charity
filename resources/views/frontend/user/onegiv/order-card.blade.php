@@ -158,4 +158,61 @@
     </div>
 
 </div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <button type="button"  class="btn text-white fw-semibold py-2"
+                            style="background: linear-gradient(135deg, #1a1a2e, #0f3460);" data-bs-toggle="modal" data-bs-target="#ordersModal">
+            View Orders
+        </button>
+    </div>
+</div>
+
+<!-- Orders Modal -->
+<div class="modal fade" id="ordersModal" tabindex="-1" aria-labelledby="ordersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ordersModalLabel">Your Orders</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if($orders->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Card Holder</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($orders as $order)
+                                    <tr>
+                                        <td>{{ $order->id }}</td>
+                                        <td>{{ $order->card_holder }}</td>
+                                        <td>£{{ number_format($order->amount, 2) }}</td>
+                                        <td>{{ $order->fixed_amount ? 'Fixed' : 'Variable' }}</td>
+                                        <td><span class="badge bg-secondary">{{ $order->status ?? 'Pending' }}</span></td>
+                                        <td>{{ $order->created_at->format('d M Y') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted">No orders found.</p>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection

@@ -25,7 +25,10 @@ class OneGivCardController extends Controller
      */
     public function orderCardForm()
     {
-        return view('frontend.user.onegiv.order-card');
+        $orders = OneGivCardOrder::where('user_id', Auth::id())
+                          ->latest()
+                          ->get();
+        return view('frontend.user.onegiv.order-card', compact('orders'));
     }
 
     /**

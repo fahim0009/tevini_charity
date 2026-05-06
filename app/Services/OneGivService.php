@@ -55,8 +55,16 @@ class OneGivService
                 'order_number' => $result['orderNumber'] ?? null,
                 'card_holder'  => $card['cardHolder'],
                 'fixed_amount' => $card['fixedAmount'],
-                'amount'       => $card['amount'],
+                'amount'       => $card['amount'] ?? 0,
                 'pin'          => $card['pin'],
+                'email'        => $card['emailAddress'] ?? null,
+                'mobile'       => $card['mobileNumber'] ?? null,
+                'house_number' => $card['houseNumber'] ?? null,
+                'street'       => $card['street'] ?? null,
+                'address2'     => $card['address2'] ?? null,
+                'city'         => $card['city'] ?? null,
+                'postcode'     => $card['postcode'] ?? null,
+                'country'      => $card['country'] ?? null,
                 'status'       => 'pending',
             ]);
         }

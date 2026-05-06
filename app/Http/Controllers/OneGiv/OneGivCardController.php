@@ -38,23 +38,45 @@ class OneGivCardController extends Controller
     {
         $request->validate([
             'card_holder'  => 'required|string|max:100',
-            'amount'       => 'nullable|numeric',
             'pin'          => 'required|digits:4',
-            'fixed_amount' => 'required|boolean',
+            'fixed_amount' => 'required|in:0,1',
+            'amount'       => $request->fixed_amount == '1'
+                            ? 'required|numeric|min:1'
+                            : 'nullable|numeric',
+            'email'        => 'required|email',
+            'mobile'       => 'required|string',
+            'house_number' => 'required|string',
+            'street'       => 'required|string',
+            'address2'     => 'nullable|string',
+            'city'         => 'required|string',
+            'postcode'     => 'required|string',
+            'country'      => 'required|string',
         ]);
 
         try {
-            $cardId = 'card-' . Auth::id() . '-' . uniqid();
+            $cardId  = 'card-' . Auth::id() . '-' . uniqid();
+            $isFixed = $request->fixed_amount == '1';
 
-            $result = $this->onegiv->orderCards([
-                [
-                    'id'          => $cardId,
-                    'cardHolder'  => $request->card_holder,
-                    'fixedAmount' => (bool) $request->fixed_amount,
-                    'amount'      => (int) ($request->amount * 100), // pound → pennies
-                    'pin'         => $request->pin,
-                ]
-            ]);
+            $cardPayload = [
+                'id'           => $cardId,
+                'cardHolder'   => $request->card_holder,
+                'fixedAmount'  => $isFixed,
+                'pin'          => $request->pin,
+                'emailAddress' => $request->email,
+                'mobileNumber' => $request->mobile,
+                'houseNumber'  => $request->house_number,
+                'street'       => $request->street,
+                'address2'     => $request->address2 ?? '',
+                'city'         => $request->city,
+                'postcode'     => $request->postcode,
+                'country'      => $request->country,
+            ];
+
+            if ($isFixed) {
+                $cardPayload['amount'] = (int) ($request->amount * 100);
+            }
+
+            $result = $this->onegiv->orderCards([$cardPayload]);
 
             Log::info('OneGiv Card Order Result', ['response' => $result]);
 
@@ -63,6 +85,7 @@ class OneGivCardController extends Controller
                 ->with('success', 'Card order placed! Order #' . ($result['orderNumber'] ?? ''));
 
         } catch (\Exception $e) {
+            Log::error('OneGiv orderCardStore error', ['error' => $e->getMessage()]);
             return back()->with('error', 'Order failed: ' . $e->getMessage());
         }
     }

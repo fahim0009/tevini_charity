@@ -1188,6 +1188,31 @@ public function exportSummaryCsv2(Request $request)
         return back()->with('success', 'Date updated successfully!');
     }
 
+    public function updatePaymentStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:transactions,id',
+            'status' => 'required|in:0,1'
+        ]);
+
+        try {
+            $transaction = Transaction::findOrFail($request->id);
+            $transaction->bank_payment_status = $request->status;
+            $transaction->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment status updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update status'
+            ], 500);
+        }
+    }
+
 
 
     public function checkTran(Request $request)

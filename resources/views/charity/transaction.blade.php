@@ -112,6 +112,13 @@
                         </div>
                     </div>
 
+                    <style>
+                        .status-switch:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+                    </style>
+
                     {{-- 3. TRANSACTION OUT --}}
                     <div class="tab-pane fade" id="nav-transactionOut" role="tabpanel">
                         <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
@@ -137,6 +144,7 @@
                                         <th>Source</th>
                                         <th>Note</th>
                                         <th>Amount</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -147,6 +155,16 @@
                                         <td>{{ $transaction->name }}</td>
                                         <td>{{ $transaction->note }}</td>
                                         <td>{{ number_format($transaction->amount, 2) }}</td>
+                                        <td>
+                                            <div class="form-check form-switch d-flex justify-content-center">
+                                                <input class="form-check-input status-switch"
+                                                    type="checkbox"
+                                                    role="switch"
+                                                    id="status-{{ $transaction->id }}"
+                                                    data-id="{{ $transaction->id }}"
+                                                    @if($transaction->bank_payment_status) checked @endif >
+                                            </div>
+                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -681,6 +699,46 @@ $(document).ready(function(){
 
     });
 
+});
+</script>
+
+<script>
+ $(document).ready(function() {
+    $(document).on('change', '.status-switch', function(e) {
+        e.preventDefault();
+        
+        var id = $(this).data('id');
+        var isChecked = $(this).is(':checked');
+        var $switch = $(this);
+        
+        $.ajax({
+            url:  '/admin/charity-tran/update-payment-status',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                id: id,
+                status: isChecked ? 1 : 0,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Success - keep the new state
+                    alert('Updated successfully');
+                } else {
+                }
+            },
+            error: function(xhr) {
+                $switch.prop('checked', !isChecked);
+                $switch.prop('disabled', false);
+                
+                console.log('=== DEBUG INFO ===');
+                console.log('Status Code:', xhr.status);
+                console.log('Response:', xhr.responseJSON);
+                console.log('Response Text:', xhr.responseText);
+                
+            }
+        });
+    });
 });
 </script>
 

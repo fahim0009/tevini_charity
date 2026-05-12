@@ -353,6 +353,7 @@
                                 <tr>
                                     <th>Order #</th>
                                     <th>Card Holder</th>
+                                    <th>Pin</th>
                                     <th>Amount</th>
                                     <th>Type</th>
                                     <th>Status</th>
@@ -364,6 +365,7 @@
                                 <tr>
                                     <td>{{ $order->order_number ?? $order->id }}</td>
                                     <td>{{ $order->card_holder }}</td>
+                                    <td>{{ $order->pin }}</td>
                                     <td>
                                         @if($order->fixed_amount)
                                             £{{ number_format($order->amount / 100, 2) }}

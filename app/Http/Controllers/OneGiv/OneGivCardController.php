@@ -174,4 +174,23 @@ class OneGivCardController extends Controller
 
         return view('frontend.user.onegiv.transactions', compact('transactions'));
     }
+
+
+    public function assignCard($id)
+    {
+        $card = OneGivCard::findOrFail($id);
+
+        if ($card->user_id) {
+            return redirect()->route('onegiv.mycards')
+                            ->with('error', 'Card already has a user assigned! (User ID: ' . $card->user_id . ')');
+        }
+
+        $card->update(['user_id' => Auth::id()]);
+
+        return redirect()->route('onegiv.mycards')
+                        ->with('success', 'User ID assigned to card ' . $card->serial_number);
+    }
+
+
+
 }

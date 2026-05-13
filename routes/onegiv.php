@@ -23,6 +23,9 @@ Route::group(['prefix' => 'user/', 'middleware' => ['auth', 'is_user']], functio
     // Transactions 
     Route::get('onegiv/transactions',       [OneGivCardController::class, 'transactions'])->name('onegiv.transactions');
 
+    Route::get('onegiv/assign-card/{id}', [OneGivCardController::class, 'assignCard'])
+     ->name('onegiv.assigncard');
+
 });
 
 // -----------------------------------------------

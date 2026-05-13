@@ -318,13 +318,13 @@
         </div>
 
         {{-- Submit Button --}}
-        <button type="submit" class="btn w-100 text-white fw-semibold py-3 rounded-3"
+        <button type="submit" class="btn w-100 text-white fw-semibold py-3 rounded-3 mb-4"
                 style="background: linear-gradient(135deg, #1a1a2e, #0f3460); font-size:16px;">
             Place Card Order →
         </button>
 
         {{-- View Orders --}}
-        <div class="text-center mt-3">
+        <div class="text-center mt-3 d-none">
             <button type="button" class="btn btn-outline-secondary btn-sm"
                     data-bs-toggle="modal" data-bs-target="#ordersModal">
                 📋 View Previous Orders
@@ -353,7 +353,6 @@
                                 <tr>
                                     <th>Order #</th>
                                     <th>Card Holder</th>
-                                    <th>Pin</th>
                                     <th>Amount</th>
                                     <th>Type</th>
                                     <th>Status</th>
@@ -365,7 +364,6 @@
                                 <tr>
                                     <td>{{ $order->order_number ?? $order->id }}</td>
                                     <td>{{ $order->card_holder }}</td>
-                                    <td>{{ $order->pin }}</td>
                                     <td>
                                         @if($order->fixed_amount)
                                             £{{ number_format($order->amount / 100, 2) }}

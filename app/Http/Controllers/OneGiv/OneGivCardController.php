@@ -54,6 +54,21 @@ class OneGivCardController extends Controller
         ]);
 
         try {
+            $user = \App\Models\User::find(Auth::id());
+
+            // ✅ Step 1: Check available balance (£5 card order fee)
+            $cardOrderFee     = 5; // £5
+            $availableBalance = $user->getAvailableLimit();
+
+            if ($availableBalance < $cardOrderFee) {
+                return back()->with(
+                    'error',
+                    'Insufficient balance. You need at least £' . number_format($cardOrderFee, 2) .
+                    ' to order a card. Your available balance is £' . number_format($availableBalance, 2) . '.'
+                );
+            }
+
+            // ✅ Step 2: Place the card order with OneGiv
             $cardId  = 'card-' . Auth::id() . '-' . uniqid();
             $isFixed = $request->fixed_amount == '1';
 
@@ -80,12 +95,10 @@ class OneGivCardController extends Controller
 
             Log::info('OneGiv Card Order Result', ['response' => $result]);
 
-            // ✅ New format check
-            $orderNumber  = $result['orderNumber'] ?? 0;
-            $validOrders  = $result['validCardOrders'] ?? [];
-            $errorOrders  = $result['errorCardOrders'] ?? [];
+            $orderNumber = $result['orderNumber'] ?? 0;
+            $validOrders = $result['validCardOrders'] ?? [];
+            $errorOrders = $result['errorCardOrders'] ?? [];
 
-            
             if ($orderNumber == 0 || empty($validOrders)) {
                 $errorMsg = !empty($errorOrders)
                     ? $errorOrders[0]['errors']
@@ -93,6 +106,23 @@ class OneGivCardController extends Controller
 
                 return back()->with('error', $errorMsg);
             }
+
+            // ✅ Step 3: Deduct £5 from donor balance via user transaction
+            $utran                        = new \App\Models\Usertransaction();
+            $utran->t_id                  = time() . '-' . $user->id;
+            $utran->user_id               = $user->id;
+            $utran->t_type                = 'Out';
+            $utran->source                = 'OneGiv Card';
+            $utran->amount                = $cardOrderFee;
+            $utran->title                 = 'OneGiv Card Order Fee (Order #' . $orderNumber . ')';
+            $utran->status                = 1;
+            $utran->save();
+
+            Log::info('OneGiv Card Order Fee Deducted', [
+                'user_id'      => $user->id,
+                'amount'       => $cardOrderFee,
+                'order_number' => $orderNumber,
+            ]);
 
             return redirect()
                 ->route('onegiv.mycards')
@@ -113,12 +143,8 @@ class OneGivCardController extends Controller
                            ->latest()
                            ->get();
 
-        $allcards = OneGivCard::latest()
-                           ->get();
 
-
-
-        return view('frontend.user.onegiv.my-cards', compact('cards','allcards'));
+        return view('frontend.user.onegiv.my-cards', compact('cards'));
     }
 
     /**

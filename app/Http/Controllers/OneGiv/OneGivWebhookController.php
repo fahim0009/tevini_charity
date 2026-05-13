@@ -160,12 +160,12 @@ class OneGivWebhookController extends Controller
         $utran                       = new \App\Models\Usertransaction();
         $utran->t_id                 = time() . '-' . $user->id;
         $utran->user_id              = $user->id;
+        $utran->charity_id            = $charity->id;
         $utran->t_type               = 'Out';
         $utran->source               = 'OneGiv Card';
         $utran->amount               = $amountInPounds;
         $utran->title                = 'OneGiv Card Donation to ' . $charity->name . ' (' . $data['charityNumber'] . ')';
         $utran->onegiv_transaction_id = $onegivTxn->id;
-        $utran->pending              = 1;
         $utran->status               = 1;
         $utran->save();
 

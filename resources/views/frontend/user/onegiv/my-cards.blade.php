@@ -142,6 +142,7 @@
                         <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->serial_number }}</p>
                         <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->created_at }}</p>
                         <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->user_id }}</p>
+                        <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->pin }}</p>
                     </div>
                 </div>
             </div>

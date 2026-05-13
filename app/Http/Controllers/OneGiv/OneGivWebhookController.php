@@ -74,7 +74,7 @@ class OneGivWebhookController extends Controller
             'terminalId'          => 'required|string',
             'oneGivTransactionId' => 'required|string',
             'cardSerialNumber'    => 'required|string',
-            'amount'              => 'required|integer', // pennies
+            'amount'              => 'required|integer',
             'reference'           => 'nullable|string',
             'charityNumber'       => 'required|string',
             'accountReference'    => 'nullable|string',
@@ -82,43 +82,63 @@ class OneGivWebhookController extends Controller
             'sortcode'            => 'required|string',
         ]);
 
+        // ✅ STEP 1: Check card exists and is active
         $card = \App\Models\OneGiv\OneGivCard::where('serial_number', $data['cardSerialNumber'])
                                             ->where('status', 'active')
                                             ->first();
 
         if (!$card) {
-            Log::warning('OneGiv: Card not found or inactive', [
-                'serial' => $data['cardSerialNumber']
+            Log::warning('OneGiv Transaction: Card not found or inactive', [
+                'serial_number' => $data['cardSerialNumber'],
             ]);
             return response()->json(['status' => 'declined']);
         }
 
-        $amountInPounds = $data['amount'] / 100;
+        // ✅ STEP 2: Check charity exists in our system (acc_no = charityNumber)
+        $charity = \App\Models\Charity::where('acc_no', $data['charityNumber'])->first();
 
+        if (!$charity) {
+            Log::warning('OneGiv Transaction: Charity not found in system', [
+                'charity_number' => $data['charityNumber'],
+                'card_serial'    => $data['cardSerialNumber'],
+            ]);
+            return response()->json(['status' => 'declined']);
+        }
+
+        Log::info('OneGiv Transaction: Charity verified', [
+            'charity_number' => $data['charityNumber'],
+            'charity_name'   => $charity->name,
+        ]);
+
+        // ✅ STEP 3: Check user exists
+        $amountInPounds = $data['amount'] / 100;
         $user = \App\Models\User::find($card->user_id);
 
         if (!$user) {
-            Log::warning('OneGiv: User not found for card', [
-                'serial'  => $data['cardSerialNumber'],
-                'user_id' => $card->user_id,
+            Log::warning('OneGiv Transaction: User not found for card', [
+                'serial_number' => $data['cardSerialNumber'],
+                'user_id'       => $card->user_id,
             ]);
             return response()->json(['status' => 'declined']);
         }
 
+        // ✅ STEP 4: Check available balance
         $availableBalance = $user->getAvailableLimit();
 
         if ($availableBalance < $amountInPounds) {
-            Log::warning('OneGiv: Insufficient balance', [
-                'user_id'   => $user->id,
-                'balance'   => $availableBalance,
-                'requested' => $amountInPounds,
+            Log::warning('OneGiv Transaction: Insufficient balance', [
+                'user_id'           => $user->id,
+                'available_balance' => $availableBalance,
+                'requested_amount'  => $amountInPounds,
+                'charity_number'    => $data['charityNumber'],
             ]);
             return response()->json(['status' => 'declined']);
         }
 
-        
+        // ✅ STEP 5: Create transaction ID
         $transactionId = 'CI-TXN-' . strtoupper(uniqid());
 
+        // ✅ STEP 6: Save OneGiv transaction
         $onegivTxn = \App\Models\OneGiv\OneGivTransaction::create([
             'terminal_id'                => $data['terminalId'],
             'onegiv_transaction_id'      => $data['oneGivTransactionId'],
@@ -132,26 +152,32 @@ class OneGivWebhookController extends Controller
             'status'                     => 'success',
         ]);
 
+        // ✅ STEP 7: Deduct user balance
         $user->balance = $user->balance - $amountInPounds;
         $user->save();
 
-        $utran = new \App\Models\Usertransaction();
-        $utran->t_id                  = time() . '-' . $user->id;
-        $utran->user_id               = $user->id;
-        $utran->t_type                = 'Out';
-        $utran->source                = 'OneGiv Card';
-        $utran->amount                = $amountInPounds;
-        $utran->title                 = 'OneGiv Card Donation - ' . $data['charityNumber'];
-        $utran->onegiv_transaction_id = $onegivTxn->id; 
-        $utran->pending               = 1;
-        $utran->status                = 1;
+        // ✅ STEP 8: Save to usertransactions
+        $utran                       = new \App\Models\Usertransaction();
+        $utran->t_id                 = time() . '-' . $user->id;
+        $utran->user_id              = $user->id;
+        $utran->t_type               = 'Out';
+        $utran->source               = 'OneGiv Card';
+        $utran->amount               = $amountInPounds;
+        $utran->title                = 'OneGiv Card Donation to ' . $charity->name . ' (' . $data['charityNumber'] . ')';
+        $utran->onegiv_transaction_id = $onegivTxn->id;
+        $utran->pending              = 1;
+        $utran->status               = 1;
         $utran->save();
 
-        Log::info('OneGiv: Transaction approved', [
-            'txn'     => $transactionId,
-            'user_id' => $user->id,
-            'amount'  => $amountInPounds,
-            'balance' => $availableBalance,
+        Log::info('OneGiv Transaction: Approved successfully', [
+            'transaction_id'    => $transactionId,
+            'user_id'           => $user->id,
+            'amount_pounds'     => $amountInPounds,
+            'balance_before'    => $availableBalance,
+            'balance_after'     => $user->balance,
+            'charity_number'    => $data['charityNumber'],
+            'charity_name'      => $charity->name,
+            'card_serial'       => $data['cardSerialNumber'],
         ]);
 
         return response()->json([

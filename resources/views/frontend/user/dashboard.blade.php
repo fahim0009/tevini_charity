@@ -163,7 +163,7 @@ use Illuminate\Support\Carbon;
                 
             </div>
             <div class="col-lg-12">
-                <a href="{{ route('userCardService')}}" class="btn-theme bg-primary d-block fs-14 txt-theme fw-bold">
+                <a href="{{ route('onegiv.mycards')}}" class="btn-theme bg-primary d-block fs-14 txt-theme fw-bold">
                     @if (Auth::user()->CreditProfileId)
                         Tevini Card
                     @else

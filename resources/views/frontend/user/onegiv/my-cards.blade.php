@@ -101,4 +101,54 @@
     </div>
 @endif
 
+
+
+    <div class="row">
+        @foreach($allcards as $card)
+        <div class="col-lg-4 col-md-6 mb-4">
+
+            {{-- Card Visual --}}
+            <div class="p-4 rounded-4 text-white mb-3"
+                 style="background: {{ $card->status == 'active'
+                    ? 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)'
+                    : 'linear-gradient(135deg, #555, #333)' }};
+                        min-height: 170px; position: relative; overflow: hidden;">
+
+                <div style="position:absolute; top:-20px; right:-20px; width:120px; height:120px;
+                            border-radius:50%; background:rgba(255,255,255,0.05);"></div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="fw-bold" style="letter-spacing:2px;">ONEGIV</span>
+                    <span class="badge"
+                          style="background:{{ $card->status == 'active' ? 'rgba(0,255,100,0.2)' : 'rgba(255,50,50,0.2)' }};
+                                 color:{{ $card->status == 'active' ? '#00ff64' : '#ff5555' }};">
+                        {{ strtoupper($card->status) }}
+                    </span>
+                </div>
+
+                <p class="mb-2" style="letter-spacing:3px; font-size:13px;">
+                    {{ implode(' ', str_split(str_pad(substr($card->display_number ?? '****************', 0, 16), 16, '*'), 4)) }}
+                </p>
+
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <small style="opacity:0.5; font-size:10px;">EXPIRES</small>
+                        <p class="mb-0 fw-semibold" style="font-size:13px;">
+                            {{ substr($card->expiry_date ?? 'MMYY', 0, 2) }}/{{ substr($card->expiry_date ?? 'MMYY', 2) }}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <small style="opacity:0.5; font-size:10px;">SERIAL</small>
+                        <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->serial_number }}</p>
+                        <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->created_at }}</p>
+                        <p class="mb-0 fw-semibold" style="font-size:13px;">{{ $card->user_id }}</p>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        @endforeach
+    </div>
+
 @endsection

@@ -33,12 +33,12 @@ class OneGivService
     {
         $response = $this->client()->post('/order-cards', $cards);
 
-        Log::info('OneGiv orderCards debug', [
+        Log::info('OneGiv orderCards RAW response', [
             'url'        => config('onegiv.base_url') . '/order-cards',
-            'status'     => $response->status(),
-            'body'       => $response->body(),
             'headers'    => $response->headers(),
-            'payload'    => $cards,
+            'status'  => $response->status(),
+            'body'    => $response->body(),
+            'payload' => $cards,
         ]);
 
         if ($response->failed()) {
@@ -48,7 +48,17 @@ class OneGivService
 
         $result = $response->json();
 
+        // ✅ New format: validCardOrders / errorCardOrders
+        $validIds = collect($result['validCardOrders'] ?? [])->pluck('Id')->toArray();
+        $errorOrders = $result['errorCardOrders'] ?? [];
+
+        if (!empty($errorOrders)) {
+            Log::error('OneGiv orderCards errors', ['errors' => $errorOrders]);
+        }
+
         foreach ($cards as $card) {
+            $isValid = in_array($card['id'], $validIds);
+
             OneGivCardOrder::create([
                 'user_id'      => auth()->id(),
                 'order_id'     => $card['id'],
@@ -65,12 +75,16 @@ class OneGivService
                 'city'         => $card['city'] ?? null,
                 'postcode'     => $card['postcode'] ?? null,
                 'country'      => $card['country'] ?? null,
-                'status'       => 'pending',
+                'status'       => $isValid ? 'pending' : 'error',
             ]);
+
         }
 
         return $result;
     }
+
+
+
 
     /**
      * Change PIN for a card

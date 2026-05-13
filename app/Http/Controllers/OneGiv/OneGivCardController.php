@@ -80,9 +80,23 @@ class OneGivCardController extends Controller
 
             Log::info('OneGiv Card Order Result', ['response' => $result]);
 
+            // ✅ New format check
+            $orderNumber  = $result['orderNumber'] ?? 0;
+            $validOrders  = $result['validCardOrders'] ?? [];
+            $errorOrders  = $result['errorCardOrders'] ?? [];
+
+            
+            if ($orderNumber == 0 || empty($validOrders)) {
+                $errorMsg = !empty($errorOrders)
+                    ? $errorOrders[0]['errors']
+                    : 'Card order failed. Please try again.';
+
+                return back()->with('error', $errorMsg);
+            }
+
             return redirect()
                 ->route('onegiv.mycards')
-                ->with('success', 'Card order placed! Order #' . ($result['orderNumber'] ?? ''));
+                ->with('success', 'Card order placed successfully! Order #' . $orderNumber);
 
         } catch (\Exception $e) {
             Log::error('OneGiv orderCardStore error', ['error' => $e->getMessage()]);

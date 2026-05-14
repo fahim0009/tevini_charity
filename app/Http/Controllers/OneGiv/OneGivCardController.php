@@ -10,6 +10,7 @@ use App\Models\OneGiv\OneGivCard;
 use App\Models\OneGiv\OneGivCardOrder;
 use App\Models\OneGiv\OneGivTransaction;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OneGivCardController extends Controller
 {
@@ -124,6 +125,37 @@ class OneGivCardController extends Controller
                 'order_number' => $orderNumber,
             ]);
 
+            // ✅ Step 4: Send confirmation email to donor and admin
+            try {
+                $contactmail = \App\Models\ContactMail::where('id', 1)->first()->name;
+
+                $emailData = [
+                    'name'         => $user->name . ' ' . $user->surname,
+                    'order_number' => $orderNumber,
+                    'card_holder'  => $request->card_holder,
+                    'card_type'    => $isFixed ? 'Fixed Amount' : 'Variable Amount',
+                    'amount'       => $isFixed ? number_format($request->amount, 2) : 0,
+                    'order_date'   => now()->format('d M Y, H:i'),
+                ];
+
+                // Donor email
+                Mail::to($user->email)
+                    ->cc($contactmail)
+                    ->send(new \App\Mail\OneGivCardOrder($emailData));
+
+                Log::info('OneGiv Card Order Email Sent', [
+                    'user_id'      => $user->id,
+                    'email'        => $user->email,
+                    'order_number' => $orderNumber,
+                ]);
+
+            } catch (\Exception $mailException) {
+                Log::error('OneGiv Card Order Email Failed', [
+                    'user_id' => $user->id,
+                    'error'   => $mailException->getMessage(),
+                ]);
+            }
+
             return redirect()
                 ->route('onegiv.mycards')
                 ->with('success', 'Card order placed successfully! Order #' . $orderNumber);
@@ -143,8 +175,11 @@ class OneGivCardController extends Controller
                            ->latest()
                            ->get();
 
+        $checkOrders = OneGivCardOrder::where('user_id', Auth::id())
+                                ->latest()
+                                ->get();
 
-        return view('frontend.user.onegiv.my-cards', compact('cards'));
+        return view('frontend.user.onegiv.my-cards', compact('cards', 'checkOrders'));
     }
 
     /**

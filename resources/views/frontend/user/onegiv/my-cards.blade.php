@@ -28,12 +28,19 @@
         <div class="col-md-12">
             <div class="text-center py-5" style="background:#f8f9fa; border-radius:16px;">
                 <div style="font-size:48px;">💳</div>
+
+                @if ($checkOrders->isNotEmpty())
+                <p class="text-muted">Your card order has been placed successfully. Your card is on the way.</p>
+                @else
                 <h5 class="mt-3 fw-semibold">No Cards Yet</h5>
                 <p class="text-muted">You haven't ordered any OneGiv cards yet.</p>
+                    
+                @endif
+
                 <a href="{{ route('onegiv.ordercard.form') }}"
                    class="btn text-white px-4"
                    style="background: linear-gradient(135deg, #1a1a2e, #0f3460);">
-                    Order Your First Card
+                    Order Your Card
                 </a>
             </div>
         </div>

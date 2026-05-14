@@ -22,6 +22,7 @@ class TransactionController extends Controller
 
 
 
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -289,10 +290,20 @@ class TransactionController extends Controller
 
         return view('transaction.index');
     }
-
+	
+	
+	
+	
+	
+	
+	
+	
     
 
-    public function getDayDetails(Request $request)
+
+
+
+public function getDayDetails(Request $request)
     {
         $cutoffHour = 16;
         $cutoffMinute = 31;

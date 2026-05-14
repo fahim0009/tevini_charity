@@ -113,22 +113,14 @@
                 </div>
 
                 {{-- Amount --}}
-                <div class="mb-3" id="amount_field">
-                    <label class="form-label fw-semibold">Amount (£)</label>
-                    <div class="input-group">
-                        <span class="input-group-text fw-bold">£</span>
-                        <input type="number" name="amount" id="amount"
-                               class="form-control @error('amount') is-invalid @enderror"
-                               placeholder="e.g. 10" min="1" step="0.01"
-                               value="{{ old('amount') }}"
-                               oninput="document.getElementById('preview_amount').innerText =
-                                        '£'+(parseFloat(this.value)||0).toFixed(2)">
-                    </div>
-                    <small class="text-muted">Enter in pounds. e.g. 10 = £10.00</small>
-                    @error('amount')
-                        <div class="text-danger small">{{ $message }}</div>
-                    @enderror
-                </div>
+                <input type="number" name="amount" id="amount"
+                    class="form-control @error('amount') is-invalid @enderror"
+                    placeholder="e.g. 1.50"
+                    min="0.50"
+                    step="0.01"
+                    value="{{ old('amount') }}"
+                    oninput="validateAmount(this)">
+                <small class="text-muted">Minimum amount is £0.50 (e.g. 0.50, 1, 1.50, 10)</small>
 
                 {{-- PIN --}}
                 <div class="mb-0">
@@ -427,5 +419,21 @@ window.onload = function() {
         document.getElementById('amount_field').style.display = 'none';
     }
 };
+
+// Amount validation — minimum £1
+function validateAmount(input) {
+    var value = parseFloat(input.value);
+
+    document.getElementById('preview_amount').innerText =
+        '£' + (value > 0 ? value.toFixed(2) : '0.00');
+
+    if (value < 0.50) {
+        input.setCustomValidity('Minimum amount is £0.50');
+        input.reportValidity();
+    } else {
+        input.setCustomValidity('');
+    }
+}
+
 </script>
 @endsection

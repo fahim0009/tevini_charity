@@ -42,7 +42,7 @@ class OneGivCardController extends Controller
             'pin'          => 'required|digits:4',
             'fixed_amount' => 'required|in:0,1',
             'amount'       => $request->fixed_amount == '1'
-                            ? 'required|numeric|min:1'
+                            ? 'required|numeric|min:0.5'
                             : 'nullable|numeric',
             'email'        => 'required|email',
             'mobile'       => 'required|string',

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
+use App\Models\Charity;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SystemController extends Controller
@@ -100,6 +102,39 @@ class SystemController extends Controller
 
 
 
+    public function charityPaymentCreate()
+    {
+        $charities = Charity::orderBy('name')->get();
+        return view('admin.devTest.charity_payment', compact('charities'));
+    }
+
+    public function charityPaymentStore(Request $request)
+    {
+        $request->validate([
+            'topupid'    => 'required|integer|exists:charities,id',
+            'balance'    => 'required|numeric|min:0.01',
+            'note'       => 'required|string',
+            'source'     => 'required|in:Bank,Cheque,Card',
+            'created_at' => 'required|date',
+        ]);
+
+        $charity   = Charity::findOrFail($request->topupid);
+        $t_id      = time() . "-" . $request->topupid;
+        $createdAt = Carbon::parse($request->created_at);
+
+        $transaction             = new Transaction();
+        $transaction->t_id       = $t_id;
+        $transaction->charity_id = $request->topupid;
+        $transaction->t_type     = 'Out';
+        $transaction->name       = $request->source;
+        $transaction->amount     = $request->balance;
+        $transaction->note       = $request->note;
+        $transaction->status     = '1';
+        $transaction->created_at = $createdAt;
+        $transaction->save();
+
+        return back()->with('success', 'Transaction saved successfully. ID: ' . $t_id);
+    }
 
 
 

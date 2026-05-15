@@ -406,6 +406,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
     Route::get('/user-transaction-date', [SystemController::class, 'userTransactionDate'])->name('userTransactionDate');
     Route::post('/user-transaction-date/update', [SystemController::class, 'updateUserTransactionDate'])->name('updateUserTransactionDate');
+    Route::get('/charity-payment', [SystemController::class, 'charityPaymentCreate'])->name('charityPaymentCreate');
+    Route::post('/charity-payment', [SystemController::class, 'charityPaymentStore'])->name('charityPaymentStore');
 
 
 });

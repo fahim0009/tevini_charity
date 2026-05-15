@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Admin\ProcessVoucherController;
 use App\Http\Controllers\Admin\CredentialController;
+use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
@@ -398,6 +399,11 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::post('/admin/audit/adjust-transaction', [AdminController::class, 'adjustTransaction'])
     ->name('admin.audit.adjust');
     Route::post('/change-card-donor', [AdminController::class, 'changeRealDonor'])->name('change.real.donor');
+
+    // for developer testing route
+    Route::get('/daily-paid-transactions', [SystemController::class, 'dailyPaidTransaction'])->name('dailyPaidTransaction');
+    Route::post('/daily-paid-transactions/update-dates', [SystemController::class, 'updateTransactionDates'])->name('updateTransactionDates');
+
 
 
 });

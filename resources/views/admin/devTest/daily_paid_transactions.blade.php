@@ -103,10 +103,12 @@
                     </span>
                     <div class="d-flex align-items-center gap-2">
                         <label class="form-label mb-0 fw-semibold small text-muted">New Date:</label>
-                        <input type="datetime-local" name="new_date" id="new_date"
-                                class="form-control form-control-sm" style="width:220px;"
-                                value="{{ date('Y-m-d') }}T16:29"
-                                required>
+                        <input type="date" id="new_date_picker"
+                            class="form-control form-control-sm" style="width:160px;"
+                            value="{{ date('Y-m-d') }}" required>
+                        <span class="badge bg-secondary fs-6">⏰ 16:29</span>
+                        {{-- Hidden field that gets combined value before submit --}}
+                        <input type="hidden" name="new_date" id="new_date">
                     </div>
                     
                     <button type="submit" class="btn btn-success btn-sm" onclick="return confirmUpdate()">
@@ -212,25 +214,38 @@
         $('#transactionsTable').DataTable({
             pageLength: 50,
             lengthMenu: [10, 25, 50, 100, { label: 'All', value: -1 }],
-            order: [[8, 'desc']], // default sort: Created At descending
+            order: [[8, 'desc']],
             columnDefs: [
-                { orderable: false, searchable: false, targets: 0 } // checkbox column
+                { orderable: false, searchable: false, targets: 0 }, // checkbox
+                { searchable: false, targets: [1, 2, 3, 4, 5, 6, 7] }, // all except Created At
+                { searchable: true,  targets: [8] }  // only Created At is searchable
             ],
             language: {
                 search: '',
-                searchPlaceholder: '🔍 Search by charity, transaction ID, date...',
+                searchPlaceholder: '🔍 Search by date (e.g. 2026-02-19)...',
                 lengthMenu: 'Show _MENU_ entries',
                 info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
-                paginate: {
-                    previous: '‹',
-                    next:     '›'
-                }
+                paginate: { previous: '‹', next: '›' }
             },
-            // Re-bind checkboxes after DataTables redraws (pagination/search)
             drawCallback: function () {
                 bindCheckboxes();
             }
         });
+    });
+
+    // ── Combine date + fixed time before form submit ───────────────
+    document.getElementById('bulkUpdateForm').addEventListener('submit', function (e) {
+        const datePicker = document.getElementById('new_date_picker');
+        const hiddenDate = document.getElementById('new_date');
+
+        if (!datePicker.value) {
+            e.preventDefault();
+            alert('Please select a date first.');
+            return;
+        }
+
+        // Always use 16:29:00 as the time
+        hiddenDate.value = datePicker.value + ' 16:29:00';
     });
 
     // ── Checkbox Logic ─────────────────────────────────────────────

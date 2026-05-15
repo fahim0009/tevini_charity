@@ -1,6 +1,43 @@
 @extends('layouts.admin')
 
 @section('content')
+<style>
+    .status-switch:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* ===== Fix DataTable Header Colors ===== */
+    
+    /* Ledger Table */
+    #ledgerTable thead th {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+        border-color: #32383e !important;
+    }
+    
+    #ledgerTable tfoot td {
+        background-color: #cfe2ff !important;
+    }
+
+    /* Daily Summary Table */
+    #nav-summary .bg-light th {
+        background-color: #f8f9fa !important;
+    }
+
+    /* General fix for all tables with bg-light header */
+    table thead.bg-light th,
+    table thead tr.bg-light th {
+        background-color: #f8f9fa !important;
+    }
+
+    /* General fix for all tables with table-dark header */
+    table thead.table-dark th,
+    table thead tr.table-dark th {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+    }
+</style>
 <div class="dashboard-content">
     <section class="profile purchase-status">
         <div class="title-section d-flex align-items-center">
@@ -208,61 +245,57 @@
 
                         <div class="row justify-content-center mt-4">
                             <div class="col-md-12">
-
-
-                                <div class="row justify-content-center mt-4">
-                                    <div class="col-md-12">
-                                        <table class="table table-bordered table-striped">
-                                            <thead>
-                                                <tr class="table-dark">
-                                                    <th>Date</th>
-                                                    <th>Transaction ID</th>
-                                                    <th>Description</th>
-                                                    <th>Debit (-)</th>
-                                                    <th>Credit (+)</th>
-                                                    <th>Balance</th>
+                                <div class="table-responsive">
+                                    <table id="ledgerTable" class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr class="table-dark">
+                                                <th>Date</th>
+                                                <th>Transaction ID</th>
+                                                <th>Description</th>
+                                                <th class="text-end">Debit (-)</th>
+                                                <th class="text-end">Credit (+)</th>
+                                                <th class="text-end">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tfoot>
+                                            <tr class="table-info font-weight-bold">
+                                                <td colspan="5" class="text-end">Current Total Balance:</td>
+                                                <td class="text-end">{{ number_format($currentTotalBalance, 2) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                        <tbody>
+                                            @foreach($finalLedger as $entry)
+                                                <tr>
+                                                    <td>
+                                                        {{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d H:i') }}
+                                                        @if($entry['credit'] > 0)
+                                                            <a href="javascript:void(0)" 
+                                                            class="text-primary ml-2 edit-date-btn" 
+                                                            data-id="{{ $entry['real_id'] }}" 
+                                                            data-date="{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d\TH:i') }}"
+                                                            data-toggle="modal" 
+                                                            data-target="#editDateModal"
+                                                            title="Edit Date">
+                                                                <i class="fas fa-edit fa-sm"></i>
+                                                            </a>
+                                                        @endif
+                                                    </td>
+                                                    <td><code>{{ $entry['t_id'] }}</code></td>
+                                                    <td>{{ $entry['description'] }}</td>
+                                                    <td class="text-danger text-end">
+                                                        {{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}
+                                                    </td>
+                                                    <td class="text-success text-end">
+                                                        {{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}
+                                                    </td>
+                                                    <td class="text-end"><strong>{{ number_format($entry['balance'], 2) }}</strong></td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr class="table-info">
-                                                    <td colspan="5" class="text-end"><strong>Current Total Balance:</strong></td>
-                                                    <td><strong>{{ number_format($currentTotalBalance, 2) }}</strong></td>
-                                                </tr>
-
-                                                @foreach($finalLedger as $entry)
-                                                    <tr>
-                                                        <td>{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d H:i') }}
-                                                            @if($entry['credit'] > 0)
-                                                                <a href="javascript:void(0)" 
-                                                                class="text-primary ml-2 edit-date-btn" 
-                                                                data-id="{{ $entry['real_id'] }}" 
-                                                                data-date="{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d\TH:i') }}"
-                                                                data-toggle="modal" 
-                                                                data-target="#editDateModal">
-                                                                    <i class="fas fa-edit fa-sm"></i>
-                                                                </a>
-                                                            @endif
-                                                        </td>
-                                                        <td><code>{{ $entry['t_id'] }}</code></td>
-                                                        <td>{{ $entry['description'] }}</td>
-                                                        <td class="text-danger">
-                                                            {{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}
-                                                        </td>
-                                                        <td class="text-success">
-                                                            {{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}
-                                                        </td>
-                                                        <td><strong>{{ number_format($entry['balance'], 2) }}</strong></td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
-
-
                             </div>
                         </div>
-
                     </div>
 
                     {{-- 6. PENDING VOUCHERS --}}
@@ -742,7 +775,52 @@ $(document).ready(function(){
 });
 </script>
 
+<script>
+    // Ledger DataTable
+ $(document).ready(function () {
+    $('#ledgerTable').DataTable({
+        responsive: true,
+        pageLength: 100,           // Show 100 rows per page
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]], // Page length options
+        order: [[0, 'desc']],      // Sort by Date descending (newest first)
+        autoWidth: false,
+        dom: '<"row mb-3"<"col-sm-6"l><"col-sm-6"f>>rtip', // Show length menu and search
+        columnDefs: [
+            { orderable: false, targets: [1, 2] }, // Disable sorting on Transaction ID and Description
+            { className: 'text-end', targets: [3, 4, 5] } // Right-align numeric columns
+        ],
+        language: {
+            search: "",
+            searchPlaceholder: "Search ledger...",
+            lengthMenu: "Show _MENU_ entries per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "No entries available",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            paginate: {
+                first: '<i class="fas fa-angle-double-left"></i>',
+                last: '<i class="fas fa-angle-double-right"></i>',
+                next: '<i class="fas fa-angle-right"></i>',
+                previous: '<i class="fas fa-angle-left"></i>'
+            }
+        },
+        footerCallback: function (row, data, start, end, display) {
+            var api = this.api();
 
+            // Calculate totals for visible page only
+            var pageDebit = api.column(3, { page: 'current' }).data().reduce(function (a, b) {
+                return a + parseFloat(b.replace(/[^0-9.-]/g, '')) || 0;
+            }, 0);
+
+            var pageCredit = api.column(4, { page: 'current' }).data().reduce(function (a, b) {
+                return a + parseFloat(b.replace(/[^0-9.-]/g, '')) || 0;
+            }, 0);
+
+            // Update footer (optional - shows page totals)
+            // If you want to keep only Current Total Balance, remove this
+        }
+    });
+});
+</script>
 
 
 @endsection

@@ -103,8 +103,12 @@
                     </span>
                     <div class="d-flex align-items-center gap-2">
                         <label class="form-label mb-0 fw-semibold small text-muted">New Date:</label>
-                        <input type="datetime-local" name="new_date" id="new_date" class="form-control form-control-sm" style="width:220px;" required>
+                        <input type="datetime-local" name="new_date" id="new_date"
+                                class="form-control form-control-sm" style="width:220px;"
+                                value="{{ date('Y-m-d') }}T16:29"
+                                required>
                     </div>
+                    
                     <button type="submit" class="btn btn-success btn-sm" onclick="return confirmUpdate()">
                         <span class="iconify me-1" data-icon="mdi:calendar-edit" data-width="16"></span>
                         Update Selected Dates

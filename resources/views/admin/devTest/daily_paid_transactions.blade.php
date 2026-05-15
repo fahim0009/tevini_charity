@@ -95,7 +95,7 @@
             @csrf
 
             {{-- Sticky Action Bar (hidden until a checkbox is checked) --}}
-            <div id="bulkActionBar" class="card border-warning border shadow-sm mb-3 d-none">
+            <div id="bulkActionBar" class="card border-warning border shadow-sm mb-3">
                 <div class="card-body d-flex align-items-center gap-3 flex-wrap bg-warning bg-opacity-10">
                     <span class="fw-semibold text-dark">
                         <span class="iconify me-1" data-icon="mdi:checkbox-marked-outline" data-width="18"></span>
@@ -103,12 +103,11 @@
                     </span>
                     <div class="d-flex align-items-center gap-2">
                         <label class="form-label mb-0 fw-semibold small text-muted">New Date:</label>
-                        <input type="date" id="new_date_picker"
-                            class="form-control form-control-sm" style="width:160px;"
-                            value="{{ date('Y-m-d') }}" required>
-                        <span class="badge bg-secondary fs-6">⏰ 16:29</span>
-                        {{-- Hidden field that gets combined value before submit --}}
-                        <input type="hidden" name="new_date" id="new_date">
+                        <input type="datetime-local" name="new_date" id="new_date"
+                                class="form-control form-control-sm" style="width:220px;"
+                                value="{{ date('Y-m-d') }}T16:29"
+                                required>
+                        <small class="text-muted">⏎ Date filters table · Time saves to DB</small>
                     </div>
                     
                     <button type="submit" class="btn btn-success btn-sm" onclick="return confirmUpdate()">
@@ -211,18 +210,16 @@
 <script>
     // ── DataTable ──────────────────────────────────────────────────
     $(document).ready(function () {
-        $('#transactionsTable').DataTable({
+        var table = $('#transactionsTable').DataTable({
             pageLength: 50,
             lengthMenu: [10, 25, 50, 100, { label: 'All', value: -1 }],
             order: [[8, 'desc']],
             columnDefs: [
-                { orderable: false, searchable: false, targets: 0 }, // checkbox
-                { searchable: false, targets: [1, 2, 3, 4, 5, 6, 7] }, // all except Created At
-                { searchable: true,  targets: [8] }  // only Created At is searchable
+                { orderable: false, searchable: false, targets: 0 },
             ],
             language: {
                 search: '',
-                searchPlaceholder: '🔍 Search by date (e.g. 2026-02-19)...',
+                searchPlaceholder: '🔍 Search...',
                 lengthMenu: 'Show _MENU_ entries',
                 info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
                 paginate: { previous: '‹', next: '›' }
@@ -231,21 +228,16 @@
                 bindCheckboxes();
             }
         });
-    });
 
-    // ── Combine date + fixed time before form submit ───────────────
-    document.getElementById('bulkUpdateForm').addEventListener('submit', function (e) {
-        const datePicker = document.getElementById('new_date_picker');
-        const hiddenDate = document.getElementById('new_date');
+        // ── Filter DataTable by date part of the datetime-local input ──
+        $('#new_date').on('change', function () {
+            var selectedDate = this.value.split('T')[0]; // extract only "2026-05-15"
+            table.column(8).search(selectedDate).draw();
+        });
 
-        if (!datePicker.value) {
-            e.preventDefault();
-            alert('Please select a date first.');
-            return;
-        }
-
-        // Always use 16:29:00 as the time
-        hiddenDate.value = datePicker.value + ' 16:29:00';
+        // Trigger filter immediately on page load with today's default
+        var defaultDate = $('#new_date').val().split('T')[0];
+        table.column(8).search(defaultDate).draw();
     });
 
     // ── Checkbox Logic ─────────────────────────────────────────────

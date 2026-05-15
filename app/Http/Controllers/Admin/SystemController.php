@@ -23,7 +23,8 @@ class SystemController extends Controller
             ->where('status', 1)
             ->where('t_type', 'Out')
             ->where('name', '=', 'Bank')
-            ->whereTime('created_at', '=', '17:29:00');
+            ->whereRaw('TIME(created_at) BETWEEN ? AND ?', ['17:20:00', '17:39:59']);
+            // ->whereTime('created_at', '=', '17:29:00');
 
             // ->whereRaw('TIME(created_at) BETWEEN ? AND ?', ['17:00:00', '17:59:59'])
  

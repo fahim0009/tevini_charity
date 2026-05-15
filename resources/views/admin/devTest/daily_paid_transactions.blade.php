@@ -105,7 +105,7 @@
                         <label class="form-label mb-0 fw-semibold small text-muted">New Date:</label>
                         <input type="datetime-local" name="new_date" id="new_date"
                                 class="form-control form-control-sm" style="width:220px;"
-                                value="{{ date('Y-m-d') }}T16:29"
+                                value="T16:29"
                                 required>
                         <small class="text-muted">⏎ Date filters table · Time saves to DB</small>
                     </div>
@@ -208,36 +208,35 @@
 @section('script')
 
 <script>
+$(document).ready(function () {
+
     // ── DataTable ──────────────────────────────────────────────────
-    $(document).ready(function () {
-        var table = $('#transactionsTable').DataTable({
-            pageLength: 50,
-            lengthMenu: [10, 25, 50, 100, { label: 'All', value: -1 }],
-            order: [[8, 'desc']],
-            columnDefs: [
-                { orderable: false, searchable: false, targets: 0 },
-            ],
-            language: {
-                search: '',
-                searchPlaceholder: '🔍 Search...',
-                lengthMenu: 'Show _MENU_ entries',
-                info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
-                paginate: { previous: '‹', next: '›' }
-            },
-            drawCallback: function () {
-                bindCheckboxes();
-            }
-        });
+    var table = $('#transactionsTable').DataTable({
+        pageLength: 50,
+        lengthMenu: [10, 25, 50, 100, { label: 'All', value: -1 }],
+        order: [[8, 'desc']],
+        columnDefs: [
+            { orderable: false, searchable: false, targets: 0 }
+        ],
+        language: {
+            search: '',
+            searchPlaceholder: '🔍 Search...',
+            lengthMenu: 'Show _MENU_ entries',
+            info: 'Showing _START_ to _END_ of _TOTAL_ transactions',
+            paginate: { previous: '‹', next: '›' }
+        },
+        drawCallback: function () {
+            bindCheckboxes();
+        }
+    });
 
-        // ── Filter DataTable by date part of the datetime-local input ──
-        $('#new_date').on('change', function () {
-            var selectedDate = this.value.split('T')[0]; // extract only "2026-05-15"
-            table.column(8).search(selectedDate).draw();
-        });
-
-        // Trigger filter immediately on page load with today's default
-        var defaultDate = $('#new_date').val().split('T')[0];
-        table.column(8).search(defaultDate).draw();
+    // ── Single change handler: lock time to 16:29 + filter table ──
+    $('#new_date').on('change', function () {
+        if (this.value) {
+            var datePart = this.value.split('T')[0];
+            this.value = datePart + 'T16:29'; // lock time
+            table.column(8).search(datePart).draw(); // filter table
+        }
     });
 
     // ── Checkbox Logic ─────────────────────────────────────────────
@@ -248,7 +247,6 @@
     function updateBar() {
         const checked = document.querySelectorAll('.row-checkbox:checked');
         selectedCount.textContent = checked.length;
-        bulkBar.classList.toggle('d-none', checked.length === 0);
 
         document.querySelectorAll('.row-item').forEach(row => {
             const cb = row.querySelector('.row-checkbox');
@@ -257,7 +255,6 @@
     }
 
     function bindCheckboxes() {
-        // Re-query after every DataTable redraw
         document.querySelectorAll('.row-checkbox').forEach(cb => {
             cb.removeEventListener('change', onRowCheckboxChange);
             cb.addEventListener('change', onRowCheckboxChange);
@@ -271,28 +268,35 @@
     }
 
     selectAll.addEventListener('change', function () {
-        // Only check visible (current page) rows
         document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
         updateBar();
     });
 
-    function clearAll() {
+    window.clearAll = function () {
         selectAll.checked = false;
         document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
         updateBar();
-    }
+    };
 
-    function confirmUpdate() {
+    window.confirmUpdate = function () {
         const checked = document.querySelectorAll('.row-checkbox:checked').length;
-        const date    = document.getElementById('new_date').value;
-        if (!date) {
-            alert('Please select a new date & time first.');
+        const val     = document.getElementById('new_date').value;
+        if (!val) {
+            alert('Please select a date first.');
             return false;
         }
-        return confirm(`Update created_at to "${date}" for ${checked} transaction(s)?\n\nThis cannot be undone.`);
-    }
+        if (checked === 0) {
+            alert('Please select at least one row.');
+            return false;
+        }
+        return confirm(`Update created_at to "${val.replace('T', ' ')}" for ${checked} transaction(s)?\n\nThis cannot be undone.`);
+    };
 
-    // Initial bind
+    // clear on load — no default date
+    document.getElementById('new_date').value = '';
+
     bindCheckboxes();
+
+});
 </script>
 @endsection

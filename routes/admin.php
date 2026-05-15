@@ -404,6 +404,8 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
     Route::get('/daily-paid-transactions', [SystemController::class, 'dailyPaidTransaction'])->name('dailyPaidTransaction');
     Route::post('/daily-paid-transactions/update-dates', [SystemController::class, 'updateTransactionDates'])->name('updateTransactionDates');
 
+    Route::get('/user-transaction-date', [SystemController::class, 'userTransactionDate'])->name('userTransactionDate');
+    Route::post('/user-transaction-date/update', [SystemController::class, 'updateUserTransactionDate'])->name('updateUserTransactionDate');
 
 
 });

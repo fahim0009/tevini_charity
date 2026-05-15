@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 
 class SystemController extends Controller
@@ -62,6 +63,44 @@ class SystemController extends Controller
         return redirect()->route('dailyPaidTransaction')
             ->with('success', count($request->selected_ids) . ' transaction(s) updated to ' . $newDateTime);
     }
+
+
+
+    public function userTransactionDate(Request $request)
+    {
+        $t_id    = $request->input('t_id');
+        $results = collect();
+
+        if ($t_id) {
+            $results = Usertransaction::with('charity')
+                ->where('t_id', 'LIKE', '%' . $t_id . '%')
+                ->latest()
+                ->get();
+        }
+
+        return view('admin.devTest.user_transaction_date', compact('results', 't_id'));
+    }
+
+    public function updateUserTransactionDate(Request $request)
+    {
+        $request->validate([
+            'transaction_id' => 'required|integer|exists:usertransactions,id',
+            'new_datetime'   => 'required|date',
+        ]);
+
+        $newDateTime = \Carbon\Carbon::parse($request->new_datetime)->format('Y-m-d H:i:s');
+
+        Usertransaction::where('id', $request->transaction_id)
+            ->update(['created_at' => $newDateTime]);
+
+        return redirect()
+            ->route('userTransactionDate', ['t_id' => $request->t_id_ref])
+            ->with('success', 'Transaction ' . $request->t_id_ref . ' updated to ' . $newDateTime);
+    }
+
+
+
+
 
 
 }

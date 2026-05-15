@@ -19,11 +19,11 @@ class SystemController extends Controller
         $toDate      = $request->input('toDate', date('Y-m-d'));
         $endDateTime = $toDate ? $toDate . ' 23:59:59' : null;
  
-        $query = Transaction::where('bank_payment_status', 0)
-            ->where('status', 1)
+        $query = Transaction::
+            where('status', 1)
             ->where('t_type', 'Out')
-            ->where('name', '=', 'Bank');
-            // ->whereRaw('TIME(created_at) BETWEEN ? AND ?', ['17:20:00', '17:39:59']);
+            ->where('name', '=', 'Bank')
+            ->whereRaw('TIME(created_at) BETWEEN ? AND ?', ['17:20:00', '17:39:59']);
             // ->whereTime('created_at', '=', '17:29:00');
 
             // ->whereRaw('TIME(created_at) BETWEEN ? AND ?', ['17:00:00', '17:59:59'])

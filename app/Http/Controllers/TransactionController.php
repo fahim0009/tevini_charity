@@ -1193,7 +1193,7 @@ public function exportSummaryCsv2(Request $request)
 
         $transaction = Transaction::findOrFail($request->transaction_id);
         $transaction->created_at = $request->new_date;
-        $transaction->bank_payment_status = 0;
+        // $transaction->bank_payment_status = 0;
         $transaction->save(); 
 
         return back()->with('success', 'Date updated successfully!');

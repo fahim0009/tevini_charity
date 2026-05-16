@@ -157,17 +157,39 @@ class OneGivWebhookController extends Controller
         $user->save();
 
         // ✅ STEP 8: Save to usertransactions
-        $utran                       = new \App\Models\Usertransaction();
-        $utran->t_id                 = time() . '-' . $user->id;
-        $utran->user_id              = $user->id;
-        $utran->charity_id            = $charity->id;
-        $utran->t_type               = 'Out';
-        $utran->source               = 'OneGiv Card';
-        $utran->amount               = $amountInPounds;
-        $utran->title                = 'OneGiv Card Donation to ' . $charity->name . ' (' . $data['charityNumber'] . ')';
-        $utran->onegiv_transaction_id = $onegivTxn->id;
-        $utran->status               = 1;
-        $utran->save();
+            $utran                        = new \App\Models\Usertransaction();
+            $utran->t_id                  = 'OneGiv-' . time() . '-' . $user->id;
+            $utran->user_id               = $user->id;
+            $utran->charity_id            = $charity->id;
+            $utran->t_type                = 'Out';
+            $utran->source                = 'OneGiv Card';
+            $utran->amount                = $amountInPounds;
+            $utran->title                 = 'OneGiv Card Donation to ' . $charity->name . ' (' . $data['charityNumber'] . ')';
+            $utran->onegiv_transaction_id = $onegivTxn->id;
+            $utran->status                = 1;
+            $utran->save();
+
+            // ✅ STEP 9: Add charity Transaction record (In) — AutoPayment এর জন্য দরকার
+            $chtran             = new \App\Models\Transaction();
+            $chtran->t_id       = $utran->t_id;
+            $chtran->charity_id = $charity->id;
+            $chtran->user_id    = $user->id;
+            $chtran->t_type     = 'In';
+            $chtran->name       = 'OneGiv Card';
+            $chtran->amount     = $amountInPounds;
+            $chtran->note       = 'OneGiv Card Donation - Serial: ' . $data['cardSerialNumber'];
+            $chtran->status     = 1;
+            $chtran->save();
+
+            // ✅ STEP 10: Increment charity balance — AutoPayment এ decrement এর জন্য দরকার
+            $charity->increment('balance', $amountInPounds);
+
+            Log::info('OneGiv Transaction: Charity balance updated', [
+                'charity_id'     => $charity->id,
+                'charity_name'   => $charity->name,
+                'amount_added'   => $amountInPounds,
+                'new_balance'    => $charity->fresh()->balance,
+            ]);
 
         Log::info('OneGiv Transaction: Approved successfully', [
             'transaction_id'    => $transactionId,

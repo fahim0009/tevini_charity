@@ -97,6 +97,7 @@ class TransactionController extends Controller
                             DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
                             DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
                             DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
+                            DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
 
                             DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
                             DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
@@ -180,10 +181,11 @@ class TransactionController extends Controller
                     ->addColumn('balance', function ($row) {
 
                         $totalGenerated =
-                            $row->online_sum +
-                            $row->standing_sum +
-                            $row->voucher_sum +
-                            $row->campaign_sum;
+                                $row->online_sum +
+                                $row->standing_sum +
+                                $row->voucher_sum +
+                                $row->campaign_sum +
+                                $row->card_sum;
 
                         $balance = $totalGenerated - $row->paid_sum;
 
@@ -192,11 +194,12 @@ class TransactionController extends Controller
 
                     ->addColumn('action', function ($row) {
 
-                        $totalGenerated =
-                            $row->online_sum +
-                            $row->standing_sum +
-                            $row->voucher_sum +
-                            $row->campaign_sum;
+                         $totalGenerated =
+                                $row->online_sum +
+                                $row->standing_sum +
+                                $row->voucher_sum +
+                                $row->campaign_sum +
+                                $row->card_sum;
 
                         $isChecked = ($row->payment_status == 1) ? 'checked' : '';
 
@@ -240,11 +243,16 @@ class TransactionController extends Controller
                         return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->campaign_sum, 2) . '</a>';
                     })
 
+                    ->editColumn('card_sum', function($row) {
+                        if ($row->card_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="card" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->card_sum, 2) . '</a>';
+                    })
+
                     ->addColumn('raw_date', function ($row) {
                         return $row->date_group;
                     })
                     ->addColumn('raw_total', function ($row) {
-                        return $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum;
+                        return $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
                     })
 
 
@@ -254,6 +262,7 @@ class TransactionController extends Controller
                         'standing_sum',
                         'voucher_sum',
                         'campaign_sum',
+                        'card_sum',
                         'paid_sum',
                         'charity_name',
                         'action',
@@ -293,17 +302,7 @@ class TransactionController extends Controller
 	
 	
 	
-	
-	
-	
-	
-	
-    
-
-
-
-
-public function getDayDetails(Request $request)
+    public function getDayDetails(Request $request)
     {
         $cutoffHour = 16;
         $cutoffMinute = 31;
@@ -375,6 +374,8 @@ public function getDayDetails(Request $request)
 
         if ($request->type == 'campaign')
             $query->whereNotNull('campaign_id');
+        if ($request->type == 'card')
+            $query->whereNotNull('onegiv_transaction_id');
 
         $data = $query->get();
 
@@ -382,7 +383,7 @@ public function getDayDetails(Request $request)
             return [
                 'donor'  => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
                 'amount' => '£' . number_format($item->amount, 2),
-                'ref'    => $item->cheque_no ?? $item->t_id,
+                'ref'    => $item->onegiv_transaction_id ?? $item->cheque_no ?? $item->t_id,
                 'status' => $item->status,
                 'date'   => $item->created_at->format('d/m/Y H:i')
             ];

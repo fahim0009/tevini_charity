@@ -154,6 +154,7 @@
         {data: 'standing_sum', name: 'standing_sum', title: 'Standing', searchable: false},
         {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher', searchable: false},
         {data: 'campaign_sum', name: 'campaign_sum', title: 'Campaign', searchable: false},
+        {data: 'card_sum', name: 'card_sum', title: 'Card', searchable: false},
         {data: 'paid_sum', name: 'paid_sum', title: 'Paid', className: 'text-success', searchable: false},
         {data: 'balance', name: 'balance', title: 'Summary', className: 'fw-bold text-primary', searchable: false},
         {data: 'action', name: 'action', title: 'Action', orderable: false, searchable: false}

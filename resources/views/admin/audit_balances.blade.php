@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Date To</label>
-                    <input type="date" id="toDate" class="form-control form-control-sm" value="2026-04-22">
+                    <input type="date" id="toDate" class="form-control form-control-sm" value="{{ date('Y-m-d', strtotime('-1 day')) }}">
                 </div>
                 <div class="col-md-4">
                     <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>

@@ -662,7 +662,7 @@ class AdminController extends Controller
 
             // 1. Setup Date Ranges
         $startDate = $request->get('fromDate') ?? '2026-02-09';
-        $endDate = $request->get('toDate') ?? '2026-04-22';
+        $endDate = $request->get('toDate') ?? Carbon::yesterday()->toDateString();
 
         $cutoffTime = '16:31:00';
         $cutoffTime2 = '16:30:00';
@@ -707,6 +707,16 @@ class AdminController extends Controller
             ->groupBy('date_group', 'usertransactions.charity_id')
             ->orderByRaw('date_group DESC')
             ->with('charity');
+
+            $query->where(DB::raw($businessDateRaw), '>', '2026-02-07');
+            // 2. Filter by the aggregated payment status
+            $query->having('payment_status', '=', 0);
+            // 3. NEW: Only show charities where auto_payment is enabled (1)
+            $query->whereHas('charity', function($q) {
+                $q->where('auto_payment', 1);
+            });
+
+       
 
 
 

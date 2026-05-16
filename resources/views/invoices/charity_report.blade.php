@@ -69,6 +69,7 @@
                             @if($row->donation_id) Online Donation
                             @elseif($row->standing_donationdetails_id) Standing Order
                             @elseif($row->cheque_no) Voucher 
+                            @elseif($row->onegiv_transaction_id) Onegiv Card Transaction
                             @else Campaign @endif
                         </td>
                         <td>{{ $row->cheque_no ?? '-' }}</td>
@@ -76,6 +77,7 @@
                             @if($row->donation_id) {{$row->donation->mynote ?? ''}} <br>  {{$row->donation->charitynote ?? ''}}
                             @elseif($row->standing_donationdetails_id) {{$row->standingDonationDetails->StandingDonation->mynote ?? ''}} <br>  {{$row->standingDonationDetails->StandingDonation->charitynote ?? ''}} 
                             @elseif($row->campaign_id) {{ $row->campaign->campaign_title ?? '' }} 
+                            @elseif($row->onegiv_transaction_id) Onegiv Card Transaction
                             @elseif($row->cheque_no) Voucher ({{ $row->cheque_no }})
                             @else Campaign  @endif
                         </td>

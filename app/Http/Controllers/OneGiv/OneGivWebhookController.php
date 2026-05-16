@@ -169,7 +169,7 @@ class OneGivWebhookController extends Controller
             $utran->status                = 1;
             $utran->save();
 
-            // ✅ STEP 9: Add charity Transaction record (In) — AutoPayment এর জন্য দরকার
+            // ✅ STEP 9: Add charity Transaction record (In) — AutoPayment
             $chtran             = new \App\Models\Transaction();
             $chtran->t_id       = $utran->t_id;
             $chtran->charity_id = $charity->id;
@@ -181,7 +181,7 @@ class OneGivWebhookController extends Controller
             $chtran->status     = 1;
             $chtran->save();
 
-            // ✅ STEP 10: Increment charity balance — AutoPayment এ decrement এর জন্য দরকার
+            // ✅ STEP 10: Increment charity balance — AutoPayment  decrement 
             $charity->increment('balance', $amountInPounds);
 
             Log::info('OneGiv Transaction: Charity balance updated', [

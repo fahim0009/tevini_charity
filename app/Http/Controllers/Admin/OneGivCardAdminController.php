@@ -155,9 +155,9 @@ class OneGivCardAdminController extends Controller
                     'admin_name'        => $adminName,
                 ];
 
-                // Mail::to($user->email)
-                //     ->cc($contactmail)
-                //     ->send(new OneGivCardOrder($emailData));
+                Mail::to($user->email)
+                    ->cc($contactmail)
+                    ->send(new \App\Mail\OneGivCardOrder($emailData));
 
             } catch (\Exception $mailException) {
                 Log::error('Admin OneGiv Card Order Email Failed', [

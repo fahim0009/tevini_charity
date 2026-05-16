@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Admin\ProcessVoucherController;
 use App\Http\Controllers\Admin\CredentialController;
+use App\Http\Controllers\Admin\OneGivCardAdminController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
@@ -391,6 +392,25 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
 
 
+    
+    // Add this group within your admin routes
+    Route::group(['prefix' => 'onegiv/'], function () {
+        
+            // Order Card for User
+        Route::get('order-card/{user_id}', [OneGivCardAdminController::class, 'orderCardForm'])
+            ->name('admin.onegiv.ordercard.form');
+        
+        Route::post('order-card/{user_id}', [OneGivCardAdminController::class, 'orderCardStore'])
+            ->name('admin.onegiv.ordercard.store');
+        
+        // View User's Orders
+        Route::get('user-orders/{user_id}', [OneGivCardAdminController::class, 'viewUserOrders'])
+            ->name('admin.onegiv.user.orders');
+        
+    });
+
+
+
     // order history check for 360 amount order
     Route::get('/check-some-order', [VouchersController::class, 'checkOrder'])->name('checkOrder');
 
@@ -411,3 +431,4 @@ Route::group(['prefix' =>'admin/', 'middleware' => ['auth', 'is_admin']], functi
 
 
 });
+

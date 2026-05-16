@@ -29,7 +29,7 @@ class OneGivService
     /**
      * Order cards from OneGiv
      */
-    public function orderCards(array $cards): array
+    public function orderCards(array $cards, array $options = []): array
     {
         $response = $this->client()->post('/order-cards', $cards);
 
@@ -56,26 +56,34 @@ class OneGivService
             Log::error('OneGiv orderCards errors', ['errors' => $errorOrders]);
         }
 
+        // ✅ Determine correct User ID and Admin flags
+        $targetUserId = $options['user_id'] ?? auth()->id();
+        $isAdminOrder = $options['is_admin_order'] ?? false;
+        $adminId      = $options['admin_id'] ?? null;
+
+
         foreach ($cards as $card) {
             $isValid = in_array($card['id'], $validIds);
 
             OneGivCardOrder::create([
-                'user_id'      => auth()->id(),
-                'order_id'     => $card['id'],
-                'order_number' => $result['orderNumber'] ?? null,
-                'card_holder'  => $card['cardHolder'],
-                'fixed_amount' => $card['fixedAmount'],
-                'amount'       => $card['amount'] ?? 0,
-                'pin'          => $card['pin'],
-                'email'        => $card['emailAddress'] ?? null,
-                'mobile'       => $card['mobileNumber'] ?? null,
-                'house_number' => $card['houseNumber'] ?? null,
-                'street'       => $card['street'] ?? null,
-                'address2'     => $card['address2'] ?? null,
-                'city'         => $card['city'] ?? null,
-                'postcode'     => $card['postcode'] ?? null,
-                'country'      => $card['country'] ?? null,
-                'status'       => $isValid ? 'pending' : 'error',
+                'user_id'           => $targetUserId,
+                'order_id'          => $card['id'],
+                'order_number'      => $result['orderNumber'] ?? null,
+                'card_holder'       => $card['cardHolder'],
+                'fixed_amount'      => $card['fixedAmount'],
+                'amount'            => $card['amount'] ?? 0,
+                'pin'               => $card['pin'],
+                'email'             => $card['emailAddress'] ?? null,
+                'mobile'            => $card['mobileNumber'] ?? null,
+                'house_number'      => $card['houseNumber'] ?? null,
+                'street'            => $card['street'] ?? null,
+                'address2'          => $card['address2'] ?? null,
+                'city'              => $card['city'] ?? null,
+                'postcode'          => $card['postcode'] ?? null,
+                'country'           => $card['country'] ?? null,
+                'status'            => $isValid ? 'pending' : 'error',
+                'ordered_by_admin'  => $isAdminOrder ? 1 : 0,
+                'admin_id'          => $adminId,
             ]);
 
         }

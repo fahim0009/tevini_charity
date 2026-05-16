@@ -13,6 +13,21 @@
         </div>
     </div>
 
+        {{-- Alerts --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    
+
     @include('inc.user_menue')
 
     <div class="row mt-4">
@@ -164,6 +179,60 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            {{-- OneGiv Card Order Section --}}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-0">💳 OneGiv Card</h6>
+                        <small class="text-muted">Order a donation card for this donor</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.onegiv.user.orders', $profile_data->id) }}" 
+                        class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-list me-1"></i> View Orders
+                        </a>
+                        <a href="{{ route('admin.onegiv.ordercard.form', $profile_data->id) }}" 
+                        class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i> Order Card
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="text-muted small me-2">Available Balance with Limit:</span>
+                                <span class="fw-bold text-primary">
+                                    £{{ number_format($profile_data->getAvailableLimit(), 2) }}
+                                </span>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Card order fee: £5.00
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            @php
+                                $recentOrder = \App\Models\OneGiv\OneGivCardOrder::where('user_id', $profile_data->id)
+                                                    ->latest()
+                                                    ->first();
+                            @endphp
+                            @if($recentOrder)
+                                <small class="text-muted">
+                                    Last Order: <strong>#{{ $recentOrder->order_number }}</strong><br>
+                                    <span class="text-{{ $recentOrder->status == 'processed' ? 'success' : 'warning' }}">
+                                        {{ ucfirst($recentOrder->status ?? 'pending') }}
+                                    </span>
+                                    - {{ $recentOrder->created_at->format('d M Y') }}
+                                </small>
+                            @else
+                                <small class="text-muted">No cards ordered yet</small>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 

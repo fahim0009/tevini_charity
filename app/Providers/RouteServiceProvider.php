@@ -58,6 +58,10 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/charity.php')); 
+
+            Route::middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/user.php'));
         });
     }
 

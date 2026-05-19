@@ -25,7 +25,6 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\User\UserController;
-
 use App\Http\Controllers\Auth\CharityPasswordResetController;
 use App\Http\Controllers\User\GiftAidController;
 
@@ -39,26 +38,25 @@ use App\Http\Controllers\User\GiftAidController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-// cache clear
-Route::get('/clear', function() {
+
+// Cache clear
+Route::get('/clear', function () {
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
     Artisan::call('config:cache');
     Artisan::call('view:clear');
     return "Cleared!";
- });
+});
 
-Route::get('/queue-work', function() {
+Route::get('/queue-work', function () {
     Artisan::call('queue:work');
     return "done!";
- });
+});
 
-
-// use mobile app
+// Use mobile app
 Route::get('app-version', [AboutController::class, 'appVersion']);
 
-
- 
+// Email Verification
 Route::post('/email/resend-verification', function (Request $request) {
     $user = Auth::user();
     if ($user->hasVerifiedEmail()) {
@@ -71,225 +69,59 @@ Route::post('/email/resend-verification', function (Request $request) {
 Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verification'])->name('verification.verify');
 Route::get('/verify-email/{token}', [UserController::class, 'verifyEmail'])->name('verify.email');
 
-
-
-// Show form to request reset link
+// Charity Password Reset
 Route::get('charity/forgot-password', [CharityPasswordResetController::class, 'showLinkRequestForm'])->name('charity.password.request');
-
-// Handle sending the link
 Route::post('charity/forgot-password', [CharityPasswordResetController::class, 'sendResetLinkEmail'])->name('charity.password.email');
-
-// Show the actual reset password form (from email link)
 Route::get('charity/reset-password/{token}', [CharityPasswordResetController::class, 'showResetForm'])->name('charity.password.reset');
-
-// Handle the password update
 Route::post('charity/reset-password', [CharityPasswordResetController::class, 'reset'])->name('charity.password.update');
 
-
-// user part start
-Route::group(['prefix' =>'user/', 'middleware' => ['auth', 'is_user']], function(){
-    Route::get('dashboard', [HomeController::class, 'userHome'])->name('user.dashboard');
-    // profile
-    Route::get('profile', [UserController::class, 'profile'])->name('user.profile');
-    Route::put('profile/{id}', [UserController::class, 'userProfileUpdate']);
-    Route::post('changepassword', [UserController::class, 'changeUserPassword']);
-    Route::put('image/{id}', [UserController::class, 'userImageUpload']);
-    Route::post('profile', [UserController::class, 'updateprofile'])->name('user.update');
-    Route::post('profile-delete-request', [UserController::class, 'profileDeleteRequest'])->name('account.deleteRequest');
-    Route::post('new-email-account', [UserController::class, 'emailAccountStore'])->name('emailAccountStore');
-    Route::post('email-account-update', [UserController::class, 'emailAccountUpdate'])->name('emailAccountUpdate');
-    Route::delete('user-email/delete/{id}', [UserController::class, 'destroy'])->name('useremailDestroy');
-    // profile end
-
-    
-    Route::get('current-year-giftaid-transaction/{type?}', [GiftAidController::class, 'currentYearTransaction'])->name('user.currentyear.giftaidtran');
-
-
-    // overdrawn
-    Route::post('/update-overdrawn', [DonorController::class, 'updateUserOverdrawnAmount']);
-
-    // donation
-    Route::get('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction');
-    Route::get('donor-transaction-view', [TransactionController::class, 'donorTransactionShow'])->name('user.donor.alltransaction');
-    Route::post('transaction-view', [TransactionController::class, 'userTransactionShow'])->name('user.transaction_search');
-    Route::get('make-donate', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
-    Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
-
-
-
-    // standing donation 
-    Route::post('standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
-    Route::post('active-standingdonation', [DonationController::class, 'activeStandinguser'])->name('user.standingstatus');
-    Route::get('donation-record', [DonorController::class, 'userDonationrecod'])->name('user.donationrecord');
-    Route::get('standing-order-record', [DonorController::class, 'userStandingrecod'])->name('user.standingrecord');
-    Route::get('standing-order-record/{id}', [DonationController::class, 'usersingleStanding'])->name('user.singlestanding');
-
-    //voucher
-    Route::post('/addvoucher', [OrderController::class, 'storeVoucher']);
-
-    Route::get('order-voucher-book', [OrderController::class, 'userOrderVoucherBook'])->name('user.orderbook');
-    Route::post('order-voucher-book/cart/store', [OrderController::class, 'userOrderVoucherBookstoreCart'])->name('orderbook.cart.store');
-    Route::get('order-history', [OrderController::class, 'userOrderview'])->name('user.orderhistory');
-    Route::get('voucher-order-edit/{id}', [OrderController::class, 'voucherEditByDonor'])->name('voucherBookEdit');
-    Route::post('donor-voucher-update', [OrderController::class, 'updateVoucher']);
-
-    // voucher controller satart 
-    Route::get('process-voucher', [VoucherController::class, 'processed_Voucher_show'])->name('user.process_voucher');
-    Route::post('waiting-completeBydonor', [VoucherController::class, 'waiting_CompleteBydonor']);
-    Route::post('waiting-cancelBydonor', [VoucherController::class, 'waiting_CancelBydonor']);
-
-
-    Route::get('my-report', [ReportController::class, 'userReport'])->name('user.report');
-    Route::get('giving-report', [ReportController::class, 'userGivingReport'])->name('user.givingreport');
-    Route::get('news', [HomepageController::class, 'userNews'])->name('user.news');
-    Route::get('faq', [HomepageController::class, 'userfaq'])->name('user.faq');
-    Route::get('contact', [ContactController::class, 'userContact'])->name('user.contact');
-    Route::get('invite-friend', [HomepageController::class, 'inviteFriend'])->name('user.invitefriend');
-    Route::get('settings', [HomepageController::class, 'userSettings'])->name('user.settings');
-
-    
-    Route::get('tevini-card', [HomepageController::class, 'card'])->name('user.card');
-
-
-    // strip
-    Route::get('stripe', [StripePaymentController::class, 'stripe']);
-    Route::post('stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
-
-
-    Route::get('/topup', [DonorController::class, 'stripeDonation'])->name('stripeDonation');
-
-    // donation calculator
-    Route::post('donation-calculator', [DonationController::class, 'store'])->name('donation.calculation.store');
-    Route::post('donation-calculator-update', [DonationController::class, 'DcalUpdate'])->name('donation.calculation.update');
-    Route::get('donation-calculation', [DonationController::class, 'donationCal'])->name('user.donationcal');
-    Route::get('donation-details/{id}', [DonationController::class, 'donationDetails'])->name('user.donationdetails');
-    Route::get('on-off-donation-details', [DonationController::class, 'onOffdonationDetails'])->name('user.onOffdonationDetails');
-    Route::get('active-donation-details', [DonationController::class, 'donationActive'])->name('user.donationactive');
-    Route::post('one-off-donation', [DonationController::class, 'oneoffDonation'])->name('oneoffdonation');
-
-    // other donation store
-    Route::get('other-donation-details', [DonationController::class, 'otherdonationDetails'])->name('user.otherdonationDetails');
-    Route::post('other-donation-store', [DonationController::class, 'otherDonationStore'])->name('donation.otherdonation');
-
-    // charity donation link close request 
-    Route::post('/close-a-link', [CharityController::class, 'closecharityLink']);
-    Route::post('/transfer-to-tdf', [UserController::class, 'transferToTDF']);
-    Route::post('/check-currency-amount', [UserController::class, 'checkCurrencyAmount']);
-
-    
-    Route::get('/transfer-to-tdf', [UserController::class, 'gettransferToTDF'])->name('user.transfertdf');
-
-    // card service
-    Route::get('card-service', [CardServiceController::class, 'index'])->name('userCardService');
-    Route::post('cardprofile/store', [CardServiceController::class, 'cardprofilestore'])->name('cardprofile.store');
-
-    // apply for card
-    Route::get('apply-for-card', [CardServiceController::class, 'applyForCard'])->name('applyforcard');
-    Route::post('apply-for-card', [CardServiceController::class, 'applyForCardstore'])->name('applyforcardstore');
-
-
-    // apply for card
-    Route::get('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolder'])->name('applyforcardholder');
-    Route::post('apply-for-cardholder', [CardServiceController::class, 'applyForCardHolderStore'])->name('applyforcardholderstore');
-    Route::get('update-cardholder', [CardServiceController::class, 'updateCardHolder'])->name('cardholderUpdate');
-    Route::post('update-cardholder', [CardServiceController::class, 'updateCardHolderPost'])->name('cardholderUpdatePost');
-
-    
-    // apply for card
-    Route::get('order-card', [CardServiceController::class, 'orderCard'])->name('orderCard');
-    Route::post('order-card', [CardServiceController::class, 'orderCardStore'])->name('orderCardstore');
-
-    
-    // card activation
-    Route::get('/card-activation/{id}', [CardServiceController::class, 'cardActivation'])->name('cardActivation')->middleware('prevent-back-history');
-    Route::post('/card-activation', [CardServiceController::class, 'cardActivationstore'])->name('cardActivationstore');
-
-    // cardSetPin
-    Route::get('/card-setpin/{id}', [CardServiceController::class, 'cardSetPin'])->name('cardSetPin')->middleware('prevent-back-history');
-    Route::post('/card-setpin', [CardServiceController::class, 'cardSetPinstore'])->name('cardSetPinstore');
-    Route::get('/mobile-verification', [OTPController::class, 'mobileVerify'])->name('mobileVerify')->middleware('prevent-back-history');
-    Route::post('/mobile-verification', [OTPController::class, 'OtpConfirmation'])->name('send.sms')->middleware('prevent-back-history');
-    
-    Route::get('/status-verification', [OTPController::class, 'statusVerify'])->name('statusVerify')->middleware('prevent-back-history');
-    Route::post('/status-verification', [OTPController::class, 'statusOtpConfirmation'])->name('status.sms')->middleware('prevent-back-history');
-
-    Route::get('/activation-verification', [OTPController::class, 'activationVerify'])->name('activationVerify')->middleware('prevent-back-history');
-    Route::post('/activation-verification', [OTPController::class, 'activationOtpConfirmation'])->name('activation.sms')->middleware('prevent-back-history');
-
-    // cardSetPin
-    Route::get('/card-status-change', [CardServiceController::class, 'cardStatusChange'])->name('cardStatusChange')->middleware('prevent-back-history');
-    Route::post('/card-status-change', [CardServiceController::class, 'cardStatusChangeStore'])->name('cardStatusChangeStore');
-    
-    // // card service
-    // Route::get('card-activation', [CardServiceController::class, 'index'])->name('cardActivation');
-    // Route::post('cardprofile/store', [CardServiceController::class, 'cardprofilestore'])->name('cardActivation.store');
-
-    
-    // balance transfer 
-    Route::get('balance-transfer', [BalanceTransferController::class, 'balanceTransfer'])->name('balanceTransfer');
-    Route::post('balance-transfer', [BalanceTransferController::class, 'balanceTransferStore'])->name('transfer.balance');
-
-
-});
-// user part end
-
-
-
+// Authentication
 Auth::routes();
 
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Public Pages
+Route::get('/', [HomepageController::class, 'index'])->name('homepage');
+Route::get('/about-us', [AboutController::class, 'index'])->name('aboutus');
+Route::get('/why-use-us', [AboutController::class, 'whyuseus'])->name('whyuseus');
+Route::get('/team', [AboutController::class, 'team'])->name('team');
+Route::get('/blog', [AboutController::class, 'blog'])->name('blog');
+Route::get('/terms-&-condition', [AboutController::class, 'terms'])->name('terms');
+Route::get('/privacy-&-policy', [AboutController::class, 'privacy'])->name('privacy');
+Route::get('/data-declaration-right', [AboutController::class, 'declaration'])->name('declaration');
+Route::get('/card-terms-&-condition', [AboutController::class, 'cardterms'])->name('cardterms');
+Route::get('/how-it-works', [HomepageController::class, 'howitWorks'])->name('howitWorks');
+Route::get('/tdf', [HomepageController::class, 'tdf'])->name('tdf');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->name('contact.submit');
 
-Route::get('/', [App\Http\Controllers\HomepageController::class, 'index'])->name('homepage');
-Route::get('/about-us', [App\Http\Controllers\AboutController::class, 'index'])->name('aboutus');
-Route::get('/why-use-us', [App\Http\Controllers\AboutController::class, 'whyuseus'])->name('whyuseus');
-Route::get('/team', [App\Http\Controllers\AboutController::class, 'team'])->name('team');
-Route::get('/blog', [App\Http\Controllers\AboutController::class, 'blog'])->name('blog');
-Route::get('/terms-&-condition', [App\Http\Controllers\AboutController::class, 'terms'])->name('terms');
-Route::get('/privacy-&-policy', [App\Http\Controllers\AboutController::class, 'privacy'])->name('privacy');
-Route::get('/data-declaration-right', [App\Http\Controllers\AboutController::class, 'declaration'])->name('declaration');
-Route::get('/card-terms-&-condition', [App\Http\Controllers\AboutController::class, 'cardterms'])->name('cardterms');
-Route::get('/how-it-works', [App\Http\Controllers\HomepageController::class, 'howitWorks'])->name('howitWorks');
-Route::get('/tdf', [App\Http\Controllers\HomepageController::class, 'tdf'])->name('tdf');
-Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
-Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'visitorContact'])->name('contact.submit');
-
-
-// for app safariviewcontroller its for test,
+// App Safari View Controller (for testing)
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);
 Route::get('make-donation-success', [DonorController::class, 'makeDonationAppMessage'])->name('onlinedonation.appview');
-// standing donation 
 Route::post('make-online-donation', [DonorController::class, 'userOnlineDonationStore'])->name('onlinedonation.store');
-// for app safariviewcontroller
 
-// api for campaign
-Route::get('/api', [App\Http\Controllers\HomepageController::class, 'apidonation'])->name('apidonation');
-Route::post('/api', [App\Http\Controllers\HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
+// API for Campaign
+Route::get('/api', [HomepageController::class, 'apidonation'])->name('apidonation');
+Route::post('/api', [HomepageController::class, 'apidonationCheck'])->name('apidonationchk');
 
+// Card Fingerprint
+Route::post('/cardEnrolFingerprint', [HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
+Route::post('/cardFingerprintDonation', [HomepageController::class, 'cardFingerprintDonation'])->name('cardFingerprintDonation');
+Route::post('/cardIsFingerprintUserEnrolled', [HomepageController::class, 'cardIsFingerprintUserEnrolled'])->name('cardIsFingerprintUserEnrolled');
+Route::post('/cardDeregisterFingerprint', [HomepageController::class, 'cardDeregisterFingerprint'])->name('cardDeregisterFingerprint');
 
-Route::post('/cardEnrolFingerprint', [App\Http\Controllers\HomepageController::class, 'cardEnrolFingerprint'])->name('cardEnrolFingerprint');
-Route::post('/cardFingerprintDonation', [App\Http\Controllers\HomepageController::class, 'cardFingerprintDonation'])->name('cardFingerprintDonation');
-Route::post('/cardIsFingerprintUserEnrolled', [App\Http\Controllers\HomepageController::class, 'cardIsFingerprintUserEnrolled'])->name('cardIsFingerprintUserEnrolled');
-Route::post('/cardDeregisterFingerprint', [App\Http\Controllers\HomepageController::class, 'cardDeregisterFingerprint'])->name('cardDeregisterFingerprint');
+// Change Password
+Route::get('/change-user-password', [HomeController::class, 'changePassword'])->name('user.chkpassword');
+Route::post('/change-user-password', [HomeController::class, 'passwordChange'])->name('user.pwdchange');
 
-
-// change password
-
-Route::get('/change-user-password', [App\Http\Controllers\HomeController::class, 'changePassword'])->name('user.chkpassword');
-Route::post('/change-user-password', [App\Http\Controllers\HomeController::class, 'passwordChange'])->name('user.pwdchange');
-
-
-// chatiry login
-Route::get('/charity_login', [App\Http\Controllers\CharityController::class, 'charity_login_show'])->name('charity_loginshow');
+// Charity Login
+Route::get('/charity_login', [CharityController::class, 'charity_login_show'])->name('charity_loginshow');
 Route::post('charity_login', [CharityAuthController::class, 'login'])->name('charity.login');
 
-// charity registration
+// Charity Registration
 Route::get('charity-registration', [CharityAuthController::class, 'charityRegistraion'])->name('charity.register');
 Route::post('charity-registration', [CharityAuthController::class, 'charityRegistraionStore'])->name('charity.registration');
 
+// Barcode
 Route::post('/barcode', [OrderController::class, 'getbarCode']);
 Route::post('/charity-barcode', [OrderController::class, 'getCharitybarCode']);
-
-
-
-

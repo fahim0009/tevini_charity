@@ -280,6 +280,12 @@ class TransactionController extends Controller
                 $query->where('usertransactions.t_type', $type);
             }
 
+            if ($type === 'Out') {
+                $query->where(function ($query) {
+                    $query->whereNull('usertransactions.expired')->orWhere('usertransactions.expired', '1');
+                });
+            }
+
             if ($fromDate && $toDate) {
                 $query->whereBetween('usertransactions.created_at', [$fromDate, $toDate . ' 23:59:59']);
             }

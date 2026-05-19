@@ -159,6 +159,9 @@ class User extends Authenticatable
                 $q->where('status', 1)
                   ->orWhere('pending', 1);
             })
+            ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
+            })
             ->selectRaw('
                 COALESCE(
                     SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -

@@ -71,23 +71,6 @@ class TDFTransactionController extends Controller
         $udtransaction->title ="Return from TDF";
         $udtransaction->status =  1;
         $udtransaction->save();
-
-        // card balance update
-        if (isset($user->CreditProfileId)) {
-            $CreditProfileId = $user->CreditProfileId;
-            $CreditProfileName = $user->name;
-            $AvailableBalance = 0 - $tdf_amount;
-            $comment = "TDF Transaction Cancel";
-            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                    'CreditProfileId' => $CreditProfileId,
-                    'CreditProfileName' => $CreditProfileName,
-                    'AvailableBalance' => $AvailableBalance,
-                    'comment' => $comment,
-                ]);
-        }
-        // card balance update end
-
         }
 
         

@@ -342,21 +342,6 @@ class VoucherBookController extends Controller
                 $user->decrement('balance',$order->amount);
                 $user->save();
 
-                // card balance update
-                if (isset($user->CreditProfileId)) {
-                    $CreditProfileId = $user->CreditProfileId;
-                    $CreditProfileName = $user->name;
-                    $AvailableBalance = 0 - $order->amount;
-                    $comment = "Voucher Store";
-                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                            'CreditProfileId' => $CreditProfileId,
-                            'CreditProfileName' => $CreditProfileName,
-                            'AvailableBalance' => $AvailableBalance,
-                            'comment' => $comment,
-                        ]);
-                }
-                // card balance update end
             }
 
             VoucherCart::where('user_id', Auth::user()->id)->delete();
@@ -522,10 +507,6 @@ class VoucherBookController extends Controller
             if ($prepaid_amount > 0) {
                 $user = User::find(Auth::id());
                 $user->decrement('balance', ($prepaid_amount + $delivery_charge));
-                
-                if ($user->CreditProfileId) {
-                    $this->updateExternalBalance($user, ($prepaid_amount + $delivery_charge));
-                }
             }
 
             VoucherCart::where('user_id', Auth::id())->delete();
@@ -563,21 +544,6 @@ class VoucherBookController extends Controller
         }
     }
 
-
-    private function updateExternalBalance($user, $totalDeduction)
-    {
-        try {
-            Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                    'CreditProfileId'   => $user->CreditProfileId,
-                    'CreditProfileName' => $user->name,
-                    'AvailableBalance'  => 0 - $totalDeduction, // Send as a negative deduction
-                    'comment'           => "Voucher Store Purchase",
-                ]);
-        } catch (\Exception $e) {
-            \Log::error("External API Sync Failed: " . $e->getMessage());
-        }
-    }
 
 
     private function sendOrderEmail($user, $order, $delivery_opt)
@@ -684,21 +650,6 @@ class VoucherBookController extends Controller
             $user = User::find($order->user_id);
             $user->increment('balance',$order->amount);
             $user->save();
-
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 + $order->amount;
-                $comment = "Voucher Update";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
         }
 
 
@@ -830,22 +781,6 @@ class VoucherBookController extends Controller
                 $user = User::find(Auth::user()->id);
                 $user->decrement('balance',$order->amount);
                 $user->save();
-
-                // card balance update
-                if (isset($user->CreditProfileId)) {
-                    $CreditProfileId = $user->CreditProfileId;
-                    $CreditProfileName = $user->name;
-                    $AvailableBalance = 0 - $order->amount;
-                    $comment = "Voucher Store";
-                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                            'CreditProfileId' => $CreditProfileId,
-                            'CreditProfileName' => $CreditProfileName,
-                            'AvailableBalance' => $AvailableBalance,
-                            'comment' => $comment,
-                        ]);
-                }
-                // card balance update end
             }
 
             VoucherCart::where('user_id', Auth::user()->id)->delete();
@@ -915,22 +850,6 @@ class VoucherBookController extends Controller
             $donor = User::find($voucher->user_id);
             $donor->decrement('balance',$voucher->amount);
             $donor->save();
-
-            // card balance update
-            if (isset($donor->CreditProfileId)) {
-                $CreditProfileId = $donor->CreditProfileId;
-                $CreditProfileName = $donor->name;
-                $AvailableBalance = 0 - $voucher->amount;
-                $comment = "Waiting voucher complete by donor";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->waiting = "No";

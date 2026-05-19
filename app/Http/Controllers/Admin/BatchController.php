@@ -275,10 +275,6 @@ class BatchController extends Controller
                     if ($oldUser) {
                         Charity::where('id', $deletedVoucher->charity_id)->decrement('balance', $deletedVoucher->amount);
                         $oldUser->increment('balance', $deletedVoucher->amount);
-
-                        if ($oldUser->CreditProfileId) {
-                            $this->updateCardBalance($oldUser->CreditProfileId, $oldUser->name, $deletedVoucher->amount);
-                        }
                     }
                 }
 
@@ -335,9 +331,6 @@ class BatchController extends Controller
                         Charity::where('id', $oldCharityId)->decrement('balance', $oldAmount);
                         $oldUser->increment('balance', $oldAmount);
 
-                        if ($oldUser->CreditProfileId) {
-                            $this->updateCardBalance($oldUser->CreditProfileId, $oldUser->name, $oldAmount);
-                        }
                     }
                 }
 
@@ -346,9 +339,6 @@ class BatchController extends Controller
                     Charity::where('id', $charityId)->increment('balance', $amount);
                     $user->decrement('balance', $amount);
 
-                    if ($user->CreditProfileId) {
-                        $this->updateCardBalance($user->CreditProfileId, $user->name, -$amount);
-                    }
                 }
 
                 // Update voucher record
@@ -417,10 +407,6 @@ class BatchController extends Controller
                 if (!$isPending) {
                     Charity::where('id', $charityId)->increment('balance', $amount);
                     $user->decrement('balance', $amount);
-
-                    if ($user->CreditProfileId) {
-                        $this->updateCardBalance($user->CreditProfileId, $user->name, -$amount);
-                    }
                 }
             }
         }
@@ -473,25 +459,5 @@ class BatchController extends Controller
         return "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>$message</b></div>";
     }
 
-    private function updateCardBalance($profileId, $profileName, $balanceChange)
-    {
-        Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                'CreditProfileId' => $profileId,
-                'CreditProfileName' => $profileName,
-                'AvailableBalance' => $balanceChange,
-                'comment' => 'Pending Voucher Balance update',
-            ]);
-    }
-
-
-
-
-
-
-
-
-
-    
 
 }

@@ -27,7 +27,7 @@ use App\Models\TdfTransaction;
 use Yajra\DataTables\Facades\DataTables;
 use PDF;
 use Hash;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class DonorController extends Controller
@@ -246,23 +246,6 @@ class DonorController extends Controller
         $user = User::find($request->topupid);
         $user->balance = $user->balance + $request->balance;
         if($user->save()){
-
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 + $request->balance;
-                $comment = "Donor Topup";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
-
 
             if ($request->commission != '0') {
                 $topup = new Commission();
@@ -1023,23 +1006,6 @@ class DonorController extends Controller
             $user->balance = $user->balance - $request->tdfamount;
             $user->save();
 
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $request->tdfamount;
-                $comment = "Transfer to TDF";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
-
-            
             $udtransaction = new Usertransaction();
             $udtransaction->t_id = time()."-".$donor_id;
             $udtransaction->user_id = $donor_id;
@@ -1217,22 +1183,6 @@ class DonorController extends Controller
                 $charity = Charity::where('id',$request->charity_id)->first();
                 $donation = Donation::where('id',$data->id)->first();
 
-                // card balance update
-                if (isset($user->CreditProfileId)) {
-                    $CreditProfileId = $user->CreditProfileId;
-                    $CreditProfileName = $user->name;
-                    $AvailableBalance = 0 - $request->amount;
-                    $comment = "Make a donation or Standing order";
-                    $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                        ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                            'CreditProfileId' => $CreditProfileId,
-                            'CreditProfileName' => $CreditProfileName,
-                            'AvailableBalance' => $AvailableBalance,
-                            'comment' => $comment,
-                        ]);
-                }
-                // card balance update end
-
                 $array['name'] = $user->name;
                 $array['cc'] = $contactmail;
                 $array['client_no'] = $user->accountno;
@@ -1347,22 +1297,6 @@ class DonorController extends Controller
             $charity = Charity::where('id',$request->charity_id)->first();
             $donation = Donation::where('id',$data->id)->first();
 
-
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $request->amount;
-                $comment = "Make a donation or Standing order";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
 
             // charity mail
             // $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
@@ -1479,22 +1413,6 @@ class DonorController extends Controller
             $charity = Charity::find($request->charity_id);
             $charity->increment('balance',$request->amount);
             $charity->save();
-
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $request->amount;
-                $comment = "Online Donation card balance adjust";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
 
             $user = User::where('id',$donner_id)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
@@ -1618,21 +1536,7 @@ class DonorController extends Controller
         $user->overdrawn_amount = $request->overdrawnno;
         if($user->save()){
 
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = $request->overdrawnno - $oldoverdrownamnt;
-                $comment = "add overdrawn amount by admin";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
+
 
             $record = new OverdrawnRecord;
             $record->user_id = $request->overdrawnid;
@@ -1805,21 +1709,6 @@ class DonorController extends Controller
         $user->increment('balance',$balance);
         $user->save();
 
-        // card balance update
-        if (isset($user->CreditProfileId)) {
-            $CreditProfileId = $user->CreditProfileId;
-            $CreditProfileName = $user->name;
-            $AvailableBalance = $balance;
-            $comment = "Donation status";
-            $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                    'CreditProfileId' => $CreditProfileId,
-                    'CreditProfileName' => $CreditProfileName,
-                    'AvailableBalance' => $AvailableBalance,
-                    'comment' => $comment,
-                ]);
-        }
-        // card balance update end
 
         $charity = Charity::find(Donation::where('id',$request->did)->first()->charity_id);
         $charity->decrement('balance',$balance);

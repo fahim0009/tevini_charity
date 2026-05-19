@@ -72,23 +72,6 @@ class BalanceTransferController extends Controller
             $user->balance = $user->balance - $request->amount;
             $user->save();
 
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $request->amount;
-                $comment = "Balance Transfer";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
-
-
             // send
             $udtransaction = new Usertransaction();
             $udtransaction->t_id = time()."-".Auth::user()->id;
@@ -141,22 +124,6 @@ class BalanceTransferController extends Controller
         $data->save();
 
         if($request->status == "2"){
-
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $amount;
-                $comment = "Balance Transfer Cancel";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Status change successfully.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);

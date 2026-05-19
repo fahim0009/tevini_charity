@@ -124,21 +124,6 @@ class HomepageController extends Controller
             }
             $user->save();
 
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $request->amt;
-                $comment = "third party donation by tevini";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
 
             $ch = Charity::find($campaign_dtls->charity_id);
             $ch->increment('balance',$request->amt);
@@ -223,25 +208,6 @@ class HomepageController extends Controller
                 // 5. Update User Balance (Safe Numeric Update)
                 // Note: decrement() saves to DB automatically. No need for $user->save().
                 $user->decrement('balance', $amt);
-
-                // 6. External Card API Update (QCS)
-                if (isset($user->CreditProfileId)) {
-                    try {
-                        Http::withBasicAuth(config('services.qcs.user'), config('services.qcs.pass'))
-                            ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                                'CreditProfileId'   => $user->CreditProfileId,
-                                'CreditProfileName' => $user->name,
-                                'AvailableBalance'  => 0 - $amt,
-                                'comment'           => "third party donation by tevini",
-                            ]);
-                    } catch (\Exception $e) {
-                        Log::error("Card API Update Failed during donation", [
-                            'user_id' => $user->id,
-                            'error' => $e->getMessage()
-                        ]);
-                        // We continue the transaction even if API notification fails
-                    }
-                }
 
                 // 7. Update Charity Balance
                 $charity = Charity::findOrFail($campaign_dtls->charity_id);
@@ -435,23 +401,6 @@ class HomepageController extends Controller
             $fingerData->title = "Fingerprint Donation";
             $fingerData->save();
 
-            // card balance update
-            if (isset($user->CreditProfileId)) {
-                $CreditProfileId = $user->CreditProfileId;
-                $CreditProfileName = $user->name;
-                $AvailableBalance = 0 - $amount;
-                $comment = "third party donation by tevini";
-                $response = Http::withBasicAuth('TeviniProductionUser', 'hjhTFYj6t78776dhgyt994645gx6rdRJHsejj')
-                    ->post('https://tevini.api.qcs-uk.com/api/cardService/v1/product/updateCreditProfile/availableBalance', [
-                        'CreditProfileId' => $CreditProfileId,
-                        'CreditProfileName' => $CreditProfileName,
-                        'AvailableBalance' => $AvailableBalance,
-                        'comment' => $comment,
-                    ]);
-            }
-            // card balance update end
-
-            
 
             $reason ='Donation completed successfully';
             return response()->json(['status'=> 'success','reason'=>$reason,'intid'=>$utransaction->t_id]);

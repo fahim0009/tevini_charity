@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\StandingDonation;
 use App\Models\DonationCalculator;
@@ -24,7 +25,6 @@ use App\Mail\DonerReport;
 use App\Mail\DonationreportCharity;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
-use Auth;
 use Illuminate\Support\Facades\Http;
 
 class DonationController extends Controller
@@ -78,44 +78,39 @@ class DonationController extends Controller
         if(empty($ostart_date)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Date field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
 
         if(empty($oincome_amount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Amount field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
 
         if(empty($oincome_title)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill Donation Title field.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
-
 
         if(empty($odonation_percentage)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please Choose Your Percentage.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
 
-
-            $data = new DonationDetail;
-            $data->date = $ostart_date;
-            $data->income_amount = $oincome_amount;
-            $data->income_title = $oincome_title;
-            $data->income_slot = 0;
-            $data->donation_percentage = $odonation_percentage;
-            $data->donation_amount = $oincome_amount * ($odonation_percentage/100);;
-            $data->status = 1;
-            $data->donor_id = Auth::user()->id;
-            $data->save();
-
+        $data = new DonationDetail;
+        $data->date = $ostart_date;
+        $data->income_amount = $oincome_amount;
+        $data->income_title = $oincome_title;
+        $data->income_slot = 0;
+        $data->donation_percentage = $odonation_percentage;
+        
+        // ✅ Fixed: Cast to float before multiplication
+        $data->donation_amount = (float)$oincome_amount * ((float)$odonation_percentage / 100);
+        
+        $data->status = 1;
+        $data->donor_id = Auth::user()->id;
+        $data->save();
 
         $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>One-off income added successfully.</b></div>";
         return response()->json(['status'=> 300,'message'=>$message]);
-
     }
 
 

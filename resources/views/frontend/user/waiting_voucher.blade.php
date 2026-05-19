@@ -26,9 +26,9 @@ use Illuminate\Support\Carbon;
                           <section class="px-4"  id="contentContainer">
                             <div class="row my-3">
 
-                                <div class="col-md-12 mt-2 text-center">
+                                <div class="col-md-12 mt-2 text-center  shadow-sm">
                                     <div class="overflow">
-                                        <table class="table table-custom shadow-sm bg-white" id="example">
+                                        <table class="table" id="example">
                                             <thead>
                                                 <tr>                
                                                     <th>Date</th>

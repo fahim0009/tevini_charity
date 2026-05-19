@@ -2,6 +2,13 @@
 
 @section('content')
 
+<style>
+    .card {
+        background-color: #FDF3EE
+    }
+</style>
+
+
 {{-- Page Header --}}
 <div class="row mb-4">
     <div class="col-md-12">
@@ -24,7 +31,7 @@
     </div>
 @endif
 
-<form action="{{ route('onegiv.ordercard.store') }}" method="POST">
+<form action="{{ route('onegiv.ordercard.store') }}" method="POST" id="orderForm">
 @csrf
 
 <div class="row g-4">
@@ -113,14 +120,20 @@
                 </div>
 
                 {{-- Amount --}}
-                <input type="number" name="amount" id="amount"
-                    class="form-control @error('amount') is-invalid @enderror"
-                    placeholder="e.g. 1.50"
-                    min="0.50"
-                    step="0.01"
-                    value="{{ old('amount') }}"
-                    oninput="validateAmount(this)">
-                <small class="text-muted">Minimum amount is £0.50 (e.g. 0.50, 1, 1.50, 10)</small>
+                <div id="amount_field" class="mb-3">
+                    <label class="form-label fw-semibold">Amount</label>
+                    <input type="number" name="amount" id="amount"
+                        class="form-control @error('amount') is-invalid @enderror"
+                        placeholder="e.g. 1.50"
+                        min="0.50"
+                        step="0.01"
+                        value="{{ old('amount') }}"
+                        oninput="validateAmount(this)">
+                    <small class="text-muted">Minimum amount is £0.50 (e.g. 0.50, 1, 1.50, 10)</small>
+                    @error('amount')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
                 {{-- PIN --}}
                 <div class="mb-0">
@@ -310,7 +323,7 @@
         </div>
 
         {{-- Submit Button --}}
-        <button type="submit" class="btn w-100 text-white fw-semibold py-3 rounded-3 mb-4"
+        <button type="submit" id="submitBtn" class="btn w-100 text-white fw-semibold py-3 rounded-3 mb-4"
                 style="background: linear-gradient(135deg, #1a1a2e, #0f3460); font-size:16px;">
             Place Card Order →
         </button>
@@ -328,6 +341,38 @@
 </div>
 
 </form>
+
+{{-- LOADING SPINNER OVERLAY - MOVED OUTSIDE FORM --}}
+<div id="loadingOverlay" style="display:none !important; position:fixed !important; top:0 !important; left:0 !important; width:100% !important; height:100% !important; background:rgba(255,255,255,0.9) !important; z-index:999999 !important; justify-content:center !important; align-items:center !important; flex-direction:column !important;">
+    <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem; border-width: 0.4em;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 fw-bold text-dark" style="font-size: 18px;">Placing your order...</p>
+    <small class="text-muted">Please do not close this window</small>
+</div>
+
+{{-- CONFIRMATION MODAL --}}
+<div class="modal fade" id="confirmModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-body p-4 text-center">
+                <div style="font-size: 50px; margin-bottom: 15px;">🛒</div>
+                <h5 class="fw-bold mb-2">Confirm Card Order</h5>
+                <p class="text-muted mb-0">Are you sure you want to place this order? Please review the details before confirming.</p>
+                <div id="confirmDetails" class="mt-3 p-3 rounded-3 bg-light text-start" style="font-size: 14px;"></div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center p-4 pt-0">
+                <button type="button" class="btn btn-outline-secondary px-4 rounded-3" data-bs-dismiss="modal" id="cancelBtn">
+                    Cancel
+                </button>
+                <button type="button" class="btn text-white px-4 rounded-3" id="confirmBtn"
+                        style="background: linear-gradient(135deg, #1a1a2e, #0f3460);">
+                    ✅ Yes, Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Orders Modal --}}
 <div class="modal fade" id="ordersModal" tabindex="-1">
@@ -398,29 +443,84 @@
 
 @section('script')
 <script>
-// Fixed/Variable toggle
+// 1. FORM SUBMIT WITH CONFIRMATION
+document.getElementById('orderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Get form values
+    var cardHolder = document.getElementById('card_holder').value;
+    var fixedAmount = document.querySelector('input[name="fixed_amount"]:checked').value;
+    var amount = document.getElementById('amount').value;
+    var email = document.querySelector('input[name="email"]').value;
+    var pin = document.querySelector('input[name="pin"]').value;
+    
+    // Build confirmation details
+    var detailsHtml = '<div class="row g-2">';
+    detailsHtml += '<div class="col-6"><strong>Card Holder:</strong><br>' + cardHolder + '</div>';
+    detailsHtml += '<div class="col-6"><strong>Type:</strong><br>' + (fixedAmount == 1 ? 'Fixed Amount' : 'Variable') + '</div>';
+    if (fixedAmount == 1 && amount) {
+        detailsHtml += '<div class="col-6"><strong>Amount:</strong><br>£' + parseFloat(amount).toFixed(2) + '</div>';
+    }
+    detailsHtml += '<div class="col-6"><strong>Email:</strong><br>' + email + '</div>';
+    detailsHtml += '<div class="col-6"><strong>PIN:</strong><br>' + '****' + '</div>';
+    detailsHtml += '</div>';
+    
+    document.getElementById('confirmDetails').innerHTML = detailsHtml;
+    
+    // Show confirmation modal
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    confirmModal.show();
+});
+
+// 2. CONFIRM BUTTON CLICK - SHOW SPINNER AND SUBMIT
+document.getElementById('confirmBtn').addEventListener('click', function() {
+    // Hide confirmation modal
+    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+    confirmModal.hide();
+    
+    // Show the spinner
+    var overlay = document.getElementById('loadingOverlay');
+    overlay.style.display = 'flex';
+    overlay.style.setProperty('display', 'flex', 'important');
+    
+    // Disable the submit button
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerText = 'Processing...';
+    document.getElementById('submitBtn').style.opacity = '0.7';
+    
+    // Wait a bit then submit
+    setTimeout(() => {
+        document.getElementById('orderForm').submit();
+    }, 300);
+});
+
+// 3. Fixed/Variable toggle
 document.querySelectorAll('input[name="fixed_amount"]').forEach(function(radio) {
     radio.addEventListener('change', function() {
         var amountField = document.getElementById('amount_field');
         if (this.value == '1') {
             amountField.style.display = 'block';
+            if(!document.getElementById('amount').value) {
+                document.getElementById('preview_amount').innerText = '£0.00';
+            }
         } else {
             amountField.style.display = 'none';
             document.getElementById('amount').value = '';
-            document.getElementById('preview_amount').innerText = '£0.00';
+            document.getElementById('preview_amount').innerText = 'Variable';
         }
     });
 });
 
-// Page load check
+// 4. Page load check
 window.onload = function() {
     var checked = document.querySelector('input[name="fixed_amount"]:checked');
     if (checked && checked.value == '0') {
         document.getElementById('amount_field').style.display = 'none';
+        document.getElementById('preview_amount').innerText = 'Variable';
     }
 };
 
-// Amount validation — minimum £1
+// 5. Amount validation
 function validateAmount(input) {
     var value = parseFloat(input.value);
 
@@ -434,6 +534,5 @@ function validateAmount(input) {
         input.setCustomValidity('');
     }
 }
-
 </script>
 @endsection

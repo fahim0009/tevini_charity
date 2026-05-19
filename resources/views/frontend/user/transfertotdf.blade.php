@@ -19,9 +19,9 @@ use Illuminate\Support\Carbon;
                 <div class="tab-pane fade show active" id="nav-transactionOut" role="tabpanel" aria-labelledby="nav-transactionOut">
                     <div class="row my-2">
                         
-                        <div class="col-md-12 mt-2 text-center">
+                        <div class="col-md-12 mt-2 text-center  shadow-sm">
                             <div class="overflow">
-                                <table class="table table-custom shadow-sm bg-white" id="example">
+                                <table class="table" id="example">
                                     <thead>
                                         <tr>
                                             <th>Date</th>

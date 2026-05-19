@@ -102,6 +102,9 @@ public function userHome()
     // Optimization: Use eager loading 'provoucher' and 'charity' to prevent N+1 issues
     $alltransactions = Usertransaction::where('user_id', $user->id)
         ->where(fn($q) => $q->where('status', 1)->orWhere('pending', 1))
+        ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
+            })
         ->with(['provoucher', 'charity'])
         ->orderBy('id', 'DESC')
         ->limit(5)

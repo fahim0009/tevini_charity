@@ -184,10 +184,13 @@ use Illuminate\Support\Carbon;
                                 </td>
                                 <td class="fs-16 txt-secondary">
                                     @if ($transaction->title == "Voucher")
-                                            {{$transaction->cheque_no}}
-                                            @else
-                                            {{$transaction->t_id}}
-                                            @endif
+                                    {{$transaction->cheque_no}}
+                                    @if ($transaction->expired == '0')
+                                        <span class="badge bg-danger ms-2">Expired</span>
+                                    @endif
+                                    @else
+                                    {{$transaction->t_id}}
+                                    @endif
                                 </td>
                                 <td class="fs-16 txt-secondary">
                                     £{{number_format($transaction->amount, 2)}}

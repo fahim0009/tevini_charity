@@ -757,6 +757,9 @@ public function exportSummaryCsv2(Request $request)
                     ->where('pending', 1)
                     ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
             })
+            ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
+            })
             ->orderByDesc('id')
             ->get();
 
@@ -776,6 +779,9 @@ public function exportSummaryCsv2(Request $request)
             ->where('t_type', 'Out')
             ->where(function ($query) {
                 $query->where('status', 1);
+            })
+            ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
             })
             ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
                 $query->whereBetween('created_at', [$fromDate, $toDate]);
@@ -1053,6 +1059,9 @@ public function exportSummaryCsv2(Request $request)
         $userTransQuery = Usertransaction::with('charity')
             ->where('charity_id', $id)
             ->where('t_type', 'Out')
+            ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
+            })
             ->where('status', '1');
 
         // --- 3. External Transactions (Transaction Out Tab) ---

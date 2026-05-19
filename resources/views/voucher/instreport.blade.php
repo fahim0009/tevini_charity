@@ -110,6 +110,8 @@ use app\Models\Provoucher;
                                                 Awaiting
                                                 @elseif($data->status == 0 && $data->waiting == "No")
                                                 Pending
+                                                @elseif($data->status == 0 && $data->expired == "Yes")
+                                                Expired
                                                 @elseif($data->status == 3)
                                                 Cancel
                                                 @endif

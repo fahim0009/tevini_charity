@@ -2,13 +2,17 @@
 @section('content')
 
 @php
-    $alltransactions = \App\Models\Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->with('provoucher')->limit(5)->get();
+    // $alltransactions = \App\Models\Usertransaction::where([
+    //         ['user_id','=', auth()->user()->id],
+    //         ['status','=', '1']
+    //     ])->orwhere([
+    //         ['user_id','=', auth()->user()->id],
+    //         ['pending','=', '1']
+    //         ])
+    //         ->where(function ($query) {
+    //             $query->whereNull('expired')->orWhere('expired', '1');
+    //         })
+    //         ->orderBy('id','DESC')->with('provoucher')->limit(5)->get();
 
 
     $tamount = \App\Models\Usertransaction::where([

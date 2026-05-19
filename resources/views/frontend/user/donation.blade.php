@@ -10,6 +10,10 @@
     vertical-align: middle;
     }
 
+    .modal-content{
+        background-color: #FDF3EE;
+    }
+
 </style>
 
 <style>
@@ -260,22 +264,23 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Make Donation</h1>
+          <h1 class="fw-bold fs-23 txt-secondary" id="exampleModalLabel">Make Donation</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           
-            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Charity Name: <span id="charityname"></span> </div>
-            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Donation Amount: <span id="donationamnt"></span></div>
-            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Note: <span id="donationNote"></span></div>
-            <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">My Note: <span id="dmynote"></span></div>
+            <div class="txt-secondary border-bottom pb-2">Charity Name: <span id="charityname"></span> </div>
+            <div class="txt-secondary border-bottom pb-2">Donation Amount: <span id="donationamnt"></span></div>
+            <div class="txt-secondary border-bottom pb-2">Note: <span id="donationNote"></span></div>
+            <div class="txt-secondary pb-2">My Note: <span id="dmynote"></span></div>
 
             <div id="standardDiv">
-                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">Set up a standing order: <span id="">Yes</span></div>
-                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">PAYMENTS: <span id="d_payment"></span></div>
-                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">NUMBER OF PAYMENTS: <span id="d_nymber"></span></div>
-                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">STARTING: <span id="d_starting"></span></div>
-                <div class="fw-bold fs-23 txt-secondary border-bottom pb-2">INTERVAL: <span id="d_interval"></span></div>
+                <div class="border-bottom"></div>
+                <div class="txt-secondary border-bottom pb-2">Set up a standing order: <span id="">Yes</span></div>
+                <div class="txt-secondary border-bottom pb-2">PAYMENTS: <span id="d_payment"></span></div>
+                <div class="txt-secondary border-bottom pb-2">NUMBER OF PAYMENTS: <span id="d_nymber"></span></div>
+                <div class="txt-secondary border-bottom pb-2">STARTING: <span id="d_starting"></span></div>
+                <div class="txt-secondary pb-2">INTERVAL: <span id="d_interval"></span></div>
             </div>
 
         </div>

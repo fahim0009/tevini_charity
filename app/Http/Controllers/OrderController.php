@@ -1358,7 +1358,7 @@ class OrderController extends Controller
             if (!$user) continue;
 
             $limit     = $user->getAvailableLimit();
-            $isPending = ($limit < $amount || $row['waiting'] === 'Yes');
+            $isPending = ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes');
 
             $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
 
@@ -1371,7 +1371,7 @@ class OrderController extends Controller
             $transaction->cheque_no          = $chequeNo;
             $transaction->title              = "Voucher";
             $transaction->barcode_image      = $barcodeImagePath;
-            $transaction->pending            = $isPending ? 0 : 1;
+            $transaction->pending            = $row['waiting'] === 'Yes' ? 0 : 1;
             $transaction->status             = $isPending ? 0 : 1;
             $transaction->expired            = $row['expired'] === 'Yes' ? 0 : 1;
             $transaction->provoucher_batch_id = $probatch->id;

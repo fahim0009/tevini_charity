@@ -111,7 +111,7 @@
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h3 id="usertestID"></h3>
-                <h2 class="amount">{{ $donorUpBalance }}
+                <h2 class="amount">{{ Auth::user()->getLiveBalance() }}
                     GBP</h2>
                     
                 <div class="row">
@@ -290,203 +290,350 @@
 @endsection
 
 @section('script')
-<script>
-    document.getElementById('DonationForm').addEventListener('submit', function() {
-        document.getElementById('loader').style.display = 'block';
-    });
-</script>
-<script>
-     $(document).ready(function () {
-
-        // donatemodal transfer modal show
-        $("#donatemodal").click(function(){
-
-            if (!$('#charity_id').val()) {
-                alert('Please select a charity.');
-                return;
-            }
-
-            if (!$('#amount').val()) {
-                alert('Please fill amount field.');
-                return;
-            }
-
-            if (!$('#confirm_donation').is(':checked')) {
-                alert('Please confirm that this donation is for charitable purposes only.');
-                return;
-            }
-
-
-            var i = $("#charity_id").val();
-            values=i.split('|');
-            account_id=values[0];
-            account_name=values[1];
-
-            var charity_id = $("#charity_id").val();
-            var amount = $("#amount").val();
-            var charitynote = $("#charitynote").val();
-            var mynote = $("#mynote").val();
-
-            var standard= $('#standard').prop('checked');
-            console.log(standard);
-
-            var payments_type = $("#payments_type").val();
-            var number_payments = $("#number_payments").val();
-            var starting = $("#starting").val();
-            var interval = $("#interval").val();
-
-            $("#charityname").html(account_name);
-            $("#donationamnt").html(amount);
-            $("#donationNote").html(charitynote);
-            $("#dmynote").html(mynote);
-
-            if (standard == true) {
-            $("#standardDiv").show();
-            } else {
-            $("#standardDiv").hide();
-            }
-
-            if (interval == 1) {
-            $("#d_interval").html("Monthly");
-            } else if (interval == 3) {
-            $("#d_interval").html("Every 3 month");
-            } else if (interval == 6) {
-            $("#d_interval").html("Every 6 month");
-            } else {
-            $("#d_interval").html("Yearly");
-            } 
-            if (payments_type == 1) {
-                
-            $("#d_payment").html("Fixed number of payments");
-            } else {
-                
-            $("#d_payment").html("Continuous payments");
-            }
-
-            $("#d_starting").html(starting);
-            $("#d_nymber").html(number_payments);
-                    
-            $('#exampleModal').modal('show');
-
-        });
-        // donatemodal transfer modal end
-
-        $(".standardOptions").hide();
-        $("#standard").click(function() {
-            if($(this).is(":checked")) {
-                $(".standardOptions").show(300);
-            } else {
-                $(".standardOptions").hide(200);
-            }
-        });
-
-        $("#payments_type").change(function () {
-                var number_payments = $(this).val();
-                var amount = Number($("#amount").val());
-                if (number_payments == "2") {
-                    $("#number_payments").val(" ");
-                    $("#totalamt").val(amount);
-                    $("#number_payments").attr("disabled", true);
-                  }else{
-                    $("#number_payments").attr("disabled", false);
-                  }
-        });
-
-        //calculation end
-        $("#amount, #number_payments").keyup(function(){
-            var number_payments = Number($("#number_payments").val());
-            var amount = Number($("#amount").val());
-            console.log(number_payments);
-            if (number_payments == 0) {
-                
-            var totalamt = amount;
-            $("#totalamt").val(totalamt.toFixed(2));
-
-            } else {
-                
-            var totalamt = amount * number_payments;
-            $("#totalamt").val(totalamt.toFixed(2));
-            
-            }
-        });
-        //calculation end  
-
-        //header for csrf-token is must in laravel
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-
-            //  make doantion start
-        
-            $("#addBtn").click(function(){
-                
-                $('#exampleModal').modal('hide');
-                // if(!confirm('Are you sure?')) return;
-                
-                 $("#loading").show();
-
-                 
-                    var i = $("#charity_id").val();
-                    values=i.split('|');
-                    account_id=values[0];
-                    account_name=values[1];
-
-                    var charity_id= account_id;
-                    var amount= $("#amount").val();
-                    var ano_donation= $('#ano_donation').prop('checked');
-                    var standard= $('#standard').prop('checked');
-                    var payments_type= $("#payments_type").val();
-                    var number_payments= $("#number_payments").val();
-                    var starting= $("#starting").val();
-                    var interval= $("#interval").val();
-                    var c_donation= $('#confirm_donation').prop('checked');
-                    var charitynote= $("#charitynote").val();
-                    var mynote= $("#mynote").val();
-                    var userid= $("#userid").val();
-
-                    if($("#standard").is(":checked")) {
-                        var url = "{{URL::to('/user/standing-donation')}}";
-                    } else {
-                        var url = "{{URL::to('/user/make-donation')}}";
-                    }
-
-
-                    $.ajax({
-                        url: url,
-                        method: "POST",
-                        data: {charity_id,amount,ano_donation,standard,payments_type,number_payments,starting,interval,c_donation,charitynote,mynote,userid},
-                        success: function (d) {
-                            console.log(d.data)
-                            
-                            
-                            if (d.status == 303) {
-                                $(".ermsg").html(d.message);
-                                $(".rightbar").animate({ scrollTop: 0 }, "fast");
-                            }else if(d.status == 300){
-                                $(".ermsg").html(d.message);
-                                $(".rightbar").animate({ scrollTop: 0 }, "fast");
-                                window.setTimeout(function(){location.reload()},2000)
-                            }
-                        },
-                        complete:function(data){
-                            $("#loading").hide();
-                        },
-                        error: function (d) {
-                            console.log(d);
-                        }
-                    });
-
-            });
-            // make donation end
-
-
-});
-</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
 <script>
-    $('#charity_id').select2({
-      width: '100%',
-      placeholder: "Select an Option",
-      allowClear: true
-    });
-  </script>
+(function ($) {
+    'use strict';
 
+    /* ─── Constants ─────────────────────────────────────────── */
+    var STANDING_URL   = "{{ URL::to('/user/standing-donation') }}";
+    var ONETIME_URL    = "{{ URL::to('/user/make-donation') }}";
+
+    var INTERVAL_LABELS = {
+        '1':  'Monthly',
+        '3':  'Every 3 months',
+        '6':  'Every 6 months',
+        '12': 'Yearly'
+    };
+
+    var PAYMENT_TYPE_LABELS = {
+        '1': 'Fixed number of payments',
+        '2': 'Continuous payments'
+    };
+
+    var STATUS = { ERROR_SHOW: 303, ERROR_RELOAD: 300 };
+
+
+    /* ─── DOM Cache ─────────────────────────────────────────── */
+    var dom = {
+        form:            $('#DonationForm'),
+        charitySelect:   $('#charity_id'),
+        amount:          $('#amount'),
+        anoDonation:     $('#ano_donation'),
+        standard:        $('#standard'),
+        paymentsType:    $('#payments_type'),
+        numberPayments:  $('#number_payments'),
+        starting:        $('#starting'),
+        interval:        $('#interval'),
+        totalAmt:        $('#totalamt'),
+        confirmDonation: $('#confirm_donation'),
+        charityNote:     $('#charitynote'),
+        myNote:          $('#mynote'),
+        userId:          $('#userid'),
+        errorBox:        $('.ermsg'),
+        loading:         $('#loading'),
+        standardOpts:    $('.standardOptions'),
+
+        // buttons
+        btnOpenModal: $('#donatemodal'),
+        btnConfirm:   $('#addBtn'),
+
+        // modal
+        modal:                $('#exampleModal'),
+        modalStandardDiv:     $('#standardDiv'),
+        modalCharityName:     $('#charityname'),
+        modalAmount:          $('#donationamnt'),
+        modalCharityNote:     $('#donationNote'),
+        modalMyNote:          $('#dmynote'),
+        modalPaymentType:     $('#d_payment'),
+        modalNumberPayments:  $('#d_nymber'),
+        modalStarting:        $('#d_starting'),
+        modalInterval:        $('#d_interval')
+    };
+
+
+    /* ─── Helpers ───────────────────────────────────────────── */
+
+    /**
+     * Parse the combined charity value "id|name" into an object.
+     */
+    function parseCharity() {
+        var raw = dom.charitySelect.val();
+        if (!raw) return null;
+        var parts = raw.split('|');
+        return { id: parts[0], name: parts[1] || '' };
+    }
+
+    function toFixed2(n) {
+        var num = parseFloat(n);
+        return isNaN(num) ? '0.00' : num.toFixed(2);
+    }
+
+    /**
+     * Gather every field the backend expects.
+     */
+    function collectFormData() {
+        var charity = parseCharity();
+        return {
+            charity_id:       charity ? charity.id : '',
+            amount:           dom.amount.val(),
+            ano_donation:     dom.anoDonation.is(':checked'),
+            standard:         dom.standard.is(':checked'),
+            payments_type:    dom.paymentsType.val(),
+            number_payments:  dom.numberPayments.val(),
+            starting:         dom.starting.val(),
+            interval:         dom.interval.val(),
+            c_donation:       dom.confirmDonation.is(':checked'),
+            charitynote:      dom.charityNote.val(),
+            mynote:           dom.myNote.val(),
+            userid:           dom.userId.val()
+        };
+    }
+
+
+    /* ─── Inline Error Display ──────────────────────────────── */
+
+    function showError(msg) {
+        dom.errorBox.html(
+            '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                msg +
+                '<button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>' +
+            '</div>'
+        );
+        scrollToTop();
+    }
+
+    // ✅ NEW: Dedicated function for success messages
+    function showSuccess(msg) {
+        dom.errorBox.html(msg);
+        scrollToTop();
+    }
+
+
+    function scrollToTop() {
+        var $target = $('.rightbar').length ? $('.rightbar') : $('html, body');
+        $target.animate({ scrollTop: 0 }, 'fast');
+    }
+
+
+    function clearErrors() {
+        dom.errorBox.html('');
+    }
+
+
+    /* ─── Loading State ─────────────────────────────────────── */
+
+    function setLoading(on) {
+        if (on) {
+            dom.loading.show();
+            dom.btnConfirm.prop('disabled', true).css('opacity', 0.65);
+        } else {
+            dom.loading.hide();
+            dom.btnConfirm.prop('disabled', false).css('opacity', 1);
+        }
+    }
+
+
+    /* ─── Validation ────────────────────────────────────────── */
+
+    function validate() {
+        var errors = [];
+
+        if (!dom.charitySelect.val()) {
+            errors.push('Please select a charity.');
+        }
+
+        var amt = parseFloat(dom.amount.val());
+        if (!amt || amt <= 0) {
+            errors.push('Please enter a valid donation amount.');
+        }
+
+        if (!dom.confirmDonation.is(':checked')) {
+            errors.push('Please confirm that this donation is for charitable purposes only.');
+        }
+
+        // Standing-order-specific checks
+        if (dom.standard.is(':checked')) {
+            if (!dom.starting.val()) {
+                errors.push('Please select a starting date for the standing order.');
+            }
+            if (dom.paymentsType.val() === '1') {
+                var num = parseInt(dom.numberPayments.val(), 10);
+                if (!num || num <= 0) {
+                    errors.push('Please enter a valid number of payments.');
+                }
+            }
+        }
+
+        return errors;
+    }
+
+
+    /* ─── Modal ─────────────────────────────────────────────── */
+
+    function fillModal(data) {
+        var charity = parseCharity();
+
+        dom.modalCharityName.text(charity ? charity.name : '');
+        dom.modalAmount.text('\u00A3' + toFixed2(data.amount));
+        dom.modalCharityNote.text(data.charitynote || '\u2014');
+        dom.modalMyNote.text(data.mynote || '\u2014');
+
+        if (data.standard) {
+            dom.modalStandardDiv.show();
+            dom.modalPaymentType.text(PAYMENT_TYPE_LABELS[data.payments_type] || '\u2014');
+            dom.modalNumberPayments.text(
+                data.payments_type === '2' ? 'Continuous' : (data.number_payments || '\u2014')
+            );
+            dom.modalStarting.text(data.starting || '\u2014');
+            dom.modalInterval.text(INTERVAL_LABELS[data.interval] || '\u2014');
+        } else {
+            dom.modalStandardDiv.hide();
+        }
+    }
+
+    function openModal() {
+        clearErrors();
+
+        var errors = validate();
+        if (errors.length) {
+            showError(errors.join('<br>'));
+            return;
+        }
+
+        fillModal(collectFormData());
+        dom.modal.modal('show');
+    }
+
+
+    /* ─── Standing-Order UI ─────────────────────────────────── */
+
+    function toggleStandingOptions() {
+        if (dom.standard.is(':checked')) {
+            dom.standardOpts.slideDown(300);
+        } else {
+            dom.standardOpts.slideUp(200);
+        }
+    }
+
+    function onPaymentTypeChange() {
+        if (dom.paymentsType.val() === '2') {
+            dom.numberPayments.val('').prop('disabled', true);
+        } else {
+            dom.numberPayments.prop('disabled', false);
+        }
+        recalcTotal();
+    }
+
+    function recalcTotal() {
+        var amount   = parseFloat(dom.amount.val()) || 0;
+        var payments = parseInt(dom.numberPayments.val(), 10) || 0;
+        var total    = payments > 0 ? amount * payments : amount;
+        dom.totalAmt.val(toFixed2(total));
+    }
+
+
+    /* ─── AJAX Submission ───────────────────────────────────── */
+
+    function submitDonation() {
+        dom.modal.modal('hide');
+        setLoading(true);
+        clearErrors();
+
+        var data = collectFormData();
+        var url  = data.standard ? STANDING_URL : ONETIME_URL;
+
+        $.ajax({
+            url:     url,
+            method:  'POST',
+            data:    data,
+            success: handleResponse,
+            error:   function (xhr) {
+                var msg = 'Something went wrong. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                showError(msg);
+            },
+            complete: function () {
+                setLoading(false);
+            }
+        });
+    }
+
+    function handleResponse(res) {
+        clearErrors();
+        var msg = res.message || '';
+
+        // Handle status 303 and 300
+        if (res.status === 303 || res.status === 300) {
+            
+            // ✅ SMART FIX: Check if the message is actually a success message.
+            // If the backend says "success" but uses an error status code, show green!
+            if (msg.toLowerCase().indexOf('success') !== -1) {
+                showSuccess(msg);
+            } else {
+                showError(msg);
+            }
+
+            // Trigger reload if requested by backend
+            if (res.status === 300) {
+                setTimeout(function () { window.location.reload(); }, 2000);
+            }
+            return;
+        }
+
+        // Handle standard success (with redirect)
+        if (res.redirect) {
+            window.location.href = res.redirect;
+            return;
+        }
+
+        // Fallback success (no redirect provided)
+        showSuccess(msg || 'Donation submitted successfully!');
+        setTimeout(function () { window.location.reload(); }, 1500);
+    }
+
+    /* ─── Event Bindings ────────────────────────────────────── */
+
+    function bindEvents() {
+        dom.btnOpenModal.on('click', openModal);
+        dom.btnConfirm.on('click', submitDonation);
+        dom.standard.on('click', toggleStandingOptions);
+        dom.paymentsType.on('change', onPaymentTypeChange);
+        dom.amount.on('keyup', recalcTotal);
+        dom.numberPayments.on('keyup', recalcTotal);
+    }
+
+
+    /* ─── Initialise ────────────────────────────────────────── */
+
+    function init() {
+        // CSRF token for every AJAX request
+        $.ajaxSetup({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        });
+
+        // Select2
+        dom.charitySelect.select2({
+            width: '100%',
+            placeholder: 'Select an Option',
+            allowClear: true
+        });
+
+        // Ensure standing-order options start hidden unless pre-checked via old()
+        if (!dom.standard.is(':checked')) {
+            dom.standardOpts.hide();
+        }
+
+        // Pre-fill total when amount is passed via GET (?amount=...)
+        recalcTotal();
+
+        bindEvents();
+    }
+
+    $(init);
+
+})(jQuery);
+</script>
 @endsection

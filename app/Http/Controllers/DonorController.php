@@ -866,33 +866,11 @@ class DonorController extends Controller
 
     public function userDonationShow()
     {
-        // user balance calculation start
-        $gettrans = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-        ])->orderBy('id','DESC')->get();
-
-        $donorUpBalance = 0;
-
-        foreach ($gettrans as $key => $tran) {
-            if ($tran->t_type == "In") {
-                $donorUpBalance = $donorUpBalance + $tran->amount;
-            }elseif ($tran->t_type == "Out") {
-                $donorUpBalance = $donorUpBalance - $tran->amount;
-            } else {
-                # code...
-            }
-        }
-        // user balance calculation end
-        return view('frontend.user.donation', compact('donorUpBalance'));
+        return view('frontend.user.donation');
     }
 
     public function makeDonationAppView()
     {
-        
         return view('frontend.user.donationapp');
     }
     public function makeDonationAppMessage()
@@ -1299,15 +1277,15 @@ class DonorController extends Controller
 
 
             // charity mail
-            // $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
-            // $output = $pdf->output();
-            // file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
-            // $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
-            // $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
-            // $array['cc'] = $contactmail;
-            // $array['charity'] = $charity;
-            // $array['user'] = $user;
-            // $email = $charity->email;
+            $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
+            $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
+            $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
+            $array['cc'] = $contactmail;
+            $array['charity'] = $charity;
+            $array['user'] = $user;
+            $email = $charity->email;
 
             // Mail::to($email)
             // ->cc($contactmail)

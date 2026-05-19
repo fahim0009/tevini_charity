@@ -80,5 +80,6 @@ class Kernel extends HttpKernel
         'charity' => \App\Http\Middleware\Charity::class,
         'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class,
         'onegiv.auth'          => \App\Http\Middleware\VerifyOneGivToken::class,
+        'charity.profile.complete' => \App\Http\Middleware\EnsureCharityProfileComplete::class,
     ];
 }

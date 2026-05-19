@@ -58,6 +58,15 @@ class Charity extends Authenticatable
   }
 
 
+  public function isProfileComplete()
+  {
+      return !empty($this->acc_no) && 
+            !empty($this->website) && 
+            !empty($this->address) && 
+            !empty($this->town) && 
+            !empty($this->post_code);
+  }
+
 
 
 }

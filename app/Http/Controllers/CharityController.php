@@ -443,67 +443,105 @@ class CharityController extends Controller
     }
 
 
-    public function updateCharity_profile(Request $request)
+    public function updateProfile(Request $request)
     {
+        $charityId = auth('charity')->user()->id;
 
-        // $chkemail = Charity::where('email','=', $request->email)->whereNotIn('id', [auth('charity')->user()->id])->count();
+        $rules = [
+            'name'                => 'required|string|max:191',
+            'email'               => 'required|email|unique:charities,email,' . $charityId . ',id', // Fixed: added ',id'
+            'phone'               => 'nullable|string|max:20',
+            'acc_no'              => 'required|numeric|unique:charities,acc_no,' . $charityId . ',id', // Fixed: added ',id'
+            'website'             => 'required|url|max:191',
+            'houseno'             => 'required|string|max:191',
+            'address_second_line' => 'nullable|string|max:191',
+            'address_third_line'  => 'nullable|string|max:191',
+            'town'                => 'required|string|max:100',
+            'postcode'            => 'required|string|max:20',
+            'account_name'        => 'nullable|string|max:191',
+            'account_number'      => 'nullable|string|max:20',
+            'account_sortcode'    => 'nullable|string|max:10',
+            'profile_image'       => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ];
 
-        // if( $chkemail > 0){
-        //     $message ="This email has already exists.";
-        //     return redirect()->route('user.profile')->with(['status'=> 303,'error'=> $message]);
+        // Only validate password if the user actually typed something
+        if ($request->filled('password')) {
+            $rules['password'] = 'required|string|min:8|confirmed';
+        }
 
-        // }
+        // Custom Error Messages
+        $customMessages = [
+            'name.required'               => 'Please enter your full name.',
+            'email.required'              => 'The email address is required.',
+            'email.email'                 => 'Please enter a valid email address.',
+            'email.unique'                => 'This email is already registered with another account.',
+            'acc_no.required'             => 'The Charity Number is required.',
+            'acc_no.numeric'              => 'The Charity Number must be a valid number.',
+            'acc_no.unique'               => 'This Charity Number is already taken by another account.',
+            'website.required'            => 'Please enter your website URL.',
+            'website.url'                 => 'Please enter a valid URL (e.g., https://example.com).',
+            'houseno.required'            => 'Address Line 1 is required.',
+            'town.required'               => 'Town is required.',
+            'postcode.required'           => 'Postcode is required.',
+            'password.min'                => 'Password must be at least 8 characters.',
+            'password.confirmed'          => 'The new password and confirm password do not match.',
+            'profile_image.image'         => 'The file must be a valid image.',
+            'profile_image.mimes'         => 'Only JPG, JPEG, and PNG images are allowed.',
+            'profile_image.max'           => 'The image size must be under 2MB.',
+        ];
 
-        if ($request->password) {
-            if ($request->password != $request->cpassword) {
-                $message ="Password doesn't match!!";
-                return redirect()->route('charity.profile')->with(['status'=> 303,'error'=> $message]);
+        // Pass both rules and custom messages to validate()
+        $validated = $request->validate($rules, $customMessages);
+
+        $charity = Charity::findOrFail($charityId);
+
+        // Handle Profile Image Upload
+        if ($request->hasFile('profile_image')) {
+            if ($charity->profile_image && file_exists(public_path($charity->profile_image))) {
+                unlink(public_path($charity->profile_image));
             }
+            
+            $imageName = time() . '_' . mt_rand(100000, 999999) . '.' . $request->profile_image->extension();
+            $request->profile_image->move(public_path('images'), $imageName);
+            $charity->profile_image = 'images/' . $imageName;
         }
 
-
-
-        $charity = Charity::findOrFail(auth('charity')->user()->id);
-        $charity->name = $request->name;
-        $charity->number = $request->phone;
-        $charity->address = $request->houseno;
-        $charity->address_second_line = $request->address_second_line;
-        $charity->address_third_line = $request->address_third_line;
-        $charity->town = $request->town;
-        $charity->post_code = $request->postcode;
-        $charity->account_name = $request->account_name;
-        $charity->account_number = $request->account_number;
-        $charity->account_sortcode = $request->account_sortcode;
-
-   
-
-            // if ($request->image) {
-
-            //     $request->validate([
-            //         'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            //     ]);
-            //     $rand = mt_rand(100000, 999999);
-            //     $imageName = time(). $rand .'.'.$request->image->extension();
-            //     $request->image->move(public_path('images'), $imageName);
-            //     $userdata->photo= $imageName;
-            // }
-
-        if ($request->password) {
-            $charity->password= Hash::make($request->password);
+        // Handle Profile Image Removal
+        if ($request->boolean('remove_profile_image')) {
+            if ($charity->profile_image && file_exists(public_path($charity->profile_image))) {
+                unlink(public_path($charity->profile_image));
+            }
+            $charity->profile_image = null;
         }
 
-        if ($charity->save()) {
-            $message ="Profile Update Successfully";
+        // Assign Validated Fields
+        $charity->name                = $validated['name'];
+        $charity->email               = $validated['email'];
+        $charity->number              = $validated['phone'];
+        $charity->acc_no              = $validated['acc_no'];
+        $charity->website             = $validated['website'];
+        $charity->address             = $validated['houseno'];
+        $charity->address_second_line = $validated['address_second_line'];
+        $charity->address_third_line  = $validated['address_third_line'];
+        $charity->town                = $validated['town'];
+        $charity->post_code           = $validated['postcode'];
+        $charity->account_name        = $validated['account_name'];
+        $charity->account_number      = $validated['account_number'];
+        $charity->account_sortcode    = $validated['account_sortcode'];
 
-        return redirect()->route('charity.profile')->with(['status'=> 303,'message'=> $message]);
-        }
-        else{
-            return back()->with(['status'=> 303,'message'=>'Server Error!!']);
+        // Hash and update password if provided
+        if ($request->filled('password')) {
+            $charity->password = Hash::make($validated['password']);
         }
 
+        $charity->save();
+
+        return redirect()->route('charity.profile')->with([
+            'status'  => 200,
+            'message' => 'Profile updated successfully.',
+        ]);
     }
-
-    
+        
     public function charityTransaction(Request $request)
     {
         $charity = auth('charity')->user();

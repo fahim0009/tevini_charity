@@ -120,9 +120,11 @@ class CharityAuthController extends Controller
         ];
 
         if (auth()->guard('charity')->attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('charityDashboard'));
-        }
+                $request->session()->regenerate();
+                
+                // Just send them to the dashboard. The layout will show the warning banner.
+                return redirect()->intended(route('charityDashboard'));
+            }
 
         return back()->withInput()->with('error', 'Whoops! Invalid credentials provided.');
     }

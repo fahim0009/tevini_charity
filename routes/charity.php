@@ -10,12 +10,12 @@ use App\Http\Controllers\CharityController;
 
 Route::middleware(['auth:sanctum,charity', 'verified']);
 // charity part start
-Route::group(['prefix' =>'charity/', 'middleware' => ['charity']], function(){
+Route::group(['prefix' =>'charity/', 'middleware' => ['charity', 'charity.profile.complete']], function(){
     Route::get('/dashboard', [CharityController::class, 'charityDashboard'])->name('charityDashboard');
     Route::get('/profile', [CharityController::class, 'profileShow'])->name('charity.profile');
     Route::get('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard');
     Route::post('/charity-transaction', [CharityController::class, 'charityTransaction'])->name('tran_charity_dashboard_search');
-    Route::post('/profile', [CharityController::class, 'updateCharity_profile'])->name('charity_profileUpdate');
+    Route::post('/profile', [CharityController::class, 'updateProfile'])->name('charity_profileUpdate');
 
     
     Route::post('/urgent-request', [CharityController::class, 'urgentRequest'])->name('charity.urgent_request');

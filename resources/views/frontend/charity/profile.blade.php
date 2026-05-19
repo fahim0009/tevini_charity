@@ -38,37 +38,53 @@
     <form action="{{ route('charity_profileUpdate') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
-        <!-- Profile Image -->
         <div class="row mt-4 px-3">
-            <div class="col-lg-12">
+
+            <!-- Left: Profile Image -->
+            <div class="col-lg-4">
                 <div class="form-group">
                     <label>Profile Image</label>
-                    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-                        <div id="profileImgWrap" style="width:100px;height:100px;border-radius:50%;overflow:hidden;border:3px solid #113250;background:#f5f5f5;flex-shrink:0;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:15px;">
+                        <div id="profileImgWrap" style="width:140px;height:140px;border-radius:50%;overflow:hidden;border:3px solid #113250;background:#f5f5f5;flex-shrink:0;">
                             <img id="profileImgPreview" src="{{ auth('charity')->user()->profile_image ? asset(auth('charity')->user()->profile_image) : 'https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg' }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
                         </div>
-                        <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
                             <label class="btn-theme bg-primary" style="cursor:pointer;display:inline-block;width:fit-content;">
                                 Choose Image
                                 <input type="file" name="profile_image" id="profile_image" accept="image/*" style="display:none;">
                             </label>
-                            <input type="button" id="removeImgBtn" value="Remove" class="btn-theme" style="background:#e0e0e0;color:#333;display:inline-block;width:fit-content;cursor:pointer;{{ !auth('charity')->user()->profile_image ? 'display:none;' : '' }}">
+                            {{-- <input type="button" id="removeImgBtn" value="Remove" class="btn-theme" style="background:#e0e0e0;color:#333;display:inline-block;width:fit-content;cursor:pointer;{{ !auth('charity')->user()->profile_image ? 'display:none;' : '' }}"> --}}
                             <small style="color:#888;margin:0;">JPG, PNG max 2MB</small>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-lg-8 px-3">
+            <!-- Right: All Fields -->
+            <div class="col-lg-8">
 
                 <!-- Personal Information -->
-                <div class="row mt-4">
+                <div class="row">
                     <div class="col-lg-12">
                         <div class="form-group">
                             <label>Full Name</label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Full name" value="{{ auth('charity')->user()->name }}">
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label>Charity Number</label>
+                            <input type="number" class="form-control" id="acc_no" name="acc_no" placeholder="Charity Number" value="{{ auth('charity')->user()->acc_no }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label>Website</label>
+                            <input type="text" class="form-control" id="website" name="website" placeholder="Website" value="{{ auth('charity')->user()->website }}">
                         </div>
                     </div>
                 </div>
@@ -89,7 +105,7 @@
                 </div>
 
                 <!-- Address -->
-                <div class="row mt-4">
+                <div class="row mt-3">
                     <div class="col-lg-12">
                         <div class="form-group">
                             <label>Address Line 1</label>
@@ -129,7 +145,7 @@
                 </div>
 
                 <!-- Banking Details -->
-                <div class="row mt-4">
+                <div class="row mt-3">
                     <div class="col-lg-12">
                         <div class="form-group">
                             <label>Account Name</label>
@@ -154,7 +170,7 @@
                 </div>
 
                 <!-- Change Password -->
-                <div class="row mt-4">
+                <div class="row mt-3">
                     <div class="col-lg-6">
                         <div class="form-group">
                             <label>New Password</label>
@@ -170,7 +186,7 @@
                 </div>
 
                 <!-- Submit -->
-                <div class="row mt-4">
+                <div class="row mt-3">
                     <div class="col-lg-12">
                         <div class="form-group">
                             <input type="submit" value="Save Changes" class="btn-theme bg-primary">

@@ -971,6 +971,10 @@ public function exportSummaryCsv2(Request $request)
 
         // Transaction filters
         $reportQuery = Usertransaction::where('user_id', $id)->with('provoucher')
+        
+            ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
+            })
             ->where(function ($query) use ($fromDate, $toDate) {
                 if ($fromDate && $toDate) {
                     $query->whereBetween('created_at', [$fromDate, $toDate])

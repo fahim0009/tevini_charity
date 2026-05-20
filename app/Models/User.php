@@ -152,7 +152,7 @@ class User extends Authenticatable
         return $this->hasMany(AccDelRequest::class);
     }
 
-    public function getLiveBalance()
+    public function getLiveBalance2()
     {
         return (float) Usertransaction::where('user_id', $this->id)
             ->where(function ($q) {
@@ -166,6 +166,22 @@ class User extends Authenticatable
                 COALESCE(
                     SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
                     SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END),
+                0) as balance
+            ')
+            ->value('balance');
+    }
+
+    public function getLiveBalance()
+    {
+        return (float) Usertransaction::where('user_id', $this->id)
+            ->where('status', '1')
+            ->where(function ($query) {
+                $query->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->selectRaw('
+                COALESCE(
+                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
+                    SUM(CASE WHEN t_type = "Out" THEN amount + COALESCE(commission, 0) ELSE 0 END),
                 0) as balance
             ')
             ->value('balance');

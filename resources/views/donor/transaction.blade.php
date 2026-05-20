@@ -141,25 +141,33 @@ use Illuminate\Support\Carbon;
                                 </button>
                                 <div class="modal fade" id="chequeModal{{$data->id}}" tabindex="-1" aria-labelledby="chequeModalLabel{{$data->id}}" aria-hidden="true">
                                   <div class="modal-dialog">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <h5 class="modal-title" id="chequeModalLabel{{$data->id}}">Cheque Details</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                  </div>
-                                  <div class="modal-body">
-                                    <p><strong>Cheque Number:</strong> {{$data->cheque_no}}</p>
-                                    @if($data->barcode_image)
-                                      <img src="{{ asset($data->barcode_image) }}" alt="Cheque Image" class="img-fluid">
-                                    @else
-                                      <p>No cheque image available.</p>
-                                    @endif
-                                  </div>
-                                  <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="chequeModalLabel{{$data->id}}">Cheque Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Cheque Number:</strong> {{$data->cheque_no}}</p>
+                                        @if($data->barcode_image)
+                                        <img src="{{ asset($data->barcode_image) }}" alt="Cheque Image" class="img-fluid">
+                                        @else
+                                        <p>No cheque image available.</p>
+                                        @endif
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                    </div>
                                   </div>
                                 </div>
-                                  </div>
-                                </div>
+                                @if ($data->pending === 0)
+                                    <span class="badge bg-warning">Pending</span>
+                                @endif
+
+                                @if ($data->expired === 0)
+                                    <span class="badge bg-warning">Expired</span>
+                                @endif
+
                             @endif
                             
                             @if($data->crdAcptID){{ $data->crdAcptID}}@endif

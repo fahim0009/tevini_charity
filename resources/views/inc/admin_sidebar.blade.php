@@ -19,13 +19,6 @@
                     Manage Admin
                 </a>
             </li>
-            <!--<li class="nav-item {{ (request()->is('admin/role*')) ? 'active' : '' }}" id="admintransaction">-->
-            <!--    <a href="{{ url('admin/role') }}">-->
-            <!--        <span class="iconify" data-icon="icon-park-outline:transaction"></span>-->
-            <!--        Staff Role-->
-            <!--    </a>-->
-            <!--</li>-->
-
             
             <li class="nav-item {{ (request()->is('admin/batch')) ? 'active' : '' }}" id="">
                 <a href="{{ route('admin.batches') }}">
@@ -133,30 +126,6 @@
                 </ul>
             </li>
 
-            
-
-
-
-            {{-- <li class="nav-item {{ (request()->is('admin/donor*')) ? 'active' : '' }}">
-                <a href="#">
-                    <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                    Donor List
-                </a>
-                <ul class="sub-item">
-                    <li>
-                        <a href="{{ route('adddonor') }}">
-                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                            Add Donor
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('donor') }}">
-                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                            Donor List
-                        </a>
-                    </li>
-                </ul>
-            </li> --}}
 
             <li class="nav-item {{ (request()->is('admin/donation/list*')) ? 'active' : '' }}{{ (request()->is('admin/donation/pending-list*')) ? 'active' : '' }}{{ (request()->is('admin/donation/record*')) ? 'active' : '' }}{{ (request()->is('admin/donation/standing*')) ? 'active' : '' }}">
                 <a href="#">
@@ -222,25 +191,6 @@
                     Remittance Reports
                 </a>
             </li>
-            {{-- <li class="nav-item " id="admintransaction">
-                <a href="{{ route('processvoucher') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    News
-                </a>
-            </li>
-            <li class="nav-item " id="admintransaction">
-                <a href="{{ route('processvoucher') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    FAQ
-                </a>
-            </li> --}}
-
-            <!--<li class="nav-item {{ (request()->is('admin/settings*')) ? 'active' : '' }}" id="admintransaction">-->
-            <!--    <a href="{{ route('admin.settings') }}">-->
-            <!--        <span class="iconify" data-icon="icon-park-outline:transaction"></span>-->
-            <!--        Settings-->
-            <!--    </a>-->
-            <!--</li>-->
 
 
             <li class="nav-item {{ (request()->is('admin/admin-contact-mail*')) ? 'active' : '' }}" id="admintransaction">
@@ -271,69 +221,7 @@
                 </ul>
             </li>
 
-            <li class="nav-item {{ (request()->is('admin/productfee*')) ? 'active' : '' }}" id="admintransaction">
-                <a href="{{ route('productfee') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Product fee
-                </a>
-            </li>
-
-            <li class="nav-item {{ (request()->is('admin/cardprofile*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('cardprofile') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Card Profile
-                </a>
-            </li>
-
-            {{-- <li class="nav-item {{ (request()->is('admin/spend-profile*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('spendprofile') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Spend profile
-                </a>
-            </li> --}}
-
-            <li class="nav-item {{ (request()->is('admin/product/index*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('product.index') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Product
-                </a>
-            </li>
-
-            <li class="nav-item {{ (request()->is('admin/authorisation*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('authorisation') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Authorisation
-                </a>
-            </li>
-
-            <li class="nav-item {{ (request()->is('admin/settlement*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('settlement') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Settlement
-                </a>
-            </li>
-
-            <li class="nav-item {{ (request()->is('admin/expired*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('expired') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Expired
-                </a>
-            </li>
-
-            <li class="nav-item {{ (request()->is('admin/card-transaction*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('cardTransaction') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Card Transaction
-                </a>
-            </li>
-
-            <li class="nav-item {{ (request()->is('admin/qpay-balance*')) ? 'active' : '' }}" id="">
-                <a href="{{ route('qpaybalance') }}">
-                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
-                    Qpay Balance
-                </a>
-            </li>
-
+            @include('inc.admin_hidden_menu')
 
             <li class="nav-item {{ (request()->is('admin/tdf-transaction*')) ? 'active' : '' }}">
                 <a href="#">
@@ -393,18 +281,6 @@
                 </a>
             </li>
 
-            {{-- <li class="nav-item " id="admindashboard">
-                <a href="./utility.html">
-                    <span class="iconify" data-icon="icomoon-free:profile"></span>
-                    helper page
-                </a>
-            </li> --}}
-            {{-- <li class="nav-item " id="admindashboard">
-                <a href="./remitence-note.html">
-                    <span class="iconify" data-icon="clarity:heart-solid"></span>
-                    Remittance Note
-                </a>
-            </li> --}}
         </ul>
     </nav>
 </div>

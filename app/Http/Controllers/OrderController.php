@@ -2012,12 +2012,24 @@ class OrderController extends Controller
                 ]);
             }
 
+            $cvouchers = Provoucher::where('cheque_no', $request->barcode)->first();
+            $barcodeStatus = '';
+            if ($cvouchers) {
+                if ($cvouchers->status === 1) {
+                    $barcodeStatus = 'Completed';
+                } elseif ($cvouchers->status === 0) {
+                    $barcodeStatus = 'Pending';
+                }
+            }
+            
+
             return response()->json([
                 'status' => 300,
                 'donorname' => $barcode->user->name ?? 'Unknown',
                 'donorid' => $barcode->user_id,
                 'donoracc' => $barcode->user->accountno ?? 'N/A',
                 'amount' => $barcode->amount,
+                'barcodeStatus' => $barcodeStatus ?? '',
                 'vouchertype' => $voucher?->type 
             ]);
         }

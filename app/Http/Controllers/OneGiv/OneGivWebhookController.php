@@ -53,14 +53,53 @@ class OneGivWebhookController extends Controller
     public function approveCharity(Request $request)
     {
         $data = $request->validate([
-            'charityName'      => 'required|string',
-            'charityNumber'    => 'required|string',
-            'accountNumber'    => 'required|string',
-            'sortcode'         => 'required|string',
-            'accountReference' => 'required|string',
+            'charityName'   => 'required|string',
+            'charityNumber' => 'required|string',
+            'accountNumber' => 'required|string',
+            'sortcode'      => 'required|string',
         ]);
 
-        Log::info('OneGiv: Charity approval request', $data);
+        Log::info('OneGiv: Charity approval request received', $data);
+
+        // STEP 1: Charity check 
+        $charity = \App\Models\Charity::where('acc_no', $data['charityNumber'])->first();
+
+        if (!$charity) {
+            Log::warning('OneGiv: Charity not found in system', [
+                'charity_number' => $data['charityNumber'],
+                'charity_name'   => $data['charityName'],
+            ]);
+            return response()->json(['status' => 'accountUnknown']);
+        }
+
+        // STEP 2: Bank account number match 
+        if ($charity->account_number !== $data['accountNumber']) {
+            Log::warning('OneGiv: Charity account number mismatch', [
+                'charity_number'    => $data['charityNumber'],
+                'expected_account'  => $charity->account_number,
+                'received_account'  => $data['accountNumber'],
+            ]);
+            return response()->json(['status' => 'accountUnknown']);
+        }
+
+        // STEP 3: Sort code match 
+        $dbSortcode       = preg_replace('/[^0-9]/', '', $charity->account_sortcode ?? '');
+        $requestSortcode  = preg_replace('/[^0-9]/', '', $data['sortcode']);
+
+        if ($dbSortcode !== $requestSortcode) {
+            Log::warning('OneGiv: Charity sortcode mismatch', [
+                'charity_number'   => $data['charityNumber'],
+                'expected_sortcode'=> $dbSortcode,
+                'received_sortcode'=> $requestSortcode,
+            ]);
+            return response()->json(['status' => 'accountUnknown']);
+        }
+
+        // ✅ All checks passed
+        Log::info('OneGiv: Charity approved', [
+            'charity_number' => $data['charityNumber'],
+            'charity_name'   => $charity->name,
+        ]);
 
         return response()->json(['status' => 'approved']);
     }
@@ -217,16 +256,93 @@ class OneGivWebhookController extends Controller
             'cardIssuerTransactionId' => 'required|string',
         ]);
 
+        // STEP 1: Transaction খুঁজে বের করো
         $txn = OneGivTransaction::where(
             'card_issuer_transaction_id',
             $data['cardIssuerTransactionId']
         )->first();
 
-        if ($txn) {
-            $txn->update(['status' => 'refunded']);
+        if (!$txn) {
+            Log::warning('OneGiv Refund: Transaction not found', [
+                'card_issuer_transaction_id' => $data['cardIssuerTransactionId'],
+            ]);
+            return response()->json(['status' => 'success']);
         }
 
-        Log::info('OneGiv: Refund', $data);
+        // STEP 2: Already refunded check
+        if ($txn->status === 'refunded') {
+            Log::warning('OneGiv Refund: Already refunded', [
+                'card_issuer_transaction_id' => $data['cardIssuerTransactionId'],
+            ]);
+            return response()->json(['status' => 'success']);
+        }
+
+        $amountInPounds = $txn->amount / 100;
+
+        // STEP 3: Card → User খুঁজে বের করো
+        $card    = \App\Models\OneGiv\OneGivCard::where('serial_number', $txn->card_serial_number)->first();
+        $user    = $card ? \App\Models\User::find($card->user_id) : null;
+
+        // STEP 4: Charity খুঁজে বের করো
+        $charity = \App\Models\Charity::where('acc_no', $txn->charity_number)->first();
+
+        // STEP 5: OneGivTransaction status update
+        $txn->update(['status' => 'refunded']);
+
+        // STEP 6: OneGivRefund table এ save করো
+        \App\Models\OneGiv\OneGivRefund::create([
+            'card_issuer_transaction_id' => $data['cardIssuerTransactionId'],
+            'card_serial_number'         => $txn->card_serial_number,
+            'user_id'                    => $user->id ?? null,
+            'charity_id'                 => $charity->id ?? null,
+            'charity_number'             => $txn->charity_number,
+            'amount'                     => $txn->amount,
+            'amount_pounds'              => $amountInPounds,
+            'onegiv_transaction_id'      => $txn->onegiv_transaction_id,
+            'status'                     => 'refunded',
+            'admin_watch'                => 0,
+            'admin_status'               => 0,
+        ]);
+
+        // STEP 7: User balance ফেরত দাও
+        // if ($user) {
+        //     $user->balance = $user->balance + $amountInPounds;
+        //     $user->save();
+
+        //     $utran          = new \App\Models\Usertransaction();
+        //     $utran->t_id    = 'OneGiv-Refund-' . time() . '-' . $user->id;
+        //     $utran->user_id = $user->id;
+        //     $utran->t_type  = 'In';
+        //     $utran->source  = 'OneGiv Card Refund';
+        //     $utran->amount  = $amountInPounds;
+        //     $utran->title   = 'OneGiv Card Donation Refund - ' . $data['cardIssuerTransactionId'];
+        //     $utran->status  = 1;
+        //     $utran->save();
+
+        //     Log::info('OneGiv Refund: User balance restored', [
+        //         'user_id'     => $user->id,
+        //         'amount'      => $amountInPounds,
+        //         'new_balance' => $user->balance,
+        //     ]);
+        // }
+
+        // STEP 8: Charity balance কমাও
+        // if ($charity) {
+        //     $charity->decrement('balance', $amountInPounds);
+
+        //     Log::info('OneGiv Refund: Charity balance deducted', [
+        //         'charity_id'   => $charity->id,
+        //         'charity_name' => $charity->name,
+        //         'amount'       => $amountInPounds,
+        //     ]);
+        // }
+
+        Log::info('OneGiv Refund: Completed successfully', [
+            'card_issuer_transaction_id' => $data['cardIssuerTransactionId'],
+            'amount_pounds'              => $amountInPounds,
+            'user_id'                    => $user->id ?? null,
+            'charity_id'                 => $charity->id ?? null,
+        ]);
 
         return response()->json(['status' => 'success']);
     }

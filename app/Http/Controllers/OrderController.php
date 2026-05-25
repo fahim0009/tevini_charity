@@ -2012,16 +2012,15 @@ class OrderController extends Controller
                 ]);
             }
 
-            $cvouchers = Provoucher::where('cheque_no', $request->barcode)->first();
-            $barcodeStatus = '';
-            if ($cvouchers) {
-                if ($cvouchers->status === 1) {
-                    $barcodeStatus = 'Completed';
-                } elseif ($cvouchers->status === 0) {
-                    $barcodeStatus = 'Pending';
-                }
+            $user = User::find($barcode->user_id);
+            $limitChk = $user->getAvailableLimit() ?? 0;
+
+            if ($limitChk < $barcode->amount ) {
+                $barcodeStatus = 'Will be pending';
+            } else {
+                $barcodeStatus = 'Will be complete';
             }
-            
+
 
             return response()->json([
                 'status' => 300,

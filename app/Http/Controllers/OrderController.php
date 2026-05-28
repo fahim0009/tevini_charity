@@ -1587,7 +1587,11 @@ class OrderController extends Controller
             $cvouchers = Provoucher::with(['charity','user'])
                 ->select('id','user_id','charity_id','created_at','amount','note','cheque_no','status')
                 ->where('waiting', 'No')
-                ->where('expired','!=', 'Yes')->where('status', '0')
+                ->where(function ($q) {
+                    $q->where('expired', '!=', 'Yes')
+                    ->orWhereNull('expired');
+                })
+                ->where('status', '0')
                 ->when($request->id, function($q) use ($id){
                     $q->where('user_id', $id);
                 })
@@ -1605,7 +1609,15 @@ class OrderController extends Controller
                 ->addColumn('donor', fn($row) => $row->user->name.' '.$row->user->surname ?? '')
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d/m/Y'))
                 ->editColumn('status', function($row){
-                    return $row->status == 0 ? "Pending" : "";
+                    // Show "Pending" first
+                    $html = "Pending";
+
+                    // If expired, add a line break and the warning badge
+                    if ($row->expired == 'Yes') {
+                        $html .= '<br><span class="badge bg-warning text-dark">Expired</span>';
+                    }
+                    
+                    return $html;
                 })
                 ->make(true);
         }

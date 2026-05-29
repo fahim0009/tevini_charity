@@ -32,6 +32,7 @@ use App\Mail\UrgentRequest;
 use App\Models\CharityLink;
 use App\Models\UserDetail;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class CharityController extends Controller
 {
@@ -149,14 +150,35 @@ class CharityController extends Controller
      */
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:charities,email',
+            'acc' => 'required|string|unique:charities,acc_no',
+            'number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'town' => 'nullable|string|max:100',
+            'post_code' => 'nullable|string|max:20',
+            'account_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:20',
+            'account_sortcode' => 'nullable|string|max:10',
+            'bank_statement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'balance' => 'nullable|numeric|min:0',
+        ], [
+            'email.unique' => 'This email is already registered.',
+            'acc.unique' => 'This charity registration number already exists.',
+            'bank_statement.mimes' => 'Bank statement must be a PDF, JPG, or PNG file.',
+            'bank_statement.max' => 'Bank statement must not exceed 5MB.',
+            'balance.numeric' => 'Balance must be a valid number.',
+            'balance.min' => 'Balance cannot be negative.',
+        ]);
 
-        $this->validate($request,[
-            'name' => 'required',
-            'email' => 'required|email',
-            'acc' => 'required',
-            ]);
-          
-        $password = '111111';    
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+                'message' => 'Please fix the errors below.'
+            ], 422);
+        }
 
         $user = new Charity;
         $user->name = $request->name;
@@ -170,81 +192,70 @@ class CharityController extends Controller
         $user->account_sortcode = $request->account_sortcode;
         $user->acc_no = $request->acc;
 
-        if(isset($request->bank_statement)){
+        if (isset($request->bank_statement)) {
             $rand = mt_rand(100000, 999999);
-            $imageName = time(). $rand .'.'.$request->bank_statement->extension();
+            $imageName = time() . $rand . '.' . $request->bank_statement->extension();
             $request->bank_statement->move(public_path('images'), $imageName);
-            $user->bank_statement= $imageName;
+            $user->bank_statement = $imageName;
         }
 
+        $user->balance = $request->balance != "" ? $request->balance : 0;
+        $user->password = Hash::make('111111');
 
-        if($request->balance == "") {
-            $user->balance = 0;
-          }else{
-            $user->balance = $request->balance;
-          }
-        if ($password) {
-            $user->password = Hash::make($password);
-        }   
-        if($user->save()){
-
-            $message ="Charity Created Successfully";
-            return back()->with('message', $message);
+        if ($user->save()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Charity Created Successfully'
+            ], 200);
         }
-        return back()->with(['status'=> 303,'message'=>'Server Error!!']);
 
+        return response()->json([
+            'success' => false,
+            'message' => 'Server Error!!'
+        ], 500);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Charity  $charity
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Charity $charity)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Charity  $charity
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-
-        $users = Charity::where('id','=' ,decrypt($id))->first();
-        return view('charity.editcharity', compact('users'));
+        $charity = Charity::findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'data' => $charity
+        ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Charity  $charity
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:charities,email,' . $id,
+            'number' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'acc_no' => 'required|string|unique:charities,acc_no,' . $id,
+            'town' => 'nullable|string|max:100',
+            'post_code' => 'nullable|string|max:20',
+            'account_name' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:20',
+            'account_sortcode' => 'nullable|string|max:10',
+            'bank_statement' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'password' => 'nullable|min:8',
+            'password_confirmation' => 'nullable|min:8|same:password',
+        ], [
+            'email.unique' => 'This email is already registered.',
+            'acc_no.unique' => 'This charity registration number already exists.',
+            'bank_statement.mimes' => 'Bank statement must be a PDF, JPG, or PNG file.',
+            'bank_statement.max' => 'Bank statement must not exceed 5MB.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password_confirmation.same' => 'Password confirmation does not match.',
+        ]);
 
-        $this->validate($request,[
-            'name' => 'required',
-            'email' => 'required|email',
-            'number' => 'required',
-            'address' => 'required',
-            'acc_no' => 'required'
-            ]);
-
-
-        if ($request->password) {
-            if ($request->password != $request->cpassword) {
-                $message ="Password doesn't match!!";
-                return redirect()->route('charitylist')->with(['status'=> 303,'error'=> $message]);
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+                'message' => 'Please fix the errors below.'
+            ], 422);
         }
-
 
         $user = Charity::findOrFail($id);
         $user->name = $request->name;
@@ -258,31 +269,32 @@ class CharityController extends Controller
         $user->account_number = $request->account_number;
         $user->account_sortcode = $request->account_sortcode;
 
-        if(isset($request->bank_statement)){
-            // Delete previous bank statement if it exists
-            if($user->bank_statement && file_exists(public_path('images/' . $user->bank_statement))){
+        if (isset($request->bank_statement)) {
+            if ($user->bank_statement && file_exists(public_path('images/' . $user->bank_statement))) {
                 @unlink(public_path('images/' . $user->bank_statement));
             }
-            
+
             $rand = mt_rand(100000, 999999);
-            $imageName = time(). $rand .'.'.$request->bank_statement->extension();
+            $imageName = time() . $rand . '.' . $request->bank_statement->extension();
             $request->bank_statement->move(public_path('images'), $imageName);
             $user->bank_statement = $imageName;
         }
 
-
-
         if ($request->password) {
-            $user->password= Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
-        if($user->save()){
 
-            $message ="Charity Update Successfully";
-
-        return redirect()->route('charitylist')->with(['status'=> 303,'message'=> $message]);
+        if ($user->save()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Charity Updated Successfully'
+            ], 200);
         }
-        return back()->with(['status'=> 303,'message'=>'Server Error!!']);
 
+        return response()->json([
+            'success' => false,
+            'message' => 'Server Error!!'
+        ], 500);
     }
 
     /**

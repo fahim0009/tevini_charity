@@ -1948,12 +1948,27 @@ class OrderController extends Controller
         {
             $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
 
+            $barcode = Barcode::with(['user', 'orderhistory.voucher'])
+                ->where('barcode', $request->barcode)
+                ->first();
+
+            
+            $user = User::find($barcode->user_id);
+            $limitChk = $user->getAvailableLimit() ?? 0;
+
+            if ($limitChk < $barcode->amount ) {
+                $barcodeStatus = 'Will be pending';
+            } else {
+                $barcodeStatus = 'Will be complete';
+            }
+
+
             if(empty($orderDtl)){
                 $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>No data found.</b></div>";
                 return response()->json(['status'=> 303,'message'=>$message]);
                 exit();
             }else{
-                return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount ]);
+                return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount, 'barcodeStatus'=>$barcodeStatus ?? '' ]);
             }
         }
 

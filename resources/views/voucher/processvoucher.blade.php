@@ -132,6 +132,7 @@
                                         <th>Note</th>
                                         <th>Waiting</th>
                                         <th>Expired</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="inner">
@@ -174,6 +175,7 @@
                                                 <option value="Yes" @if(isset($voucher->expired) && $voucher->expired == "Yes") selected @endif>Yes</option>
                                             </select>
                                         </td>
+                                        <td></td>
                                     </tr>
                                     @else
                                     <tr class="item-row" style="position:relative;">
@@ -208,6 +210,7 @@
                                                 <option value="Yes" @if(isset($voucher->expired) && $voucher->expired == "Yes") selected @endif>Yes</option>
                                             </select>
                                         </td>
+                                        <td></td>
                                     </tr>
                                     @endif
                                     @empty
@@ -248,11 +251,12 @@
                                                 <option value="Yes">Yes</option>
                                             </select>
                                         </td>
+                                        <td id="barcode_status"></td>
                                     </tr>
                                     @endforelse
                                 </tbody>
                                 <tr>
-                                    <td colspan="3">
+                                    <td colspan="4">
                                         <span type="submit" class="text-white btn-theme add-row"> + Add</span>
                                     </td>
                                     <td width="40px">
@@ -264,7 +268,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="4"></td>
-                                    <td colspan="2">
+                                    <td colspan="3">
                                         <div class="row">
                                             <div class="col-md-3 my-2">
                                                 <button class="text-white btn-theme ml-1 mb-4" id="Draftvoucher" type="button">Save Draft</button>
@@ -558,12 +562,14 @@
                 success: function(d) {
                     $("#barcode").val("");
                     if (d.status == 300) {
+                        console.log(d);
                         if ($('#donorid').val() === '') {
                             $('#donorid').val(d.donorid);
                             $('#donor_acc_num').val(d.donoracc);
                             $('#donor_acc_name').val(d.donorname);
                             $('#donor_check').val(barcode);
                             $('#d_amnt').val(d.amount);
+                            $('#barcode_status').html(d.barcodeStatus);
                         } else {
                             var markup = `
                                 <tr class="item-row" style="position:relative;">
@@ -598,6 +604,7 @@
                                             <option value="Yes">Yes</option>
                                         </select>
                                     </td>
+                                    <td width="250px">${d.barcodeStatus}</td>
                                 </tr>`;
                             $("table #inner").append(markup);
                         }

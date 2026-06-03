@@ -124,7 +124,7 @@ class CharityController extends Controller
                             <i class="fa fa-eye" style="color:#09a311;font-size:16px;"></i>
                         </a>
 
-                        <a href="'.route('charity.edit', encrypt($row->id)).'">
+                        <a href="javascript:void(0)" onclick="editCharity(' . $row->id . ')">
                             <i class="fa fa-edit" style="color:#2196f3;font-size:16px;"></i>
                         </a>
 
@@ -303,10 +303,6 @@ class CharityController extends Controller
      * @param  \App\Models\Charity  $charity
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Charity $charity)
-    {
-        //
-    }
 
     public function deleteCharity($id)
     {

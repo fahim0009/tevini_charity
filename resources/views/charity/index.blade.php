@@ -419,7 +419,6 @@
             contentType: false,
             dataType: 'json',
             success: function(response) {
-                console.log(response);
                 if (response.success) {
                     showAjaxMessage(response.message, 'success');
                     closeForm();
@@ -455,7 +454,7 @@
     // ==================== EDIT CHARITY (AJAX) ====================
     window.editCharity = function(id) {
         $.ajax({
-            url: '/add-charity/' + id + '/edit',
+            url: '/admin/add-charity/' + id + '/edit',
             type: 'GET',
             dataType: 'json',
             success: function(response) {
@@ -616,11 +615,6 @@
         $("#bankModal").modal("show");
     });
 
-});
-</script>
-
-<script>
- $(document).ready(function() {
     var data = 'Tevini';
     var title = 'Charity report';
 

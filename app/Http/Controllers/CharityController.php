@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Log;
 
 use App\Mail\CharitypayReport;
 use App\Mail\CharitylinkRequest;
@@ -226,12 +227,16 @@ class CharityController extends Controller
 
     public function update(Request $request, $id)
     {
+        Log::info('Updating charity with ID: ' . $id, [
+            'acc_no' => $request->acc_no
+        ]);
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:charities,email,' . $id,
             'number' => 'required|string|max:20',
             'address' => 'required|string|max:500',
-            'acc_no' => 'required|string|unique:charities,acc_no,' . $id,
+            'acc' => 'required|string|unique:charities,acc_no,' . $id,
             'town' => 'nullable|string|max:100',
             'post_code' => 'nullable|string|max:20',
             'account_name' => 'nullable|string|max:255',
@@ -264,7 +269,7 @@ class CharityController extends Controller
         $user->address = $request->address;
         $user->town = $request->town;
         $user->post_code = $request->post_code;
-        $user->acc_no = $request->acc_no;
+        $user->acc_no = $request->acc;
         $user->account_name = $request->account_name;
         $user->account_number = $request->account_number;
         $user->account_sortcode = $request->account_sortcode;

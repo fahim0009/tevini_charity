@@ -374,18 +374,40 @@
 
     function showErrors(errors) {
         clearErrors();
+
+        // Key mapping: server key -> form field id
+        var keyMap = {
+            'acc_no': 'acc'
+        };
+
+        // Build error summary at top
+        var errorItems = '';
         $.each(errors, function(key, messages) {
-            if (key === 'acc') {
-                $('#' + key).addClass('is-invalid');
-                $('#' + key + '-error').text(messages[0]);
-            } else {
-                var field = $('#' + key);
-                if (field.length) {
-                    field.addClass('is-invalid');
-                    var errorDiv = $('#' + key + '-error');
-                    if (errorDiv.length) {
-                        errorDiv.text(messages[0]);
-                    }
+            $.each(messages, function(i, msg) {
+                errorItems += '<li>' + msg + '</li>';
+            });
+        });
+
+        $("#ajaxMessage").html(
+            '<div class="alert alert-danger" id="ajaxAlert">' +
+            '<strong><i class="fas fa-exclamation-circle me-2"></i>Please fix the following errors:</strong>' +
+            '<ul class="mb-0 mt-2">' + errorItems + '</ul>' +
+            '<button type="button" class="btn-close float-end" style="margin-top:-20px;" onclick="$(\'#ajaxAlert\').alert(\'close\')"></button>' +
+            '</div>'
+        );
+
+        // Scroll to top
+        $('html, body').animate({ scrollTop: 0 }, 'fast');
+
+        // Highlight individual fields
+        $.each(errors, function(key, messages) {
+            var fieldId = keyMap[key] || key; // use mapped id if exists, else use key directly
+            var field = $('#' + fieldId);
+            if (field.length) {
+                field.addClass('is-invalid');
+                var errorDiv = $('#' + fieldId + '-error');
+                if (errorDiv.length) {
+                    errorDiv.text(messages[0]);
                 }
             }
         });
@@ -419,6 +441,7 @@
             contentType: false,
             dataType: 'json',
             success: function(response) {
+                console.log(response);
                 if (response.success) {
                     showAjaxMessage(response.message, 'success');
                     closeForm();
@@ -434,6 +457,7 @@
             },
             error: function(xhr) {
                 if (xhr.status === 422) {
+                    console.log(xhr.responseJSON.errors);
                     var errors = xhr.responseJSON.errors;
                     showErrors(errors);
                     showAjaxMessage('Please fix the errors in the form.', 'error');

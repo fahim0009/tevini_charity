@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 @section('content')
+@php
+use Illuminate\Support\Carbon;
+use app\Models\Provoucher;
+@endphp
 <style>
      * {
 	 margin: 0;
@@ -146,7 +150,8 @@
     
                 </div>
                 <div class="right">
-                    Date: <b>@php echo date('d-m-Y'); @endphp</b> <br>
+                    
+                    Date: <b>{{ !empty($transaction->date) ? Carbon::parse($transaction->date)->format('d/m/Y') : Carbon::parse($transaction->created_at)->format('d/m/Y') }}</b> <br>
                     Receipt <b>#@php echo(rand(100,999));  @endphp</b>
     
                 </div>

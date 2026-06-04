@@ -135,7 +135,7 @@ use app\Models\Provoucher;
                                 @foreach ($report as $data)
                                     @if($data->commission != 0)
                                     <tr>
-                                        <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
+                                        <td>{{ !empty($data->date) ? Carbon::parse($data->date)->format('d/m/Y') : Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                         <td>{{$data->t_id}} </td>
                                         <td>Commission</td>
                                         <td></td>
@@ -148,7 +148,7 @@ use app\Models\Provoucher;
                                     </tr>
                                     @endif
                                     <tr>
-                                        <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{ !empty($data->date) ? Carbon::parse($data->date)->format('d/m/Y') : Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                         <td>{{$data->t_id}} </td>
                                         <td>{{$data->title}} </td>
 

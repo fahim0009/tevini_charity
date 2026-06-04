@@ -12,7 +12,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\DonorController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AboutController;
-use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\CharityController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\StripePaymentController;
@@ -94,6 +94,10 @@ Route::get('/how-it-works', [HomepageController::class, 'howitWorks'])->name('ho
 Route::get('/tdf', [HomepageController::class, 'tdf'])->name('tdf');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->name('contact.submit');
+
+// new pages
+Route::get('/online-donation', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
+Route::post('/online-donation', [FrontendController::class, 'onlineDonationStore'])->name('front.onlinedonation.store');
 
 // App Safari View Controller (for testing)
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);

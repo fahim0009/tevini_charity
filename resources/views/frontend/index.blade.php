@@ -395,7 +395,7 @@
     }
 </style>
 
-<section class="charity-cards-section py-5">
+<section class="charity-cards-section py-5 d-none">
     <div class="container">
         <div class="row">
             <div class="col-12 text-center">

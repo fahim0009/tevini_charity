@@ -96,6 +96,7 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->name('contact.submit');
 
 // new pages
+Route::get('/v2/home', [HomepageController::class, 'indexV2'])->name('homepageV2');
 Route::get('/online-donation', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
 Route::post('/online-donation', [FrontendController::class, 'onlineDonationStore'])->name('front.onlinedonation.store');
 

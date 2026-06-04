@@ -21,6 +21,11 @@ class HomepageController extends Controller
         return view('frontend.index');
     }
 
+    public function indexV2()
+    {
+        return view('frontend.indexv2');
+    }
+
     public function news()
     {
         return view('news.index');

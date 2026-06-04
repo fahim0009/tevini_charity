@@ -50,11 +50,11 @@
 
 
               @if(auth('charity')->check() && isset($profileIncomplete))
-                    <div class="alert alert-warning d-flex align-items-center justify-content-between" role="alert" style="margin:10px 15px; border-left: 5px solid #ff9800;">
+                    <div class="alert alert-danger d-flex align-items-center justify-content-between" role="alert" style="margin:10px 15px; border-left: 5px solid #bb3311;">
                         <div>
                             <strong>Profile Incomplete!</strong> Please complete your Charity Number, Website, Address, Town, and Postcode.
                         </div>
-                        <a href="{{ route('charity.profile') }}" class="btn btn-sm btn-warning text-white font-weight-bold" style="white-space: nowrap;">
+                        <a href="{{ route('charity.profile') }}" class="btn btn-sm btn-danger text-white font-weight-bold" style="white-space: nowrap;">
                             Complete Profile
                         </a>
                     </div>

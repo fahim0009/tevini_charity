@@ -99,6 +99,8 @@ Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->na
 Route::get('/online-donation', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
 Route::post('/online-donation', [FrontendController::class, 'onlineDonationStore'])->name('front.onlinedonation.store');
 
+Route::get('/online-voucher-book', [FrontendController::class, 'orderVoucherBooks'])->name('orderVoucherBooks');
+
 // App Safari View Controller (for testing)
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);
 Route::get('make-donation-success', [DonorController::class, 'makeDonationAppMessage'])->name('onlinedonation.appview');

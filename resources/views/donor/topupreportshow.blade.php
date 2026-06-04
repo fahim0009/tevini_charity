@@ -176,7 +176,7 @@ use app\Models\Provoucher;
                </thead>
                <tbody>
                 <tr>
-                    <td>@php echo date('d-m-Y'); @endphp</td>
+                    <td>{{ !empty($transaction->date) ? Carbon::parse($transaction->date)->format('d/m/Y') : Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
                     <td></td>
                     <td></td>
                     <td>{{$source}}</td>

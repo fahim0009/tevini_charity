@@ -1532,14 +1532,11 @@ class OrderController extends Controller
     {
         $charities = Charity::all();
         $donors = User::where([
-            ['is_type', '=', 'user'],
-            ['status', '=', '1']
-        ])->get();
+                ['is_type', '=', 'user'],
+                ['status', '=', '1']
+            ])->get();
 
-
-        return view('voucher.processvoucher')
-        ->with('charities',$charities)
-        ->with('donors',$donors);
+        return view('voucher.processvoucher', compact('charities','donors'));
     }
 
 

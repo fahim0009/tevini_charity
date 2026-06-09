@@ -206,7 +206,7 @@ class ProcessVoucherController extends Controller
                 Log::info("  → Skipped: Not a voucher page");
                 $barcodes[] = [
                     'file' => basename($imagePath),
-                    'voucher_number' => 'Not a voucher',
+                    'voucher_number' => 'Not Found',
                     'method' => 'skipped'
                 ];
                 // Don't insert into database - it's not a voucher

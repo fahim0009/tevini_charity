@@ -507,8 +507,8 @@ class ProcessVoucherController extends Controller
         try {
             $croppedPath = str_replace('.jpg', '_topright.jpg', $imagePath);
             
-            // Crop top 30% and right 40%
-            $command = 'magick "' . $imagePath . '" -crop 40%x30%+60%+0 +repage "' . $croppedPath . '"';
+            // ImageMagick v6 uses 'convert' instead of 'magick'
+            $command = 'convert "' . $imagePath . '" -crop 40%x30%+60%+0 +repage "' . $croppedPath . '"';
             
             exec($command . ' 2>&1', $output, $returnCode);
 
@@ -526,8 +526,8 @@ class ProcessVoucherController extends Controller
         try {
             $enhancedPath = str_replace('.jpg', '_barenh.jpg', $imagePath);
             
-            // High contrast black & white for barcode
-            $command = 'magick "' . $imagePath . '" -colorspace GRAY -threshold 50% -scale 200% -scale 50% "' . $enhancedPath . '"';
+            // ImageMagick v6 uses 'convert'
+            $command = 'convert "' . $imagePath . '" -colorspace GRAY -threshold 50% -scale 200% -scale 50% "' . $enhancedPath . '"';
             
             exec($command . ' 2>&1', $output, $returnCode);
 
@@ -545,7 +545,8 @@ class ProcessVoucherController extends Controller
         try {
             $enhancedPath = str_replace('.jpg', '_enh.jpg', $imagePath);
             
-            $command = 'magick "' . $imagePath . '" -colorspace GRAY -contrast-stretch 5%x5% -threshold 45% "' . $enhancedPath . '"';
+            // ImageMagick v6 uses 'convert'
+            $command = 'convert "' . $imagePath . '" -colorspace GRAY -contrast-stretch 5%x5% -threshold 45% "' . $enhancedPath . '"';
             
             exec($command . ' 2>&1', $output, $returnCode);
 
@@ -563,7 +564,8 @@ class ProcessVoucherController extends Controller
         try {
             $croppedPath = str_replace('.jpg', '_crop.jpg', $imagePath);
             
-            $command = 'magick "' . $imagePath . '" -gravity south -crop 100%x40%+0+0 +repage "' . $croppedPath . '"';
+            // ImageMagick v6 uses 'convert'
+            $command = 'convert "' . $imagePath . '" -gravity south -crop 100%x40%+0+0 +repage "' . $croppedPath . '"';
             
             exec($command . ' 2>&1', $output, $returnCode);
 

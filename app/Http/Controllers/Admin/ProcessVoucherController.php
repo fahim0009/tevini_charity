@@ -36,7 +36,7 @@ class ProcessVoucherController extends Controller
     // WINDOWS VERSION
     // ==========================================
     
-    public function uploadAndExtractMultiplepdf(Request $request)
+    public function uploadAndExtractMultiplepdf2(Request $request)
     {
         try {
             set_time_limit(7200);
@@ -95,7 +95,7 @@ class ProcessVoucherController extends Controller
     // LINUX VERSION
     // ==========================================
 
-    public function uploadAndExtractMultiplepdf2(Request $request)
+    public function uploadAndExtractMultiplepdf(Request $request)
     {
         try {
             set_time_limit(7200);

@@ -830,7 +830,7 @@
                                         <input type="hidden" name="donor[]" value="${orderDetail.user_id}" class="donorid">
                                     </td>
                                     <td width="250px">
-                                        <input style="min-width:100px" name="check[]" type="text" value="2${orderDetail.barcode}" class="form-control check">
+                                        <input style="min-width:100px" name="check[]" type="text" value="${orderDetail.barcode}" class="form-control check">
                                     </td>
                                     <td width="20px">
                                         <input name="amount[]" type="text" value="${orderDetail.amount}" class="amount form-control" style="${amountStyle}">

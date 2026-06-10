@@ -12,6 +12,8 @@ use App\Models\ProcessedBarcode;
 use App\Jobs\ProcessBarcodeJob;
 use App\Models\User;
 
+    use Yajra\DataTables\Facades\DataTables;
+
 class ProcessVoucherController extends Controller
 {
     
@@ -812,4 +814,50 @@ class ProcessVoucherController extends Controller
             ], 500);
         }
     }
+
+
+
+    public function getReadableBarcodes()
+    {
+        $data = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')
+            ->whereNull('provoucher_batch_id')
+            ->select(['id', 'created_at', 'file', 'barcode']); 
+
+        return DataTables::of($data)
+            ->addColumn('image', function($row) {
+                $url = asset('storage/barcodeimages/' . $row->file);
+                return '<a href="'.$url.'" target="_blank">
+                            <img src="'.$url.'" alt="barcode" style="width: 200px; height: 100px;">
+                        </a>';
+            })
+            ->addColumn('action', function($row) {
+                return '<a href="javascript:void(0)" class="delete-single-barcode" data-id="'.$row->id.'">
+                            <i class="fa fa-trash-o" style="color: red;font-size:16px;"></i>
+                        </a>';
+            })
+            ->rawColumns(['image', 'action']) 
+            ->make(true);
+    }
+
+    public function getNotReadableBarcodes()
+    {
+        $data = \App\Models\ProcessedBarcode::where('barcode', '=', 'Not Found')
+            ->whereNull('provoucher_batch_id')
+            ->get();
+
+        $html = '';
+        foreach ($data as $item) {
+            $url = asset('storage/barcodeimages/' . $item->file);
+            $html .= '<div class="col-md-3 mb-3">
+                        <a href="'.$url.'" target="_blank">
+                            <img src="'.$url.'" alt="barcode" class="img-thumbnail">
+                        </a>
+                    </div>';
+        }
+
+        return response()->json(['html' => $html]);
+    }
+
+
+
 }

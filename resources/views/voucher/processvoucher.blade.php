@@ -28,14 +28,18 @@
     .badge-secondary {
         background-color: #6c757d;
     }
+
+
+
 </style>
-@php
-    $readableBarcode = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')->whereNull('provoucher_batch_id')->get();
-    $notReadableBarcode = \App\Models\ProcessedBarcode::where('barcode', '=', 'Not Found')->whereNull('provoucher_batch_id')->get();
-@endphp
+
+</style>
+
 
 <div class="dashboard-content" id="focusBcode">
-    <section class="profile purchase-status">
+
+
+    <section class="profile purchase-status sticky-voucher-header">
         <div class="title-section d-flex justify-content-between align-items-center">
             <div>
                 <span class="iconify" data-icon="icon-park-outline:transaction"></span>
@@ -48,17 +52,15 @@
             </div>
 
             <div class="ml-auto">
-                <button class="iconify" data-icon="mdi:book" data-inline="false" data-toggle="modal" data-target="#fullWidthModal" style="cursor: pointer;"></button>
+                <button class="iconify" data-icon="mdi:book" data-inline="false" id="openVoucherModal" style="cursor: pointer;"></button>
 
-                <!-- Modal -->
+                <!-- Modal remains exactly the same, but replace the table body and image gallery inside it -->
                 <div class="modal fade" id="fullWidthModal" tabindex="-1" role="dialog" aria-labelledby="fullWidthModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="fullWidthModalLabel">Voucher</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
+                                
                             </div>
                             <div class="modal-body">
                                 <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -85,23 +87,8 @@
                                                     <th>Delete</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @foreach ($readableBarcode as $readblebarcode)
-                                                <tr>
-                                                    <td>{{ $readblebarcode->created_at }}</td>
-                                                    <td>
-                                                        <a href="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" target="_blank">
-                                                            <img src="{{ asset('storage/barcodeimages/'.$readblebarcode->file) }}" alt="barcode" style="width: 200px; height: 100px;">
-                                                        </a>
-                                                    </td>
-                                                    <td>{{ $readblebarcode->barcode }}</td>
-                                                    <td>
-                                                        
-                                                        <a id="deleteBtn" rid="{{$readblebarcode->id}}"><i class="fa fa-trash-o" style="color: red;font-size:16px;"></i></a>
-                                                    </td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
+                                            <!-- TBODY IS NOW EMPTY - Yajra will fill this -->
+                                            <tbody></tbody>
                                         </table>
                                     </div>
                                     <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
@@ -109,28 +96,28 @@
                                             <button class="btn btn-warning" id="deleteProcessImage">Delete Voucher Image</button>
                                         </div>
                                         <div class="image-gallery">
-                                            <div class="row">
-                                                @foreach ($notReadableBarcode as $notReadable)
-                                                <div class="col-md-3 mb-3">
-                                                    <a href="{{ asset('storage/barcodeimages/'.$notReadable->file) }}" target="_blank">
-                                                        <img src="{{ asset('storage/barcodeimages/'.$notReadable->file) }}" alt="barcode" class="img-thumbnail">
-                                                    </a>
-                                                </div>
-                                                @endforeach
+                                            <!-- ADDED ID HERE -->
+                                            <div class="row" id="imageGalleryRow">
+                                                <!-- AJAX will fill this -->
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" id="closeVoucherModal">Close</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="ermsg"></div>
-        </section>
+        </div> <!-- THIS WAS THE MISSING CLOSING DIV -->
+    </section>
+
+
+
         <!-- Image loader -->
         <div id='loading' style='display:none;'>
             <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
@@ -384,15 +371,7 @@
 @section('script')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 
-<script>
-    $(document).ready(function() {
-        $('#readableBarcodeTable').DataTable({
-            "responsive": true,
-            "autoWidth": false,
-            "order": [[0, "desc"]], // Order by date descending
-        });
-    });
-</script>
+
 
 <script type="text/javascript">
     $(function() {
@@ -410,6 +389,8 @@
         updateRowCount(); // Add this line
         net_total(); // Also recalculate total
     }
+
+    var readableTable; 
 
     $(document).ready(function() {
 
@@ -763,7 +744,9 @@
          $('#addToProcess').on('click', function(e) {
             e.preventDefault();
             
+            // Close modal first
             forceCloseModal('fullWidthModal');
+            
             // 1. Show the main page loader
             $("#loading").show();
             
@@ -772,12 +755,24 @@
             $btn.prop('disabled', true).text('Processing...');
 
             let selectedBarcodes = [];
-            $('#readableBarcodeTable tbody tr').each(function() {
-                let barcode = $(this).find('td:nth-child(3)').text().trim();
-                if (barcode) {
-                    selectedBarcodes.push(barcode);
-                }
-            });
+            
+            // NEW: Correct way to get all data from a Server-Side (Yajra) DataTable
+            if (typeof readableTable !== 'undefined') {
+                readableTable.rows().every(function() {
+                    let rowData = this.data();
+                    if (rowData.barcode) {
+                        selectedBarcodes.push(rowData.barcode);
+                    }
+                });
+            } else {
+                // Fallback just in case table wasn't initialized
+                $('#readableBarcodeTable tbody tr').each(function() {
+                    let barcode = $(this).find('td:nth-child(3)').text().trim();
+                    if (barcode) {
+                        selectedBarcodes.push(barcode);
+                    }
+                });
+            }
 
             if (selectedBarcodes.length === 0) {
                 alert("No barcodes selected to process.");
@@ -865,9 +860,11 @@
                         $("#notReadableBook").removeClass("d-none");
                         $("#inner2").html(response.data2);
                     }
-
-                    // Force close the modal instantly
-                    forceCloseModal('fullWidthModal');
+                    
+                    // Reload the Yajra table to remove processed items
+                    if (typeof readableTable !== 'undefined') {
+                        readableTable.ajax.reload(null, false);
+                    }
                     
                 },
                 complete: function() {
@@ -879,13 +876,10 @@
                     alert("An error occurred while processing the barcodes.");
                     $("#loading").hide();
                     $btn.prop('disabled', false).text('Add to process');
-                    
-                    // Ensure modal closes even if AJAX fails
                     forceCloseModal('fullWidthModal');
                 }
             });
         });
-
 
         // Brute-force modal close to bypass Bootstrap 4/5 conflicts
         function forceCloseModal(modalId) {
@@ -952,14 +946,64 @@
             });
         });
 
-        // Delete single readable barcode row
-        $('#readableBarcodeTable').on('click', '#deleteBtn', function(e) {
-            e.preventDefault();
-            var rid = $(this).attr('rid');
-            if (!confirm("Are you sure you want to delete this barcode?")) {
+
+
+        // 1. Initialize Yajra Datatable ONLY when the modal opens
+    $('#fullWidthModal').on('shown.bs.modal', function () {
+        // Check if table is already initialized to prevent errors
+        if ( ! $.fn.DataTable.isDataTable( '#readableBarcodeTable' ) ) {
+            readableTable = $('#readableBarcodeTable').DataTable({
+                processing: true,
+                serverSide: true,
+                // Removed responsive: true because the extension JS is missing
+                autoWidth: false, 
+                order: [[0, 'desc']],
+                ajax: {
+                    url: "{{ route('get.readable.barcodes') }}",
+                    type: "GET"
+                },
+                columns: [
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'image', name: 'file', orderable: false, searchable: false },
+                    { data: 'barcode', name: 'barcode' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                ],
+                // Fixed: Use setTimeout + columns.adjust() to fix modal width without responsive plugin
+                "fnDrawCallback": function() {
+                    setTimeout(function() {
+                        readableTable.columns.adjust();
+                    }, 100);
+                }
+            });
+        } else {
+            // If already initialized, just recalculate widths
+            setTimeout(function() {
+                readableTable.columns.adjust();
+            }, 100);
+        }
+    });
+
+    // 2. Fetch "Not Readable" Images ONLY when Tab 2 is clicked
+    var imagesLoaded = false;
+    $('#tab2-tab').on('shown.bs.tab', function () {
+        if (!imagesLoaded) {
+            $.get("{{ route('get.not.readable.barcodes') }}", function(response) {
+                $('#imageGalleryRow').html(response.html);
+                imagesLoaded = true;
+            });
+        }
+    });
+
+    // 3. Updated Delete Button JS
+    $('#readableBarcodeTable').on('click', '.delete-single-barcode', function(e) {
+        e.preventDefault();
+        var rid = $(this).data('id');
+        
+        if (!confirm("Are you sure you want to delete this barcode?")) {
             return;
-            }
-            $.ajax({
+        }
+        
+        $.ajax({
             url: "{{ URL::to('/admin/delete-processed-single-barcode') }}",
             type: "POST",
             data: {
@@ -968,13 +1012,64 @@
             },
             success: function(response) {
                 alert("Barcode deleted successfully.");
-                location.reload();
+                readableTable.ajax.reload(null, false); // Reload table data
             },
             error: function(xhr) {
                 alert("An error occurred while deleting the barcode.");
             }
-            });
         });
     });
+
+
+            // Brute-force modal OPEN to bypass Bootstrap 4/5 conflicts
+        $('#openVoucherModal').on('click', function(e) {
+            e.preventDefault();
+            var $modal = $('#fullWidthModal');
+            
+            // 1. Destroy any leftover backdrops from previous glitchy opens
+            $('.modal-backdrop').remove();
+            
+            // 2. Setup body for modal (lock scroll, add padding for scrollbar)
+            $('body').addClass('modal-open');
+            var scrollWidth = window.innerWidth - $(window).width();
+            $('body').css('padding-right', scrollWidth + 'px');
+            
+            // 3. Force show the modal with absolute highest z-index
+            $modal.css('display', 'block');
+            $modal.addClass('show');
+            $modal.attr('aria-hidden', 'false');
+            $modal.css('z-index', '99999');
+            
+            // 4. Manually create exactly ONE backdrop with a lower z-index
+            $('body').append('<div class="modal-backdrop fade show" style="z-index: 99998;"></div>');
+            
+            // 5. Trigger the event so our Yajra Datatable knows it's open and initializes
+            $modal.trigger('shown.bs.modal');
+        });
+
+        // Brute-force modal CLOSE
+        $('#closeVoucherModal').on('click', function(e) {
+            e.preventDefault();
+            forceCloseModal('fullWidthModal');
+        });
+
+        function forceCloseModal(modalId) {
+            var $modal = $('#' + modalId);
+            
+            // 1. Hide the modal box immediately
+            $modal.removeClass('show').css('display', 'none');
+            $modal.attr('aria-hidden', 'true');
+            
+            // 2. Remove the gray background overlay
+            $('.modal-backdrop').remove();
+            
+            // 3. Unlock the page scrolling
+            $('body').removeClass('modal-open');
+            $('body').css('padding-right', '');
+            $('body').css('overflow', '');
+        }
+
+
+});
 </script>
 @endsection

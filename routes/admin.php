@@ -415,6 +415,9 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
         ->name('delete-process-voucher-image-list');
     Route::post('/delete-processed-single-barcode', [ProcessVoucherController::class, 'deleteProcessSingleBarcode']);
 
+    Route::get('/get-readable-barcodes', [ProcessVoucherController::class, 'getReadableBarcodes'])->name('get.readable.barcodes');
+    Route::get('/get-not-readable-barcodes', [ProcessVoucherController::class, 'getNotReadableBarcodes'])->name('get.not.readable.barcodes');
+
     /*
     |----------------------------------------------------------------------
     | VOUCHER ORDERS

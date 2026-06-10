@@ -1328,8 +1328,34 @@ class OrderController extends Controller
 
         // Required fields check
         foreach ($rows as $index => $row) {
-            if (empty($row['donorId']) || empty($row['donorAcc']) || empty($row['chqNo']) || empty($row['amount'])) {
-                return $this->errorResponse('Please fill in all required fields (row ' . ($index + 1) . ').');
+            $rowNum = $index + 1;
+            $emptyFields = [];
+
+            if (empty($row['donorId'])) {
+                $emptyFields[] = 'Donor ID';
+            }
+            if (empty($row['donorAcc'])) {
+                $emptyFields[] = 'Donor Account';
+            }
+            if (empty($row['chqNo'])) {
+                $emptyFields[] = 'Check No';
+            }
+            if (empty($row['amount'])) {
+                $emptyFields[] = 'Amount';
+            }
+
+            // If any fields are empty, log them and return error
+            if (count($emptyFields) > 0) {
+                $logMessage = "Process Voucher Validation Failed - Row {$rowNum}: Empty fields -> " . implode(', ', $emptyFields);
+                
+                // Log the full row data for debugging
+                \Log::warning($logMessage, [
+                    'row_number' => $rowNum,
+                    'empty_fields' => $emptyFields,
+                    'row_data' => $row
+                ]);
+
+                return $this->errorResponse("Row {$rowNum}: Please fill in " . implode(', ', $emptyFields) . ".");
             }
         }
 

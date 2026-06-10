@@ -10,6 +10,7 @@ use thiagoalessio\TesseractOCR\TesseractOCR;
 use App\Models\Barcode;
 use App\Models\ProcessedBarcode;
 use App\Jobs\ProcessBarcodeJob;
+use App\Models\User;
 
 class ProcessVoucherController extends Controller
 {
@@ -673,7 +674,18 @@ class ProcessVoucherController extends Controller
             $orderDtl = Barcode::where('barcode', '=', $pdata->barcode)->first();
 
             if ($orderDtl) {
+                $user = User::find($orderDtl->user_id);
+                $limitChk = $user->getAvailableLimit() ?? 0;
+
+                if ($limitChk < $orderDtl->amount ) {
+                    $barcodeStatus = 'Will be pending';
+                } else {
+                    $barcodeStatus = 'Will be complete';
+                }
+
+                $orderDtl->barcodeStatus = $barcodeStatus;
                 $orderDetails[] = $orderDtl;
+
                 $prop .= '<tr class="item-row">
                     <td width="200px">
                         <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px;" onclick="removeRow(event)">X</div>
@@ -700,35 +712,15 @@ class ProcessVoucherController extends Controller
                             <option value="Yes">Yes</option>
                         </select>
                     </td>
+                    
+                    <td width="">
+                    '.$barcodeStatus.'
+                    </td>
                 </tr>';
             } else {
-                $prop2 .= '<tr class="item-row">
-                    <td width="200px" style="display:inline-flex;">
-                        <div style="color: white; user-select:none; padding: 5px; background: red; width: 45px; display: flex; align-items: center; margin-right:5px; justify-content: center; border-radius: 4px;" onclick="removeRow(event)">X</div>
-                    </td>
-                    <td width="200px">
-                        <input style="min-width: 100px;" type="number" class="form-control donor" name="donor_acc[]" value="" placeholder="Type Acc no...">
-                    </td>
-                    <td width="250px">
-                        <input style="min-width:100px" type="text" value="" readonly class="form-control donorAcc">
-                        <input type="hidden" name="donor[]" value="" class="donorid">
-                    </td>
-                    <td width="250px">
-                        <input style="min-width:100px" name="check[]" type="text" value="'.$pdata->barcode.'" class="form-control check">
-                    </td>
-                    <td width="20px">
-                        <input style="min-width:30px" name="amount[]" type="text" value="" class="amount form-control">
-                    </td>
-                    <td width="250px">
-                        <input style="min-width:200px" name="note[]" type="text" class="form-control note">
-                    </td>
-                    <td width="150px">
-                        <select name="waiting[]" class="form-control">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                    </td>
-                </tr>';
+                $prop2 .= '<div class="col-sm-2 col-md-2 col-2">
+                            <input style="min-width:100px" type="text" value="'.$pdata->barcode.'" class="form-control">
+                        </div>';
             }
         }
 

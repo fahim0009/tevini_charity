@@ -8,6 +8,26 @@
     select.form-control {
         position: static !important;
     }
+    #rowCountBadge {
+        vertical-align: middle;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        min-width: 24px;
+        text-align: center;
+    }
+    .badge-primary {
+        background-color: #007bff;
+    }
+    .badge-success {
+        background-color: #28a745;
+    }
+    .badge-warning {
+        background-color: #ffc107;
+    }
+    .badge-secondary {
+        background-color: #6c757d;
+    }
 </style>
 @php
     $readableBarcode = \App\Models\ProcessedBarcode::where('barcode', '!=', 'Not Found')->whereNull('provoucher_batch_id')->get();
@@ -20,7 +40,7 @@
             <div>
                 <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                 Process Voucher
-
+                <span id="rowCountBadge" class="badge badge-primary ml-2" style="font-size: 12px;">0</span>
             </div>
 
             <div class="ml-auto" >
@@ -329,14 +349,40 @@
                 </div>
             </div>
         </section>
+
+        <section class="profile purchase-status">
+            <div class="title-section">
+                <span class="iconify" data-icon="icon-park-outline:transaction"></span> <div class="mx-2">No Donor Found this voucher</div>
+            </div>
+        </section>
+
+        <section class="d-none" id="notReadableBook">
+            <div class="row my-3 mx-0">
+                <div class="col-md-12 bg-white px-4">
+                    <div class="form-container">
+                        <div class="overflow mx-auto">
+                            <h4>*** These vouchers have no donor information. Please check the images and update the information manually.</h4>
+
+                            <div class="row"  id="inner2">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+
+
+
     </div>
 @endsection
 
 @section('script')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
-<script>
-    $('.charitylist').select2();
-</script>
 
 <script>
     $(document).ready(function() {
@@ -353,13 +399,49 @@
         $('[data-toggle="tooltip"]').tooltip();
     });
 
+    $('.charitylist').select2();
+
+    // function removeRow(event) {
+    //     event.target.parentElement.parentElement.remove();
+    // }
+
     function removeRow(event) {
         event.target.parentElement.parentElement.remove();
+        updateRowCount(); // Add this line
+        net_total(); // Also recalculate total
     }
-</script>
 
-<script type="text/javascript">
     $(document).ready(function() {
+
+    // Function to count and update row count badge
+    function updateRowCount() {
+        var rowCount = $('#inner tr.item-row').length;
+        $('#rowCountBadge').text(rowCount);
+        
+        if (rowCount === 0) {
+            $('#rowCountBadge').removeClass('badge-primary badge-warning badge-success').addClass('badge-secondary');
+        } else if (rowCount < 5) {
+            $('#rowCountBadge').removeClass('badge-secondary badge-warning badge-success').addClass('badge-primary');
+        } else if (rowCount < 10) {
+            $('#rowCountBadge').removeClass('badge-secondary badge-primary badge-success').addClass('badge-warning');
+        } else {
+            $('#rowCountBadge').removeClass('badge-secondary badge-primary badge-warning').addClass('badge-success');
+        }
+    }
+
+
+    // Initial count
+    updateRowCount();
+
+    // Remove row function
+    window.removeRow = function(event) {
+        event.target.parentElement.parentElement.remove();
+        updateRowCount();
+        net_total();
+    };
+
+
+
         $(".add-row").click(function() {
             var markup = `
                 <tr class="item-row" style="position:relative;">
@@ -396,6 +478,7 @@
                     </td>
                 </tr>`;
             $("table #inner").append(markup);
+            updateRowCount();
         });
 
         // CSRF token setup for AJAX
@@ -467,9 +550,6 @@
             var notes = $("input[name='note[]']").map(function() { return $(this).val(); }).get();
             var waitings = $("select[name='waiting[]']").map(function() { return $(this).val(); }).get();
             var expireds = $("select[name='expired[]']").map(function() { return $(this).val(); }).get();
-
-
-            console.log(expireds);
 
             $.ajax({
                 url: urld,
@@ -631,11 +711,7 @@
             });
             $('#total').val(total.toFixed(2));
         }
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
+        
         var pdfurl = "{{ URL::to('/admin/pdf-to-text') }}";
         $('#uploadPdfSubmit').on('click', function(e) {
             e.preventDefault();
@@ -684,8 +760,17 @@
             });
         });
 
-        $('#addToProcess').on('click', function(e) {
+         $('#addToProcess').on('click', function(e) {
             e.preventDefault();
+            
+            forceCloseModal('fullWidthModal');
+            // 1. Show the main page loader
+            $("#loading").show();
+            
+            // Disable button to prevent multiple clicks
+            var $btn = $(this);
+            $btn.prop('disabled', true).text('Processing...');
+
             let selectedBarcodes = [];
             $('#readableBarcodeTable tbody tr').each(function() {
                 let barcode = $(this).find('td:nth-child(3)').text().trim();
@@ -696,6 +781,8 @@
 
             if (selectedBarcodes.length === 0) {
                 alert("No barcodes selected to process.");
+                $("#loading").hide();
+                $btn.prop('disabled', false).text('Add to process');
                 return;
             }
 
@@ -708,13 +795,27 @@
                 },
                 success: function(response) {
                     console.log("Success:", response);
-                    response.orderDetails.forEach(function(orderDetail) {
-                        if ($('#donorid').val() === '') {
+                    
+                    let isFirstRowEmpty = ($('#donorid').val() === '' && $('#donor_acc_num').val() === '');
+                    
+                    response.orderDetails.forEach(function(orderDetail, index) {
+                        
+                        let amountStyle = orderDetail.amount < 1 
+                            ? 'min-width:30px; border: 2px solid red;' 
+                            : 'min-width:30px;';
+                        
+                        let statusStyle = orderDetail.barcodeStatus === 'Will be pending' 
+                            ? 'color: red; font-weight: bold;' 
+                            : 'color: green; font-weight: bold;';
+
+                        if (index === 0 && isFirstRowEmpty) {
                             $('#donorid').val(orderDetail.user_id);
                             $('#donor_acc_num').val(orderDetail.user.accountno);
                             $('#donor_acc_name').val(orderDetail.user.name);
                             $('#donor_check').val(orderDetail.barcode);
                             $('#d_amnt').val(orderDetail.amount);
+                            $('#d_amnt').attr('style', amountStyle);
+                            $('#barcode_status').html('<span style="' + statusStyle + '">' + orderDetail.barcodeStatus + '</span>');
                         } else {
                             var markup = `
                                 <tr class="item-row" style="position:relative;">
@@ -729,38 +830,79 @@
                                         <input type="hidden" name="donor[]" value="${orderDetail.user_id}" class="donorid">
                                     </td>
                                     <td width="250px">
-                                        <input style="min-width:100px" name="check[]" type="text" value="${orderDetail.barcode}" class="form-control check">
+                                        <input style="min-width:100px" name="check[]" type="text" value="2${orderDetail.barcode}" class="form-control check">
                                     </td>
                                     <td width="20px">
-                                        <input style="min-width:30px" name="amount[]" type="text" value="${orderDetail.amount}" class="amount form-control">
+                                        <input name="amount[]" type="text" value="${orderDetail.amount}" class="amount form-control" style="${amountStyle}">
                                     </td>
                                     <td width="250px">
                                         <input style="min-width:200px" name="note[]" type="text" class="form-control note">
                                     </td>
-                                    <td width="150px"><select name="waiting[]" class="form-control"><option value="No">No</option><option value="Yes">Yes</option></select></td>
-                                    
+                                    <td width="150px">
+                                        <select name="waiting[]" class="form-control">
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                    </td>
                                     <td width="150px">
                                         <select name="expired[]" class="form-control">
                                             <option value="No">No</option>
                                             <option value="Yes">Yes</option>
                                         </select>
                                     </td>
+                                    <td width="150px">
+                                        <span style="${statusStyle}">${orderDetail.barcodeStatus}</span>
+                                    </td>
                                 </tr>`;
                             $("table #inner").append(markup);
                         }
                     });
-                    setTimeout(function() {
-                        $('#fullWidthModal').modal('hide');
-                        $('.modal-backdrop').remove();
-                        $('body').removeClass('modal-open');
-                    }, 500);
+
+                    updateRowCount();
+                    net_total();
+
+                    if (response.data2) {
+                        $("#notReadableBook").removeClass("d-none");
+                        $("#inner2").html(response.data2);
+                    }
+
+                    // Force close the modal instantly
+                    forceCloseModal('fullWidthModal');
+                    
+                },
+                complete: function() {
+                    $("#loading").hide();
+                    $btn.prop('disabled', false).text('Add to process');
                 },
                 error: function(xhr) {
                     console.log("Error response:", xhr.responseText);
                     alert("An error occurred while processing the barcodes.");
+                    $("#loading").hide();
+                    $btn.prop('disabled', false).text('Add to process');
+                    
+                    // Ensure modal closes even if AJAX fails
+                    forceCloseModal('fullWidthModal');
                 }
             });
         });
+
+
+        // Brute-force modal close to bypass Bootstrap 4/5 conflicts
+        function forceCloseModal(modalId) {
+            var $modal = $('#' + modalId);
+            
+            // 1. Hide the modal box immediately
+            $modal.removeClass('show').css('display', 'none');
+            $modal.attr('aria-hidden', 'true');
+            
+            // 2. Remove the gray background overlay
+            $('.modal-backdrop').remove();
+            
+            // 3. Unlock the page scrolling
+            $('body').removeClass('modal-open');
+            $('body').css('padding-right', '');
+            $('body').css('overflow', '');
+        }
 
         $('#deleteProcess').on('click', function(e) {
             e.preventDefault();

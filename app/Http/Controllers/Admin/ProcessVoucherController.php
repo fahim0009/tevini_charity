@@ -225,7 +225,6 @@ class ProcessVoucherController extends Controller
             $voucherNumber = $this->extractByZBar($imagePath, $config['zbar']);
             if ($voucherNumber) {
                 $method = 'ZBar';
-                Log::info("  → Found by ZBar: {$voucherNumber}");
             }
 
             // ============================================
@@ -263,7 +262,6 @@ class ProcessVoucherController extends Controller
                     $voucherNumber = $this->extractByZBar($enhancedPath, $config['zbar']);
                     if ($voucherNumber) {
                         $method = 'ZBar Enhanced';
-                        Log::info("  → Found by ZBar Enhanced: {$voucherNumber}");
                     }
                     @unlink($enhancedPath);
                 }
@@ -278,7 +276,6 @@ class ProcessVoucherController extends Controller
                     $voucherNumber = $this->extractByZBar($croppedPath, $config['zbar']);
                     if ($voucherNumber) {
                         $method = 'ZBar Cropped';
-                        Log::info("  → Found by ZBar Cropped: {$voucherNumber}");
                     }
                     @unlink($croppedPath);
                 }

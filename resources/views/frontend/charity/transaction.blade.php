@@ -75,6 +75,12 @@ use Illuminate\Support\Carbon;
                                     <tbody>
 
                                         @foreach ($intransactions as $transaction)
+
+                                        @php
+                                            $charityNote = \App\Models\StandingDonation::where('id', $transaction->standing_donationdetails_id)->first();
+                                        @endphp
+
+
                                         <tr>
                                                 <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
                                                 <td>{{ $transaction->user->name }}</td>
@@ -175,14 +181,7 @@ use Illuminate\Support\Carbon;
                                                     </div>
                                                 </td>
                                                 <td>{{ $transaction->cheque_no}}</td>
-                                                <td>{{ $transaction->note}} <br>
-                                                    @if ($transaction->standing_donationdetails_id)
-                                                    @if ($transaction->standingdonationDetail->StandingDonation->charitynote)
-                                                        
-                                                        <small><strong>Charity Note:</strong></small> {{ $transaction->standingdonationDetail->StandingDonation->charitynote ?? "" }}<br>
-                                                    @endif
-                                                    @endif
-                                                </td>
+                                                <td>{{ $transaction->note}} {{  $charityNote ?  $charityNote->charitynote : "" }}</td>
                                                 <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach

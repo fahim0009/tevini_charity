@@ -1604,12 +1604,11 @@ class DonorController extends Controller
 
     public function userStandingrecod()
     {
-        $donation = StandingDonation::where([
+        $donation = StandingDonation::with('standingdonationDetail')->where([
             ['user_id','=', auth()->user()->id]
         ])->where('status', 1)->get();
 
-        return view('frontend.user.standingdonationrecord')
-        ->with('donation',$donation);
+        return view('frontend.user.standingdonationrecord', compact('donation'));
     }
 
     public function userDonationrecodinAdmin($id)

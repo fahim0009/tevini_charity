@@ -16,4 +16,8 @@ class StandingDonation extends Model
       public function charity(){
         return $this->belongsTo('App\Models\Charity');
       }
+
+      public function standingdonationDetail(){
+        return $this->hasMany('App\Models\StandingdonationDetail');
+      }
 }

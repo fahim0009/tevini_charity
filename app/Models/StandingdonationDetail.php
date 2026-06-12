@@ -21,4 +21,9 @@ class StandingdonationDetail extends Model
         return $this->belongsTo('App\Models\StandingDonation');
       }
 
+      public function getInstalmentModeAttribute($value)
+    {
+        return $value === 'fiexed' ? 'fixed' : $value;
+    }
+
 }

@@ -174,7 +174,7 @@ class DeductStandingDonation extends Command
                         $doncaldetl->charity_id = $activestand_order->charity_id;
                         $doncaldetl->amount = $activestand_order->amount;
                         $doncaldetl->instalment_date = $instalment_date;
-                        $doncaldetl->instalment_mode = "Fiexed";
+                        $doncaldetl->instalment_mode = "Fixed";
                         $doncaldetl->status = 0;
                         $doncaldetl->save();
 

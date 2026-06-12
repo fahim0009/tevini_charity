@@ -432,7 +432,7 @@ class DonationController extends Controller
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;
         $data->notification = 1;
-        $data->status = 0;
+        $data->status = 1;
 
         if($data->save()){
 
@@ -706,7 +706,7 @@ class DonationController extends Controller
                         $doncaldetl->charity_id = $activestand_order->charity_id;
                         $doncaldetl->amount = $activestand_order->amount;
                         $doncaldetl->instalment_date = $instalment_date;
-                        $doncaldetl->instalment_mode = "Fiexed";
+                        $doncaldetl->instalment_mode = "Fixed";
                         $doncaldetl->status = 0;
                         $doncaldetl->save();
 

@@ -563,61 +563,60 @@ class CharityController extends Controller
             return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
         }
 
-        $charityId = $charity->id;
+        // Build base date constraints
+        $dateFilter = function ($query) use ($request) {
+            if (!empty($request->input('fromDate')) && !empty($request->input('toDate'))) {
+                $fromDate = Carbon::parse($request->input('fromDate'))->startOfDay();
+                $toDate = Carbon::parse($request->input('toDate'))->endOfDay();
+                $query->whereBetween('created_at', [$fromDate, $toDate]);
+            }
+        };
 
-        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
-            $fromDate = $request->input('fromDate');
-            $toDate   = $request->input('toDate');
+        // Transaction In - with proper eager loading
+        $intransactions = Usertransaction::where([
+                            't_type' => 'Out',
+                            'charity_id' => $charity->id,
+                            'status' => '1'
+                        ])
+                        ->where($dateFilter)
+                        ->with([
+                            'provoucher',
+                            'user',
+                            'charity',
+                            'standingdonationDetail.StandingDonation'
+                        ])
+                        ->orderBy('id', 'DESC')
+                        ->paginate(15)
+                        ->withQueryString();
 
-            $intransactions = Usertransaction::where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type', '=', 'Out'],
-                ['charity_id', '=', $charityId],
-                ['status', '=', '1']
-            ])->with('provoucher')->orderBy('id','DESC')->get();
+        // Transaction Out - with eager loading
+        $outtransactions = Transaction::where([
+                            't_type' => 'Out',
+                            'charity_id' => $charity->id,
+                            'status' => '1'
+                        ])
+                        ->where($dateFilter)
+                        ->with('charity')
+                        ->orderBy('id', 'DESC')
+                        ->paginate(15)
+                        ->withQueryString();
 
-            $outtransactions = Transaction::where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type', '=', 'Out'],
-                ['charity_id', '=', $charityId],
-                ['status', '=', '1']
-            ])->orderBy('id','DESC')->get();
-
-            $pending_transactions = Usertransaction::where([
-                ['created_at', '>=', $fromDate],
-                ['created_at', '<=', $toDate.' 23:59:59'],
-                ['t_type', '=', 'Out'],
-                ['charity_id', '=', $charityId],
-                ['pending', '=', '0']
-            ])->orderBy('id','DESC')->get();
-
-        } else {
-            $intransactions = Usertransaction::where([
-                ['t_type', '=', 'Out'],
-                ['charity_id', '=', $charityId],
-                ['status', '=', '1']
-            ])->with('provoucher')->orderBy('id','DESC')->get();
-
-            $outtransactions = Transaction::where([
-                ['t_type', '=', 'Out'],
-                ['charity_id', '=', $charityId],
-                ['status', '=', '1']
-            ])->orderBy('id','DESC')->get();
-
-            $pending_transactions = Usertransaction::where([
-                ['t_type', '=', 'Out'],
-                ['charity_id', '=', $charityId],
-                ['pending', '=', '0']
-            ])->orderBy('id','DESC')->get();
-        }
+        // Pending Transactions - with eager loading
+        $pending_transactions = Usertransaction::where([
+                            't_type' => 'Out',
+                            'charity_id' => $charity->id,
+                            'pending' => '0'
+                        ])
+                        ->where($dateFilter)
+                        ->with('user')
+                        ->orderBy('id', 'DESC')
+                        ->paginate(15)
+                        ->withQueryString();
 
         return view('frontend.charity.transaction', compact(
             'intransactions', 'outtransactions', 'pending_transactions'
         ));
     }
-
 
     public function charityLink()
     {

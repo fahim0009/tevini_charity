@@ -165,8 +165,10 @@ use Illuminate\Support\Carbon;
                                                     @if($data->crdAcptID){{ $data->crdAcptLoc }}@endif
                                                 </td>
                                                 <td>
-                                                    {{ $data->donation_id ? $data->donation->mynote : $data->note }} <br>
-                                                    {{ $data->donation_id ? $data->donation->charitynote : '' }}
+                                                    
+                                                    {{$data->standing_donationdetails_id ? $data->standingDonations->mynote : $data->note }} <br>
+                                                    {{$data->standing_donationdetails_id ? $data->standingDonations->charitynote : ''}}
+
                                                 </td>
                                                 <td>{{ $data->donation_by }}</td>
                                                 <td>
@@ -315,8 +317,8 @@ use Illuminate\Support\Carbon;
                                 <th>Date</th>
                                 <th>Transaction Id</th>
                                 <th>Charity Name</th>
-                                <th>Voucher Number</th>
                                 <th>Note</th>
+                                <th>Voucher Number</th>
                                 <th>Status</th>
                                 <th>Amount</th>
                             </tr>
@@ -329,8 +331,8 @@ use Illuminate\Support\Carbon;
                                 <td>@if($transaction->charity_id){{ $transaction->charity->name}}@endif</td>
                                 
                                 <td>
-                                {{$transaction->donation_id ? $transaction->donation->mynote : $transaction->note }} <br>
-                                {{$transaction->donation_id ? $transaction->donation->charitynote : ''}}
+                                {{$transaction->standing_donationdetails_id ? $transaction->standingDonations->mynote : $transaction->note }} <br>
+                                {{$transaction->standing_donationdetails_id ? $transaction->standingDonations->charitynote : ''}}
                                 </td>
 
                                 <td>{{ $transaction->cheque_no}}</td>

@@ -1454,7 +1454,11 @@ class OrderController extends Controller
 
         if (\File::exists($sourcePath)) {
             \File::move($sourcePath, $destinationPath);
-            return 'images/barcodeimage/' . $processedBarcode->file; // path relative to public/
+
+            // Delete processed barcode record
+            $processedBarcode->delete();
+
+            return 'images/barcodeimage/' . $processedBarcode->file;
         }
 
         return null;

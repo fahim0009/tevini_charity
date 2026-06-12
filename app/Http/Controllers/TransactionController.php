@@ -1066,13 +1066,21 @@ public function exportSummaryCsv2(Request $request)
             ->where('status', '1');
 
         // --- 2. Detailed Transactions (Transaction In Tab) ---
-        $userTransQuery = Usertransaction::with('charity')
-            ->where('charity_id', $id)
-            ->where('t_type', 'Out')
-            ->where(function ($query) {
-                $query->whereNull('expired')->orWhere('expired', '1');
-            })
-            ->where('status', '1');
+        // $userTransQuery = Usertransaction::with('charity')
+        //     ->where('charity_id', $id)
+        //     ->where('t_type', 'Out')
+        //     ->where(function ($query) {
+        //         $query->whereNull('expired')->orWhere('expired', '1');
+        //     })
+        //     ->where('status', '1');
+
+         $userTransQuery = Usertransaction::with(['charity', 'user', 'provoucher', 'standingdonationDetail.StandingDonation'])
+                ->where('charity_id', $id)
+                ->where('t_type', 'Out')
+                ->where(function ($query) {
+                    $query->whereNull('expired')->orWhere('expired', '1');
+                })
+                ->where('status', '1');
 
         // --- 3. External Transactions (Transaction Out Tab) ---
         $transQuery = Transaction::where('charity_id', $id)

@@ -105,7 +105,7 @@
                     </div>
 
                     {{-- 2. TRANSACTION IN --}}
-                    <div class="tab-pane fade  show active" id="nav-transactionIn" role="tabpanel">
+                    <div class="tab-pane fade show active" id="nav-transactionIn" role="tabpanel">
                         
                         <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
                             @csrf
@@ -128,20 +128,114 @@
                                 <thead>
                                     <tr>
                                         <th>Date</th>
+                                        <th>Donor</th>
                                         <th>Transaction ID</th>
                                         <th>Type</th>
                                         <th>Voucher #</th>
                                         <th>Amount</th>
+                                        <th>Details</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($intransactions as $transaction)
                                     <tr>
                                         <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                        <td>{{ $transaction->user->name ?? 'N/A' }}</td>
                                         <td>{{ $transaction->t_id }}</td>
                                         <td>{{ $transaction->title }}</td>
                                         <td>{{ $transaction->cheque_no }}</td>
                                         <td>{{ number_format($transaction->amount, 2) }}</td>
+                                        <td>
+                                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#tranDetailModal{{ $transaction->id }}" title="View Details">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#18988B" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
+                                                    <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+                                                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12z"/>
+                                                </svg>
+                                            </a>
+
+                                            {{-- Modal --}}
+                                            <div class="modal fade" id="tranDetailModal{{ $transaction->id }}" tabindex="-1" aria-labelledby="tranDetailLabel{{ $transaction->id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content" style="background-color: #fdf3ee;">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title txt-secondary" id="tranDetailLabel{{ $transaction->id }}">Transaction Details</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-borderless mb-0">
+                                                                <tr>
+                                                                    <td class="text-muted">Date</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-muted">Transaction ID</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td><code>{{ $transaction->t_id }}</code></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-muted">Transaction Type</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->title }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-muted">Charity Name</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->charity->name ?? 'N/A' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="text-muted">Donor</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->user->name ?? 'N/A' }}</td>
+                                                                </tr>
+                                                                @if($transaction->donation_by)
+                                                                <tr>
+                                                                    <td class="text-muted">Donate By</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->donation_by }}</td>
+                                                                </tr>
+                                                                @endif
+                                                                <tr>
+                                                                    <td class="text-muted fw-bold">Amount</td>
+                                                                    <td class="px-2 fw-bold">:</td>
+                                                                    <td class="fw-bold text-success">£{{ number_format($transaction->amount, 2) }}</td>
+                                                                </tr>
+                                                                @if($transaction->cheque_no)
+                                                                <tr>
+                                                                    <td class="text-muted">Voucher Number</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->cheque_no }}</td>
+                                                                </tr>
+                                                                @endif
+                                                                @if($transaction->note)
+                                                                <tr>
+                                                                    <td class="text-muted">Comment</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->note }}</td>
+                                                                </tr>
+                                                                @endif
+                                                                @if($transaction->standing_donationdetails_id && $transaction->standingdonationDetail && $transaction->standingdonationDetail->StandingDonation && $transaction->standingdonationDetail->StandingDonation->charitynote)
+                                                                <tr>
+                                                                    <td class="text-muted">Charity Note</td>
+                                                                    <td class="px-2">:</td>
+                                                                    <td>{{ $transaction->standingdonationDetail->StandingDonation->charitynote }}</td>
+                                                                </tr>
+                                                                @endif
+                                                                @if($transaction->barcode_image)
+                                                                <tr>
+                                                                    <td class="text-muted align-top">Barcode</td>
+                                                                    <td class="px-2 align-top">:</td>
+                                                                    <td>
+                                                                        <img src="{{ asset($transaction->barcode_image) }}" alt="Barcode Image" class="img-fluid" style="max-width: 250px;">
+                                                                    </td>
+                                                                </tr>
+                                                                @endif
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>

@@ -90,6 +90,7 @@
                                 <label style="font-size:.82rem;font-weight:500;color:#666;margin-bottom:6px;">Website</label>
                                 <input type="text" class="form-control" id="website" name="website" placeholder="Website" value="{{ auth('charity')->user()->website }}" style="border-radius:10px;border:1.5px solid #e0e0e0;padding:10px 14px;font-size:.9rem;">
                                 <span style="font-size:.82rem;font-weight:500;color:#666;margin-bottom:6px;">Charities with websites receive more donor engagement -  increased donations by 35% after launching a website. </span>
+                                <p style="font-size:.82rem;font-weight:500;color:#18988B;margin-bottom:6px;">If you don’t yet have a website, website support is available through Tevini’s trusted technology partner, <a href="https://www.mentosoftware.co.uk/" target="blank" style="font-size:.92rem;font-weight:600;color:#0D2137">Mento Software</a>. </p>
                             </div>
                         </div>
                     </div>
@@ -487,13 +488,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /* ── Auto-hide alerts after 4s ── */
-    setTimeout(function () {
-        document.querySelectorAll('.alert').forEach(function (el) {
-            el.style.transition = 'opacity .5s';
-            el.style.opacity    = '0';
-            setTimeout(function () { el.remove(); }, 500);
-        });
-    }, 4000);
+    // setTimeout(function () {
+    //     document.querySelectorAll('.alert').forEach(function (el) {
+    //         el.style.transition = 'opacity .5s';
+    //         el.style.opacity    = '0';
+    //         setTimeout(function () { el.remove(); }, 500);
+    //     });
+    // }, 4000);
 
 });
 </script>

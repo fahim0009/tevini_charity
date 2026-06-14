@@ -26,6 +26,7 @@ use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Auth\CharityPasswordResetController;
+use App\Http\Controllers\Frontend\GuestVoucherController;
 use App\Http\Controllers\User\GiftAidController;
 
 /*
@@ -99,8 +100,15 @@ Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->na
 Route::get('/v2/home', [HomepageController::class, 'indexV2'])->name('homepageV2');
 Route::get('/online-donation', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
 Route::post('/online-donation', [FrontendController::class, 'onlineDonationStore'])->name('front.onlinedonation.store');
+Route::get('/online-voucher-book', [GuestVoucherController::class, 'orderVoucherBooks'])->name('orderVoucherBooks');
+Route::post('/guest/voucher-cart/store', [GuestVoucherController::class, 'storeCart'])->name('guest.voucher.cart.store');
+Route::post('/create-payment-intent', [GuestVoucherController::class, 'createPaymentIntent'])->name('payment.intent');
 
-Route::get('/online-voucher-book', [FrontendController::class, 'orderVoucherBooks'])->name('orderVoucherBooks');
+// webhook stripe route
+Route::post('/voucher-cart/stripe/webhook', [GuestVoucherController::class, 'voucherCartHandleWebhook'])->name('voucher.stripe.webhook');
+
+
+
 
 // App Safari View Controller (for testing)
 Route::get('make-donation', [DonorController::class, 'makeDonationAppView']);

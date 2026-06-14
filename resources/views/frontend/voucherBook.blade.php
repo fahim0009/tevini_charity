@@ -1208,46 +1208,56 @@
                                 </tr>
                             </thead>
                             <tbody id="basketBody">
-                                @foreach ($cart ?? collect() as $item)
-                                    @php
-                                        $cartVoucher = \App\Models\Voucher::where('id', $item->voucher_id)->first();
-                                    @endphp
-                                    <tr class="basket-row" data-cart-id="{{ $item->id }}">
-                                        <td>
-                                            <button type="button" class="remove-btn remove-from-cart" data-cartid="{{ $item->id }}">×</button>
-                                        </td>
-                                        <td>
-                                            <input type="hidden" value="{{ $item->voucher_id }}" name="v_ids[]">
-                                            <input type="hidden" class="row-total" id="sub{{ $item->voucher_id }}" value="{{ $item->tamount }}">
-                                            <div class="basket-voucher-name">
-                                                @if ($cartVoucher && $cartVoucher->single_amount == "0")
-                                                    Blank Cheque
-                                                @else
-                                                    £{{ $cartVoucher->single_amount ?? '' }}
-                                                @endif
-                                                <span class="voucher-badge prepaid" style="font-size:9px;">Prepaid</span>
-                                            </div>
-                                            <div class="basket-voucher-note">
-                                                {{ $cartVoucher->note ?? '' }} @if ($cartVoucher && $cartVoucher->type == 'Prepaid') = £{{ $cartVoucher->amount ?? '' }} @endif
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input type="text" class="qty-input basket-qty" name="qty[]"
-                                                value="{{ $item->qty }}"
-                                                v_amount="{{ $item->tamount }}"
-                                                v_type="Prepaid"
-                                                data-type="Prepaid"
-                                                vid="{{ $item->voucher_id }}"
-                                                id="cartValue{{ $item->voucher_id }}"
-                                                onkeypress="return /[0-9]/i.test(event.key)">
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                @if(auth()->check())
+                                    @foreach ($cart as $item)
+                                        @php $cartVoucher = \App\Models\Voucher::where('id', $item->voucher_id)->first(); @endphp
+                                        <tr class="basket-row" data-cart-id="{{ $item->id }}">
+                                            <td><button type="button" class="remove-btn remove-from-cart" data-cartid="{{ $item->id }}">×</button></td>
+                                            <td>
+                                                <input type="hidden" value="{{ $item->voucher_id }}" name="v_ids[]">
+                                                <input type="hidden" class="row-total" id="sub{{ $item->voucher_id }}" value="{{ $item->tamount }}">
+                                                <div class="basket-voucher-name">
+                                                    @if($cartVoucher && $cartVoucher->single_amount == "0") Blank Cheque @else £{{ $cartVoucher->single_amount ?? '' }} @endif
+                                                    <span class="voucher-badge prepaid" style="font-size:9px;">Prepaid</span>
+                                                </div>
+                                                <div class="basket-voucher-note">{{ $cartVoucher->note ?? '' }} = £{{ $cartVoucher->amount ?? '' }}</div>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="qty-input basket-qty" name="qty[]" value="{{ $item->qty }}"
+                                                    v_amount="{{ $item->tamount }}" v_type="Prepaid" data-type="Prepaid"
+                                                    vid="{{ $item->voucher_id }}" id="cartValue{{ $item->voucher_id }}"
+                                                    onkeypress="return /[0-9]/i.test(event.key)">
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    @foreach ($cart as $item)
+                                        @php $cartVoucher = \App\Models\Voucher::where('id', $item['voucher_id'])->first(); @endphp
+                                        <tr class="basket-row" data-cart-id="{{ $item['id'] }}">
+                                            <td><button type="button" class="remove-btn remove-from-cart" data-cartid="{{ $item['id'] }}">×</button></td>
+                                            <td>
+                                                <input type="hidden" value="{{ $item['voucher_id'] }}" name="v_ids[]">
+                                                <input type="hidden" class="row-total" id="sub{{ $item['voucher_id'] }}" value="{{ $item['tamount'] }}">
+                                                <div class="basket-voucher-name">
+                                                    @if($cartVoucher && $cartVoucher->single_amount == "0") Blank Cheque @else £{{ $cartVoucher->single_amount ?? '' }} @endif
+                                                    <span class="voucher-badge prepaid" style="font-size:9px;">Prepaid</span>
+                                                </div>
+                                                <div class="basket-voucher-note">{{ $cartVoucher->note ?? '' }} = £{{ $cartVoucher->amount ?? '' }}</div>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="qty-input basket-qty" name="qty[]" value="{{ $item['qty'] }}"
+                                                    v_amount="{{ $item['tamount'] }}" v_type="Prepaid" data-type="Prepaid"
+                                                    vid="{{ $item['voucher_id'] }}" id="cartValue{{ $item['voucher_id'] }}"
+                                                    onkeypress="return /[0-9]/i.test(event.key)">
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
                             </tbody>
                         </table>
 
                         <div class="basket-empty" id="basketEmpty"
-                            @if (isset($cart) && $cart->count() > 0) style="display:none;" @endif>
+                            @if(!empty($cart) && (auth()->check() ? $cart->count() > 0 : count($cart) > 0)) style="display:none;" @endif>
                             Your basket is empty. Click + to add voucher books.
                         </div>
                     </div>
@@ -1302,6 +1312,80 @@
     </div>
 </section>
 
+{{-- Stripe.js --}}
+<script src="https://js.stripe.com/v3/"></script>
+
+    <style>
+        /* ============================================
+        STRIPE PAYMENT MODAL
+        ============================================ */
+
+        #stripeModal {
+            display: none;
+        }
+
+        #stripeModal.show {
+            display: flex !important;
+        }
+
+        #stripeModal .StripeElement {
+            background-color: white;
+            padding: 0;
+        }
+
+        #card-element {
+            transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        #card-element.StripeElement--focus {
+            border-color: #18988B;
+            box-shadow: 0 0 0 3px rgba(24, 152, 139, 0.15);
+            background-color: #ffffff;
+        }
+
+        #card-element.StripeElement--invalid {
+            border-color: #d45273;
+            background-color: #fff5f5;
+        }
+
+        #payWithStripeBtn:hover:not(:disabled) {
+            background-color: #147a70;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(24, 152, 139, 0.3);
+        }
+
+        #payWithStripeBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #closeStripeModal:hover {
+            color: #d45273;
+        }
+    </style>
+
+{{-- Stripe Card Element Container (hidden by default, shown when Stripe needed) --}}
+<div id="stripeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
+    <div style="background:#E1D8CE; border-radius:12px; padding:30px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 style="font-family:'DarkerGrotesque-bold'; color:#003057; margin:0; font-size:20px;">Payment Details</h3>
+            <button type="button" id="closeStripeModal" style="background:none; border:none; font-size:24px; color:#6A757C; cursor:pointer; padding:0; line-height:1;">&times;</button>
+        </div>
+        <div id="stripeAmountDisplay" style="font-family:'DarkerGrotesque-bold'; font-size:24px; color:#18988B; text-align:center; margin-bottom:16px;"></div>
+        <div id="card-element" style="border:1px solid rgba(0,48,87,0.15); border-radius:8px; padding:14px; background:#E8E1D9; margin-bottom:8px;"></div>
+        <div id="card-errors" style="color:#d45273; font-size:13px; min-height:20px; margin-bottom:12px; font-family:'Roboto-Regular';"></div>
+        <button type="button" id="payWithStripeBtn" style="width:100%; padding:14px; background:#18988B; color:#fff; border:none; border-radius:25px; font-family:'DarkerGrotesque-bold'; font-size:16px; cursor:pointer; transition:all 0.3s;">
+            Pay Now
+        </button>
+        <p style="text-align:center; margin:12px 0 0; font-size:11px; color:#9e978d; font-family:'Roboto-Regular';">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9e978d" stroke-width="2" style="vertical-align:middle; margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Secured by Stripe. Your card info is never stored on our servers.
+        </p>
+    </div>
+</div>
+
 @endsection
 
 @section('script')
@@ -1310,11 +1394,80 @@
 <script>
     $(document).ready(function () {
 
+        // ==========================================
+        // CONFIG
+        // ==========================================
+        var isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+        var cartStoreUrl = "{{ auth()->check() ? route('orderbook.cart.store') : route('guest.voucher.cart.store') }}";
+        var balanceOrderUrl = "{{ URL::to('/user/addvoucher') }}";
+        var paymentIntentUrl = "{{ route('payment.intent') }}";
+
+        @if(auth()->check())
+            var userBalance = parseFloat("{{ Auth::user()->getLiveBalance() }}") || 0;
+        @else
+            var userBalance = 0;
+        @endif
+
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
 
-        // Toggle delivery options
+        // ==========================================
+        // STRIPE INITIALIZATION
+        // ==========================================
+        var stripe = null;
+        var elements = null;
+        var cardElement = null;
+
+        try {
+            stripe = Stripe('{{ env("STRIPE_KEY") }}');
+            elements = stripe.elements({
+                fonts: [
+                    { cssSrc: 'https://fonts.googleapis.com/css2?family=DarkerGrotesque:wght@700' }
+                ]
+            });
+            cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontFamily: '"Roboto-Regular", sans-serif',
+                        fontSize: '15px',
+                        color: '#003057',
+                        '::placeholder': {
+                            color: '#9e978d'
+                        }
+                    }
+                }
+            });
+            cardElement.mount('#card-element');
+
+            // Real-time card validation errors
+            cardElement.on('change', function (event) {
+                var displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+        } catch (e) {
+            console.log('Stripe not configured:', e.message);
+        }
+
+        // Close modal
+        $('#closeStripeModal').on('click', function () {
+            $('#stripeModal').removeClass('show');
+        });
+
+        // Close on backdrop click
+        $('#stripeModal').on('click', function (e) {
+            if ($(e.target).is('#stripeModal')) {
+                $('#stripeModal').removeClass('show');
+            }
+        });
+
+        // ==========================================
+        // TOGGLE DELIVERY OPTIONS
+        // ==========================================
         $('.delivery_option').on('change', function () {
             if (this.checked) {
                 $('.delivery_option').not(this).prop('checked', false);
@@ -1325,12 +1478,11 @@
             recalcTotal();
         });
 
+        // ==========================================
         // ADD TO CART
+        // ==========================================
         $(document).on('click', '.add-to-cart', function (e) {
             e.preventDefault();
-
-            alert('This page is currently in development. Please contact us to place your order or for more information.');
-            return;
 
             var v_amount = $(this).attr('v_amount');
             var voucherID = $(this).attr('voucherID');
@@ -1354,7 +1506,7 @@
             }
 
             $.ajax({
-                url: "{{ route('orderbook.cart.store') }}",
+                url: cartStoreUrl,
                 method: "POST",
                 data: { v_amount, voucherID, v_type, v_note, single_amount, quantity },
                 success: function (d) {
@@ -1381,33 +1533,40 @@
                         Swal.fire({ icon: 'success', title: 'Added to basket!', showConfirmButton: false, timer: 1200 });
                         recalcTotal();
                     }
+                },
+                error: function (d) {
+                    if (d.status === 419) {
+                        Swal.fire({ icon: 'error', title: 'Session expired', text: 'Please refresh the page.' });
+                    }
                 }
             });
         });
 
+        // ==========================================
         // REMOVE FROM CART
+        // ==========================================
         $(document).on('click', '.remove-from-cart', function () {
             var cartid = $(this).data('cartid');
             $(this).closest('tr').remove();
             $('.delivery_option').prop('checked', false);
             $('#deliveryOptionLabel, #collectionOptionLabel').removeClass('selected');
 
-            if (cartid) {
-                $.ajax({
-                    url: "{{ route('orderbook.cart.store') }}",
-                    method: "POST",
-                    data: { _token: "{{ csrf_token() }}", cartid: cartid },
-                    success: function () {
-                        Swal.fire({ icon: 'success', title: 'Removed!', showConfirmButton: false, timer: 1000 });
-                    }
-                });
-            }
+            $.ajax({
+                url: cartStoreUrl,
+                method: "POST",
+                data: { _token: "{{ csrf_token() }}", cartid: cartid },
+                success: function () {
+                    Swal.fire({ icon: 'success', title: 'Removed!', showConfirmButton: false, timer: 1000 });
+                }
+            });
 
             if ($('#basketBody tr').length === 0) $('#basketEmpty').show();
             recalcTotal();
         });
 
+        // ==========================================
         // QTY CHANGE
+        // ==========================================
         $(document).on('keyup', '.basket-qty', function () {
             var amount = parseFloat($(this).attr('v_amount')) || 0;
             var qty = parseInt($(this).val()) || 0;
@@ -1418,7 +1577,9 @@
             recalcTotal();
         });
 
+        // ==========================================
         // RECALC TOTAL
+        // ==========================================
         function recalcTotal() {
             var total = 0;
             $('.row-total').each(function () {
@@ -1433,40 +1594,42 @@
             $('#net_total').val(total > 0 ? '£' + total.toFixed(2) : '');
         }
 
-        // PLACE ORDER
-        var orderUrl = "{{ URL::to('/user/addvoucher') }}";
-
-        $('#placeOrderBtn').click(function () {
-            if ($('#basketBody tr').length === 0) {
-                Swal.fire({ icon: 'warning', title: 'Basket is empty!', text: 'Please add voucher books first.' });
-                return;
-            }
-
+        // ==========================================
+        // HELPER: Validate donor fields
+        // ==========================================
+        function validateDonorFields() {
             var valid = true;
+            var firstInvalid = null;
             $('.voucher-card input[required]').each(function () {
                 if (!$(this).val() || $(this).val().trim() === '') {
                     valid = false;
                     $(this).css('border-color', '#d45273');
+                    if (!firstInvalid) firstInvalid = this;
                 } else {
                     $(this).css('border-color', '');
                 }
             });
 
-            if (!valid) {
+            if (!valid && firstInvalid) {
                 Swal.fire({ icon: 'warning', title: 'Missing Information', text: 'Please fill in all required fields.' });
-                $('html, body').animate({ scrollTop: 0 }, 500);
-                return;
+                $('html, body').animate({ scrollTop: $(firstInvalid).offset().top - 100 }, 500);
             }
 
-            if (!confirm('Are you sure you want to place this order?')) return;
+            return valid;
+        }
 
-            var $btn = $(this);
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
-            $('#pageLoader').show();
+        // Clear validation style on input
+        $('.voucher-card input[required]').on('input', function () {
+            if ($(this).val().trim() !== '') $(this).css('border-color', '');
+        });
 
+        // ==========================================
+        // HELPER: Get order data
+        // ==========================================
+        function getOrderData() {
             var voucherIds = $("input[name='v_ids[]']").map(function () { return $(this).val(); }).get();
             var qtys = $("input[name='qty[]']").map(function () { return $(this).val(); }).get();
-            var did = $("#donner_id").val();
+            var did = $("#donner_id").val() || null;
             var delivery = $('#delivery').is(':checked');
             var collection = $('#collection').is(':checked');
 
@@ -1488,33 +1651,226 @@
                 postcode: $('#postcode').val()
             };
 
-            $.ajax({
-                url: orderUrl,
-                method: "POST",
-                data: { voucherIds, qtys, did, delivery, collection, delivery_charge, donor_info: donorInfo },
-                success: function (d) {
-                    if (d.status == 303) {
-                        $('.ermsg').html(d.message);
-                        $('html, body').animate({ scrollTop: 0 }, 500);
-                    } else if (d.status == 300) {
-                        $('.ermsg').html(d.message);
-                        $('html, body').animate({ scrollTop: 0 }, 500);
-                        window.setTimeout(function () { location.reload(); }, 2000);
-                    }
-                },
-                error: function (d) { console.log(d); },
-                complete: function () {
-                    $btn.prop('disabled', false).html('Place order');
-                    $('#pageLoader').hide();
+            return {
+                voucherIds: voucherIds,
+                qtys: qtys,
+                did: did,
+                delivery: delivery,
+                collection: collection,
+                delivery_charge: delivery_charge,
+                donor_info: donorInfo
+            };
+        }
+
+        // ==========================================
+        // HELPER: Get numeric total from display
+        // ==========================================
+        function getNumericTotal() {
+            var totalText = $('#net_total').val();
+            return parseFloat(totalText.replace('£', '')) || 0;
+        }
+
+        // ==========================================
+        // HELPER: Set button state
+        // ==========================================
+        function setButtonLoading($btn, loading) {
+            if (loading) {
+                $btn.data('originalText', $btn.html());
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+            } else {
+                $btn.prop('disabled', false).html($btn.data('originalText') || 'Place order');
+            }
+        }
+
+        // ==========================================
+        // PATH 1: Balance payment (auth user, enough balance)
+        // ==========================================
+        function payWithBalance(orderData) {
+            return new Promise(function (resolve, reject) {
+
+                if (!confirm('Your balance of £' + userBalance.toFixed(2) + ' will be used for this order. Continue?')) {
+                    reject('cancelled');
+                    return;
                 }
+
+                $.ajax({
+                    url: balanceOrderUrl,
+                    method: "POST",
+                    data: orderData,
+                    success: function (d) {
+                        if (d.status == 303) {
+                            $('.ermsg').html(d.message);
+                            $('html, body').animate({ scrollTop: 0 }, 500);
+                            reject('validation_error');
+                        } else if (d.status == 200 || d.status == 300) {
+                            resolve(d);
+                        }
+                    },
+                    error: function (d) {
+                        console.log(d);
+                        reject('server_error');
+                    }
+                });
             });
+        }
+
+        // ==========================================
+        // PATH 2: Stripe payment (guest or insufficient balance)
+        // ==========================================
+        function payWithStripe(stripeAmount) {
+            return new Promise(function (resolve, reject) {
+
+                // Show Stripe modal
+                $('#stripeAmountDisplay').text('£' + stripeAmount.toFixed(2));
+                $('#card-errors').text('');
+                $('#stripeModal').addClass('show');
+
+                // Set up the pay button handler (remove old one first)
+                $('#payWithStripeBtn').off('click').on('click', async function () {
+
+                    var $payBtn = $(this);
+                    $payBtn.prop('disabled', true).text('Processing payment...');
+
+                    try {
+                        // Step 1: Create PaymentIntent from server
+                        var intentResp = await $.ajax({
+                            url: paymentIntentUrl,
+                            method: "POST",
+                            data: {
+                                amount: stripeAmount.toFixed(2),
+                                _token: "{{ csrf_token() }}"
+                            }
+                        });
+
+                        // Step 2: Confirm card payment with Stripe
+                        var result = await stripe.confirmCardPayment(intentResp.client_secret, {
+                            payment_method: { card: cardElement }
+                        }, {
+                            return_url: window.location.href
+                        });
+
+                        if (result.error) {
+                            // Show error in card element
+                            $('#card-errors').text(result.error.message);
+                            $payBtn.prop('disabled', false).text('Pay Now');
+                            reject('card_error');
+                            return;
+                        }
+
+                        // Step 3: Payment successful
+                        $('#stripeModal').removeClass('show');
+                        resolve(result);
+
+                    } catch (err) {
+                        console.log(err);
+
+                        if (err.message && err.message.includes('Redirecting')) {
+                            // 3DS authentication in progress — don't show error
+                            return;
+                        }
+
+                        var errorMsg = 'Payment failed. Please try again.';
+                        if (err.responseJSON && err.responseJSON.message) {
+                            errorMsg = err.responseJSON.message;
+                        }
+                        $('#card-errors').text(errorMsg);
+                        $payBtn.prop('disabled', false).text('Pay Now');
+                        reject('payment_failed');
+                    }
+                });
+            });
+        }
+
+        // ==========================================
+        // MAIN: Place Order Button Click
+        // ==========================================
+        $('#placeOrderBtn').click(async function () {
+
+            // --- Validate basket ---
+            if ($('#basketBody tr').length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Basket is empty!', text: 'Please add voucher books first.' });
+                return;
+            }
+
+            // --- Validate donor fields ---
+            if (!validateDonorFields()) return;
+
+            // --- Get totals ---
+            var totalAmount = getNumericTotal();
+            if (totalAmount <= 0) {
+                Swal.fire({ icon: 'warning', title: 'Invalid amount', text: 'Order total is £0.' });
+                return;
+            }
+
+            // --- Get order data ---
+            var orderData = getOrderData();
+
+            // --- Determine payment path ---
+            // Path A: Auth user with enough balance → pay from balance
+            // Path B: Auth user without enough balance → Stripe for full amount
+            // Path C: Guest user → Stripe for full amount
+            var useBalance = false;
+            var stripeAmount = 0;
+
+            if (isLoggedIn && userBalance >= totalAmount) {
+                // PATH A: Full balance payment
+                useBalance = true;
+            } else if (isLoggedIn && userBalance > 0 && userBalance < totalAmount) {
+                // PATH B: Has some balance but not enough — Stripe for full amount
+                // (You could do partial: stripeAmount = totalAmount - userBalance)
+                // For now, Stripe for full amount
+                stripeAmount = totalAmount;
+            } else {
+                // PATH C: Guest or no balance — Stripe for full amount
+                stripeAmount = totalAmount;
+            }
+
+            // --- Execute payment ---
+            var $btn = $(this);
+            setButtonLoading($btn, true);
+
+            try {
+                if (useBalance) {
+                    // ==========================================
+                    // PATH A: Pay from balance
+                    // ==========================================
+                    var result = await payWithBalance(orderData);
+                    $('.ermsg').html('<div class="alert alert-success"><b>Order placed successfully! Voucher books will be dispatched soon.</b></div>');
+                    $('html, body').animate({ scrollTop: 0 }, 500);
+                    window.setTimeout(function () { location.reload(); }, 2000);
+
+                } else {
+                    // ==========================================
+                    // PATH B / C: Pay with Stripe
+                    // ==========================================
+                    var result = await payWithStripe(stripeAmount);
+
+                    // After successful Stripe payment, send order to server
+                    // (Your webhook should handle order creation, but you can also do it here)
+                    $('.ermsg').html('<div class="alert alert-success"><b>Payment successful! Your order is being processed.</b></div>');
+                    $('html, body').animate({ scrollTop: 0 }, 500);
+                    window.setTimeout(function () { location.reload(); }, 2000);
+                }
+
+            } catch (err) {
+                // Handle specific errors
+                if (err === 'cancelled') {
+                    // User cancelled — do nothing
+                } else if (err === 'validation_error' || err === 'server_error') {
+                    // Already handled in the sub-functions
+                } else if (err === 'card_error' || err === 'payment_failed') {
+                    // Already handled in Stripe modal
+                } else {
+                    // Unexpected error
+                    console.error('Order error:', err);
+                    Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again or contact support.' });
+                }
+            } finally {
+                setButtonLoading($btn, false);
+            }
         });
 
-        // Clear validation style on input
-        $('.voucher-card input[required]').on('input', function () {
-            if ($(this).val().trim() !== '') $(this).css('border-color', '');
-        });
-
+        // Initial calc
         recalcTotal();
     });
 </script>

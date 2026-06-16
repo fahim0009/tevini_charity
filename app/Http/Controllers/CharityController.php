@@ -572,7 +572,7 @@ class CharityController extends Controller
             }
         };
 
-        // Transaction In - with proper eager loading
+        // Transaction In - Fetch all records
         $intransactions = Usertransaction::where([
                             't_type' => 'Out',
                             'charity_id' => $charity->id,
@@ -586,10 +586,9 @@ class CharityController extends Controller
                             'standingdonationDetail.StandingDonation'
                         ])
                         ->orderBy('id', 'DESC')
-                        ->paginate(15)
-                        ->withQueryString();
+                        ->get(); // Changed here
 
-        // Transaction Out - with eager loading
+        // Transaction Out - Fetch all records
         $outtransactions = Transaction::where([
                             't_type' => 'Out',
                             'charity_id' => $charity->id,
@@ -598,10 +597,9 @@ class CharityController extends Controller
                         ->where($dateFilter)
                         ->with('charity')
                         ->orderBy('id', 'DESC')
-                        ->paginate(15)
-                        ->withQueryString();
+                        ->get(); // Changed here
 
-        // Pending Transactions - with eager loading
+        // Pending Transactions - Fetch all records
         $pending_transactions = Usertransaction::where([
                             't_type' => 'Out',
                             'charity_id' => $charity->id,
@@ -610,14 +608,14 @@ class CharityController extends Controller
                         ->where($dateFilter)
                         ->with('user')
                         ->orderBy('id', 'DESC')
-                        ->paginate(15)
-                        ->withQueryString();
+                        ->get(); // Changed here
 
         return view('frontend.charity.transaction', compact(
             'intransactions', 'outtransactions', 'pending_transactions'
         ));
     }
 
+    
     public function charityLink()
     {
         

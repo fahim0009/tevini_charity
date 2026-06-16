@@ -77,7 +77,8 @@ use Illuminate\Support\Carbon;
                                         @foreach ($intransactions as $transaction)
 
                                         @php
-                                            $charityNote = \App\Models\StandingDonation::where('id', $transaction->standing_donationdetails_id)->first();
+                                            // Use the eager-loaded relationship instead of querying the database inside the loop
+                                            $charityNote = $transaction->standingdonationDetail ? $transaction->standingdonationDetail->StandingDonation : null;
                                         @endphp
 
 
@@ -158,7 +159,7 @@ use Illuminate\Support\Carbon;
                                                                         <tr>
                                                                             <td>Charity Note</td>
                                                                             <td>:</td>
-                                                                            <td>{{$transaction->standingdonationDetail->StandingDonation->charitynote}}</td>
+                                                                            <td>{{ $transaction->note}} {{  $charityNote ?  $charityNote->charitynote : "" }}</td>
                                                                         </tr>
                                                                         @endif 
                                                                     @endif

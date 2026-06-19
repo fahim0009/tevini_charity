@@ -1421,9 +1421,9 @@ class OrderController extends Controller
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 
-            if ($amount >= 500) {
-                $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
-            }
+            // if ($amount >= 500) {
+            //     $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
+            // }
 
             
 

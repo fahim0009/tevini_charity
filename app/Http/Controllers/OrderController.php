@@ -1421,7 +1421,7 @@ class OrderController extends Controller
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 
-            $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
+            // $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
 
             if (!$isPending) {
                 Charity::where('id', $charityId)->increment('balance', $amount);

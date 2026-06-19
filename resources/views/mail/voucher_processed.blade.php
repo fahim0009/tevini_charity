@@ -34,7 +34,7 @@
         @if($isPending)
             <p>Your voucher is under review. This may be due to one of the following reasons:</p>
             <ul>
-                <li>The voucher amount is ৳500 or above and requires additional approval.</li>
+                <li>The voucher amount is £500 or above and requires additional approval.</li>
                 <li>Your account limit is insufficient to cover this amount.</li>
                 <li>The voucher is marked as waiting or expired.</li>
             </ul>
@@ -45,17 +45,24 @@
 
         <table>
             <tr><td>Voucher / Cheque No</td><td>{{ $voucher->cheque_no }}</td></tr>
-            <tr><td>Amount</td><td>৳{{ number_format($voucher->amount, 2) }}</td></tr>
-            <tr><td>Batch No</td><td>{{ $voucher->batch_no }}</td></tr>
+            <tr><td>Amount</td><td>£{{ number_format($voucher->amount, 2) }}</td></tr>
             <tr><td>Date</td><td>{{ now()->format('d M Y') }}</td></tr>
             <tr><td>Status</td><td>{{ $isPending ? 'Pending' : 'Approved' }}</td></tr>
         </table>
 
-        <p style="margin-top:20px;">If you have any questions, please contact our support team.</p>
-        <p>Thank you.</p>
     </div>
     <div class="footer">
-        This is an automated email. Please do not reply directly to this message.
+        <br>
+        Kind Regards, <br>
+        P. Schlesinger <br>
+        <br><br>
+        Tevini Ltd<br>
+        5A Holmdale Terrace<br>
+        London<br>
+        N15 6PP<br>
+        M. 07490956227<br>
+        E. info@tevini.co.uk<br>
+        W. www.tevini.co.uk<br>
     </div>
 </div>
 </body>

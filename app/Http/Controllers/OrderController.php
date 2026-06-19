@@ -1421,7 +1421,11 @@ class OrderController extends Controller
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 
-            // $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
+            if ($amount >= 500) {
+                $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
+            }
+
+            
 
             if (!$isPending) {
                 Charity::where('id', $charityId)->increment('balance', $amount);
@@ -1472,12 +1476,13 @@ class OrderController extends Controller
      */
     private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, bool $isPending): void
     {
+
         try {
             \Mail::send('mail.voucher_processed', [
                 'user'      => $user,
                 'voucher'   => $voucher,
                 'isPending' => $isPending,
-            ], function ($message) use ($user, $voucher) {
+            ], function ($message) use ($user, $voucher, $isPending) {
                 $message->to($user->email, $user->name)
                         ->subject('Voucher #' . $voucher->cheque_no . ' — ' . ($isPending ? 'Pending Review' : 'Successfully Processed'));
             });
@@ -1485,6 +1490,7 @@ class OrderController extends Controller
             \Log::error('Failed to send voucher email to donor', [
                 'donor_id'  => $user->id,
                 'cheque_no' => $voucher->cheque_no,
+                'isPending' => $isPending,
                 'error'     => $e->getMessage(),
             ]);
         }

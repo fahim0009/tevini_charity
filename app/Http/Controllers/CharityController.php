@@ -129,7 +129,7 @@ class CharityController extends Controller
                             <i class="fa fa-edit" style="color:#2196f3;font-size:16px;"></i>
                         </a>
 
-                        <a rid="'.$row->id.'" class="deleteBtn">
+                        <a href="javascript:void(0)" onclick="deleteCharity(' . $row->id . ')">
                             <i class="fa fa-trash-o" style="color:red;font-size:16px;"></i>
                         </a>
                 ';
@@ -311,10 +311,21 @@ class CharityController extends Controller
 
     public function deleteCharity($id)
     {
-        if( Charity::destroy($id)){
-            return response()->json(['success'=>true,'message'=>'Charity has been deleted successfully']);
-        }else{
-            return response()->json(['success'=>false,'message'=>'Delete Failed']);
+        // Check transactions
+        $transaction = Transaction::where('charity_id', $id)->count();
+        $usertransaction = Usertransaction::where('charity_id', $id)->count();
+
+        if ($transaction > 0 || $usertransaction > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This charity cannot be deleted because it has existing transaction records.'
+            ]);
+        }
+
+        if (Charity::destroy($id)) {
+            return response()->json(['success' => true, 'message' => 'Charity has been deleted successfully']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Delete Failed']);
         }
     }
 

@@ -542,12 +542,13 @@
     };
 
     $('#confirmDeleteBtn').click(function() {
+        
         if (deleteId) {
             var btn = $(this);
             btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Deleting...');
 
             $.ajax({
-                url: '/add-charity/delete/' + deleteId,
+                url: '/admin/add-charity/delete/' + deleteId,
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {

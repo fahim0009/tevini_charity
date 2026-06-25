@@ -1421,8 +1421,9 @@ class OrderController extends Controller
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 
+            // $charityName = Charity::where('id', $charityId)->first();
             // if ($amount >= 500) {
-            //     $this->sendVoucherProcessedEmail($user, $voucher, $isPending);
+            //     $this->sendVoucherProcessedEmail($user, $voucher, $charityName->name ?? '', $isPending);
             // }
 
             
@@ -1474,15 +1475,16 @@ class OrderController extends Controller
     /**
      * Send voucher processed notification email to the donor.
      */
-    private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, bool $isPending): void
+    private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, string $charityName, bool $isPending): void
     {
 
         try {
             \Mail::send('mail.voucher_processed', [
-                'user'      => $user,
-                'voucher'   => $voucher,
-                'isPending' => $isPending,
-            ], function ($message) use ($user, $voucher, $isPending) {
+                'user'          => $user,
+                'charityName'   => $charityName,
+                'voucher'       => $voucher,
+                'isPending'     => $isPending,
+            ], function ($message) use ($user, $voucher, $isPending, $charityName) {
                 $message->to($user->email, $user->name)
                         ->subject('Voucher #' . $voucher->cheque_no . ' — ' . ($isPending ? 'Pending Review' : 'Successfully Processed'));
             });

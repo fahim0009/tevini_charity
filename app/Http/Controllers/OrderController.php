@@ -30,7 +30,7 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\File;
 use Yajra\DataTables\Facades\DataTables;
 use PDF;
-
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
@@ -1426,6 +1426,14 @@ class OrderController extends Controller
             //     $this->sendVoucherProcessedEmail($user, $voucher, $charityName->name ?? '', $isPending);
             // }
 
+            $charity = Charity::find($charityId);
+            if ($isPending) {
+                $acceptUrl = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
+                $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
+                
+                $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl);
+            }
+
             
 
             if (!$isPending) {
@@ -1473,9 +1481,34 @@ class OrderController extends Controller
     }
 
     /**
+     * Send voucher verification email to the donor.
+     */
+    private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, string $charityName, string $acceptUrl, string $declineUrl): void
+    {
+        try {
+            \Mail::send('mail.voucher_processed', [
+                'user'       => $user,
+                'charityName' => $charityName,
+                'voucher'    => $voucher,
+                'acceptUrl'  => $acceptUrl,
+                'declineUrl' => $declineUrl,
+            ], function ($message) use ($user, $voucher) {
+                $message->to($user->email, $user->name)
+                        ->subject('Voucher Verification Required — #' . $voucher->cheque_no);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send voucher verification email', [
+                'donor_id'  => $user->id,
+                'cheque_no' => $voucher->cheque_no,
+                'error'     => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Send voucher processed notification email to the donor.
      */
-    private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, string $charityName, bool $isPending): void
+    private function sendVoucherProcessedEmail2(User $user, Provoucher $voucher, string $charityName, bool $isPending): void
     {
 
         try {
@@ -2941,6 +2974,110 @@ public function watingvoucherCancel(Request $request)
     }
 
 
+    /**
+     * Handle voucher acceptance.
+     */
+    public function voucherAccept(Provoucher $voucher)
+    {
+        // Check if already processed
+        if ($voucher->status !== 0) {
+            return $this->voucherResponse($voucher, 'already_processed');
+        }
+
+        // Update transaction status
+        Usertransaction::where('id', $voucher->tran_id)->update([
+            'status'  => 1,
+            'pending' => 1,
+        ]);
+
+        // Update voucher status
+        $voucher->update([
+            'status' => 1,
+        ]);
+
+        // Update balances
+        Charity::where('id', $voucher->charity_id)->increment('balance', $voucher->amount);
+        User::where('id', $voucher->user_id)->decrement('balance', $voucher->amount);
+
+        \Log::info('Voucher accepted', [
+            'voucher_id' => $voucher->id,
+            'cheque_no'  => $voucher->cheque_no,
+            'amount'     => $voucher->amount,
+        ]);
+
+        return $this->voucherResponse($voucher, 'accepted');
+    }
+
+    /**
+     * Handle voucher decline.
+     */
+    public function voucherDecline(Provoucher $voucher)
+    {
+        // Check if already processed
+        if ($voucher->status !== 0) {
+            return $this->voucherResponse($voucher, 'already_processed');
+        }
+
+        // Mark as declined (status = 2)
+        $voucher->update([
+            'status' => 2,
+        ]);
+
+        // Also update transaction
+        Usertransaction::where('id', $voucher->tran_id)->update([
+            'status'  => 0,
+            'pending' => 0,
+        ]);
+
+        \Log::info('Voucher declined', [
+            'voucher_id' => $voucher->id,
+            'cheque_no'  => $voucher->cheque_no,
+            'amount'     => $voucher->amount,
+        ]);
+
+        return $this->voucherResponse($voucher, 'declined');
+    }
+
+    /**
+     * Return the voucher response view.
+     */
+    private function voucherResponse(Provoucher $voucher, string $type): \Illuminate\View\View
+    {
+        $messages = [
+            'accepted'         => 'Your voucher has been successfully accepted and will be processed.',
+            'declined'         => 'Your voucher has been declined. No further action will be taken.',
+            'already_processed' => 'This voucher has already been processed.',
+        ];
+
+        $titles = [
+            'accepted'         => 'Voucher Accepted',
+            'declined'         => 'Voucher Declined',
+            'already_processed' => 'Voucher Already Processed',
+        ];
+
+        $icons = [
+            'accepted'         => '✓',
+            'declined'         => '✗',
+            'already_processed' => '!',
+        ];
+
+        $colors = [
+            'accepted'         => '#28a745',
+            'declined'         => '#dc3545',
+            'already_processed' => '#FFA000',
+        ];
+
+        $charity = Charity::find($voucher->charity_id);
+
+        return view('frontend.voucher.response', [
+            'title'      => $titles[$type],
+            'message'    => $messages[$type],
+            'icon'       => $icons[$type],
+            'color'      => $colors[$type],
+            'voucher'    => $voucher,
+            'charity'    => $charity,
+        ]);
+    }
 
 
 

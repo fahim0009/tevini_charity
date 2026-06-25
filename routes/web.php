@@ -140,3 +140,7 @@ Route::post('charity-registration', [CharityAuthController::class, 'charityRegis
 // Barcode
 Route::post('/barcode', [OrderController::class, 'getbarCode']);
 Route::post('/charity-barcode', [OrderController::class, 'getCharitybarCode']);
+
+//   process voucher accept and decline route 
+Route::get('/voucher/accept/{voucher}', [OrderController::class, 'voucherAccept'])->name('voucher.accept')->middleware('signed');
+Route::get('/voucher/decline/{voucher}', [OrderController::class, 'voucherDecline'])->name('voucher.decline')->middleware('signed');

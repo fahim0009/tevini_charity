@@ -1421,11 +1421,6 @@ class OrderController extends Controller
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 
-            // $charityName = Charity::where('id', $charityId)->first();
-            // if ($amount >= 500) {
-            //     $this->sendVoucherProcessedEmail($user, $voucher, $charityName->name ?? '', $isPending);
-            // }
-
             $charity = Charity::find($charityId);
             if ($isPending) {
                 $acceptUrl = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
@@ -1433,8 +1428,6 @@ class OrderController extends Controller
                 
                 $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl);
             }
-
-            
 
             if (!$isPending) {
                 Charity::where('id', $charityId)->increment('balance', $amount);

@@ -43,7 +43,6 @@
                     </div>
                     <div class="col-lg-12 mt-4">
                         <div class="form-group ">
-                            {{-- <button class="btn-theme bg-primary">Send</button> --}}
                             <input type="button" id="submit" value="Send"  class="btn-theme bg-primary">
                         </div>
                     </div>

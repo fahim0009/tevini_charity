@@ -98,8 +98,14 @@ Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->na
 
 // new pages
 Route::get('/v2/home', [HomepageController::class, 'indexV2'])->name('homepageV2');
+
+// ─── Online Donation (Frontend - Public) ───────────────────────
 Route::get('/online-donation', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
+Route::post('/online-donation/check-balance', [FrontendController::class, 'onlineDonationCheckBalance'])->name('front.onlinedonation.check.balance');
+Route::post('/online-donation/create-payment-intent', [FrontendController::class, 'onlineDonationCreateIntent'])->name('front.onlinedonation.create.intent');
 Route::post('/online-donation', [FrontendController::class, 'onlineDonationStore'])->name('front.onlinedonation.store');
+
+
 Route::get('/online-voucher-book', [GuestVoucherController::class, 'orderVoucherBooks'])->name('orderVoucherBooks');
 Route::post('/guest/voucher-cart/store', [GuestVoucherController::class, 'storeCart'])->name('guest.voucher.cart.store');
 Route::post('/create-payment-intent', [GuestVoucherController::class, 'createPaymentIntent'])->name('payment.intent');

@@ -22,9 +22,19 @@ class FrontendController extends Controller
     //  SHOW DONATION FORM
     // ─────────────────────────────────────────────────────────────
 
-    public function onlineDonation()
+    public function onlineDonation($charity_id = null, $amount = null)
     {
-        return view('frontend.onlineDonation');
+        $charityName = null;
+
+        // If a charity_id is in the URL, find its name for the dropdown
+        if ($charity_id) {
+            $charity = \App\Models\Charity::find($charity_id);
+            if ($charity) {
+                $charityName = $charity->name;
+            }
+        }
+
+        return view('frontend.onlineDonation', compact('charity_id', 'amount', 'charityName'));
     }
 
 

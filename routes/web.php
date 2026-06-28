@@ -100,7 +100,7 @@ Route::post('/contact-submit', [ContactController::class, 'visitorContact'])->na
 Route::get('/v2/home', [HomepageController::class, 'indexV2'])->name('homepageV2');
 
 // ─── Online Donation (Frontend - Public) ───────────────────────
-Route::get('/online-donation', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
+Route::get('/online-donation/{charity_id?}/{amount?}', [FrontendController::class, 'onlineDonation'])->name('onlineDonation');
 Route::post('/online-donation/check-balance', [FrontendController::class, 'onlineDonationCheckBalance'])->name('front.onlinedonation.check.balance');
 Route::post('/online-donation/create-payment-intent', [FrontendController::class, 'onlineDonationCreateIntent'])->name('front.onlinedonation.create.intent');
 Route::post('/online-donation', [FrontendController::class, 'onlineDonationStore'])->name('front.onlinedonation.store');

@@ -183,7 +183,7 @@
                                     <div class="amount-group">
                                         <input type="text" class="form-control" name="amount" id="amount"
                                             placeholder="0.00" required
-                                            value="@if(isset($amount)){{ $amount }}@endif{{ old('amount') }}">
+                                            value="{{ $amount ?? old('amount') }}">
                                         <span class="currency-badge">GBP</span>
                                     </div>
                                 </div>
@@ -290,6 +290,8 @@
     </div>
 </div>
 
+
+
 @endsection
 
 @section('script')
@@ -297,206 +299,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@ideal-postcodes/address-finder-bundled@4"></script>
 <script src="https://js.stripe.com/v3/"></script>
 
-<style>
-    .stripe-modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 10000;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
-    .stripe-modal-overlay.active {
-        display: flex !important;
-    }
-    .stripe-modal-box {
-        background: #E1D8CE;
-        border-radius: 14px;
-        max-width: 460px;
-        width: 100%;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
-        overflow: hidden;
-        animation: stripeModalIn 0.3s ease-out;
-    }
-    @keyframes stripeModalIn {
-        from { opacity: 0; transform: translateY(20px) scale(0.97); }
-        to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .stripe-modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 22px 28px 0;
-    }
-    .stripe-modal-header h3 {
-        font-family: "DarkerGrotesque-bold";
-        color: #003057;
-        margin: 0;
-        font-size: 20px;
-    }
-    .stripe-close-btn {
-        background: none;
-        border: none;
-        font-size: 26px;
-        color: #6A757C;
-        cursor: pointer;
-        padding: 0;
-        line-height: 1;
-        transition: color 0.2s;
-    }
-    .stripe-close-btn:hover { color: #d45273; }
-    .stripe-modal-body { padding: 20px 28px 24px; }
-    .stripe-summary {
-        background: #003057;
-        border-radius: 10px;
-        padding: 16px 20px;
-        margin-bottom: 24px;
-    }
-    .stripe-summary-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .stripe-summary-row + .stripe-summary-row { margin-top: 8px; }
-    .stripe-summary-row span {
-        font-family: "Roboto-Regular";
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.65);
-    }
-    .stripe-summary-row strong {
-        font-family: "DarkerGrotesque-bold";
-        font-size: 15px;
-        color: #ffffff;
-    }
-    .stripe-amount-highlight {
-        color: #18988B !important;
-        font-size: 22px !important;
-    }
-    .stripe-card-section { margin-bottom: 4px; }
-    .stripe-card-label {
-        display: block;
-        font-family: "Roboto-Regular";
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #4E4B44;
-        margin-bottom: 8px;
-    }
-    .stripe-card-element {
-        border: 1.5px solid rgba(0, 48, 87, 0.15);
-        border-radius: 8px;
-        padding: 14px;
-        background: #E8E1D9;
-        transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
-    }
-    .stripe-card-element.StripeElement--focus {
-        border-color: #18988B;
-        box-shadow: 0 0 0 3px rgba(24, 152, 139, 0.15);
-        background-color: #ffffff;
-    }
-    .stripe-card-element.StripeElement--invalid {
-        border-color: #d45273;
-        background-color: #fff5f5;
-    }
-    .stripe-card-errors {
-        font-family: "Roboto-Regular";
-        font-size: 13px;
-        color: #d45273;
-        margin-top: 8px;
-        min-height: 18px;
-        padding: 0 2px;
-    }
-    .stripe-modal-footer {
-        display: flex;
-        gap: 12px;
-        padding: 0 28px 24px;
-    }
-    .stripe-btn-cancel {
-        flex: 1;
-        padding: 13px 20px;
-        border: 1.5px solid rgba(0, 48, 87, 0.2);
-        border-radius: 8px;
-        background: transparent;
-        color: #003057;
-        font-family: "DarkerGrotesque-bold";
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .stripe-btn-cancel:hover {
-        border-color: #003057;
-        background: rgba(0, 48, 87, 0.05);
-    }
-    .stripe-btn-pay {
-        flex: 1.5;
-        padding: 13px 24px;
-        border: none;
-        border-radius: 8px;
-        background: #18988B;
-        color: #ffffff;
-        font-family: "DarkerGrotesque-bold";
-        font-size: 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-    .stripe-btn-pay:hover:not(:disabled) {
-        background: #147a70;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(24, 152, 139, 0.3);
-    }
-    .stripe-btn-pay:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-    .balance-box { position: relative; }
-    .balance-badge {
-        font-family: "Roboto-Regular";
-        font-size: 12px;
-        color: #18988B;
-        background: rgba(24, 152, 139, 0.15);
-        padding: 6px 14px;
-        border-radius: 20px;
-        display: none;
-        align-items: center;
-        gap: 6px;
-    }
-    .balance-badge.show { display: flex; }
-    .balance-badge.use-stripe {
-        color: #d45273;
-        background: rgba(212, 82, 115, 0.12);
-    }
-    .page-loader {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 9999;
-    }
-    .page-loader .spinner-box {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    @media (max-width: 480px) {
-        .stripe-modal-box { margin: 10px; }
-        .stripe-modal-header,
-        .stripe-modal-body,
-        .stripe-modal-footer { padding-left: 20px; padding-right: 20px; }
-        .stripe-modal-footer { flex-direction: column-reverse; }
-        .stripe-btn-cancel, .stripe-btn-pay { width: 100%; }
-    }
-</style>
 
 <script>
 (function ($) {
@@ -1027,6 +829,13 @@
         if (IS_LOGGED_IN) updateBalanceBadge();
 
         bindEvents();
+
+        // --- AUTO-FILL FROM URL (EMAIL / QR CODE LINK) ---
+        @if($charity_id && $charityName)
+        var dropdownValue = "{{ $charity_id }}|{{ $charityName }}";
+        dom.charityId.val(dropdownValue).trigger('change');
+        console.log('[DONATION] Auto-filled charity from URL:', dropdownValue);
+        @endif
 
         console.log('[DONATION] Initialization complete');
     }

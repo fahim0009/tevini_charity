@@ -311,10 +311,6 @@
     var STORE_DONATION_URL= '{{ route("front.onlinedonation.store") }}';
     var IS_LOGGED_IN      = {{ auth()->check() ? 'true' : 'false' }};
 
-    console.log('[DONATION] Init — STRIPE_PK:', STRIPE_PK ? STRIPE_PK.substring(0, 15) + '...' : 'EMPTY');
-    console.log('[DONATION] Init — IS_LOGGED_IN:', IS_LOGGED_IN);
-    console.log('[DONATION] Init — STORE_URL:', STORE_DONATION_URL);
-
     /* ─── Stripe State ────────────────────────────────────────── */
     var stripe, elements, cardElement, currentClientSecret;
 
@@ -694,7 +690,6 @@
     }
 
     function submitDonation(paymentMethod, paymentIntentId) {
-        console.log('[DONATION] submitDonation — method:', paymentMethod, 'PI:', paymentIntentId);
 
         var formData = new FormData(dom.form[0]);
         formData.append('payment_method', paymentMethod);
@@ -712,7 +707,6 @@
             formData.set('ano_donation', '0');
         }
 
-        console.log('[DONATION] Sending AJAX to:', STORE_DONATION_URL);
 
         $.ajax({
             url: STORE_DONATION_URL,
@@ -801,7 +795,6 @@
     /* ─── Initialize ──────────────────────────────────────────── */
 
     function init() {
-        console.log('[DONATION] DOM ready, initializing...');
 
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
@@ -834,7 +827,6 @@
         @if($charity_id && $charityName)
         var dropdownValue = "{{ $charity_id }}|{{ $charityName }}";
         dom.charityId.val(dropdownValue).trigger('change');
-        console.log('[DONATION] Auto-filled charity from URL:', dropdownValue);
         @endif
 
         console.log('[DONATION] Initialization complete');

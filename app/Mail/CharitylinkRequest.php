@@ -11,27 +11,17 @@ class CharitylinkRequest extends Mailable
 {
     use Queueable, SerializesModels;
     public $array;
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
+    
     public function __construct($array)
     {
         $this->array = $array;
     }
 
-    /**
-     * Build the message.
-     *
-     * @return $this
-     */
     public function build()
     {
         return $this->from('info@tevini.co.uk', 'Tevini.co.uk')
-        ->replyTo($this->array['cc'], 'Tevini')
-        ->subject('Tevini Ltd')
-        ->markdown('mail.charity_linkrequest');
+            ->replyTo($this->array['cc'], 'Tevini')
+            ->subject('Donation Request from ' . $this->array['charity_name'])
+            ->view('mail.charity_linkrequest');
     }
-    
 }

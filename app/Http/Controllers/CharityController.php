@@ -629,84 +629,91 @@ class CharityController extends Controller
     
     public function charityLink()
     {
-        
         $charity = auth('charity')->user();
         if (!$charity) {
             return redirect()->route('charity_loginshow')->with('error', 'Please log in first.');
         }
 
-        return view('frontend.charity.link');
+        // Generate the donation link for QR code
+        $donationLink = 'https://www.tevini.co.uk/online-donation/' . $charity->id;
+
+        return view('frontend.charity.link', compact('donationLink'));
     }
 
-    public function charityLinkStore(Request $request)
-    {
-        $name = $request->name;
-        $email = $request->email;
-        $visitor_subject = "Charity Donation Link";
-        $amount = $request->amount;
+public function charityLinkStore(Request $request)
+{
+    $name = $request->name;
+    $email = $request->email;
+    $visitor_subject = "Charity Donation Link";
+    $amount = $request->amount;
 
-        $emailValidation = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\.[a-zA-Z.]{2,10}$/";
+    $emailValidation = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\.[a-zA-Z.]{2,10}$/";
 
-        if(empty($name)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
-            Please fill name field, thank you!
-            <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        
-        if(empty($email)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
-            Please fill email field, thank you!
-            <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(!preg_match($emailValidation,$email)){
-	    
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
-            Your mail ".$email." is not valid mail. Please wirite a valid mail, thank you!
-            <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-            
-        }
-        
-        
-
-        if(empty($amount)){
-            $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
-            Please write amount field, thank you!
-            <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        $data = new CharityLink();
-        $data->charity_id = auth('charity')->user()->id;
-        $data->name = $request->name;
-        $data->email = $request->email;
-        $data->amount = $request->amount;
-        $data->save();
-        $contactmail = ContactMail::where('id', 1)->first()->name;
-
-	    $array['name'] = $data->name;
-            $array['cc'] = $contactmail;
-            $array['client_no'] = Charity::where('id',$data->charity_id)->first()->id;
-            $email = $data->email;
-            $array['amount'] = $request->amount;
-            $array['charity_note'] = $request->charitynote;
-            $array['charity_name'] = Charity::where('id',$data->charity_id)->first()->name;
-
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new CharitylinkRequest($array));
-
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Request send successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
+    if(empty($name)){
+        $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+        Please fill name field, thank you!
+        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+        return response()->json(['status'=> 303,'message'=>$message]);
+        exit();
+    }
+    
+    if(empty($email)){
+        $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+        Please fill email field, thank you!
+        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+        return response()->json(['status'=> 303,'message'=>$message]);
+        exit();
     }
 
+    if(!preg_match($emailValidation,$email)){
+        $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+        Your mail ".$email." is not valid mail. Please wirite a valid mail, thank you!
+        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+        return response()->json(['status'=> 303,'message'=>$message]);
+        exit();
+    }
+    
+    if(empty($amount)){
+        $message ="<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+        Please write amount field, thank you!
+        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+        return response()->json(['status'=> 303,'message'=>$message]);
+        exit();
+    }
+
+    $data = new CharityLink();
+    $data->charity_id = auth('charity')->user()->id;
+    $data->name = $request->name;
+    $data->email = $request->email;
+    $data->amount = $request->amount;
+    $data->save();
+    
+    $contactmail = ContactMail::where('id', 1)->first()->name;
+    $charity = Charity::where('id', $data->charity_id)->first();
+
+    // Generate donation link with amount
+    $donationLink = 'https://www.tevini.co.uk/online-donation/' . $charity->id . '/' . $request->amount;
+    
+    // Generate QR code image URL
+    $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($donationLink);
+
+    $array['name'] = $data->name;
+    $array['cc'] = $contactmail;
+    $array['client_no'] = $charity->id;
+    $array['email'] = $data->email;
+    $array['amount'] = $request->amount;
+    $array['charity_note'] = $request->charitynote;
+    $array['charity_name'] = $charity->name;
+    $array['donation_link'] = $donationLink;
+    $array['qr_code_url'] = $qrCodeUrl;
+
+    Mail::to($data->email)
+        ->cc($contactmail)
+        ->send(new CharitylinkRequest($array));
+
+    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Request send successfully.</b></div>";
+    return response()->json(['status'=> 300,'message'=>$message]);
+}
   
     public function closecharityLink(Request $request)
     {

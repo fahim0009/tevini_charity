@@ -1423,6 +1423,10 @@ class OrderController extends Controller
 
             $charity = Charity::find($charityId);
             if ($amount >= 500) {
+                
+                $voucher->waiting              = 'Yes';
+                $voucher->save();
+
                 $acceptUrl = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
                 $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
                 

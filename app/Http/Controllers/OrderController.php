@@ -1422,7 +1422,7 @@ class OrderController extends Controller
             $voucher->save();
 
             $charity = Charity::find($charityId);
-            if ($isPending) {
+            if ($amount >= 500) {
                 $acceptUrl = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
                 $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
                 
@@ -2977,20 +2977,41 @@ public function watingvoucherCancel(Request $request)
             return $this->voucherResponse($voucher, 'already_processed');
         }
 
-        // Update transaction status
-        Usertransaction::where('id', $voucher->tran_id)->update([
-            'status'  => 1,
-            'pending' => 1,
-        ]);
+        $user = User::findOrFail($voucher->user_id);
 
-        // Update voucher status
-        $voucher->update([
-            'status' => 1,
-        ]);
+        // Check available balance
+        if ($user->getAvailableLimit() < $voucher->amount) {
 
-        // Update balances
-        Charity::where('id', $voucher->charity_id)->increment('balance', $voucher->amount);
-        User::where('id', $voucher->user_id)->decrement('balance', $voucher->amount);
+            \Log::warning('Voucher pending due to insufficient balance', [
+                'voucher_id'      => $voucher->id,
+                'user_id'         => $user->id,
+                'required_amount' => $voucher->amount,
+                'available_limit' => $user->getAvailableLimit(),
+            ]);
+
+            return $this->voucherResponse($voucher, 'pending');
+        }
+
+        DB::transaction(function () use ($voucher) {
+
+            // Update transaction status
+            Usertransaction::where('id', $voucher->tran_id)->update([
+                'status'  => 1,
+                'pending' => 1,
+            ]);
+
+            // Update voucher status
+            $voucher->update([
+                'status' => 1,
+            ]);
+
+            // Update balances
+            Charity::where('id', $voucher->charity_id)
+                ->increment('balance', $voucher->amount);
+
+            User::where('id', $voucher->user_id)
+                ->decrement('balance', $voucher->amount);
+        });
 
         \Log::info('Voucher accepted', [
             'voucher_id' => $voucher->id,

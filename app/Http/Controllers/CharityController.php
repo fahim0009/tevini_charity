@@ -273,6 +273,8 @@ class CharityController extends Controller
         $user->account_name = $request->account_name;
         $user->account_number = $request->account_number;
         $user->account_sortcode = $request->account_sortcode;
+        $user->balance = $request->balance;
+        
 
         if (isset($request->bank_statement)) {
             if ($user->bank_statement && file_exists(public_path('images/' . $user->bank_statement))) {

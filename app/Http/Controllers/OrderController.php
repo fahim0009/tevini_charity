@@ -3004,6 +3004,10 @@ public function watingvoucherCancel(Request $request)
                 'pending' => 1,
             ]);
 
+            Provoucher::where('id', $voucher->id)->update([
+                'waiting'  => "No",
+            ]);
+
             // Update voucher status
             $voucher->update([
                 'status' => 1,

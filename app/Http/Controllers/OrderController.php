@@ -3066,27 +3066,31 @@ public function watingvoucherCancel(Request $request)
     private function voucherResponse(Provoucher $voucher, string $type): \Illuminate\View\View
     {
         $messages = [
-            'accepted'         => 'Your voucher has been successfully accepted and will be processed.',
-            'declined'         => 'Your voucher has been declined. No further action will be taken.',
-            'already_processed' => 'This voucher has already been processed.',
+            'accepted'           => 'Your voucher has been successfully accepted and will be processed.',
+            'declined'           => 'Your voucher has been declined. No further action will be taken.',
+            'already_processed'  => 'This voucher has already been processed.',
+            'pending'            => 'Your voucher is pending due to insufficient balance. It will be processed automatically when funds are available.',  // ← ADD
         ];
 
         $titles = [
-            'accepted'         => 'Voucher Accepted',
-            'declined'         => 'Voucher Declined',
-            'already_processed' => 'Voucher Already Processed',
+            'accepted'           => 'Voucher Accepted',
+            'declined'           => 'Voucher Declined',
+            'already_processed'  => 'Voucher Already Processed',
+            'pending'            => 'Voucher Pending',  // ← ADD
         ];
 
         $icons = [
-            'accepted'         => '✓',
-            'declined'         => '✗',
-            'already_processed' => '!',
+            'accepted'           => '✓',
+            'declined'           => '✗',
+            'already_processed'  => '!',
+            'pending'            => '⏳',  // ← ADD (or use '⏰' or '…')
         ];
 
         $colors = [
-            'accepted'         => '#28a745',
-            'declined'         => '#dc3545',
-            'already_processed' => '#FFA000',
+            'accepted'           => '#28a745',
+            'declined'           => '#dc3545',
+            'already_processed'  => '#FFA000',
+            'pending'            => '#FFA000',  // ← ADD (orange/amber for pending)
         ];
 
         $charity = Charity::find($voucher->charity_id);

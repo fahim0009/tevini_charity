@@ -114,6 +114,8 @@
                             <div>
                             <a href="{{ route('register') }}" class="btn-theme bg-secondary">Open an account</a>
                             <a href="{{ route('howitWorks') }}" class="btn-theme bg-primary">How it works</a>
+                            <a href="{{ route('onlineDonation') }}" class="btn-theme bg-primary">Online Donation</a>
+                            <a href="{{ route('orderVoucherBooks') }}" class="btn-theme bg-secondary">Voucher Book</a>
                             </div>
                         </div>
                     </div>

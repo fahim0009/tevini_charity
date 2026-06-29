@@ -73,7 +73,7 @@
                                             <input type="checkbox" name="donation_id[]" value="{{ $data->id }}" class="donation-checkbox" data-charity="{{ $data->charity_id}}">
                                         </td>
                                         <td data-order="{{ $data->created_at->timestamp }}">{{ $data->created_at->format('d/m/Y') }}</td>
-                                        <td>{{ $data->user->name }} {{ $data->user->surname }}</td>
+                                        <td>{{ $data->user->name ?? ''}} {{ $data->user->surname ?? ''}}</td>
 
                                         <td data-search="{{ trim($data->charity->name) }}">
                                             <a href="{{ route('charity.pay', [$data->charity_id, $data->amount]) }}" 

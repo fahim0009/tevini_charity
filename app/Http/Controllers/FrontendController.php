@@ -89,7 +89,8 @@ class FrontendController extends Controller
         $charityName = $parts[1] ?? 'Charity';
 
         try {
-            \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+            // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
             $amountInPence = (int) round(floatval($request->amount) * 100);
 
@@ -274,7 +275,8 @@ class FrontendController extends Controller
 
                 // ── Verify with Stripe ──
                 try {
-                    \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+                    // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+                    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
                     $paymentIntent = \Stripe\PaymentIntent::retrieve($request->payment_intent_id);
 
                     \Log::info('PaymentIntent status: ' . $paymentIntent->status);

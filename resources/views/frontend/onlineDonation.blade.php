@@ -305,7 +305,8 @@
     'use strict';
 
     /* ─── Config ──────────────────────────────────────────────── */
-    var STRIPE_PK         = '{{ env("STRIPE_KEY") }}';
+    // var STRIPE_PK         = '{{ env("STRIPE_KEY") }}';
+    var STRIPE_PK = '{{ config("services.stripe.key") }}';
     var CHECK_BALANCE_URL = '{{ route("front.onlinedonation.check.balance") }}';
     var CREATE_INTENT_URL = '{{ route("front.onlinedonation.create.intent") }}';
     var STORE_DONATION_URL= '{{ route("front.onlinedonation.store") }}';

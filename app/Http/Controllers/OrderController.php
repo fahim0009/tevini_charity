@@ -3040,15 +3040,15 @@ public function watingvoucherCancel(Request $request)
             return $this->voucherResponse($voucher, 'already_processed');
         }
 
-        // Mark as declined (status = 2)
+        // Mark as declined (status = 3)
         $voucher->update([
-            'status' => 2,
+            'status' => 3,
         ]);
 
         // Also update transaction
         Usertransaction::where('id', $voucher->tran_id)->update([
-            'status'  => 0,
-            'pending' => 0,
+            'status'  => 3,
+            'pending' => Null,
         ]);
 
         \Log::info('Voucher declined', [

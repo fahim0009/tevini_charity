@@ -132,7 +132,7 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">
-                Send a link
+                Invite your donors to support your cause by sharing your personalised donation link through your website, email, whatsapp and social media.
             </div>
         </div>
     </div>

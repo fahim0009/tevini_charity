@@ -157,6 +157,7 @@ class CharityController extends Controller
 
     public function charityLinkStore(Request $request)
     {
+        
         $name = $request->name;
         $email = $request->email;
         $visitor_subject = "Charity Donation Link";
@@ -188,22 +189,32 @@ class CharityController extends Controller
             return response()->json(['success'=>false,'response'=> $success], 202);
         }
 
-        $data = new CharityLink();
-        $data->charity_id = $request->charity_id;
-        $data->name = $request->name;
-        $data->email = $request->email;
-        $data->amount = $request->amount;
-        $data->save();
-        $contactmail = ContactMail::where('id', 1)->first()->name;
+            $data = new CharityLink();
+            $data->charity_id = $request->charity_id;
+            $data->name = $request->name;
+            $data->email = $request->email;
+            $data->amount = $request->amount;
+            $data->save();
+            $contactmail = ContactMail::where('id', 1)->first()->name;
 
-	    $array['name'] = $data->name;
+            // Generate donation link with amount
+            $donationLink = 'https://www.tevini.co.uk/online-donation/' . $data->charity_id . '/' . $request->amount;
+            
+            // Generate QR code image URL
+            $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($donationLink);
+
+            $array['name'] = $data->name;
             $array['cc'] = $contactmail;
             $array['client_no'] = Charity::where('id',$data->charity_id)->first()->id;
-            $email = $data->email;
+            $array['email'] = $data->email;
             $array['amount'] = $request->amount;
             $array['charity_note'] = $request->charitynote;
             $array['charity_name'] = Charity::where('id',$data->charity_id)->first()->name;
+            $array['donation_link'] = $donationLink;
+            $array['qr_code_url'] = $qrCodeUrl;
 
+
+            $email = $data->email;
             Mail::to($email)
             ->cc($contactmail)
             ->send(new CharitylinkRequest($array));
@@ -211,6 +222,8 @@ class CharityController extends Controller
             $success['message'] = 'Request send successfully.';
             $success['data'] = $data;
             return response()->json(['success'=>true,'response'=> $success], 200);
+
+
     }
 
     public function urgentRequest(Request $request)

@@ -78,7 +78,7 @@ use Illuminate\Support\Carbon;
 
                                         @php
                                             // Use the eager-loaded relationship instead of querying the database inside the loop
-                                            $charityNote = $transaction->standingdonationDetail ? $transaction->standingdonationDetail->StandingDonation : null;
+                                            $charityNote = $transaction->standingDonations ? $transaction->standingDonations : null;
                                         @endphp
 
 
@@ -155,7 +155,7 @@ use Illuminate\Support\Carbon;
                                                                     @endif
 
                                                                     @if ($transaction->standing_donationdetails_id)
-                                                                       @if ($transaction->standingdonationDetail->StandingDonation->charitynote)
+                                                                       @if ($transaction->standingDonations->charitynote)
                                                                         <tr>
                                                                             <td>Charity Note</td>
                                                                             <td>:</td>

@@ -3043,6 +3043,8 @@ public function watingvoucherCancel(Request $request)
         // Mark as declined (status = 3)
         $voucher->update([
             'status' => 3,
+            'waiting' => 'No',
+            'expired' => null,
         ]);
 
         // Also update transaction
@@ -3103,6 +3105,14 @@ public function watingvoucherCancel(Request $request)
             'voucher'    => $voucher,
             'charity'    => $charity,
         ]);
+    }
+
+    
+    public function declineVoucher()
+    {
+        $wvouchers = Provoucher::where('status','=', '3')->orderBy('id','DESC')->get();
+        return view('voucher.declineVoucher')->with('wvouchers',$wvouchers);
+
     }
 
 

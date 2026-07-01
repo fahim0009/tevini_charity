@@ -20,6 +20,7 @@ use App\Models\ProvouchersImages;
 use App\Mail\InstantReport;
 use App\Mail\PendingvCancelReport;
 use App\Mail\PendingvReport;
+use App\Mail\VoucherDeclinedMail;
 use App\Mail\VoucherOrderBookStatusMail;
 use App\Mail\WaitingVoucherCancel;
 use App\Mail\WaitingvoucherReport;
@@ -3042,7 +3043,7 @@ public function watingvoucherCancel(Request $request)
 
         // Mark as declined (status = 3)
         $voucher->update([
-            'status' => 3,
+            'status'  => 3,
             'waiting' => 'No',
             'expired' => null,
         ]);
@@ -3059,7 +3060,43 @@ public function watingvoucherCancel(Request $request)
             'amount'     => $voucher->amount,
         ]);
 
+        // Send email to charity and admin
+        $this->sendVoucherDeclinedEmail($voucher);
+
         return $this->voucherResponse($voucher, 'declined');
+    }
+
+    /**
+     * Send voucher declined email to charity and admin.
+     */
+    private function sendVoucherDeclinedEmail(Provoucher $voucher): void
+    {
+        try {
+            $charity = Charity::find($voucher->charity_id);
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['subject'] = 'Voucher Declined - #' . $voucher->id;
+            $array['from'] = 'info@tevini.co.uk';
+            $array['name'] = $charity->name ?? 'Sir';
+            $array['voucher'] = $voucher;
+            $array['charity'] = $charity;
+
+            Mail::to($charity->email)
+                ->cc($contactmail)
+                ->send(new VoucherDeclinedMail($array));
+
+            \Log::info('Voucher declined email sent', [
+                'voucher_id'   => $voucher->id,
+                'charity_email' => $charity->email ?? 'N/A',
+                'admin_email'  => $contactmail,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send voucher declined email', [
+                'voucher_id' => $voucher->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

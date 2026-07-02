@@ -85,19 +85,27 @@
                 </a>
             </li>
 
-            <li class="nav-item {{ (request()->is('admin/waiting-voucher*')) ? 'active' : '' }}" id="">
+            <li class="nav-item {{ (request()->is('admin/waiting-voucher')) ? 'active' : '' }}" id="">
                 <a href="{{ route('waitingvoucher') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                     Waiting Vouchers
                 </a>
             </li>
 
-            <li class="nav-item {{ (request()->is('admin/expired-voucher*')) ? 'active' : '' }}" id="">
+            <li class="nav-item {{ (request()->is('admin/expired-voucher')) ? 'active' : '' }}" id="">
                 <a href="{{ route('expiredVoucher') }}">
                     <span class="iconify" data-icon="icon-park-outline:transaction"></span>
                     Expired Vouchers
                 </a>
             </li>
+            
+            <li class="nav-item {{ (request()->is('admin/decline-voucher')) ? 'active' : '' }}" id="">
+                <a href="{{ route('declineVoucher') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Decline Vouchers
+                </a>
+            </li>
+
 
             <li class="nav-item {{ (request()->is('admin/order*')) ? 'active' : '' }}">
                 <a href="#">

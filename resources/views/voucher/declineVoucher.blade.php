@@ -256,7 +256,7 @@ function loadTransaction(voucherId) {
     $('#transactionModalFooter').html(
         '<button type="button" class="btn btn-secondary" data-dismiss="modal">' +
         '<i class="fas fa-times"></i> Close</button>' +
-        '<button type="button" class="btn btn-success" id="acceptVoucherBtn" data-url="' + reAcceptUrl + '">' +
+        '<button type="button" class="btn btn-success d-none" id="acceptVoucherBtn" data-url="' + reAcceptUrl + '">' +
         '<i class="fas fa-check-circle"></i> Accept Voucher</button>'
     );
 }

@@ -11,6 +11,7 @@
 
     <meta name="description" content="Tevini Charity Admin Dashboard">
     <meta name="theme-color" content="#ffffff">
+    <link rel="icon" href="{{ asset('assets/front/images/favicon.png') }}">
 
     <link href="{{ asset('assets/admin/css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/app.css') }}">

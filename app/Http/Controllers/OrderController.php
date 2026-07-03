@@ -3147,11 +3147,71 @@ public function watingvoucherCancel(Request $request)
     
     public function declineVoucher()
     {
-        $wvouchers = Provoucher::where('status','=', '3')->orderBy('id','DESC')->get();
-        return view('voucher.declineVoucher')->with('wvouchers',$wvouchers);
-
+        $wvouchers = Provoucher::with('transaction', 'charity', 'user')
+            ->where('status', '=', '3')
+            ->orderBy('id', 'DESC')
+            ->get();
+            
+        return view('voucher.declineVoucher')->with('wvouchers', $wvouchers);
     }
 
+/**
+ * Admin re-accept a cancelled voucher
+ */
+public function adminVoucherReAccept(Provoucher $voucher)
+{
+    // Only allow re-accepting cancelled (status 3) vouchers
+    if ($voucher->status !== 3) {
+        return response()->json([
+            'success' => false,
+            'message' => 'This voucher cannot be re-accepted.'
+        ], 400);
+    }
+
+    $user = User::findOrFail($voucher->user_id);
+
+    // Check available balance
+    if ($user->getAvailableLimit() < $voucher->amount) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Insufficient user balance to accept this voucher.'
+        ], 400);
+    }
+
+    DB::transaction(function () use ($voucher) {
+        // Update transaction status
+        Usertransaction::where('id', $voucher->tran_id)->update([
+            'status'  => 1,
+            'pending' => 1,
+            'expired' => null,
+        ]);
+
+        // Update voucher status
+        Provoucher::where('id', $voucher->id)->update([
+            'status'  => 1,
+            'waiting' => "No",
+            'expired' => null,
+        ]);
+
+        // Update balances
+        Charity::where('id', $voucher->charity_id)
+            ->increment('balance', $voucher->amount);
+
+        User::where('id', $voucher->user_id)
+            ->decrement('balance', $voucher->amount);
+    });
+
+    \Log::info('Voucher re-accepted by admin', [
+        'voucher_id' => $voucher->id,
+        'cheque_no'  => $voucher->cheque_no,
+        'amount'     => $voucher->amount,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Voucher #' . $voucher->id . ' has been re-accepted successfully.'
+    ]);
+}
 
 
 }

@@ -434,6 +434,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::post('/waiting-voucherimgadd', [OrderController::class, 'watingvoucherImageadd']);
     Route::post('/pvcancel', [OrderController::class, 'pvCancel']);
     Route::get('/decline-voucher', [OrderController::class, 'declineVoucher'])->name('declineVoucher');
+    Route::post('/voucher/re-accept/{voucher}', [OrderController::class, 'adminVoucherReAccept'])->name('admin.voucher.reaccept');
 
     // Donor Voucher Orders
     Route::get('/donor-voucher-order/{id}', [OrderController::class, 'voucherinAdmin'])

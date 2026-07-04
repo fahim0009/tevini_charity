@@ -3148,9 +3148,12 @@ public function watingvoucherCancel(Request $request)
     public function declineVoucher()
     {
         $wvouchers = Provoucher::with('transaction', 'charity', 'user')
-            ->where('status', '=', '3')
-            ->orderBy('id', 'DESC')
-            ->get();
+                    ->where(function ($query) {
+                        $query->where('status', '3')
+                            ->orWhere('waiting', 'Cancel');
+                    })
+                    ->orderByDesc('id')
+                    ->get();
             
         return view('voucher.declineVoucher')->with('wvouchers', $wvouchers);
     }

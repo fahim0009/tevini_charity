@@ -12,11 +12,28 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Mail\DonationReport;
-// use App\Mail\DonationreportCharity;
-// use Barryvdh\DomPDF\Facade as PDF;
 
 class FrontendController extends Controller
 {
+
+    /* ─── Charge Constants ─────────────────────────────────── */
+    const ADMIN_CHARGE_PERCENT = 10;    // 10%
+    const STRIPE_FEE_PERCENT   = 1.5;   // 1.5%
+    const STRIPE_FEE_FIXED     = 0.20;  // 20p
+
+
+    /* ─── Charge Helpers ───────────────────────────────────── */
+
+    private function calcAdminCharge($baseAmount)
+    {
+        return round($baseAmount * self::ADMIN_CHARGE_PERCENT / 100, 2);
+    }
+
+    private function calcStripeCharge($subtotal)
+    {
+        return round(($subtotal * self::STRIPE_FEE_PERCENT / 100) + self::STRIPE_FEE_FIXED, 2);
+    }
+
 
     // ─────────────────────────────────────────────────────────────
     //  SHOW DONATION FORM
@@ -26,7 +43,6 @@ class FrontendController extends Controller
     {
         $charityName = null;
 
-        // If a charity_id is in the URL, find its name for the dropdown
         if ($charity_id) {
             $charity = \App\Models\Charity::find($charity_id);
             if ($charity) {
@@ -44,36 +60,36 @@ class FrontendController extends Controller
 
     public function onlineDonationCheckBalance(Request $request)
     {
-        // Not logged in → must use Stripe
         if (!auth()->check()) {
             return response()->json([
-                'has_balance'    => false,
-                'is_logged_in'   => false,
+                'has_balance'     => false,
+                'is_logged_in'    => false,
                 'available_limit' => 0,
             ]);
         }
 
         $user           = auth()->user();
-        $availableLimit = $user->getAvailableLimit();   // balance + overdraft
+        $availableLimit = $user->getAvailableLimit();
         $amount         = floatval($request->amount);
 
         return response()->json([
-            'has_balance'    => $availableLimit >= $amount && $amount > 0,
-            'is_logged_in'   => true,
+            'has_balance'     => $availableLimit >= $amount && $amount > 0,
+            'is_logged_in'    => true,
             'available_limit' => $availableLimit,
         ]);
     }
 
 
     // ─────────────────────────────────────────────────────────────
-    //  CREATE STRIPE PAYMENT INTENT  (returns client_secret)
+    //  CREATE STRIPE PAYMENT INTENT
     // ─────────────────────────────────────────────────────────────
 
     public function onlineDonationCreateIntent(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'amount'     => 'required|numeric|min:0.50|max:999999',
-            'charity_id' => 'required|string',
+            'amount'       => 'required|numeric|min:0.50|max:999999',
+            'charity_id'   => 'required|string',
+            'admin_charge' => 'nullable|in:0,1',
         ]);
 
         if ($validator->fails()) {
@@ -83,25 +99,34 @@ class FrontendController extends Controller
             ]);
         }
 
-        // Parse "id|name" format
-        $parts    = explode('|', $request->charity_id);
-        $charityId   = $parts[0];
+        $parts      = explode('|', $request->charity_id);
+        $charityId  = $parts[0];
         $charityName = $parts[1] ?? 'Charity';
 
+        // ── Calculate charges ──
+        $baseAmount       = floatval($request->amount);
+        $includeAdmin     = ($request->admin_charge == '1');
+        $adminChargeAmt   = $includeAdmin ? $this->calcAdminCharge($baseAmount) : 0;
+        $subtotal         = $baseAmount + $adminChargeAmt;
+        $stripeChargeAmt  = $this->calcStripeCharge($subtotal);
+        $totalAmount      = round($subtotal + $stripeChargeAmt, 2);
+
         try {
-            // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
             \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
-            $amountInPence = (int) round(floatval($request->amount) * 100);
+            $amountInPence = (int) round($totalAmount * 100);
 
             $paymentIntent = \Stripe\PaymentIntent::create([
                 'amount'   => $amountInPence,
                 'currency' => 'gbp',
                 'metadata' => [
-                    'type'         => 'online_donation',
-                    'charity_id'   => $charityId,
-                    'charity_name' => $charityName,
-                    'anonymous'    => $request->ano_donation ? 'yes' : 'no',
+                    'type'           => 'online_donation',
+                    'charity_id'     => $charityId,
+                    'charity_name'   => $charityName,
+                    'anonymous'      => $request->ano_donation ? 'yes' : 'no',
+                    'base_amount'    => $baseAmount,
+                    'admin_charge'   => $adminChargeAmt,
+                    'stripe_charge'  => $stripeChargeAmt,
                 ],
                 'description' => 'Donation to ' . $charityName,
             ]);
@@ -109,6 +134,7 @@ class FrontendController extends Controller
             return response()->json([
                 'status'       => 200,
                 'client_secret' => $paymentIntent->client_secret,
+                'total_amount'  => $totalAmount,
             ]);
 
         } catch (\Exception $e) {
@@ -126,46 +152,36 @@ class FrontendController extends Controller
 
     public function onlineDonationStore(Request $request)
     {
-        \Log::info('═══════════════════════════════════════════════');
-        \Log::info('onlineDonationStore CALLED');
-        \Log::info('payment_method: ' . ($request->payment_method ?? 'NULL'));
-        \Log::info('charity_id: ' . ($request->charity_id ?? 'NULL'));
-        \Log::info('amount: ' . ($request->amount ?? 'NULL'));
-        \Log::info('payment_intent_id: ' . ($request->payment_intent_id ?? 'NULL'));
-        \Log::info('confirm_donation: ' . ($request->confirm_donation ?? 'NULL'));
-        \Log::info('ano_donation: ' . ($request->ano_donation ?? 'NULL'));
-        \Log::info('confirm_donation: ' . ($request->confirm_donation ?? 'NULL'));
-        \Log::info('is_auth: ' . (auth()->check() ? 'YES' : 'NO'));
-
         try {
 
             // ── Parse charity_id ──
-            $parts      = explode('|', $request->charity_id);
-            $charityId  = $parts[0] ?? null;
+            $parts       = explode('|', $request->charity_id);
+            $charityId   = $parts[0] ?? null;
             $charityName = $parts[1] ?? '';
-
-            \Log::info('Parsed charity_id: ' . $charityId);
 
             // ── Basic validation ──
             if (empty($charityId)) {
-                \Log::warning('Validation fail: no charity_id');
                 return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Please select a charity.</div>']);
             }
 
-            if (empty($request->amount) || floatval($request->amount) <= 0) {
-                \Log::warning('Validation fail: invalid amount');
+            $baseAmount = floatval($request->amount);
+            if (empty($request->amount) || $baseAmount <= 0) {
                 return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Please enter a valid donation amount.</div>']);
             }
 
             if (!$request->confirm_donation) {
-                \Log::warning('Validation fail: condition not accepted');
                 return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Please accept the donation condition.</div>']);
             }
 
-            $paymentMethod = $request->payment_method;
-            $amount        = floatval($request->amount);
+            // ── Calculate charges (server-side, never trust client) ──
+            $includeAdmin    = ($request->admin_charge == '1');
+            $adminChargeAmt  = $includeAdmin ? $this->calcAdminCharge($baseAmount) : 0;
+            $stripeChargeAmt = 0;
+            $totalChargeable = $baseAmount + $adminChargeAmt;
 
-            \Log::info('Payment method: ' . $paymentMethod);
+            $paymentMethod = $request->payment_method;
+
+            \Log::info('Donation store — base: ' . $baseAmount . ', admin: ' . $adminChargeAmt . ', method: ' . $paymentMethod);
 
 
             // ══════════════════════════════════════════════════════════
@@ -198,30 +214,31 @@ class FrontendController extends Controller
                 $overdraftLimit        = User::where('id', $userid)->first()->overdrawn_amount;
                 $donorBalanceWithLimit = $userTransactionBalance->balance + $overdraftLimit;
 
-                \Log::info('User balance: ' . $userTransactionBalance->balance . ' + overdraft: ' . $overdraftLimit . ' = ' . $donorBalanceWithLimit);
+                \Log::info('User balance: ' . $userTransactionBalance->balance . ' + overdraft: ' . $overdraftLimit . ' = ' . $donorBalanceWithLimit . ' | needed: ' . $totalChargeable);
 
-                if ($donorBalanceWithLimit < $amount) {
-                    return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">You don\'t have sufficient balance for this donation.</div>']);
+                if ($donorBalanceWithLimit < $totalChargeable) {
+                    return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">You don\'t have sufficient balance for this donation (including charges).</div>']);
                 }
 
                 $donation = new Donation();
-                $donation->user_id         = $userid;
-                $donation->charity_id      = $charityId;
-                $donation->amount          = $amount;
-                $donation->currency        = 'GBP';
-                $donation->ano_donation    = $request->ano_donation ? 'true': 'false';
-                $donation->standing_order  = 'false';
+                $donation->user_id          = $userid;
+                $donation->charity_id       = $charityId;
+                $donation->amount           = $baseAmount;
+                $donation->admin_charge     = $adminChargeAmt;
+                $donation->stripe_charge    = 0;
+                $donation->currency         = 'GBP';
+                $donation->ano_donation     = $request->ano_donation ? 'true' : 'false';
+                $donation->standing_order   = 'false';
                 $donation->confirm_donation = 'true';
-                $donation->charitynote     = $request->charitynote;
-                $donation->mynote          = $request->mynote;
-                $donation->notification    = 1;
-                $donation->status          = 0;
-                $donation->payment_method  = 'balance';
+                $donation->charitynote      = $request->charitynote;
+                $donation->mynote           = $request->mynote;
+                $donation->notification     = 1;
+                $donation->status           = 0;
+                $donation->payment_method   = 'balance';
 
                 DB::beginTransaction();
                 try {
                     $donation->save();
-                    \Log::info('Donation saved, ID: ' . $donation->id);
 
                     $utransaction            = new Usertransaction();
                     $utransaction->t_id      = time() . '-' . $userid;
@@ -229,29 +246,27 @@ class FrontendController extends Controller
                     $utransaction->charity_id = $charityId;
                     $utransaction->donation_id = $donation->id;
                     $utransaction->t_type    = 'Out';
-                    $utransaction->amount    = $amount;
+                    $utransaction->amount    = $totalChargeable;  // base + admin
                     $utransaction->title     = 'Online Donation';
                     $utransaction->status    = 1;
                     $utransaction->save();
 
                     $user = User::find($userid);
-                    $user->decrement('balance', $amount);
+                    $user->decrement('balance', $totalChargeable);  // base + admin
 
                     $charity = Charity::find($charityId);
                     if ($charity) {
-                        $charity->increment('balance', $amount);
+                        $charity->increment('balance', $baseAmount);  // charity gets base only
                     }
 
                     DB::commit();
-                    \Log::info('Balance donation committed successfully');
+                    \Log::info('Balance donation committed — ID: ' . $donation->id);
 
                 } catch (\Exception $e) {
                     DB::rollBack();
                     \Log::error('Balance donation DB error: ' . $e->getMessage());
                     return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Something went wrong. Please try again.</div>']);
                 }
-
-                // $this->sendDonationEmails($donation, $user, $charity, $amount, $request->charitynote);
 
                 $message = "<div class='alert alert-success'><b>Donation submitted successfully!</b></div>";
                 return response()->json(['status' => 300, 'message' => $message]);
@@ -267,24 +282,30 @@ class FrontendController extends Controller
                 \Log::info('=== STRIPE PATH ===');
 
                 if (empty($request->payment_intent_id)) {
-                    \Log::warning('Stripe path: missing payment_intent_id');
                     return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Payment information is missing.</div>']);
                 }
 
-                \Log::info('Verifying PaymentIntent: ' . $request->payment_intent_id);
+                // ── Calculate stripe charge ──
+                $stripeChargeAmt = $this->calcStripeCharge($totalChargeable);
+                $totalChargeable = round($totalChargeable + $stripeChargeAmt, 2);
 
                 // ── Verify with Stripe ──
                 try {
-                    // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
                     \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
                     $paymentIntent = \Stripe\PaymentIntent::retrieve($request->payment_intent_id);
 
-                    \Log::info('PaymentIntent status: ' . $paymentIntent->status);
-                    \Log::info('PaymentIntent amount: ' . $paymentIntent->amount);
+                    \Log::info('PaymentIntent status: ' . $paymentIntent->status . ' | amount: ' . $paymentIntent->amount . 'p | expected: ' . round($totalChargeable * 100) . 'p');
 
                     if ($paymentIntent->status !== 'succeeded') {
-                        \Log::warning('PaymentIntent not succeeded, status: ' . $paymentIntent->status);
                         return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Payment was not completed (status: ' . $paymentIntent->status . '). Please try again.</div>']);
+                    }
+
+                    // Verify amount matches (allow 1p rounding difference)
+                    $expectedPence  = (int) round($totalChargeable * 100);
+                    $actualPence    = (int) $paymentIntent->amount;
+                    if (abs($expectedPence - $actualPence) > 1) {
+                        \Log::warning('Amount mismatch! Expected: ' . $expectedPence . 'p, Got: ' . $actualPence . 'p');
+                        return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Payment amount mismatch. Please try again.</div>']);
                     }
 
                 } catch (\Exception $e) {
@@ -295,9 +316,11 @@ class FrontendController extends Controller
                 // ── Create donation ──
                 $donation = new Donation();
                 $donation->charity_id       = $charityId;
-                $donation->amount           = $amount;
+                $donation->amount           = $baseAmount;
+                $donation->admin_charge     = $adminChargeAmt;
+                $donation->stripe_charge    = $stripeChargeAmt;
                 $donation->currency         = 'GBP';
-                $donation->ano_donation     = $request->ano_donation ? 'true': 'false';
+                $donation->ano_donation     = $request->ano_donation ? 'true' : 'false';
                 $donation->standing_order   = 'false';
                 $donation->confirm_donation = 'true';
                 $donation->charitynote      = $request->charitynote;
@@ -309,7 +332,6 @@ class FrontendController extends Controller
 
                 if (auth()->check()) {
                     $donation->user_id = auth()->user()->id;
-                    \Log::info('Stripe donation for logged-in user: ' . $donation->user_id);
                 } else {
                     $donation->user_id          = null;
                     $donation->guest_first_name = $request->first_name;
@@ -321,34 +343,28 @@ class FrontendController extends Controller
                     $donation->guest_address_3  = $request->address_line_3;
                     $donation->guest_town       = $request->town;
                     $donation->guest_postcode   = $request->postcode;
-                    \Log::info('Stripe donation for guest: ' . $request->first_name . ' ' . $request->last_name . ' <' . $request->email . '>');
                 }
-
-
 
                 DB::beginTransaction();
                 try {
 
                     $donation->save();
-                    \Log::info('Stripe donation saved, ID: ' . $donation->id);
+                    \Log::info('Stripe donation saved — ID: ' . $donation->id . ' | base: ' . $baseAmount . ' | admin: ' . $adminChargeAmt . ' | stripe: ' . $stripeChargeAmt);
 
-                    // ── Record transaction for BOTH logged-in and guest users ──
                     $utransaction            = new Usertransaction();
                     $utransaction->t_id      = time() . '-' . ($donation->user_id ?? '000');
-                    $utransaction->user_id   = $donation->user_id;  // null for guests
+                    $utransaction->user_id   = $donation->user_id;
                     $utransaction->charity_id = $charityId;
                     $utransaction->donation_id = $donation->id;
                     $utransaction->t_type    = 'Out';
-                    $utransaction->amount    = $amount;
+                    $utransaction->amount    = $totalChargeable;  // base + admin + stripe
                     $utransaction->title     = 'Online Donation (Stripe)';
                     $utransaction->status    = 1;
                     $utransaction->save();
-                    \Log::info('Transaction saved — user_id: ' . ($donation->user_id ?? 'guest'));
 
                     $charity = Charity::find($charityId);
                     if ($charity) {
-                        $charity->increment('balance', $amount);
-                        \Log::info('Charity balance incremented by ' . $amount);
+                        $charity->increment('balance', $baseAmount);  // charity gets base only
                     }
 
                     DB::commit();
@@ -357,26 +373,18 @@ class FrontendController extends Controller
                 } catch (\Exception $e) {
                     DB::rollBack();
                     \Log::error('Stripe donation DB error: ' . $e->getMessage());
-                    \Log::error('Trace: ' . $e->getTraceAsString());
                     return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Something went wrong while saving. Please contact support.</div>']);
                 }
 
-                // ── Send emails ──
-                // $user = auth()->check() ? auth()->user() : null;
-                // $this->sendDonationEmails($donation, $user, $charity, $amount, $request->charitynote, $request->email ?? null);
-
                 $message = "<div class='alert alert-success'><b>Donation submitted successfully! Thank you for your generosity.</b></div>";
-                \Log::info('Returning success response');
                 return response()->json(['status' => 300, 'message' => $message]);
             }
 
-            \Log::warning('Fallback: invalid payment_method: ' . $paymentMethod);
             return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Invalid payment method.</div>']);
 
         } catch (\Exception $e) {
             \Log::error('UNCAUGHT EXCEPTION in onlineDonationStore: ' . $e->getMessage());
             \Log::error('File: ' . $e->getFile() . ' Line: ' . $e->getLine());
-            \Log::error('Trace: ' . $e->getTraceAsString());
             return response()->json([
                 'status'  => 303,
                 'message' => '<div class="alert alert-danger">An unexpected error occurred. Please try again.</div>'
@@ -394,7 +402,6 @@ class FrontendController extends Controller
         try {
             $contactmail = ContactMail::where('id', 1)->first()->name;
 
-            // ── Donor receipt email ──
             $recipientEmail = null;
             $recipientName  = 'Donor';
 
@@ -408,12 +415,14 @@ class FrontendController extends Controller
 
             if ($recipientEmail) {
                 $array = [];
-                $array['name']         = $recipientName;
-                $array['cc']           = $contactmail;
-                $array['client_no']    = $user ? $user->accountno : 'N/A';
-                $array['amount']       = $amount;
-                $array['charity_note'] = $charityNote;
-                $array['charity_name'] = $charity ? $charity->name : 'N/A';
+                $array['name']           = $recipientName;
+                $array['cc']             = $contactmail;
+                $array['client_no']      = $user ? $user->accountno : 'N/A';
+                $array['amount']         = $amount;
+                $array['admin_charge']   = $donation->admin_charge ?? 0;
+                $array['stripe_charge']  = $donation->stripe_charge ?? 0;
+                $array['charity_note']   = $charityNote;
+                $array['charity_name']   = $charity ? $charity->name : 'N/A';
                 $array['payment_method'] = $donation->payment_method;
 
                 Mail::to($recipientEmail)
@@ -421,25 +430,7 @@ class FrontendController extends Controller
                     ->send(new DonationReport($array));
             }
 
-            // ── Charity notification email (uncomment when ready) ──
-            // if ($charity && $charity->email) {
-            //     $pdf = PDF::loadView('invoices.donation_report_charity', compact('user', 'charity', 'donation'));
-            //     $output = $pdf->output();
-            //     file_put_contents(public_path() . '/invoices/Donation-report-charity#' . $charity->id . '.pdf', $output);
-            //
-            //     $mailArray['file']      = public_path() . '/invoices/Donation-report-charity#' . $charity->id . '.pdf';
-            //     $mailArray['file_name'] = 'Donation-report-charity#' . $charity->id . '.pdf';
-            //     $mailArray['cc']        = $contactmail;
-            //     $mailArray['charity']   = $charity;
-            //     $mailArray['user']      = $user;
-            //
-            //     Mail::to($charity->email)
-            //         ->cc($contactmail)
-            //         ->send(new DonationreportCharity($mailArray));
-            // }
-
         } catch (\Exception $e) {
-            // Log email error but don't fail the donation
             \Log::error('Donation email failed: ' . $e->getMessage());
         }
     }

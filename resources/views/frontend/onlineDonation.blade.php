@@ -158,6 +158,58 @@
                                     </div>
                                 </div>
 
+
+                                {{-- ===== CHARGES SECTION ===== --}}
+                                <div class="charges-section" style="margin-top: 20px;">
+
+                                    {{-- Admin charge checkbox --}}
+                                    <div class="form-group">
+                                        <label class="donation-check" style="cursor: pointer;">
+                                            <input type="checkbox" name="admin_charge" id="admin_charge">
+                                            <span>Add 10% admin maintenance charge</span>
+                                        </label>
+                                    </div>
+                                    {{-- Stripe fee note --}}
+                                    <div id="stripeChargeNote" style="background: #D5D4CA; border: 1px solid rgba(24, 152, 139, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 15px; color: #003057; line-height: 1.5;font-weight: 600;">
+                                        <i class="fas fa-info-circle" style="margin-right: 6px; color: #D5D4CA;"></i>
+                                        <strong>Note:</strong> A Stripe payment processing fee of <strong>1.5% + £0.20</strong> will be added to your total amount for card payments.
+                                    </div>
+
+
+                                    {{-- Live breakdown --}}
+                                    <div id="amountBreakdown" style="display: none; background: #f0f4f8; border: 1px solid #d0d9e4; border-radius: 8px; padding: 14px 16px; margin-top: 10px; font-size: 14px;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                            <span style="color: #555;">Donation Amount</span>
+                                            <span id="breakdownBase" style="font-weight: 500;">£0.00</span>
+                                        </div>
+                                        <div id="breakdownAdminRow" style="display: none;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #b45309;">
+                                                <span>Admin Charge (10%)</span>
+                                                <span id="breakdownAdmin" style="font-weight: 500;">£0.00</span>
+                                            </div>
+                                        </div>
+                                        <div id="breakdownStripeRow" style="display: none;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #b45309;">
+                                                <span>Stripe Processing Fee <small style="opacity:.7">(card only)</small></span>
+                                                <span id="breakdownStripe" style="font-weight: 500;">£0.00</span>
+                                            </div>
+                                        </div>
+                                        <hr style="margin: 8px 0; border-color: #c8d3df;">
+                                        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; color: #003057;">
+                                            <span>Total</span>
+                                            <span id="breakdownTotal">£0.00</span>
+                                        </div>
+                                        <div id="breakdownBalanceNote" style="display: none; margin-top: 6px; font-size: 12px; color: #16a34a;">
+                                            <i class="fas fa-check-circle"></i> Paying from balance — no Stripe fee
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {{-- ===== END CHARGES SECTION ===== --}}
+
+
+
+
                             </div>
 
                             {{-- ===== RIGHT COLUMN ===== --}}
@@ -168,7 +220,7 @@
 
                                 <div class="form-group">
                                     <label for="charity_id">Beneficiary <span class="required-star">*</span></label>
-                                    <select id="charity_id" name="charity_id" required class="form-select select2">
+                                    <select id="charity_id" name="charity_id" required class="form-control">
                                         <option value="">Select a charity</option>
                                         @foreach (App\Models\Charity::all() as $charity)
                                             <option value="{{ $charity->id }}|{{ $charity->name }}"
@@ -299,49 +351,150 @@
 <script src="https://cdn.jsdelivr.net/npm/@ideal-postcodes/address-finder-bundled@4"></script>
 <script src="https://js.stripe.com/v3/"></script>
 
-
 <script>
 (function ($) {
     'use strict';
 
     /* ─── Config ──────────────────────────────────────────────── */
-    // var STRIPE_PK         = '{{ env("STRIPE_KEY") }}';
-    var STRIPE_PK = '{{ config("services.stripe.key") }}';
-    var CHECK_BALANCE_URL = '{{ route("front.onlinedonation.check.balance") }}';
-    var CREATE_INTENT_URL = '{{ route("front.onlinedonation.create.intent") }}';
-    var STORE_DONATION_URL= '{{ route("front.onlinedonation.store") }}';
-    var IS_LOGGED_IN      = {{ auth()->check() ? 'true' : 'false' }};
+    var STRIPE_PK            = '{{ config("services.stripe.key") }}';
+    var CHECK_BALANCE_URL    = '{{ route("front.onlinedonation.check.balance") }}';
+    var CREATE_INTENT_URL    = '{{ route("front.onlinedonation.create.intent") }}';
+    var STORE_DONATION_URL   = '{{ route("front.onlinedonation.store") }}';
+    var IS_LOGGED_IN         = {{ auth()->check() ? 'true' : 'false' }};
+
+    /* ─── Charge Config ───────────────────────────────────────── */
+    var ADMIN_CHARGE_PERCENT = 10;
+    var STRIPE_FEE_PERCENT   = 1.5;
+    var STRIPE_FEE_FIXED     = 0.20;
 
     /* ─── Stripe State ────────────────────────────────────────── */
     var stripe, elements, cardElement, currentClientSecret;
 
     /* ─── DOM ─────────────────────────────────────────────────── */
     var dom = {
-        form:            $('#DonationForm'),
-        charityId:       $('#charity_id'),
-        amount:          $('#amount'),
-        anoDonation:     $('#ano_donation'),
-        confirmDonation: $('#confirm_donation'),
-        charityNote:     $('#charitynote'),
-        myNote:          $('#mynote'),
-        userId:          $('#userid'),
-        btnDonate:       $('#donatemodal'),
-        errorBox:        $('.ermsg'),
-        pageLoader:      $('#pageLoader'),
-        balanceBadge:    $('#balanceBadge'),
-        modal:           $('#stripeModal'),
-        closeBtn:        $('#closeStripeModal'),
-        cancelBtn:       $('#cancelStripeBtn'),
-        payBtn:          $('#payWithStripeBtn'),
-        payBtnText:      $('#payWithStripeBtn .pay-btn-text'),
-        payBtnLoading:   $('#payWithStripeBtn .pay-btn-loading'),
-        cardErrors:      $('#card-errors'),
-        stripeCharity:   $('#stripeCharityName'),
-        stripeAmount:    $('#stripeAmountDisplay'),
+        form:                  $('#DonationForm'),
+        charityId:             $('#charity_id'),
+        amount:                $('#amount'),
+        adminCharge:           $('#admin_charge'),
+        anoDonation:           $('#ano_donation'),
+        confirmDonation:       $('#confirm_donation'),
+        charityNote:           $('#charitynote'),
+        myNote:                $('#mynote'),
+        userId:                $('#userid'),
+        btnDonate:             $('#donatemodal'),
+        errorBox:              $('.ermsg'),
+        pageLoader:            $('#pageLoader'),
+        balanceBadge:          $('#balanceBadge'),
+        amountBreakdown:       $('#amountBreakdown'),
+        breakdownBase:         $('#breakdownBase'),
+        breakdownAdmin:        $('#breakdownAdmin'),
+        breakdownAdminRow:     $('#breakdownAdminRow'),
+        breakdownStripe:       $('#breakdownStripe'),
+        breakdownStripeRow:    $('#breakdownStripeRow'),
+        breakdownTotal:        $('#breakdownTotal'),
+        breakdownBalanceNote:  $('#breakdownBalanceNote'),
+        stripeChargeNote:      $('#stripeChargeNote'),
+        modal:                 $('#stripeModal'),
+        closeBtn:              $('#closeStripeModal'),
+        cancelBtn:             $('#cancelStripeBtn'),
+        payBtn:                $('#payWithStripeBtn'),
+        payBtnText:            $('#payWithStripeBtn .pay-btn-text'),
+        payBtnLoading:         $('#payWithStripeBtn .pay-btn-loading'),
+        cardErrors:            $('#card-errors'),
+        stripeCharity:         $('#stripeCharityName'),
+        stripeAmount:          $('#stripeAmountDisplay'),
     };
 
+    /* ─── Charge Calculation Helpers ──────────────────────────── */
 
-    /* ─── Helpers ─────────────────────────────────────────────── */
+    function getBaseAmount() {
+        return parseFloat(dom.amount.val()) || 0;
+    }
+
+    function calcAdminCharge(base) {
+        if (!dom.adminCharge.is(':checked')) return 0;
+        return Math.round(base * ADMIN_CHARGE_PERCENT) / 100;
+    }
+
+    function calcStripeCharge(subtotal) {
+        return Math.round((subtotal * STRIPE_FEE_PERCENT / 100 + STRIPE_FEE_FIXED) * 100) / 100;
+    }
+
+    function getTotalForBalance() {
+        var base  = getBaseAmount();
+        var admin = calcAdminCharge(base);
+        return Math.round((base + admin) * 100) / 100;
+    }
+
+    function getTotalForStripe() {
+        var base     = getBaseAmount();
+        var admin    = calcAdminCharge(base);
+        var subtotal = base + admin;
+        var stripe   = calcStripeCharge(subtotal);
+        return Math.round((subtotal + stripe) * 100) / 100;
+    }
+
+    /* ─── Update Amount Breakdown Display ─────────────────────── */
+
+    function updateAmountBreakdown() {
+        var base = getBaseAmount();
+
+        if (base <= 0) {
+            dom.amountBreakdown.hide();
+            return;
+        }
+
+        var admin    = calcAdminCharge(base);
+        var subtotal = base + admin;
+        var stripe   = calcStripeCharge(subtotal);
+        var totalStripe  = Math.round((subtotal + stripe) * 100) / 100;
+        var totalBalance = Math.round(subtotal * 100) / 100;
+
+        dom.breakdownBase.text(formatGBP(base));
+
+        if (admin > 0) {
+            dom.breakdownAdminRow.show();
+            dom.breakdownAdmin.text('+' + formatGBP(admin));
+        } else {
+            dom.breakdownAdminRow.hide();
+        }
+
+        dom.breakdownStripeRow.show();
+        dom.breakdownStripe.text('+' + formatGBP(stripe));
+
+        if (IS_LOGGED_IN) {
+            var totalForBalance = totalBalance;
+            $.ajax({
+                url: CHECK_BALANCE_URL,
+                method: 'POST',
+                data: { amount: totalForBalance },
+                success: function (res) {
+                    if (res.has_balance) {
+                        dom.breakdownStripeRow.hide();
+                        dom.breakdownTotal.text(formatGBP(totalForBalance));
+                        dom.breakdownBalanceNote.show();
+                    } else {
+                        dom.breakdownStripeRow.show();
+                        dom.breakdownTotal.text(formatGBP(totalStripe));
+                        dom.breakdownBalanceNote.hide();
+                    }
+                },
+                error: function () {
+                    dom.breakdownStripeRow.show();
+                    dom.breakdownTotal.text(formatGBP(totalStripe));
+                    dom.breakdownBalanceNote.hide();
+                }
+            });
+        } else {
+            dom.breakdownStripeRow.show();
+            dom.breakdownTotal.text(formatGBP(totalStripe));
+            dom.breakdownBalanceNote.hide();
+        }
+
+        dom.amountBreakdown.slideDown(200);
+    }
+
+    /* ─── Other Helpers ───────────────────────────────────────── */
 
     function parseCharity() {
         var raw = dom.charityId.val();
@@ -350,22 +503,16 @@
         return { id: parts[0], name: parts[1] || '' };
     }
 
-    function getAmount() {
-        return parseFloat(dom.amount.val()) || 0;
-    }
-
     function formatGBP(n) {
         return '£' + n.toFixed(2);
     }
 
     function showError(msg) {
-        console.log('[DONATION] showError:', msg);
         dom.errorBox.html('<div class="alert alert-danger">' + msg + '</div>');
         $('html, body').animate({ scrollTop: dom.errorBox.offset().top - 100 }, 400);
     }
 
     function showSuccess(msg) {
-        console.log('[DONATION] showSuccess:', msg);
         dom.errorBox.html('<div class="alert alert-success">' + msg + '</div>');
         $('html, body').animate({ scrollTop: dom.errorBox.offset().top - 100 }, 400);
     }
@@ -388,7 +535,6 @@
         dom.btnDonate.prop('disabled', false).html('Make Donation');
     }
 
-
     /* ─── Form Validation ─────────────────────────────────────── */
 
     function validateForm() {
@@ -396,7 +542,7 @@
 
         if (!dom.charityId.val()) errors.push('Please select a charity.');
 
-        var amt = getAmount();
+        var amt = getBaseAmount();
         if (!amt || amt <= 0) errors.push('Please enter a valid donation amount.');
         if (amt < 0.50)      errors.push('Minimum donation amount is £0.50.');
 
@@ -417,19 +563,18 @@
         return errors;
     }
 
-
     /* ─── Balance Badge ───────────────────────────────────────── */
 
     function updateBalanceBadge() {
         if (!IS_LOGGED_IN) { dom.balanceBadge.hide(); return; }
 
-        var amt = getAmount();
-        if (amt <= 0) { dom.balanceBadge.hide(); return; }
+        var totalForBalance = getTotalForBalance();
+        if (totalForBalance <= 0) { dom.balanceBadge.hide(); return; }
 
         $.ajax({
             url: CHECK_BALANCE_URL,
             method: 'POST',
-            data: { amount: amt },
+            data: { amount: totalForBalance },
             success: function (res) {
                 if (res.has_balance) {
                     dom.balanceBadge.removeClass('use-stripe')
@@ -444,34 +589,28 @@
         });
     }
 
-
     /* ─── Stripe Modal ────────────────────────────────────────── */
 
     function initStripe() {
         if (stripe) return;
-        console.log('[DONATION] Initializing Stripe with key:', STRIPE_PK.substring(0, 15) + '...');
         stripe = Stripe(STRIPE_PK);
     }
 
-    function openStripeModal(clientSecret, charityName, amount) {
-        console.log('[DONATION] Opening Stripe modal — charity:', charityName, 'amount:', amount);
+    function openStripeModal(clientSecret, charityName, totalAmount) {
         currentClientSecret = clientSecret;
 
         dom.stripeCharity.text(charityName || '—');
-        dom.stripeAmount.text(formatGBP(amount));
-        dom.payBtnText.text('Pay ' + formatGBP(amount));
+        dom.stripeAmount.text(formatGBP(totalAmount));
+        dom.payBtnText.text('Pay ' + formatGBP(totalAmount));
         dom.cardErrors.text('');
         dom.payBtn.prop('disabled', true);
 
-        // Destroy old card element
         if (cardElement) {
             cardElement.destroy();
             cardElement = null;
         }
         elements = null;
 
-        // ── Create Card Element (NOT Payment Element) ──
-        // Card Element + confirmCardPayment = NO redirects, all handled in JS
         elements = stripe.elements();
 
         cardElement = elements.create('card', {
@@ -481,9 +620,7 @@
                     fontFamily: '"Roboto", sans-serif',
                     fontSize: '14px',
                     iconColor: '#18988B',
-                    '::placeholder': {
-                        color: '#9e978d',
-                    },
+                    '::placeholder': { color: '#9e978d' },
                 },
                 invalid: {
                     color: '#d45273',
@@ -493,7 +630,6 @@
         });
 
         cardElement.mount('#card-element');
-        console.log('[DONATION] Card element mounted');
 
         cardElement.on('change', function (event) {
             if (event.error) {
@@ -509,11 +645,9 @@
     }
 
     function closeStripeModal() {
-        console.log('[DONATION] Closing Stripe modal');
         dom.modal.removeClass('active');
         $('body').css('overflow', '');
         dom.cardErrors.text('');
-        dom.payBtn.prop('disabled', true);
         dom.payBtnText.show();
         dom.payBtnLoading.hide();
         dom.payBtn.prop('disabled', false);
@@ -527,21 +661,11 @@
     }
 
     async function processStripePayment() {
-        if (!stripe || !cardElement || !currentClientSecret) {
-            console.error('[DONATION] processStripePayment: missing objects', {
-                stripe: !!stripe,
-                cardElement: !!cardElement,
-                secret: !!currentClientSecret
-            });
-            return;
-        }
+        if (!stripe || !cardElement || !currentClientSecret) return;
 
         var firstName = $('#first_name').val().trim();
         var lastName  = $('#last_name').val().trim();
         var email     = $('#email').val().trim();
-
-        console.log('[DONATION] Calling confirmCardPayment...');
-        console.log('[DONATION] Billing: ' + firstName + ' ' + lastName + ' <' + email + '>');
 
         dom.payBtnText.hide();
         dom.payBtnLoading.show();
@@ -549,8 +673,6 @@
         dom.cardErrors.text('');
 
         try {
-            // ── KEY FIX: Use confirmCardPayment (NOT confirmPayment) ──
-            // This never redirects — 3DS shows as a popup, then resolves
             var result = await stripe.confirmCardPayment(currentClientSecret, {
                 payment_method: {
                     card: cardElement,
@@ -561,36 +683,23 @@
                 }
             });
 
-            console.log('[DONATION] confirmCardPayment result:', JSON.stringify(result, null, 2));
-
             if (result.error) {
-                console.error('[DONATION] Stripe error:', result.error.message);
                 dom.cardErrors.text(result.error.message);
                 dom.payBtnText.show();
                 dom.payBtnLoading.hide();
                 dom.payBtn.prop('disabled', false);
-
             } else if (result.paymentIntent) {
-                var pi = result.paymentIntent;
-                console.log('[DONATION] Payment succeeded! ID:', pi.id, 'Status:', pi.status);
-
                 closeStripeModal();
                 setLoading(true);
                 clearErrors();
-
-                submitDonation('stripe', pi.id);
-
+                submitDonation('stripe', result.paymentIntent.id);
             } else {
-                // Unexpected result shape
-                console.error('[DONATION] Unexpected result (no error, no paymentIntent):', result);
                 dom.cardErrors.text('Unexpected payment result. Please try again.');
                 dom.payBtnText.show();
                 dom.payBtnLoading.hide();
                 dom.payBtn.prop('disabled', false);
             }
-
         } catch (err) {
-            console.error('[DONATION] Exception in processStripePayment:', err);
             dom.cardErrors.text('An unexpected error occurred: ' + (err.message || err));
             dom.payBtnText.show();
             dom.payBtnLoading.hide();
@@ -598,11 +707,9 @@
         }
     }
 
-
     /* ─── Main Submit Flow ────────────────────────────────────── */
 
     function handleDonateClick() {
-        console.log('[DONATION] handleDonateClick called');
         clearErrors();
 
         var errors = validateForm();
@@ -611,46 +718,41 @@
             return;
         }
 
-        var amount  = getAmount();
-        var charity = parseCharity();
-        console.log('[DONATION] Validated — amount:', amount, 'charity:', charity);
+        var baseAmount = getBaseAmount();
+        var charity    = parseCharity();
 
         if (IS_LOGGED_IN) {
             dom.btnDonate.prop('disabled', true).html(
                 '<span class="spinner-border spinner-border-sm" role="status"></span> Checking...'
             );
 
+            var totalForBalance = getTotalForBalance();
+
             $.ajax({
                 url: CHECK_BALANCE_URL,
                 method: 'POST',
-                data: { amount: amount },
+                data: { amount: totalForBalance },
                 success: function (res) {
-                    console.log('[DONATION] Balance check result:', res);
                     resetDonateButton();
 
                     if (res.has_balance) {
-                        console.log('[DONATION] → Balance path');
                         setLoading(true);
                         submitDonation('balance', null);
                     } else {
-                        console.log('[DONATION] → Stripe path (insufficient balance)');
-                        createIntentAndPay(charity, amount);
+                        createIntentAndPay(charity, baseAmount);
                     }
                 },
-                error: function (xhr) {
-                    console.error('[DONATION] Balance check AJAX error:', xhr);
+                error: function () {
                     resetDonateButton();
                     showError('Could not verify balance. Please try again.');
                 }
             });
         } else {
-            console.log('[DONATION] → Stripe path (guest)');
-            createIntentAndPay(charity, amount);
+            createIntentAndPay(charity, baseAmount);
         }
     }
 
-    function createIntentAndPay(charity, amount) {
-        console.log('[DONATION] createIntentAndPay — charity:', charity, 'amount:', amount);
+    function createIntentAndPay(charity, baseAmount) {
         dom.btnDonate.prop('disabled', true).html(
             '<span class="spinner-border spinner-border-sm" role="status"></span> Preparing payment...'
         );
@@ -659,27 +761,24 @@
             url: CREATE_INTENT_URL,
             method: 'POST',
             data: {
-                amount: amount,
-                charity_id: dom.charityId.val(),
+                amount:       baseAmount,
+                charity_id:   dom.charityId.val(),
                 ano_donation: dom.anoDonation.is(':checked') ? 1 : 0,
-                charitynote: dom.charityNote.val(),
-                mynote: dom.myNote.val(),
+                admin_charge: dom.adminCharge.is(':checked') ? 1 : 0,
+                charitynote:  dom.charityNote.val(),
+                mynote:       dom.myNote.val(),
             },
             success: function (res) {
-                console.log('[DONATION] CreateIntent result:', res);
                 resetDonateButton();
 
                 if (res.status === 200 && res.client_secret) {
-                    console.log('[DONATION] Got client_secret, opening modal');
                     initStripe();
-                    openStripeModal(res.client_secret, charity ? charity.name : '', amount);
+                    openStripeModal(res.client_secret, charity ? charity.name : '', res.total_amount);
                 } else {
-                    console.error('[DONATION] CreateIntent failed:', res);
                     showError(res.message || 'Failed to initialize payment.');
                 }
             },
             error: function (xhr) {
-                console.error('[DONATION] CreateIntent AJAX error:', xhr.status, xhr.responseText);
                 resetDonateButton();
                 var msg = 'Failed to initialize payment. Please try again.';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -691,7 +790,6 @@
     }
 
     function submitDonation(paymentMethod, paymentIntentId) {
-
         var formData = new FormData(dom.form[0]);
         formData.append('payment_method', paymentMethod);
 
@@ -699,15 +797,9 @@
             formData.append('payment_intent_id', paymentIntentId);
         }
 
-        if (dom.confirmDonation.is(':checked')) {
-            formData.set('confirm_donation', '1');
-        }
-        if (dom.anoDonation.is(':checked')) {
-            formData.set('ano_donation', '1');
-        } else {
-            formData.set('ano_donation', '0');
-        }
-
+        formData.set('confirm_donation', dom.confirmDonation.is(':checked') ? '1' : '0');
+        formData.set('ano_donation', dom.anoDonation.is(':checked') ? '1' : '0');
+        formData.set('admin_charge', dom.adminCharge.is(':checked') ? '1' : '0');
 
         $.ajax({
             url: STORE_DONATION_URL,
@@ -715,9 +807,8 @@
             data: formData,
             processData: false,
             contentType: false,
-            dataType: 'json',          // ← FORCE JSON parsing
+            dataType: 'json',
             success: function (res) {
-                console.log('[DONATION] Store response:', res);
                 setLoading(false);
 
                 if (res.status === 300) {
@@ -725,37 +816,26 @@
                     dom.form[0].reset();
                     dom.charityId.val('').trigger('change');
                     dom.balanceBadge.removeClass('show use-stripe');
+                    dom.amountBreakdown.hide();
                     setTimeout(function () { window.location.reload(); }, 2500);
-
                 } else if (res.status === 303) {
                     showError(res.message);
-
                 } else {
-                    console.warn('[DONATION] Unexpected status:', res.status, res);
                     showError('Unexpected response from server. Please try again.');
                 }
             },
-            error: function (xhr, textStatus, errorThrown) {
-                console.error('[DONATION] Store AJAX error:');
-                console.error('  Status:', xhr.status);
-                console.error('  TextStatus:', textStatus);
-                console.error('  ErrorThrown:', errorThrown);
-                console.error('  Response:', xhr.responseText ? xhr.responseText.substring(0, 500) : '(empty)');
-
+            error: function (xhr) {
                 setLoading(false);
 
                 var msg = 'Something went wrong. Please try again.';
                 if (xhr.status === 419) {
                     msg = 'Session expired. Please refresh the page and try again.';
-                } else if (xhr.status === 422) {
-                    // Validation errors
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        var errs = [];
-                        $.each(xhr.responseJSON.errors, function (key, val) {
-                            errs.push(val[0]);
-                        });
-                        msg = errs.join('<br>');
-                    }
+                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errs = [];
+                    $.each(xhr.responseJSON.errors, function (key, val) {
+                        errs.push(val[0]);
+                    });
+                    msg = errs.join('<br>');
                 } else if (xhr.responseJSON && xhr.responseJSON.message) {
                     msg = xhr.responseJSON.message;
                 }
@@ -763,7 +843,6 @@
             }
         });
     }
-
 
     /* ─── Event Bindings ──────────────────────────────────────── */
 
@@ -781,7 +860,15 @@
             if (e.key === 'Escape' && dom.modal.hasClass('active')) closeStripeModal();
         });
 
-        dom.amount.on('input', debounce(updateBalanceBadge, 500));
+        dom.amount.on('input', debounce(function () {
+            updateBalanceBadge();
+            updateAmountBreakdown();
+        }, 400));
+
+        dom.adminCharge.on('change', function () {
+            updateBalanceBadge();
+            updateAmountBreakdown();
+        });
     }
 
     function debounce(fn, delay) {
@@ -792,11 +879,9 @@
         };
     }
 
-
     /* ─── Initialize ──────────────────────────────────────────── */
 
     function init() {
-
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
@@ -820,18 +905,20 @@
             });
         }
 
-        if (IS_LOGGED_IN) updateBalanceBadge();
-
+        if (IS_LOGGED_IN) {
+            updateBalanceBadge();
+        }
+        updateAmountBreakdown();
         bindEvents();
 
-        // --- AUTO-FILL FROM URL (EMAIL / QR CODE LINK) ---
         @if($charity_id && $charityName)
-        var dropdownValue = "{{ $charity_id }}|{{ $charityName }}";
-        dom.charityId.val(dropdownValue).trigger('change');
+        dom.charityId.val("{{ $charity_id }}|{{ $charityName }}").trigger('change');
         @endif
 
         console.log('[DONATION] Initialization complete');
     }
+
+    
 
     $(init);
 

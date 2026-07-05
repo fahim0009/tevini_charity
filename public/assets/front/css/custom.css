@@ -195,29 +195,29 @@
         align-items: center;
     }
 
-    /* --- Checkbox Custom --- */
-    .donation-check {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        cursor: pointer;
-    }
+/* --- Checkbox Custom --- */
+.donation-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
 
-    .donation-check input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        min-width: 20px;
-        margin-top: 2px;
-        accent-color: #18988B;
-        cursor: pointer;
-    }
+.donation-check input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    accent-color: #18988B;
+    cursor: pointer;
+    margin-top: 0;
+}
 
-    .donation-check span {
-        font-family: "Roboto-Regular";
-        font-size: 14px;
-        color: #4E4B44;
-        line-height: 1.5;
-    }
+.donation-check span {
+    font-family: "Roboto-Regular";
+    font-size: 14px;
+    color: #4E4B44;
+    line-height: 1.5;
+}
 
     /* --- Textarea --- */
     .donation-card textarea {
@@ -251,29 +251,29 @@
         padding-left: 30px;
     }
 
-    /* --- Confirm Checkbox --- */
-    .confirm-check {
-        background: rgba(24, 152, 139, 0.06);
-        border-radius: 10px;
-        padding: 16px;
-        border: 1px solid rgba(24, 152, 139, 0.15);
-    }
+/* --- Confirm Checkbox --- */
+.confirm-check {
+    background: rgba(24, 152, 139, 0.06);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid rgba(24, 152, 139, 0.15);
+}
 
-    .confirm-check input[type="checkbox"] {
-        width: 22px;
-        height: 22px;
-        min-width: 22px;
-        accent-color: #18988B;
-        cursor: pointer;
-    }
+.confirm-check input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    accent-color: #18988B;
+    cursor: pointer;
+    margin-top: 0;
+}
 
-    .confirm-check .confirm-text {
-        font-family: "Roboto-Regular";
-        font-size: 13px;
-        color: #4E4B44;
-        line-height: 1.6;
-    }
-
+.confirm-check .confirm-text {
+    font-family: "Roboto-Regular";
+    font-size: 13px;
+    color: #003057;
+    line-height: 1.6;
+}
     /* --- Submit Button --- */
     .btn-donate {
         display: inline-block;

@@ -3003,10 +3003,12 @@ public function watingvoucherCancel(Request $request)
             Usertransaction::where('id', $voucher->tran_id)->update([
                 'status'  => 1,
                 'pending' => 1,
+                'created_at' => now(),
             ]);
 
             Provoucher::where('id', $voucher->id)->update([
                 'waiting'  => "No",
+                'created_at' => now(),
             ]);
 
             // Update voucher status

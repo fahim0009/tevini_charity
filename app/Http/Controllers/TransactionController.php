@@ -1172,6 +1172,7 @@ public function exportSummaryCsv2(Request $request)
                     'description' => $finalDescription ?: 'User Transfer', // Fallback if empty
                     'debit' => $ut->amount,
                     'credit' => 0,
+                    'ut_status' => $ut->status,
                     'type' => 'User'
                 ]);
             }
@@ -1184,6 +1185,7 @@ public function exportSummaryCsv2(Request $request)
                     'description' => 'Desc: ' . $et->note,
                     'debit' => 0,
                     'credit' => $et->amount,
+                    'ut_status' => $et->status,
                     'type' => 'External'
                 ]);
             }

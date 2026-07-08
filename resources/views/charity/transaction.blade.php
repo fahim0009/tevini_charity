@@ -374,7 +374,7 @@
                                                             </a>
                                                         @endif
                                                     </td>
-                                                    <td><code>{{ $entry['t_id'] }}</code></td>
+                                                    <td><code>{{ $entry['t_id'] }}</code> ({{ $entry['ut_status'] }})</td>
                                                     <td>{{ $entry['description'] }}</td>
                                                     <td class="text-danger text-end">
                                                         {{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}

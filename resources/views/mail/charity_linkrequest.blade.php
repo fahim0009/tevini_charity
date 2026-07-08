@@ -248,7 +248,7 @@
                 <strong>Tevini Ltd</strong><br>
                 5A Holmdale Terrace<br>
                 London, N15 6PP<br>
-                📞 07490956227<br>
+                📞 02038161694<br>
                 ✉️ info@tevini.co.uk<br>
                 🌐 www.tevini.co.uk
             </div>

@@ -6,13 +6,12 @@
 
 <br>
 Kind Regards, <br>
-P. Schlesinger <br>
 <br><br>
 Tevini Ltd<br>
 5A Holmdale Terrace<br>
 London<br>
 N15 6PP<br>
-M. 07490956227<br>
+M. 02038161694<br>
 E. info@tevini.co.uk<br>
 W. www.tevini.co.uk<br>
 

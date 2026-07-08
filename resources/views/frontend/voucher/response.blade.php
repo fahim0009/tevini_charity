@@ -55,13 +55,13 @@
         <div class="row">
             <div class="col-lg-3 d-flex flex-column align-items-center">
                 <div class="paratitle text-center">Phone</div>
-                <p class="theme-para text-center">07490 956 227</p>
-                <a href="tel:07490956227" class="btn-theme bg-primary btn-line">Call</a>
+                <p class="theme-para text-center">020 3816 1694</p>
+                <a href="tel:02038161694" class="btn-theme bg-primary btn-line">Call</a>
             </div>
             <div class="col-lg-3 d-flex flex-column align-items-center">
                 <div class="paratitle text-center">Whatsapp</div>
-                <p class="theme-para text-center">07490 956 227</p>
-                <a href="https://wa.me/447490956227" target="_blank" class="btn-theme bg-primary btn-line">Message</a>
+                <p class="theme-para text-center">020 3816 1694</p>
+                <a href="https://wa.me/02038161694" target="_blank" class="btn-theme bg-primary btn-line">Message</a>
             </div>
             <div class="col-lg-3 d-flex flex-column align-items-center">
                 <div class="paratitle text-center">Email</div>

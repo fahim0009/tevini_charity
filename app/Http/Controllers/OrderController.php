@@ -1696,21 +1696,44 @@ class OrderController extends Controller
                             value="'.$row->id.'" 
                             charity_id="'.$row->charity_id.'">';
                 })
-                ->rawColumns(['checkbox']) 
+                ->rawColumns(['checkbox'])
                 ->addColumn('charity', fn($row) => $row->charity->name ?? '')
-                ->addColumn('donor', fn($row) => $row->user->name.' '.$row->user->surname ?? '')
+                ->addColumn('donor', fn($row) => trim($row->user->name.' '.$row->user->surname) ?? '')
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d/m/Y'))
                 ->editColumn('status', function($row){
-                    // Show "Pending" first
                     $html = "Pending";
-
-                    // If expired, add a line break and the warning badge
                     if ($row->expired == 'Yes') {
                         $html .= '<br><span class="badge bg-warning text-dark">Expired</span>';
                     }
-                    
                     return $html;
                 })
+                // 🔥 Tell DataTables how to search on relation-based columns
+                ->filterColumn('charity', function($query, $keyword) {
+                    $query->whereHas('charity', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('donor', function($query, $keyword) {
+                    $query->whereHas('user', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('surname', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(name,' ',surname) like ?", ["%{$keyword}%"]);
+                    });
+                })
+                // Optional: allows sorting by these columns too, otherwise clicking the header will error
+                ->orderColumn('charity', function($query, $order) {
+                    $query->orderBy(
+                        Charity::select('name')->whereColumn('charities.id', 'provouchers.charity_id'),
+                        $order
+                    );
+                })
+                ->orderColumn('donor', function($query, $order) {
+                    $query->orderBy(
+                        User::select('name')->whereColumn('users.id', 'provouchers.user_id'),
+                        $order
+                    );
+                })
+                ->rawColumns(['checkbox', 'status'])
                 ->make(true);
         }
 

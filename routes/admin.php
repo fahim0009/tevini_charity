@@ -271,6 +271,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::post('/make-donation', [DonorController::class, 'userDonationAdminStore'])
         ->name('donor.dnstore');
     Route::post('/make-stnddonation', [DonorController::class, 'userstandingDonationAdminStore']);
+    Route::post('/update-stnddonation', [DonorController::class, 'userstandingDonationAdminUpdate']);
     Route::get('/tdf-transfer/{id}', [DonorController::class, 'tdfTransferAdmin'])
         ->name('donor.tdftransfer');
     Route::post('/tdf-transfer', [DonorController::class, 'tdfTransferStore'])

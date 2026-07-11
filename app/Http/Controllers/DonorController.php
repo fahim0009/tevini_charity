@@ -1483,6 +1483,45 @@ class DonorController extends Controller
 
     }
 
+    public function userstandingDonationAdminUpdate(Request $request)
+    {
+        // Basic Validation
+        if(empty($request->amount)){
+            $message = "<div class='alert alert-danger'><b>Please fill amount field.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+
+        if(($request->payments == "1") && (empty($request->number_payments))){
+            $message = "<div class='alert alert-danger'><b>Please fill number of payments field.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+
+        // Find the donation
+        $data = StandingDonation::find($request->donation_id);
+
+        if(!$data) {
+            $message = "<div class='alert alert-danger'><b>Donation not found.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+
+        // Update fields
+        $data->amount = $request->amount;
+        $data->starting = $request->starting;
+        $data->payments = $request->payments;
+        $data->number_payments = ($request->payments == "2") ? null : $request->number_payments; // Null if continuous
+        $data->interval = $request->interval;
+        $data->charitynote = $request->charitynote;
+        $data->mynote = $request->mynote;
+
+        if($data->save()){
+            $message = "<div class='alert alert-success'><b>Standing order updated successfully.</b></div>";
+            return response()->json(['status'=> 300, 'message'=>$message]);
+        } else {
+            $message = "<div class='alert alert-danger'><b>Failed to update standing order.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+    }
+
 
     public function addAccount(Request $request)
     {
@@ -1560,22 +1599,19 @@ class DonorController extends Controller
 
     public function userStandingOrderinAdmin($id)
     {
-        $donation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['user_id','=', $id],
-            ['status','!=','3']
-        ])->get();
 
-        $pdonation = Donation::where([
-            ['standing_order','=', 'true'],
-            ['user_id','=', $id],
-            ['status','=','3']
-        ])->get();
+        $pdonation = StandingDonation::with('standingdonationDetail')->where([
+            ['user_id','=', $id]
+        ])->where('status', 0)->get();
+
+        $donation = StandingDonation::with('standingdonationDetail')->where([
+            ['user_id','=', $id]
+        ])->where('status', 1)->get();
 
         return view('donor.standingorder')
-        ->with('donor_id',$id)
-        ->with('donation',$donation)
-        ->with('pdonation',$pdonation);
+                ->with('donor_id',$id)
+                ->with('donation',$donation)
+                ->with('pdonation',$pdonation);
     }
 
     public function userDonationrecod()

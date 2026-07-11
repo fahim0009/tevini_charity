@@ -765,6 +765,46 @@ class DonationController extends Controller
 
     }
 
+    public function userStandingDonationUpdate(Request $request)
+    {
+        // Validation
+        if(empty($request->amount)){
+            $message = "<div class='alert alert-danger'><b>Please fill amount field.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+
+        if(($request->payments == "1") && (empty($request->number_payments))){
+            $message = "<div class='alert alert-danger'><b>Please fill number of payments field.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+
+        // Find the donation and ensure it belongs to the logged-in user
+        $data = StandingDonation::where('id', $request->donation_id)
+            ->where('user_id', auth()->user()->id)
+            ->first();
+
+        if(!$data) {
+            $message = "<div class='alert alert-danger'><b>Donation not found or access denied.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+
+        // Update fields
+        $data->amount = $request->amount;
+        $data->starting = $request->starting;
+        $data->payments = $request->payments;
+        $data->number_payments = ($request->payments == "2") ? null : $request->number_payments;
+        $data->interval = $request->interval;
+        $data->charitynote = $request->charitynote;
+        $data->mynote = $request->mynote;
+
+        if($data->save()){
+            $message = "<div class='alert alert-success'><b>Standing order updated successfully.</b></div>";
+            return response()->json(['status'=> 300, 'message'=>$message]);
+        } else {
+            $message = "<div class='alert alert-danger'><b>Failed to update standing order.</b></div>";
+            return response()->json(['status'=> 303, 'message'=>$message]);
+        }
+    }
     
 
 

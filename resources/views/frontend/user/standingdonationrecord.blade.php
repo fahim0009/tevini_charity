@@ -127,7 +127,7 @@ use Illuminate\Support\Carbon;
                                                         </td>
                                                         <!-- NEW EDIT BUTTON -->
                                                         <td>
-                                                            <button type="button" class="btn btn-sm btn-primary edit-standing-btn"
+                                                            <button type="button" class="btn-theme bg-primary edit-standing-btn" 
                                                                     data-id="{{ $data->id }}"
                                                                     data-amount="{{ $data->amount }}"
                                                                     data-starting="{{ $data->starting }}"
@@ -229,8 +229,8 @@ use Illuminate\Support\Carbon;
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" id="saveStandingChanges" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn-theme bg-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="saveStandingChanges" class="btn-theme bg-primary">Save Changes</button>
             </div>
         </div>
     </div>

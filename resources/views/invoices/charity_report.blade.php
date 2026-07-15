@@ -64,7 +64,13 @@
                     @foreach($details as $row)
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($row->created_at)->format('d/m/Y') }}</td>
-                        <td>{{ $row->user ? $row->user->name . ' ' . $row->user->surname : 'Anonymous' }}</td>
+                        <td>
+                            @if($row->donation && $row->donation->ano_donation)
+                                Anonymous
+                            @else
+                                {{ $row->user ? $row->user->name . ' ' . $row->user->surname : 'Unknown' }}
+                            @endif
+                        </td>
                         <td>
                             @if($row->donation_id) Online Donation
                             @elseif($row->standing_donationdetails_id) Standing Order

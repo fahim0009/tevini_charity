@@ -101,7 +101,7 @@ class AutoCharityPayment extends Command
                         // PDF Generation
                         $details = Usertransaction::where('charity_id', $charity->id)->where('status', 1)
                             ->whereBetween('created_at', [$startTime, $endTime])
-                            ->with('user')->get();
+                            ->with(['user', 'donation'])->get();
 
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
                             'charity' => $charity,

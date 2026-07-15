@@ -80,86 +80,8 @@ class HomepageController extends Controller
     }
 
 
+
     public function apidonationCheck2(Request $request)
-    {
-
-        if(empty($request->password)){
-            $message ='<span id="msg" style="color: rgb(255, 0, 0);">Enter password</span>';
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        $campaign_dtls =Campaign::where('id',$request->tevini_campaignid)->first();
-        $return_url = Gateway::where('id', $request->identifier)->first()->return_url;
-
-        if(auth()->attempt(array('accountno' => $request->acc, 'password' => $request->password)))
-        {
-
-            $u_bal = User::where('accountno',$request->acc)->first()->balance;
-            $donor_id = User::where('accountno',$request->acc)->first()->id;
-
-            $overdrawn = (User::where('id',$donor_id)->first()->overdrawn_amount);
-            $limitChk = $u_bal + $overdrawn;
-
-            if($limitChk < $request->amt ){
-                $message ='<span id="msg" style="color: rgb(255, 0, 0);">Overdrawn limit exceed.</span>';
-                return response()->json(['status'=> 303,'message'=>$message]);
-                exit();
-            }
-
-
-
-            $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $donor_id;
-            $utransaction->charity_id = $campaign_dtls->charity_id;
-            $utransaction->user_id = $donor_id;
-            $utransaction->t_type = "Out";
-            $utransaction->amount =  $request->amt;
-            $utransaction->note =  $request->comment;
-            $utransaction->title ="Online Campaign (".$campaign_dtls->campaign_title.")";
-            $utransaction->gateway_id =  $request->identifier;
-            $utransaction->campaign_id =  $campaign_dtls->id;
-            $utransaction->status =  1;
-            $utransaction->save();
-
-            $amount = (float)($request->amt ?? 0); 
-            $user = User::find($donor_id);
-            if ($amount > 0) {
-                $user->decrement('balance', $amount);
-            }
-            $user->save();
-
-
-            $ch = Charity::find($campaign_dtls->charity_id);
-            $ch->increment('balance',$request->amt);
-            $ch->save();
-
-            $success_hash = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$utransaction->id."&rtncode=0";
-
-            $tevini_hash = hash_hmac("sha256", $success_hash, $campaign_dtls->hash_code);
-
-            $success_url = $return_url.$success_hash."&hash=".$tevini_hash;
-
-            $message ='<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>';
-            return response()->json(['status'=> 300,'url'=> $success_url,'message'=>$message]);
-
-
-        }else{
-
-            $user_tran = time();
-
-            $unsuccess_hash = "?campaign=".$request->tevini_campaignid."&transid=".$request->transid."&cid=".$request->acc."&donation=".$request->amt."&intid=".$user_tran."&rtncode=1";
-
-            $tevini_hash = hash_hmac("sha256", $unsuccess_hash, $campaign_dtls->hash_code);
-
-            $unsuccess_url = $return_url.$unsuccess_hash."&hash=".$tevini_hash;
-
-            $message ='<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>';
-            return response()->json(['status'=> 301,'url'=> $unsuccess_url,'message'=>$message]);
-        }
-    }
-
-    public function apidonationCheck(Request $request)
     {
         // 1. Initial Validation
         if (empty($request->password)) {
@@ -186,13 +108,11 @@ class HomepageController extends Controller
                 /** @var \App\Models\User $user */
                 $user = auth()->user(); 
                 
-                // Check balance + overdrawn limit
-                $limitChk = (float)$user->balance + (float)$user->overdrawn_amount;
-
-                if ($limitChk < $amt) {
+                $amt = (float) $amt; 
+                if ($user->getAvailableLimit() < $amt) {
                     return response()->json([
                         'status' => 303,
-                        'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Overdrawn limit exceed.</span>'
+                        'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Insufficient funds. Overdrawn limit exceeded.</span>'
                     ]);
                 }
 
@@ -262,7 +182,126 @@ class HomepageController extends Controller
             ]);
         }
     }
-    
+
+
+    public function apidonationCheck(Request $request)
+    {
+        // 1. Initial Validation
+        if (empty($request->password)) {
+            return response()->json([
+                'status' => 303,
+                'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Enter password</span>'
+            ]);
+        }
+
+        // 2. Fetch required data
+        try {
+            $campaign_dtls = Campaign::findOrFail($request->tevini_campaignid);
+            $gateway = Gateway::findOrFail($request->identifier);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error("Campaign/Gateway Not Found", ['request' => $request->all()]);
+            return response()->json(['status' => 303, 'message' => 'Invalid campaign or gateway.']);
+        }
+        
+        $return_url = $gateway->return_url;
+        
+        // Clean and cast the amount
+        $amt = (float) str_replace(',', '', $request->amt ?? 0);
+
+        // 3. Attempt Authentication
+        if (auth()->attempt(['accountno' => $request->acc, 'password' => $request->password])) {
+            
+            /** @var \App\Models\User $user */
+            $user = auth()->user(); 
+            Log::info("Donation Auth Success", ['user_id' => $user->id, 'amount' => $amt]);
+
+            // 4. Check Balance BEFORE opening a transaction (Saves DB resources)
+            if ($user->getAvailableLimit() < $amt) {
+                Log::warning("Donation Failed: Insufficient Funds", [
+                    'user_id' => $user->id, 
+                    'requested_amount' => $amt, 
+                    'available_limit' => $user->getAvailableLimit()
+                ]);
+                return response()->json([
+                    'status' => 303,
+                    'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Insufficient funds. Overdrawn limit exceeded.</span>'
+                ]);
+            }
+
+            // 5. Wrap DB operations in a transaction
+            return DB::transaction(function () use ($request, $campaign_dtls, $amt, $return_url, $user) {
+                
+                // Create User Transaction Record
+                $utransaction = new Usertransaction();
+                $utransaction->t_id = time() . "-" . $user->id;
+                $utransaction->charity_id = $campaign_dtls->charity_id;
+                $utransaction->user_id = $user->id;
+                $utransaction->t_type = "Out";
+                $utransaction->amount = $amt;
+                $utransaction->note = $request->comment;
+                $utransaction->title = "Online Campaign (" . $campaign_dtls->campaign_title . ")";
+                $utransaction->gateway_id = $request->identifier;
+                $utransaction->campaign_id = $campaign_dtls->id;
+                $utransaction->status = 1;
+                $utransaction->save();
+
+                // ⚠️ REMOVED: $user->decrement('balance', $amt); 
+                // Because getLiveBalance() calculates from transactions dynamically, 
+                // saving this "Out" transaction is enough!
+
+                // Update Charity Balance
+                $charity = Charity::findOrFail($campaign_dtls->charity_id);
+                $charity->increment('balance', $amt);
+
+                // Generate Success Hash and URL
+                $success_params = [
+                    'campaign' => $request->tevini_campaignid,
+                    'transid'  => $request->transid,
+                    'cid'      => $request->acc,
+                    'donation' => $amt,
+                    'intid'    => $utransaction->id,
+                    'rtncode'  => 0
+                ];
+                
+                $success_query = "?" . http_build_query($success_params);
+                $tevini_hash = hash_hmac("sha256", $success_query, $campaign_dtls->hash_code);
+                $success_url = $return_url . $success_query . "&hash=" . $tevini_hash;
+
+                Log::info("Donation Success & Committed", ['transaction_id' => $utransaction->id, 'amount' => $amt]);
+
+                return response()->json([
+                    'status' => 300,
+                    'url' => $success_url,
+                    'message' => '<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>'
+                ]);
+            });
+
+        } else {
+            // 6. Handle Authentication Failure
+            Log::warning("Donation Auth Failed", ['account' => $request->acc, 'campaign_id' => $request->tevini_campaignid]);
+            
+            $user_tran = time();
+            $unsuccess_params = [
+                'campaign' => $request->tevini_campaignid,
+                'transid'  => $request->transid,
+                'cid'      => $request->acc,
+                'donation' => $amt,
+                'intid'    => $user_tran,
+                'rtncode'  => 1
+            ];
+
+            $unsuccess_query = "?" . http_build_query($unsuccess_params);
+            $tevini_hash = hash_hmac("sha256", $unsuccess_query, $campaign_dtls->hash_code);
+            $unsuccess_url = $return_url . $unsuccess_query . "&hash=" . $tevini_hash;
+
+            return response()->json([
+                'status' => 301,
+                'url' => $unsuccess_url,
+                'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Incorrect account number or password</span>'
+            ]);
+        }
+    }
+        
     protected function generateUniqueCode()
     {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

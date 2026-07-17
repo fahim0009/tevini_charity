@@ -159,20 +159,13 @@
                                 </div>
 
 
-                                {{-- ===== CHARGES SECTION ===== --}}
+                                {{-- ===== FEE SECTION ===== --}}
                                 <div class="charges-section" style="margin-top: 20px;">
 
-                                    {{-- Admin charge checkbox --}}
-                                    <div class="form-group">
-                                        <label class="donation-check" style="cursor: pointer;">
-                                            <input type="checkbox" name="admin_charge" id="admin_charge">
-                                            <span>Add 10% admin maintenance charge</span>
-                                        </label>
-                                    </div>
-                                    {{-- Stripe fee note --}}
-                                    <div id="stripeChargeNote" style="background: #D5D4CA; border: 1px solid rgba(24, 152, 139, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 15px; color: #003057; line-height: 1.5;font-weight: 600;">
+                                    {{-- Fee note --}}
+                                    <div style="background: #D5D4CA; border: 1px solid rgba(24, 152, 139, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 15px; color: #003057; line-height: 1.5;font-weight: 600;">
                                         <i class="fas fa-info-circle" style="margin-right: 6px; color: #D5D4CA;"></i>
-                                        <strong>Note:</strong> A Stripe payment processing fee of <strong>1.5% + £0.20</strong> will be added to your total amount for card payments.
+                                        <strong>Note:</strong> A <strong>6% platform fee</strong> will be added to your donation amount.
                                     </div>
 
 
@@ -182,16 +175,10 @@
                                             <span style="color: #555;">Donation Amount</span>
                                             <span id="breakdownBase" style="font-weight: 500;">£0.00</span>
                                         </div>
-                                        <div id="breakdownAdminRow" style="display: none;">
+                                        <div id="breakdownFeeRow" style="display: none;">
                                             <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #b45309;">
-                                                <span>Admin Charge (10%)</span>
-                                                <span id="breakdownAdmin" style="font-weight: 500;">£0.00</span>
-                                            </div>
-                                        </div>
-                                        <div id="breakdownStripeRow" style="display: none;">
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #b45309;">
-                                                <span>Stripe Processing Fee <small style="opacity:.7">(card only)</small></span>
-                                                <span id="breakdownStripe" style="font-weight: 500;">£0.00</span>
+                                                <span>Platform Fee (6%)</span>
+                                                <span id="breakdownFee" style="font-weight: 500;">£0.00</span>
                                             </div>
                                         </div>
                                         <hr style="margin: 8px 0; border-color: #c8d3df;">
@@ -199,13 +186,10 @@
                                             <span>Total</span>
                                             <span id="breakdownTotal">£0.00</span>
                                         </div>
-                                        <div id="breakdownBalanceNote" style="display: none; margin-top: 6px; font-size: 12px; color: #16a34a;">
-                                            <i class="fas fa-check-circle"></i> Paying from balance — no Stripe fee
-                                        </div>
                                     </div>
 
                                 </div>
-                                {{-- ===== END CHARGES SECTION ===== --}}
+                                {{-- ===== END FEE SECTION ===== --}}
 
 
 
@@ -362,47 +346,40 @@
     var STORE_DONATION_URL   = '{{ route("front.onlinedonation.store") }}';
     var IS_LOGGED_IN         = {{ auth()->check() ? 'true' : 'false' }};
 
-    /* ─── Charge Config ───────────────────────────────────────── */
-    var ADMIN_CHARGE_PERCENT = 10;
-    var STRIPE_FEE_PERCENT   = 1.5;
-    var STRIPE_FEE_FIXED     = 0.20;
+    /* ─── Fee Config ──────────────────────────────────────────── */
+    var FEE_PERCENT = 6;
 
     /* ─── Stripe State ────────────────────────────────────────── */
     var stripe, elements, cardElement, currentClientSecret;
 
     /* ─── DOM ─────────────────────────────────────────────────── */
     var dom = {
-        form:                  $('#DonationForm'),
-        charityId:             $('#charity_id'),
-        amount:                $('#amount'),
-        adminCharge:           $('#admin_charge'),
-        anoDonation:           $('#ano_donation'),
-        confirmDonation:       $('#confirm_donation'),
-        charityNote:           $('#charitynote'),
-        myNote:                $('#mynote'),
-        userId:                $('#userid'),
-        btnDonate:             $('#donatemodal'),
-        errorBox:              $('.ermsg'),
-        pageLoader:            $('#pageLoader'),
-        balanceBadge:          $('#balanceBadge'),
-        amountBreakdown:       $('#amountBreakdown'),
-        breakdownBase:         $('#breakdownBase'),
-        breakdownAdmin:        $('#breakdownAdmin'),
-        breakdownAdminRow:     $('#breakdownAdminRow'),
-        breakdownStripe:       $('#breakdownStripe'),
-        breakdownStripeRow:    $('#breakdownStripeRow'),
-        breakdownTotal:        $('#breakdownTotal'),
-        breakdownBalanceNote:  $('#breakdownBalanceNote'),
-        stripeChargeNote:      $('#stripeChargeNote'),
-        modal:                 $('#stripeModal'),
-        closeBtn:              $('#closeStripeModal'),
-        cancelBtn:             $('#cancelStripeBtn'),
-        payBtn:                $('#payWithStripeBtn'),
-        payBtnText:            $('#payWithStripeBtn .pay-btn-text'),
-        payBtnLoading:         $('#payWithStripeBtn .pay-btn-loading'),
-        cardErrors:            $('#card-errors'),
-        stripeCharity:         $('#stripeCharityName'),
-        stripeAmount:          $('#stripeAmountDisplay'),
+        form:                $('#DonationForm'),
+        charityId:           $('#charity_id'),
+        amount:              $('#amount'),
+        anoDonation:         $('#ano_donation'),
+        confirmDonation:     $('#confirm_donation'),
+        charityNote:         $('#charitynote'),
+        myNote:              $('#mynote'),
+        userId:              $('#userid'),
+        btnDonate:           $('#donatemodal'),
+        errorBox:            $('.ermsg'),
+        pageLoader:          $('#pageLoader'),
+        balanceBadge:        $('#balanceBadge'),
+        amountBreakdown:     $('#amountBreakdown'),
+        breakdownBase:       $('#breakdownBase'),
+        breakdownFee:        $('#breakdownFee'),
+        breakdownFeeRow:     $('#breakdownFeeRow'),
+        breakdownTotal:      $('#breakdownTotal'),
+        modal:               $('#stripeModal'),
+        closeBtn:            $('#closeStripeModal'),
+        cancelBtn:           $('#cancelStripeBtn'),
+        payBtn:              $('#payWithStripeBtn'),
+        payBtnText:          $('#payWithStripeBtn .pay-btn-text'),
+        payBtnLoading:       $('#payWithStripeBtn .pay-btn-loading'),
+        cardErrors:          $('#card-errors'),
+        stripeCharity:       $('#stripeCharityName'),
+        stripeAmount:        $('#stripeAmountDisplay'),
     };
 
     /* ─── Charge Calculation Helpers ──────────────────────────── */
@@ -411,27 +388,14 @@
         return parseFloat(dom.amount.val()) || 0;
     }
 
-    function calcAdminCharge(base) {
-        if (!dom.adminCharge.is(':checked')) return 0;
-        return Math.round(base * ADMIN_CHARGE_PERCENT) / 100;
+        function calcFee(base) {
+        return Math.round(base * (FEE_PERCENT / 100) * 100) / 100;
     }
 
-    function calcStripeCharge(subtotal) {
-        return Math.round((subtotal * STRIPE_FEE_PERCENT / 100 + STRIPE_FEE_FIXED) * 100) / 100;
-    }
-
-    function getTotalForBalance() {
-        var base  = getBaseAmount();
-        var admin = calcAdminCharge(base);
-        return Math.round((base + admin) * 100) / 100;
-    }
-
-    function getTotalForStripe() {
-        var base     = getBaseAmount();
-        var admin    = calcAdminCharge(base);
-        var subtotal = base + admin;
-        var stripe   = calcStripeCharge(subtotal);
-        return Math.round((subtotal + stripe) * 100) / 100;
+    function getTotal() {
+        var base = getBaseAmount();
+        var fee  = calcFee(base);
+        return Math.round((base + fee) * 100) / 100;
     }
 
     /* ─── Update Amount Breakdown Display ─────────────────────── */
@@ -444,53 +408,19 @@
             return;
         }
 
-        var admin    = calcAdminCharge(base);
-        var subtotal = base + admin;
-        var stripe   = calcStripeCharge(subtotal);
-        var totalStripe  = Math.round((subtotal + stripe) * 100) / 100;
-        var totalBalance = Math.round(subtotal * 100) / 100;
+        var fee   = calcFee(base);
+        var total = Math.round((base + fee) * 100) / 100;
 
         dom.breakdownBase.text(formatGBP(base));
 
-        if (admin > 0) {
-            dom.breakdownAdminRow.show();
-            dom.breakdownAdmin.text('+' + formatGBP(admin));
+        if (fee > 0) {
+            dom.breakdownFeeRow.show();
+            dom.breakdownFee.text('+' + formatGBP(fee));
         } else {
-            dom.breakdownAdminRow.hide();
+            dom.breakdownFeeRow.hide();
         }
 
-        dom.breakdownStripeRow.show();
-        dom.breakdownStripe.text('+' + formatGBP(stripe));
-
-        if (IS_LOGGED_IN) {
-            var totalForBalance = totalBalance;
-            $.ajax({
-                url: CHECK_BALANCE_URL,
-                method: 'POST',
-                data: { amount: totalForBalance },
-                success: function (res) {
-                    if (res.has_balance) {
-                        dom.breakdownStripeRow.hide();
-                        dom.breakdownTotal.text(formatGBP(totalForBalance));
-                        dom.breakdownBalanceNote.show();
-                    } else {
-                        dom.breakdownStripeRow.show();
-                        dom.breakdownTotal.text(formatGBP(totalStripe));
-                        dom.breakdownBalanceNote.hide();
-                    }
-                },
-                error: function () {
-                    dom.breakdownStripeRow.show();
-                    dom.breakdownTotal.text(formatGBP(totalStripe));
-                    dom.breakdownBalanceNote.hide();
-                }
-            });
-        } else {
-            dom.breakdownStripeRow.show();
-            dom.breakdownTotal.text(formatGBP(totalStripe));
-            dom.breakdownBalanceNote.hide();
-        }
-
+        dom.breakdownTotal.text(formatGBP(total));
         dom.amountBreakdown.slideDown(200);
     }
 
@@ -568,13 +498,13 @@
     function updateBalanceBadge() {
         if (!IS_LOGGED_IN) { dom.balanceBadge.hide(); return; }
 
-        var totalForBalance = getTotalForBalance();
-        if (totalForBalance <= 0) { dom.balanceBadge.hide(); return; }
+        var total = getTotal();
+        if (total <= 0) { dom.balanceBadge.hide(); return; }
 
         $.ajax({
             url: CHECK_BALANCE_URL,
             method: 'POST',
-            data: { amount: totalForBalance },
+            data: { amount: total },
             success: function (res) {
                 if (res.has_balance) {
                     dom.balanceBadge.removeClass('use-stripe')
@@ -726,12 +656,12 @@
                 '<span class="spinner-border spinner-border-sm" role="status"></span> Checking...'
             );
 
-            var totalForBalance = getTotalForBalance();
+            var total = getTotal();
 
             $.ajax({
                 url: CHECK_BALANCE_URL,
                 method: 'POST',
-                data: { amount: totalForBalance },
+                data: { amount: total },
                 success: function (res) {
                     resetDonateButton();
 
@@ -764,7 +694,6 @@
                 amount:       baseAmount,
                 charity_id:   dom.charityId.val(),
                 ano_donation: dom.anoDonation.is(':checked') ? 1 : 0,
-                admin_charge: dom.adminCharge.is(':checked') ? 1 : 0,
                 charitynote:  dom.charityNote.val(),
                 mynote:       dom.myNote.val(),
             },
@@ -799,7 +728,6 @@
 
         formData.set('confirm_donation', dom.confirmDonation.is(':checked') ? '1' : '0');
         formData.set('ano_donation', dom.anoDonation.is(':checked') ? '1' : '0');
-        formData.set('admin_charge', dom.adminCharge.is(':checked') ? '1' : '0');
 
         $.ajax({
             url: STORE_DONATION_URL,
@@ -864,11 +792,6 @@
             updateBalanceBadge();
             updateAmountBreakdown();
         }, 400));
-
-        dom.adminCharge.on('change', function () {
-            updateBalanceBadge();
-            updateAmountBreakdown();
-        });
     }
 
     function debounce(fn, delay) {

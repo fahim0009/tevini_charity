@@ -17,21 +17,14 @@ class FrontendController extends Controller
 {
 
     /* ─── Charge Constants ─────────────────────────────────── */
-    const ADMIN_CHARGE_PERCENT = 10;    // 10%
-    const STRIPE_FEE_PERCENT   = 1.5;   // 1.5%
-    const STRIPE_FEE_FIXED     = 0.20;  // 20p
+    const FEE_PERCENT = 6;    // 6%
 
 
     /* ─── Charge Helpers ───────────────────────────────────── */
 
-    private function calcAdminCharge($baseAmount)
+    private function calcFee($baseAmount)
     {
-        return round($baseAmount * self::ADMIN_CHARGE_PERCENT / 100, 2);
-    }
-
-    private function calcStripeCharge($subtotal)
-    {
-        return round(($subtotal * self::STRIPE_FEE_PERCENT / 100) + self::STRIPE_FEE_FIXED, 2);
+        return round($baseAmount * self::FEE_PERCENT / 100, 2);
     }
 
 
@@ -87,9 +80,8 @@ class FrontendController extends Controller
     public function onlineDonationCreateIntent(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'amount'       => 'required|numeric|min:0.50|max:999999',
-            'charity_id'   => 'required|string',
-            'admin_charge' => 'nullable|in:0,1',
+            'amount'     => 'required|numeric|min:0.50|max:999999',
+            'charity_id' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -99,17 +91,14 @@ class FrontendController extends Controller
             ]);
         }
 
-        $parts      = explode('|', $request->charity_id);
-        $charityId  = $parts[0];
+        $parts       = explode('|', $request->charity_id);
+        $charityId   = $parts[0];
         $charityName = $parts[1] ?? 'Charity';
 
-        // ── Calculate charges ──
-        $baseAmount       = floatval($request->amount);
-        $includeAdmin     = ($request->admin_charge == '1');
-        $adminChargeAmt   = $includeAdmin ? $this->calcAdminCharge($baseAmount) : 0;
-        $subtotal         = $baseAmount + $adminChargeAmt;
-        $stripeChargeAmt  = $this->calcStripeCharge($subtotal);
-        $totalAmount      = round($subtotal + $stripeChargeAmt, 2);
+        // ── Calculate fee ──
+        $baseAmount  = floatval($request->amount);
+        $feeAmt      = $this->calcFee($baseAmount);
+        $totalAmount = round($baseAmount + $feeAmt, 2);
 
         try {
             \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
@@ -120,19 +109,18 @@ class FrontendController extends Controller
                 'amount'   => $amountInPence,
                 'currency' => 'gbp',
                 'metadata' => [
-                    'type'           => 'online_donation',
-                    'charity_id'     => $charityId,
-                    'charity_name'   => $charityName,
-                    'anonymous'      => $request->ano_donation ? 'yes' : 'no',
-                    'base_amount'    => $baseAmount,
-                    'admin_charge'   => $adminChargeAmt,
-                    'stripe_charge'  => $stripeChargeAmt,
+                    'type'         => 'online_donation',
+                    'charity_id'   => $charityId,
+                    'charity_name' => $charityName,
+                    'anonymous'    => $request->ano_donation ? 'yes' : 'no',
+                    'base_amount'  => $baseAmount,
+                    'fee'          => $feeAmt,
                 ],
                 'description' => 'Donation to ' . $charityName,
             ]);
 
             return response()->json([
-                'status'       => 200,
+                'status'        => 200,
                 'client_secret' => $paymentIntent->client_secret,
                 'total_amount'  => $totalAmount,
             ]);
@@ -173,15 +161,13 @@ class FrontendController extends Controller
                 return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Please accept the donation condition.</div>']);
             }
 
-            // ── Calculate charges (server-side, never trust client) ──
-            $includeAdmin    = ($request->admin_charge == '1');
-            $adminChargeAmt  = $includeAdmin ? $this->calcAdminCharge($baseAmount) : 0;
-            $stripeChargeAmt = 0;
-            $totalChargeable = $baseAmount + $adminChargeAmt;
+            // ── Calculate fee (server-side, never trust client) ──
+            $feeAmt         = $this->calcFee($baseAmount);
+            $totalChargeable = round($baseAmount + $feeAmt, 2);
 
             $paymentMethod = $request->payment_method;
 
-            \Log::info('Donation store — base: ' . $baseAmount . ', admin: ' . $adminChargeAmt . ', method: ' . $paymentMethod);
+            \Log::info('Donation store — base: ' . $baseAmount . ', fee: ' . $feeAmt . ', total: ' . $totalChargeable . ', method: ' . $paymentMethod);
 
 
             // ══════════════════════════════════════════════════════════
@@ -217,14 +203,14 @@ class FrontendController extends Controller
                 \Log::info('User balance: ' . $userTransactionBalance->balance . ' + overdraft: ' . $overdraftLimit . ' = ' . $donorBalanceWithLimit . ' | needed: ' . $totalChargeable);
 
                 if ($donorBalanceWithLimit < $totalChargeable) {
-                    return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">You don\'t have sufficient balance for this donation (including charges).</div>']);
+                    return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">You don\'t have sufficient balance for this donation (including fees).</div>']);
                 }
 
                 $donation = new Donation();
                 $donation->user_id          = $userid;
                 $donation->charity_id       = $charityId;
                 $donation->amount           = $baseAmount;
-                $donation->admin_charge     = $adminChargeAmt;
+                $donation->admin_charge     = $feeAmt;
                 $donation->stripe_charge    = 0;
                 $donation->currency         = 'GBP';
                 $donation->ano_donation     = $request->ano_donation ? 'true' : 'false';
@@ -246,17 +232,17 @@ class FrontendController extends Controller
                     $utransaction->charity_id = $charityId;
                     $utransaction->donation_id = $donation->id;
                     $utransaction->t_type    = 'Out';
-                    $utransaction->amount    = $totalChargeable;  // base + admin
+                    $utransaction->amount    = $totalChargeable;
                     $utransaction->title     = 'Online Donation';
                     $utransaction->status    = 1;
                     $utransaction->save();
 
                     $user = User::find($userid);
-                    $user->decrement('balance', $totalChargeable);  // base + admin
+                    $user->decrement('balance', $totalChargeable);
 
                     $charity = Charity::find($charityId);
                     if ($charity) {
-                        $charity->increment('balance', $baseAmount);  // charity gets base only
+                        $charity->increment('balance', $baseAmount);
                     }
 
                     DB::commit();
@@ -285,10 +271,6 @@ class FrontendController extends Controller
                     return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Payment information is missing.</div>']);
                 }
 
-                // ── Calculate stripe charge ──
-                $stripeChargeAmt = $this->calcStripeCharge($totalChargeable);
-                $totalChargeable = round($totalChargeable + $stripeChargeAmt, 2);
-
                 // ── Verify with Stripe ──
                 try {
                     \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
@@ -301,8 +283,8 @@ class FrontendController extends Controller
                     }
 
                     // Verify amount matches (allow 1p rounding difference)
-                    $expectedPence  = (int) round($totalChargeable * 100);
-                    $actualPence    = (int) $paymentIntent->amount;
+                    $expectedPence = (int) round($totalChargeable * 100);
+                    $actualPence   = (int) $paymentIntent->amount;
                     if (abs($expectedPence - $actualPence) > 1) {
                         \Log::warning('Amount mismatch! Expected: ' . $expectedPence . 'p, Got: ' . $actualPence . 'p');
                         return response()->json(['status' => 303, 'message' => '<div class="alert alert-danger">Payment amount mismatch. Please try again.</div>']);
@@ -317,8 +299,8 @@ class FrontendController extends Controller
                 $donation = new Donation();
                 $donation->charity_id       = $charityId;
                 $donation->amount           = $baseAmount;
-                $donation->admin_charge     = $adminChargeAmt;
-                $donation->stripe_charge    = $stripeChargeAmt;
+                $donation->admin_charge     = $feeAmt;
+                $donation->stripe_charge    = 0;
                 $donation->currency         = 'GBP';
                 $donation->ano_donation     = $request->ano_donation ? 'true' : 'false';
                 $donation->standing_order   = 'false';
@@ -349,7 +331,7 @@ class FrontendController extends Controller
                 try {
 
                     $donation->save();
-                    \Log::info('Stripe donation saved — ID: ' . $donation->id . ' | base: ' . $baseAmount . ' | admin: ' . $adminChargeAmt . ' | stripe: ' . $stripeChargeAmt);
+                    \Log::info('Stripe donation saved — ID: ' . $donation->id . ' | base: ' . $baseAmount . ' | fee: ' . $feeAmt);
 
                     $utransaction            = new Usertransaction();
                     $utransaction->t_id      = time() . '-' . ($donation->user_id ?? '000');
@@ -357,14 +339,14 @@ class FrontendController extends Controller
                     $utransaction->charity_id = $charityId;
                     $utransaction->donation_id = $donation->id;
                     $utransaction->t_type    = 'Out';
-                    $utransaction->amount    = $totalChargeable;  // base + admin + stripe
+                    $utransaction->amount    = $totalChargeable;
                     $utransaction->title     = 'Online Donation (Stripe)';
                     $utransaction->status    = 1;
                     $utransaction->save();
 
                     $charity = Charity::find($charityId);
                     if ($charity) {
-                        $charity->increment('balance', $baseAmount);  // charity gets base only
+                        $charity->increment('balance', $baseAmount);
                     }
 
                     DB::commit();

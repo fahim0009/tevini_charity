@@ -193,6 +193,7 @@ class DonorController extends Controller
         $user->town = $request->town;
         $user->accountno = $request->accountno;
         $user->ppv_account = $request->ppv_account;
+        $user->standard_amount = $request->standard_amount;
 
         if ($request->password) {
             $user->password= Hash::make($request->password);

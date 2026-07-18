@@ -142,6 +142,16 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="col-lg-12">
+                                <div class="form-group mb-3">
+                                    <label for="">Standard  Amount</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="number" class="form-control"  name="standard_amount" id="standard_amount"  value="{{ Auth::user()->standard_amount }}" >
+                                        
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="col-lg-6">
                                 <div class="form-group mb-3">

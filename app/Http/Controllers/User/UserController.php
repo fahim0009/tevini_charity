@@ -181,6 +181,7 @@ class UserController extends Controller
         $userdata->address_third_line = $request->address_third_line;
         $userdata->town = $request->town;
         $userdata->postcode = $request->postcode;
+        $userdata->standard_amount = $request->standard_amount;
 
             if ($request->image) {
 

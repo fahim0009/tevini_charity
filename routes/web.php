@@ -1,5 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\App;
+
+if (App::environment('production')) {
+    abort(503, 'The site is temporarily unavailable due to maintenance.');
+}
+
+
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;

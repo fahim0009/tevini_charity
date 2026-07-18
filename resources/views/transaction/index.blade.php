@@ -45,6 +45,10 @@
             <span class="iconify fs-3" data-icon="icon-park-outline:transaction"></span> 
             <h4 class="mb-0 mx-2">Transaction Management</h4>
         </div>
+        <div id="custom-alert-box" class="mt-3" style="display: none;">
+            <div class="alert" role="alert" id="custom-alert-content" style="margin-bottom: 0;"></div>
+        </div>
+
     </section>
 
     <div class="card shadow-sm border-0 mb-4">
@@ -58,9 +62,12 @@
                     <label class="form-label small fw-bold">Date To</label>
                     <input type="date" id="toDate" class="form-control form-control-sm">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>
                     <button type="button" id="reset-filter" class="btn btn-light btn-sm px-4">Reset</button>
+                    <button type="button" id="bulk-paid-btn" class="btn btn-outline-warning btn-sm px-4 ms-2">
+                        <i class="fas fa-check-double me-1"></i> Checked Item Paid
+                    </button>
                     <button type="button" id="export-csv-btn" class="btn btn-outline-success btn-sm px-4 ms-2">
                         <i class="fas fa-file-csv me-1"></i> Export CSV
                     </button>
@@ -215,8 +222,10 @@
     function updateExportBtnVisibility() {
         if (currentType === 'Summary' || currentType === 'PreviousSummary') {
             $('#export-csv-btn').show();
+            $('#bulk-paid-btn').show();
         } else {
             $('#export-csv-btn').hide();
+            $('#bulk-paid-btn').hide(); 
         }
     }
 
@@ -224,13 +233,20 @@
     function updateExportBtn() {
         const checkedCount = $('.row-checkbox:checked').length;
         const btn = $('#export-csv-btn');
-        
+        const bulkBtn = $('#bulk-paid-btn'); // 👈 NEW
+
         if (checkedCount > 0) {
             btn.html(`<i class="fas fa-file-csv me-1"></i> Export CSV (${checkedCount})`);
             btn.removeClass('btn-outline-success').addClass('btn-success');
+
+            bulkBtn.html(`<i class="fas fa-check-double me-1"></i> Checked Item Paid (${checkedCount})`);
+            bulkBtn.removeClass('btn-outline-warning').addClass('btn-warning');
         } else {
             btn.html(`<i class="fas fa-file-csv me-1"></i> Export CSV`);
             btn.removeClass('btn-success').addClass('btn-outline-success');
+
+            bulkBtn.html(`<i class="fas fa-check-double me-1"></i> Checked Item Paid`);
+            bulkBtn.removeClass('btn-warning').addClass('btn-outline-warning');
         }
     }
 
@@ -338,6 +354,92 @@
             }
         });
     });
+
+
+    // Bulk Mark as Paid Button
+    $(document).on('click', '#bulk-paid-btn', function() {
+        const selectedItems = [];
+
+        $('.row-checkbox:checked').each(function() {
+            selectedItems.push({
+                date: $(this).data('date'),
+                charity_id: $(this).data('charity-id'),
+                amount: $(this).data('amount')
+            });
+        });
+
+        if (selectedItems.length === 0) {
+            showCustomAlert('Please select at least one row to mark as paid.', 'error');
+            return;
+        }
+
+        const totalAmount = selectedItems.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+        const confirmText = `Are you sure you want to mark ${selectedItems.length} item(s) as PAID?`;
+
+        if (!confirm(confirmText)) {
+            return;
+        }
+
+        const btn = $(this);
+        const originalText = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...').prop('disabled', true);
+
+        $.ajax({
+            url: "{{ route('transaction.bulk-toggle') }}",
+            method: 'POST',
+            data: {
+                items: selectedItems,
+                status: 'true',
+                _token: "{{ csrf_token() }}"
+            },
+            success: function(response) {
+                if (response.success) {
+                    showCustomAlert(response.message, 'success');
+                    // Reload the table to reflect changes
+                    $('#transaction-table').DataTable().ajax.reload(null, false);
+                    // Uncheck the select-all checkbox
+                    $('#select-all').prop('checked', false).prop('indeterminate', false);
+                    updateExportBtn();
+                } else {
+                    showCustomAlert('Error: ' + response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.error('Bulk Paid Error:', xhr.responseText);
+                showCustomAlert('Server error occurred while marking items as paid.', 'error');
+            },
+            complete: function() {
+                btn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+
+        // Helper function to show custom alert
+    function showCustomAlert(message, type = 'success') {
+        const alertBox = $('#custom-alert-box');
+        const alertContent = $('#custom-alert-content');
+        
+        // Set alert styling based on type
+        alertContent.removeClass('alert-success alert-danger alert-warning');
+        if (type === 'success') {
+            alertContent.addClass('alert-success');
+        } else if (type === 'error') {
+            alertContent.addClass('alert-danger');
+        } else {
+            alertContent.addClass('alert-warning');
+        }
+        
+        // Set message and show
+        alertContent.html(message);
+        alertBox.stop(true, true).slideDown(300); // Smooth slide down
+        
+        // Automatically hide after 5 seconds
+        clearTimeout(window.alertTimeout);
+        window.alertTimeout = setTimeout(function() {
+            alertBox.stop(true, true).slideUp(300);
+        }, 5000);
+    }
+
 
     // Listener for the Status Switch
     $(document).on('change', '.status-switch', function() {

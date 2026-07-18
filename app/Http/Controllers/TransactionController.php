@@ -501,7 +501,81 @@ public function exportSummaryCsv(Request $request)
     return response()->stream($callback, 200, $headers);
 }
 
+public function bulkTogglePayment(Request $request)
+{
+    $items  = $request->get('items', []);
+    $status = $request->status === 'true' ? '1' : '0';
 
+    if (empty($items)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No items selected.'
+        ]);
+    }
+
+    // Business Date Cutoff Logic
+    $cutoffHour = 16;
+    $cutoffMinute = 31;
+
+    return DB::transaction(function () use ($items, $status, $cutoffHour, $cutoffMinute) {
+        $updated  = 0;
+        $notFound = 0;
+        $notFoundList = [];
+
+        foreach ($items as $item) {
+            $charityId = $item['charity_id'] ?? null;
+            $date      = $item['date'] ?? null;
+
+            if (!$charityId || !$date) {
+                $notFound++;
+                continue;
+            }
+
+            try {
+                $businessDate = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
+                
+                // START TIME: Previous Day at 16:31:00
+                $startDateTime = $businessDate->copy()
+                    ->subDay()
+                    ->setTime($cutoffHour, $cutoffMinute, 0);
+                
+                // END TIME: Today at 16:31:59
+                $endDateTime = $businessDate->copy()
+                    ->setTime($cutoffHour, $cutoffMinute, 59);
+            } catch (\Exception $e) {
+                $notFound++;
+                $notFoundList[] = "Invalid date for Charity #{$charityId}";
+                continue;
+            }
+
+            // Update ALL matching Out transactions for this charity and business date range
+            $affectedRows = Transaction::where('charity_id', $charityId)
+                ->where('t_type', 'Out')
+                ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                ->update(['bank_payment_status' => $status]);
+
+            if ($affectedRows > 0) {
+                $updated++;
+            } else {
+                $notFound++;
+                $notFoundList[] = "Charity #{$charityId} on {$date}";
+            }
+        }
+
+        $message = "{$updated} record(s) marked as " . ($status == '1' ? 'PAID' : 'UNPAID') . ".";
+        if ($notFound > 0) {
+            $message .= " {$notFound} record(s) could not be found.";
+        }
+
+        return response()->json([
+            'success'        => $updated > 0,
+            'message'        => $message,
+            'updated'        => $updated,
+            'not_found'      => $notFound,
+            'not_found_list' => $notFoundList,
+        ]);
+    });
+}
 
 
 

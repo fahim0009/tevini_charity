@@ -173,6 +173,8 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
         ->name('transaction.toggle');
     Route::post('/transaction/export-summary-csv', [TransactionController::class, 'exportSummaryCsv'])
         ->name('transaction.export-csv');
+    Route::post('/transaction/bulk-toggle-payment', [TransactionController::class, 'bulkTogglePayment'])
+        ->name('transaction.bulk-toggle'); 
 
     // Report
     Route::get('/report', [ReportController::class, 'index'])->name('report');

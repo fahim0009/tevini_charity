@@ -192,6 +192,7 @@ class DonorController extends Controller
         $user->address_third_line = $request->address_third_line;
         $user->town = $request->town;
         $user->accountno = $request->accountno;
+        $user->ppv_account = $request->ppv_account;
 
         if ($request->password) {
             $user->password= Hash::make($request->password);

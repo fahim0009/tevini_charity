@@ -1423,8 +1423,7 @@ class OrderController extends Controller
             $voucher->save();
 
             $charity = Charity::find($charityId);
-            if ($amount >= 500) {
-                
+            if ($user->ppv_account == 0 && $amount >= 500) {
                 $voucher->waiting              = 'Yes';
                 $voucher->save();
 

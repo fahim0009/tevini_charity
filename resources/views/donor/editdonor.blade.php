@@ -74,6 +74,16 @@
                         </div>
                     </div>
 
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label text-primary">PPV Account</label>
+                            <select name="ppv_account" id="ppv_account" class="form-select form-control @error('ppv_account') is-invalid @enderror">
+                                <option value="1" {{ $users->ppv_account == '1' ? 'selected' : '' }}>Yes</option>
+                                <option value="0" {{ $users->ppv_account == '0' ? 'selected' : '' }}>No</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="section-title">Address & Billing</div>
 
                     <div class="row g-3 mb-4">

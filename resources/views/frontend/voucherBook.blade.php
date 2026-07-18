@@ -756,11 +756,15 @@
         // ==========================================
         // PATH 2: Stripe payment (guest or insufficient balance)
         // ==========================================
-        function payWithStripe(stripeAmount) {
+        function payWithStripe(stripeAmount, baseAmount, feeAmount) {
             return new Promise(function (resolve, reject) {
 
-                // Show Stripe modal
-                $('#stripeAmountDisplay').text('£' + stripeAmount.toFixed(2));
+                // Show Stripe modal with fee breakdown
+                $('#stripeAmountDisplay').html(
+                    'Subtotal: £' + baseAmount.toFixed(2) + 
+                    '<br><small style="font-size:14px; color:#b45309;">+ 6% Platform Fee: £' + feeAmount.toFixed(2) + '</small>' +
+                    '<br><span style="font-size:20px;">Total: £' + stripeAmount.toFixed(2) + '</span>'
+                );
                 $('#card-errors').text('');
                 $('#stripeModal').addClass('show');
 
@@ -845,23 +849,18 @@
             var orderData = getOrderData();
 
             // --- Determine payment path ---
-            // Path A: Auth user with enough balance → pay from balance
-            // Path B: Auth user without enough balance → Stripe for full amount
-            // Path C: Guest user → Stripe for full amount
             var useBalance = false;
             var stripeAmount = 0;
+            var baseAmount = totalAmount; // Actual voucher + delivery total
+            var feeAmount = 0;
 
             if (isLoggedIn && userBalance >= totalAmount) {
-                // PATH A: Full balance payment
+                // PATH A: Full balance payment (No 6% fee)
                 useBalance = true;
-            } else if (isLoggedIn && userBalance > 0 && userBalance < totalAmount) {
-                // PATH B: Has some balance but not enough — Stripe for full amount
-                // (You could do partial: stripeAmount = totalAmount - userBalance)
-                // For now, Stripe for full amount
-                stripeAmount = totalAmount;
             } else {
-                // PATH C: Guest or no balance — Stripe for full amount
-                stripeAmount = totalAmount;
+                // PATH B / C: Stripe payment (Add 6% platform fee)
+                feeAmount = Math.round(baseAmount * (6 / 100) * 100) / 100;
+                stripeAmount = Math.round((baseAmount + feeAmount) * 100) / 100;
             }
 
             // --- Execute payment ---
@@ -882,10 +881,27 @@
                     // ==========================================
                     // PATH B / C: Pay with Stripe
                     // ==========================================
-                    var result = await payWithStripe(stripeAmount);
+                    
+                    // 1. Save order data to backend session temporarily for the Webhook
+                    try {
+                        await $.ajax({
+                            url: "{{ route('guest.voucher.pending.store') }}",
+                            method: "POST",
+                            data: { 
+                                order_data: orderData, 
+                                fee_amount: feeAmount,
+                                _token: "{{ csrf_token() }}" 
+                            }
+                        });
+                    } catch (err) {
+                        Swal.fire({ icon: 'error', title: 'Setup Error', text: 'Could not prepare order. Please try again.' });
+                        return; 
+                    }
 
-                    // After successful Stripe payment, send order to server
-                    // (Your webhook should handle order creation, but you can also do it here)
+                    // 2. Open Stripe Modal and process payment
+                    var result = await payWithStripe(stripeAmount, baseAmount, feeAmount);
+
+                    // 3. Success (Order is actually created securely by the Webhook in the background)
                     $('.ermsg').html('<div class="alert alert-success"><b>Payment successful! Your order is being processed.</b></div>');
                     $('html, body').animate({ scrollTop: 0 }, 500);
                     window.setTimeout(function () { location.reload(); }, 2000);

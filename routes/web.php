@@ -112,7 +112,7 @@ Route::post('/create-payment-intent', [GuestVoucherController::class, 'createPay
 
 // webhook stripe route
 Route::post('/voucher-cart/stripe/webhook', [GuestVoucherController::class, 'voucherCartHandleWebhook'])->name('voucher.stripe.webhook');
-
+Route::post('/guest/voucher/pending/store', [GuestVoucherController::class, 'storePendingOrderData'])->name('guest.voucher.pending.store');
 
 
 

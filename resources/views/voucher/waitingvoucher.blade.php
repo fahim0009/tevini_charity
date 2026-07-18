@@ -58,12 +58,19 @@
                                         <tr>
                                                 <td><input class="form-check-input getvid" type="checkbox" name="voucherId[]" donor_id="{{ $voucher->user_id }}" charity_id="{{ $voucher->charity_id }}" value="{{ $voucher->id }}"></td>
                                                 <td><span style="display:none;">{{ $voucher->id }}</span>{{ $voucher->created_at->format('d/m/Y')}} </td>
-                                                <td>{{ $voucher->charity->name}} </td>
-                                                <td>{{ $voucher->user->name }} {{ $voucher->user->surname }}</td>
+                                                <td>{{ $voucher->charity->name}} <br> {{ $voucher->charity->email}} </td>
+                                                <td>{{ $voucher->user->name }} {{ $voucher->user->surname }} <br> {{ $voucher->user->email }}  </td>
                                                 <td>{{ $voucher->cheque_no}}</td>
                                                 <td>{{ $voucher->note}}</td>
                                                 <td>£{{ $voucher->amount}}</td>
-                                                <td><input type="file" id="image{{ $voucher->id }}" process_voucher_id="{{ $voucher->id }}" name="image{{ $voucher->id }}" class="txt-theme txt-secondary fs-14 my-2"></td>
+                                                <td><input type="file" id="image{{ $voucher->id }}" process_voucher_id="{{ $voucher->id }}" name="image{{ $voucher->id }}" class="txt-theme txt-secondary fs-14 my-2">
+                                                <br>
+
+                                                @if(!empty($voucher->transaction) && !empty($voucher->transaction->barcode_image))
+                                                    <img src="{{ asset($voucher->transaction->barcode_image) }}" class="img-fluid" style="max-width: 100px; max-height: 100px;" alt="Voucher Image">
+                                                @endif
+
+                                                </td>
                                                 <td>
                                                 @if($voucher->status == "0") Pending @endif
                                                 </td>

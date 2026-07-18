@@ -289,6 +289,14 @@
                 </a>
             </li>
 
+            
+            <li class="nav-item {{ (request()->is('admin/settings*')) ? 'active' : '' }}" id="">
+                <a href="{{ route('admin.settings') }}">
+                    <span class="iconify" data-icon="mdi:magnify"></span>
+                    Settings
+                </a>
+            </li>
+
         </ul>
     </nav>
 </div>

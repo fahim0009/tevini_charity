@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Usertransaction;
 use App\Models\Campaign;
 use App\Models\Charity;
+use App\Models\CompanyDetail;
 use App\Models\FingerprintDonation;
 use App\Models\Gateway;
 use Illuminate\Support\Facades\Http;
@@ -56,7 +57,27 @@ class HomepageController extends Controller
 
     public function adminSettings()
     {
-        return view('setting.index');
+        // Get the single company detail row
+        $companyDetail = CompanyDetail::first(); 
+        
+        return view('setting.index', compact('companyDetail'));
+    }
+    public function updateAutoPaymentTime(Request $request)
+    {
+        $request->validate([
+            'auto_payment_time' => 'required|date_format:H:i',
+        ]);
+
+        // Since there is only one record, we grab the first one and update it
+        $companyDetail = CompanyDetail::first();
+        
+        if ($companyDetail) {
+            $companyDetail->update([
+                'auto_payment_time' => $request->auto_payment_time
+            ]);
+        }
+
+        return redirect()->route('admin.settings')->with('success', 'Auto payment time updated successfully.');
     }
 
     public function tdf()

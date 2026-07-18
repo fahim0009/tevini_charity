@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class CompanyDetail extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'auto_payment_time', 
+    ];
 }

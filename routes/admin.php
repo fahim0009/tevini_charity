@@ -158,6 +158,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
 
     // General Settings
     Route::get('/settings', [HomepageController::class, 'adminSettings'])->name('admin.settings');
+    Route::post('/settings/auto-payment-time', [HomepageController::class, 'updateAutoPaymentTime'])->name('admin.settings.auto_payment_time');
 
     /*
     |----------------------------------------------------------------------

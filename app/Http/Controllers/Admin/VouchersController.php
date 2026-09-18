@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Barcode;
+use App\Models\Charity;
 use App\Models\Order;
 use App\Models\OrderHistory;
 use App\Models\Provoucher;
+use App\Models\User;
 use App\Models\Usertransaction;
 use Illuminate\Http\Request;
 
@@ -50,6 +52,54 @@ class VouchersController extends Controller
         }else{
             return view('voucher.search');
         }
+    }
+
+    public function deleteVoucher(Request $request)
+    {
+        $request->validate(['cheque_no' => 'required|string|max:255']);
+        $chequeNo = $request->cheque_no;
+
+        \DB::beginTransaction();
+        try {
+            $vouchers = Provoucher::where('cheque_no', $chequeNo)->get();
+
+            if ($vouchers->isEmpty()) {
+                return $this->sendDeleteResponse($request, false, 'Voucher not found in Provoucher table.');
+            }
+
+            foreach ($vouchers as $voucher) {
+                if ($voucher->tran_id) {
+                    Usertransaction::where('id', $voucher->tran_id)->delete();
+                }
+                Usertransaction::where('cheque_no', $chequeNo)->delete();
+
+                // if ($voucher->status == 1) {
+                //     Charity::where('id', $voucher->charity_id)->decrement('balance', $voucher->amount);
+                //     if ($voucher->user_id) {
+                //         User::where('id', $voucher->user_id)->increment('balance', $voucher->amount);
+                //     }
+                // }
+                $voucher->delete();
+            }
+
+            \DB::commit();
+            return $this->sendDeleteResponse($request, true, 'Voucher and related transaction deleted successfully.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Voucher deletion failed: ' . $e->getMessage());
+            return $this->sendDeleteResponse($request, false, 'Error: ' . $e->getMessage());
+        }
+    }
+
+    private function sendDeleteResponse($request, $success, $message)
+    {
+        if ($request->ajax()) {
+            return response()->json([
+                'status'  => $success ? 'success' : 'error',
+                'message' => $message,
+            ]);
+        }
+        return redirect()->route('getVoucher')->with($success ? 'success' : 'error', $message);
     }
 
     public function getBarcode(Request $request)

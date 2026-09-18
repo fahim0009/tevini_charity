@@ -65,7 +65,7 @@
                     <tr>
                         <td>{{ \Carbon\Carbon::parse($row->created_at)->format('d/m/Y') }}</td>
                         <td>
-                            @if($row->donation && $row->donation->ano_donation)
+                            @if($row->donation && strtolower(trim($row->donation->ano_donation)) === 'true')
                                 Anonymous
                             @else
                                 {{ $row->user ? $row->user->name . ' ' . $row->user->surname : 'Unknown' }}

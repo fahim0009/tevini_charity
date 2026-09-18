@@ -46,7 +46,7 @@
                                         <div>
                                             <div class="balance-label">Account Balance</div>
                                             <div>
-                                                <span class="balance-amount">{{ Auth::user()->getLiveBalance() }}</span>
+                                                <span class="balance-amount">{{ number_format(Auth::user()->getLiveBalance(), 2) }}</span>
                                                 <span class="balance-currency">GBP</span>
                                             </div>
                                         </div>
@@ -165,7 +165,7 @@
                                     {{-- Fee note --}}
                                     <div style="background: #D5D4CA; border: 1px solid rgba(24, 152, 139, 0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 15px; color: #003057; line-height: 1.5;font-weight: 600;">
                                         <i class="fas fa-info-circle" style="margin-right: 6px; color: #D5D4CA;"></i>
-                                        <strong>Note:</strong> A <strong>6% platform fee</strong> will be added to your donation amount.
+                                        <strong>Note:</strong> A <strong>6% platform fee</strong> applies to card payments only. Donations from your account balance are fee-free.
                                     </div>
 
 
@@ -408,18 +408,34 @@
             return;
         }
 
-        var fee   = calcFee(base);
+        if (IS_LOGGED_IN) {
+            // Check balance to decide if fee applies
+            $.ajax({
+                url: CHECK_BALANCE_URL,
+                method: 'POST',
+                data: { amount: base },
+                success: function (res) {
+                    if (res.has_balance) {
+                        renderBreakdown(base, 0);        // No fee — balance payment
+                    } else {
+                        renderBreakdown(base, calcFee(base));  // Fee applies — card payment
+                    }
+                }
+            });
+        } else {
+            renderBreakdown(base, calcFee(base));   // Not logged in → always fee
+        }
+    }
+
+    function renderBreakdown(base, fee) {
         var total = Math.round((base + fee) * 100) / 100;
-
         dom.breakdownBase.text(formatGBP(base));
-
         if (fee > 0) {
             dom.breakdownFeeRow.show();
             dom.breakdownFee.text('+' + formatGBP(fee));
         } else {
             dom.breakdownFeeRow.hide();
         }
-
         dom.breakdownTotal.text(formatGBP(total));
         dom.amountBreakdown.slideDown(200);
     }
@@ -498,13 +514,13 @@
     function updateBalanceBadge() {
         if (!IS_LOGGED_IN) { dom.balanceBadge.hide(); return; }
 
-        var total = getTotal();
-        if (total <= 0) { dom.balanceBadge.hide(); return; }
+        var base = getBaseAmount();           // ← CHANGED: use base, not total
+        if (base <= 0) { dom.balanceBadge.hide(); return; }
 
         $.ajax({
             url: CHECK_BALANCE_URL,
             method: 'POST',
-            data: { amount: total },
+            data: { amount: base }, 
             success: function (res) {
                 if (res.has_balance) {
                     dom.balanceBadge.removeClass('use-stripe')
@@ -656,12 +672,12 @@
                 '<span class="spinner-border spinner-border-sm" role="status"></span> Checking...'
             );
 
-            var total = getTotal();
+            var base = getBaseAmount();        
 
             $.ajax({
                 url: CHECK_BALANCE_URL,
                 method: 'POST',
-                data: { amount: total },
+                data: { amount: base }, 
                 success: function (res) {
                     resetDonateButton();
 

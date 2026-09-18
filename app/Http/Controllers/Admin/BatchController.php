@@ -20,20 +20,81 @@
     use Illuminate\Support\Facades\Http;
     use Illuminate\Support\Facades\Auth;
     use Illuminate\Support\Facades\File;
-    use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
+use Yajra\DataTables\Facades\DataTables;
 
 class BatchController extends Controller
 {
     public function index()
     {
-        
-        $batches = ProvoucherBatch::with(['transaction', 'provoucher'])
-                    ->latest()
-                    ->get();
-
-
-        return view('batch.index', compact('batches'));
+        return view('batch.index');
     }
+
+    public function getData(Request $request)
+    {
+        // Use withCount to avoid loading all vouchers into memory just for the count
+        $batches = ProvoucherBatch::with(['charity'])
+                    ->withCount('provoucher')
+                    ->select('provoucher_batches.*');
+
+        return DataTables::of($batches)
+            ->addColumn('date', function($batch) {
+                return $batch->date ? $batch->date->format('d-M-Y') : 'N/A';
+            })
+            ->addColumn('charity_details', function($batch) {
+                return '<div class="fw-bold">'.$batch->charity->name.'</div>
+                        <div class="text-muted small">ID: #'.$batch->charity->id.'</div>';
+            })
+            ->addColumn('total_amount', function($batch) {
+                return '£' . number_format($batch->total_amount, 2);
+            })
+            ->addColumn('vouchers_btn', function($batch) {
+                return '<button type="button" class="btn btn-sm btn-view-vouchers px-3" data-id="'.$batch->id.'" data-bs-toggle="modal" data-bs-target="#globalBatchModal">
+                            View Vouchers ('.$batch->provoucher->count().')
+                        </button>';
+            })
+            ->addColumn('pdf_upload', function($batch) {
+                return '<div class="d-flex flex-column align-items-end gap-2">
+                            <div class="input-group input-group-sm justify-content-end" style="width: 250px;">
+                                <div class="file-upload-wrapper me-1">
+                                    <div class="file-upload-label" id="pdf-label-'.$batch->id.'">
+                                        <i class="fas fa-file-pdf text-danger"></i> <span class="text-truncate" style="max-width: 80px;">Select PDF</span>
+                                    </div>
+                                    <input type="file" class="file-upload-input pdf-input" id="pdf-'.$batch->id.'" accept="application/pdf" data-id="'.$batch->id.'">
+                                </div>
+                                <button class="btn btn-dark upload-pdf-btn" data-id="'.$batch->id.'" data-batch_no="'.$batch->batch_no.'">Submit</button>
+                            </div>
+                            <small class="status-msg" id="status-'.$batch->id.'"></small>
+                        </div>';
+            })
+            ->addColumn('action', function($batch) {
+                return '<a href="'.route('admin.batchesEdit', $batch->id).'" class="btn btn-sm btn-view-vouchers px-3">Edit</a>';
+            })
+            ->rawColumns(['charity_details', 'vouchers_btn', 'pdf_upload', 'action'])
+            ->make(true);
+    }
+
+    public function getVouchers($id)
+    {
+        $batch = ProvoucherBatch::with(['transaction.user'])->findOrFail($id);
+        
+        // Return a partial view to be loaded via AJAX
+        return view('batch.partials.voucher_rows', compact('batch'));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function uploadBarcode(Request $request)
     {
@@ -350,7 +411,10 @@ class BatchController extends Controller
                 $existingVoucher->waiting = $waitings[$index] ?? 'No';
                 $existingVoucher->expired = $expireds[$index] ?? 'No';
                 $existingVoucher->status = $newStatus;
+                $existingVoucher->batch_id = $bid; 
                 $existingVoucher->save();
+
+                Log::info("Updated voucher: Cheque No: $chequeNo, Donor ID: $donorId, Charity ID: $charityId, Amount: $amount, Status: $newStatus, Status: $newStatus, pbatch_id: $bid");
 
                 // Update transaction record
                 if ($existingVoucher->tran_id) {
@@ -401,7 +465,11 @@ class BatchController extends Controller
                 $voucher->expired = $expireds[$index] ?? 'No';
                 $voucher->status = $isPending ? 0 : 1;
                 $voucher->tran_id = $transaction->id;
+                $voucher->batch_id = $bid; 
                 $voucher->save();
+
+                
+                Log::info("voucher: $voucher, pbatch_id: $bid");
 
                 // Update balances if transaction is complete
                 if (!$isPending) {

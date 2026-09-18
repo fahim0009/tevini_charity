@@ -59,8 +59,13 @@ class DonorController extends Controller
     {
         $users = User::where('is_type','user')
             ->select('id','name','surname','email','phone','accountno','town','balance','overdrawn_amount','email_verified_at')
-            ->withSum(['usertransaction as pending_out' => function($q){
-                $q->where('t_type','Out')->where('pending',0);
+            ->withSum(['pendingVouchers as pending_out' => function ($q) {
+                $q->where('waiting', 'No')
+                ->where('status', '0')
+                ->where(function ($q2) {
+                    $q2->where('expired', '!=', 'Yes')
+                        ->orWhereNull('expired');
+                });
             }], 'amount');
 
         return datatables()->eloquent($users)
@@ -1457,10 +1462,35 @@ class DonorController extends Controller
         $data->interval = $request->interval;
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;
+        $data->payment_made = 0;
         $data->notification = 1;
-        $data->status = 0;
+        $data->created_by = Auth::user()->id;
+        $data->status = 1;
 
         if($data->save()){
+
+        
+
+            $doncaldetl = new StandingdonationDetail();
+            $doncaldetl->standing_donation_id = $data->id;
+            $doncaldetl->user_id = $data->user_id;
+            $doncaldetl->charity_id = $data->charity_id;
+            $doncaldetl->amount = $data->amount;
+            $doncaldetl->instalment_date = $request->starting;
+            $doncaldetl->instalment_mode = $request->payments_type == "1" ? "Fixed" : "continuous";
+            $doncaldetl->status = 0;
+            $doncaldetl->save();
+
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = time() . "-" . $data->user_id;
+            $utransaction->user_id = $data->user_id;
+            $utransaction->charity_id = $data->charity_id;
+            $utransaction->standing_donationdetails_id = $data->id;
+            $utransaction->t_type = "Out";
+            $utransaction->amount =   $data->amount;
+            $utransaction->title =  "Standing order donation";
+            $utransaction->status =  1;
+            $utransaction->save();
 
             $user = User::where('id',$donner_id)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
@@ -1609,6 +1639,7 @@ class DonorController extends Controller
         $donation = StandingDonation::with('standingdonationDetail')->where([
             ['user_id','=', $id]
         ])->where('status', 1)->get();
+
 
         return view('donor.standingorder')
                 ->with('donor_id',$id)

@@ -81,5 +81,25 @@ class DashboardController extends Controller
 
     }
 
+    public function clearAllNoti()
+    {
+        try {
+            // Update all notifications to 0 for all models
+            User::where('notification', 1)->update(['notification' => 0]);
+            Order::where('notification', 1)->update(['notification' => 0]);
+            Donation::where('notification', 1)->update(['notification' => 0]);
+            StripeTopup::where('notification', 1)->update(['notification' => 0]);
+
+            return response()->json([
+                'status'  => 300, // Keeping your existing status convention
+                'message' => "<div class='alert alert-success'><b>All Notifications Cleared Successfully.</b></div>"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 303,
+                'message' => 'Server Error!!'
+            ]);
+        }
+    }
 
 }

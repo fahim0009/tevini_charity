@@ -64,6 +64,7 @@ class CharityController extends Controller
 
         $charity = Charity::findOrFail($request->charityid);
         $charity->name = $request->name;
+        $charity->website = $request->website;
         $charity->number = $request->phone;
         $charity->address = $request->address_first_line;
         $charity->address_second_line = $request->address_second_line;
@@ -90,6 +91,25 @@ class CharityController extends Controller
 
     }
 
+
+    public function charityPendingBalance($id)
+    {
+        $charity = Charity::find($id);
+
+        if (!$charity) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Charity not found.'
+            ], 404);
+        }
+
+        $data = $charity->pendingVouchers()->sum('amount');
+
+        return response()->json([
+            'status' => 'ok',
+            'data' => number_format($data, 2, '.', '')
+        ], 200);
+    }
 
     public function charityTransaction(Request $request, $id)
     {

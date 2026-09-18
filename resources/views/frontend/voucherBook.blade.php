@@ -47,7 +47,7 @@
                             <div>
                                 <div class="balance-label">Account Balance</div>
                                 <div>
-                                    <span class="balance-amount">{{ Auth::user()->getLiveBalance() }}</span>
+                                    <span class="balance-amount">{{ number_format(Auth::user()->getLiveBalance(), 2) }}</span>
                                     <span class="balance-currency">GBP</span>
                                 </div>
                             </div>
@@ -440,6 +440,7 @@
         var cartStoreUrl = "{{ auth()->check() ? route('orderbook.cart.store') : route('guest.voucher.cart.store') }}";
         var balanceOrderUrl = "{{ URL::to('/user/addvoucher') }}";
         var paymentIntentUrl = "{{ route('payment.intent') }}";
+        var paymentSuccessUrl = "{{ route('voucher.payment.success') }}";
 
         @if(auth()->check())
             var userBalance = parseFloat("{{ Auth::user()->getLiveBalance() }}") || 0;
@@ -798,6 +799,41 @@
                             $payBtn.prop('disabled', false).text('Pay Now');
                             reject('card_error');
                             return;
+                        }
+
+                        // Step 3: Payment successful on frontend -> Verify & Save on Backend
+                        if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+                            try {
+                                // Call the new alternative route to save order, log payment, etc.
+                                var verifyResp = await $.ajax({
+                                    url: paymentSuccessUrl,
+                                    method: "POST",
+                                    data: {
+                                        payment_intent_id: result.paymentIntent.id,
+                                        _token: "{{ csrf_token() }}"
+                                    }
+                                });
+
+                                if (verifyResp.success) {
+                                    // Order successfully saved by backend!
+                                    $('#stripeModal').removeClass('show');
+                                    resolve(result);
+                                } else {
+                                    // Backend failed to save
+                                    $('#card-errors').text('Payment taken, but order failed to save. Please contact support with ID: ' + result.paymentIntent.id);
+                                    $payBtn.prop('disabled', false).text('Pay Now');
+                                    reject('order_save_failed');
+                                }
+                            } catch (verifyErr) {
+                                console.log('Backend verification error:', verifyErr);
+                                var errorMsg = 'Payment succeeded but order failed to save. Please contact support.';
+                                if (verifyErr.responseJSON && verifyErr.responseJSON.error) {
+                                    errorMsg = verifyErr.responseJSON.error;
+                                }
+                                $('#card-errors').text(errorMsg);
+                                $payBtn.prop('disabled', false).text('Pay Now');
+                                reject('order_save_failed');
+                            }
                         }
 
                         // Step 3: Payment successful

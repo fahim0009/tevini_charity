@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\FundTransferController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TDFTransactionController;
 use App\Http\Controllers\StripePaymentController;
+use App\Http\Controllers\Api\CharityApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -132,7 +133,11 @@ Route::get('all-donor', [DashboardController::class, 'get_all_donor']);
 Route::get('charity-dashboard/{id}', [DashboardController::class, 'charity_dashboard']);
 Route::get('/charity-profile/{id}', [CharityController::class, 'profileShow']);
 
+Route::get('/charity-pending-balance/{id}', [CharityController::class, 'charityPendingBalance']);
 Route::get('/charity-transaction/{id}', [CharityController::class, 'charityTransaction']);
+Route::get('/charity/pending-voucher/{id}', [CharityApiController::class, 'pendingVoucher']);
+Route::post('/charity/charity-barcode', [CharityApiController::class, 'getCharitybarCode']);
+Route::post('/charity/pvoucher-store', [CharityApiController::class, 'pvoucherStore']);
 
 
 
@@ -140,7 +145,9 @@ Route::post('/charity-profile-update', [CharityController::class, 'updateCharity
 Route::post('/create-a-link', [CharityController::class, 'charityLinkStore']);
 Route::post('/urgent-request', [CharityController::class, 'urgentRequest']);
 
+
 Route::middleware(['auth:sanctum,charity', 'verified']);
+
 // charity part start
 Route::group(['middleware' => ['charity']], function(){
     

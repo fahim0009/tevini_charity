@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Session;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Webhook;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\PaymentLog; 
+
 
 class GuestVoucherController extends Controller
 {
@@ -195,6 +199,12 @@ class GuestVoucherController extends Controller
             $metadata = $intent->metadata;
 
             if (isset($metadata->type) && $metadata->type === 'voucher_book_order') {
+
+            // ✅ Skip if already processed (by paymentSuccess route)
+                $existingOrder = \App\Models\Order::where('stripe_payment_intent_id', $intent->id)->first();
+                if ($existingOrder) {
+                    return response()->json(['status' => 'already_processed']);
+                }
                 
                 // 1. Reconstruct the user's session using the session_id saved in Stripe metadata
                 $sessionId = $metadata->session_id;
@@ -248,10 +258,29 @@ class GuestVoucherController extends Controller
                 $order->user_id = $did;
                 $order->order_id = time() . "-" . ($did ?: 'guest');
                 $order->amount = $prepaid_amount + $delivery_charge + $feeAmount; // Base + Delivery + 6% Fee
+                $order->admin_charge     = $feeAmount;
                 $order->delivery_charge = $delivery_charge;
                 $order->delivery_option = $delivery_opt;
                 $order->notification = 1;
                 $order->status = 0;
+
+                // ✅ Store donor/guest details (also in webhook)
+                $order->first_name       = $donorInfo['first_name'] ?? null;
+                $order->last_name        = $donorInfo['last_name'] ?? null;
+                $order->email            = $donorInfo['email'] ?? null;
+                $order->phone            = $donorInfo['phone'] ?? null;
+                $order->address_line_1   = $donorInfo['address_line_1'] ?? null;
+                $order->address_line_2   = $donorInfo['address_line_2'] ?? null;
+                $order->town             = $donorInfo['town'] ?? null;
+                $order->postcode         = $donorInfo['postcode'] ?? null;
+
+                // ✅ Also store the payment intent id in webhook to prevent duplicates
+                if (isset($intent->id)) {
+                    $order->stripe_payment_intent_id = $intent->id;
+                    $order->payment_method = 'stripe';
+                }
+
+
                 $order->save();
 
                 // Create Order History & Decrement Stock
@@ -327,6 +356,187 @@ class GuestVoucherController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+
+    /**
+     * Alternative to Webhook: Verifies payment and creates order
+     */
+    public function paymentSuccess(Request $request)
+    {
+        $request->validate([
+            'payment_intent_id' => 'required|string'
+        ]);
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            // 1. Retrieve the PaymentIntent from Stripe to verify it actually succeeded
+            $intent = PaymentIntent::retrieve($request->payment_intent_id);
+
+            if ($intent->status !== 'succeeded') {
+                return response()->json(['error' => 'Payment not completed successfully.'], 400);
+            }
+
+            // 2. Prevent duplicate orders if the user refreshes the page
+            $existingOrder = \App\Models\Order::where('stripe_payment_intent_id', $intent->id)->first();
+            if ($existingOrder) {
+                return response()->json(['success' => true, 'message' => 'Order already processed.', 'order_id' => $existingOrder->id]);
+            }
+
+            // 3. Get pending data from Session
+            $orderData = Session::get('pending_voucher_order');
+            $feeAmount = Session::get('pending_voucher_fee', 0); // This is your 6% fee
+
+            if (!$orderData) {
+                return response()->json(['error' => 'Pending order data missing.'], 404);
+            }
+
+            $voucher_ids = $orderData['voucherIds'];
+            $qtys = $orderData['qtys'];
+            $did = $orderData['did'];
+            $delivery = $orderData['delivery'];
+            $collection = $orderData['collection'];
+            $delivery_charge = $orderData['delivery_charge'];
+            $donorInfo = $orderData['donor_info'];
+
+            $prepaid_amount = 0;
+
+            // 4. Validate Stock
+            foreach($qtys as $key => $qty) {
+                $voucher = \App\Models\Voucher::where('id', $voucher_ids[$key])->first();
+                if ($qty > $voucher->stock) {
+                    return response()->json(['error' => 'Stock exceeded for voucher ID ' . $voucher_ids[$key]], 400);
+                }
+            }
+
+            // Delivery Option
+            $delivery_opt = ($delivery == "true") ? "Delivery" : (($collection == "true") ? "Collection" : null);
+
+            // Calculate prepaid amount
+            foreach ($voucher_ids as $key => $id) {
+                $voucher = \App\Models\Voucher::where('id', $id)->first();
+                $prepaid_amount += $voucher->amount * $qtys[$key];
+            }
+
+            // 5. Use DB Transaction to ensure data integrity
+            DB::beginTransaction();
+
+            try {
+                // Create Order (With new admin_charge column)
+                $order = new \App\Models\Order();
+                $order->user_id = $did;
+                $order->order_id = time() . "-" . ($did ?: 'guest');
+                $order->amount = $prepaid_amount + $delivery_charge + $feeAmount;
+                $order->admin_charge = $feeAmount;
+                $order->stripe_payment_intent_id = $intent->id; 
+                $order->payment_method = "stripe";
+                $order->delivery_charge = $delivery_charge;
+                $order->delivery_option = $delivery_opt;
+                $order->notification = 1;
+                $order->status = 0;
+
+                    // ✅ Store donor/guest details
+                $order->first_name       = $donorInfo['first_name'] ?? null;
+                $order->last_name        = $donorInfo['last_name'] ?? null;
+                $order->email            = $donorInfo['email'] ?? null;
+                $order->phone            = $donorInfo['phone'] ?? null;
+                $order->address_line_1   = $donorInfo['address_line_1'] ?? null;
+                $order->address_line_2   = $donorInfo['address_line_2'] ?? null;
+                $order->town             = $donorInfo['town'] ?? null;
+                $order->postcode         = $donorInfo['postcode'] ?? null;
+
+                $order->save();
+
+                // Create Order History & Decrement Stock
+                foreach ($voucher_ids as $key => $voucher_id) {
+                    if ($qtys[$key] != "0") {
+                        $voucherDtl = \App\Models\Voucher::find($voucher_id);
+                        $amount = $voucherDtl->amount;
+
+                        if ($qtys[$key] > "1") {
+                            for ($x = 0; $x < $qtys[$key]; $x++) {
+                                \App\Models\OrderHistory::create([
+                                    'order_id' => $order->id,
+                                    'voucher_id' => $voucher_id,
+                                    'number_voucher' => 1,
+                                    'amount' => $amount,
+                                    'o_unq' => time() . rand(1, 100),
+                                    'status' => "0",
+                                ]);
+                            }
+                        } else {
+                            \App\Models\OrderHistory::create([
+                                'order_id' => $order->id,
+                                'voucher_id' => $voucher_id,
+                                'number_voucher' => $qtys[$key],
+                                'amount' => $qtys[$key] * $amount,
+                                'o_unq' => time() . rand(1, 100),
+                                'status' => "0",
+                            ]);
+                        }
+                        $voucherDtl->decrement('stock', $qtys[$key]);
+                    }
+                }
+
+                // 6. Log Stripe Payment in the database
+                PaymentLog::create([
+                    'user_id' => $did,
+                    'payment_intent_id' => $intent->id,
+                    'amount' => $intent->amount / 100, // Stripe stores pence, convert to pounds
+                    'currency' => $intent->currency,
+                    'status' => $intent->status,
+                    'type' => 'voucher_book_order'
+                ]);
+
+                DB::commit();
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Order Creation Failed: ' . $e->getMessage());
+                return response()->json(['error' => 'Failed to save order details.'], 500);
+            }
+
+            // 7. Clear Cart
+            if ($did) {
+                \App\Models\VoucherCart::where('user_id', $did)->delete();
+            } else {
+                Session::forget('guest_voucher_cart');
+            }
+
+            // Cleanup session data
+            Session::forget('pending_voucher_order');
+            Session::forget('pending_voucher_fee');
+
+            // 8. Send Email
+            try {
+                $contactmail = \App\Models\ContactMail::where('id', 1)->first()->name;
+                $email = $donorInfo['email'];
+                $name = $donorInfo['first_name'] . ' ' . $donorInfo['last_name'];
+
+                $array['subject'] = 'Voucher books order confirmation';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['cc'] = $contactmail;
+                $array['name'] = $name;
+                $array['client_no'] = $did ? \App\Models\User::find($did)->accountno ?? 'N/A' : 'Guest';
+                $array['order_id'] = $order->id;
+                $array['orderid'] = $order->order_id;
+                $array['delivery_option'] = $delivery_opt;
+
+                \Mail::send('mail.order', compact('array'), function ($message) use ($array, $email) {
+                    $message->from($array['from'], 'Tevini.co.uk');
+                    $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                });
+            } catch (\Exception $e) {
+                \Log::error('Order Email Error: ' . $e->getMessage());
+            }
+
+            return response()->json(['success' => true, 'message' => 'Order placed successfully.', 'order_id' => $order->id]);
+
+        } catch (\Exception $e) {
+            \Log::error('Stripe Payment Verification Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Could not verify payment.'], 500);
+        }
     }
 
 

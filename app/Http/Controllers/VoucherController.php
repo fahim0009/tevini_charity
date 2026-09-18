@@ -29,7 +29,7 @@ class VoucherController extends Controller
 
     public function waiting_CompleteBydonor(Request $request)
     {
-     if(empty($request->voucher_id)){
+        if(empty($request->voucher_id)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
@@ -38,12 +38,13 @@ class VoucherController extends Controller
         $charity_id = $request->charity_id;
         $voucher_id = $request->voucher_id;
 
-
         $voucher = Provoucher::where('id',$voucher_id)->first();
         
         $u_bal = User::where('id',$voucher->user_id)->first()->balance;
         $overdrawn = (User::where('id',$voucher->user_id)->first()->overdrawn_amount);
         $limitChk = $u_bal + $overdrawn;
+
+        $charity = Charity::find($voucher->charity_id);
 
         if($limitChk >= $voucher->amount){
 
@@ -55,7 +56,6 @@ class VoucherController extends Controller
             $utransaction->created_at = date('Y-m-d H:i:s');
             $utransaction->save();
 
-            $charity = Charity::find($voucher->charity_id);
             $charity->increment('balance',$voucher->amount);
             $charity->save();
 
@@ -69,7 +69,7 @@ class VoucherController extends Controller
             $pstatus->completed_date = date('Y-m-d');
             $pstatus->save();
 
-            }else {
+        } else {
                 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->waiting = "No";
@@ -88,74 +88,67 @@ class VoucherController extends Controller
         $array['amount'] = $voucher->amount;
         $array['voucher_number'] = $voucher->cheque_no;
 
-        $m = Mail::to($email)
+        Mail::to($email)
             ->cc($contactmail)
             ->send(new WaitingVComplete($array));
         
 
-            // if ($m) {
-                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher complete successfully.</b></div>";
-                return response()->json(['status'=> 300,'message'=>$message]);
-            // } else {
-            //     $message ="<div class='alert alert-warning'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Error.</b></div>";
-            //     return response()->json(['status'=> 300,'message'=>$message]);
-            // }
-            
-    
-}
+            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher complete successfully.</b></div>";
+            return response()->json(['status'=> 300,'message'=>$message]);
+    }
 
 
-public function waiting_CancelBydonor(Request $request)
+    public function waiting_CancelBydonor(Request $request)
     {
-        if(empty($request->voucher_id)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
+            if(empty($request->voucher_id)){
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
 
-        $charity_id = $request->charity_id;
-        $voucher_id = $request->voucher_id;
-
-
-        $voucher = Provoucher::where('id',$voucher_id)->first();
-
-        Usertransaction::where('id', $voucher->tran_id)->delete();
-
-        $pstatus = Provoucher::find($voucher_id);
-        $pstatus->status = 3;
-        $pstatus->waiting = "Cancel";
-        $pstatus->save();
+            $charity_id = $request->charity_id;
+            $voucher_id = $request->voucher_id;
 
 
-    //     foreach($result as $chrt_id => $vchr_ids)
-    //     {
+            $voucher = Provoucher::where('id',$voucher_id)->first();
 
-    //     $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-    //     $charity = Charity::where('id','=',$chrt_id)->first();
+            Usertransaction::where('id', $voucher->tran_id)->delete();
 
-    //     $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
-    //     $output = $pdf->output();
-    //     file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
+            $pstatus = Provoucher::find($voucher_id);
+            $pstatus->status = 3;
+            $pstatus->waiting = "Cancel";
+            $pstatus->save();
 
-    //     $contactmail = ContactMail::where('id', 1)->first()->name;
 
-    //     $array['subject'] = 'Remittance Report';
-    //     $array['from'] = 'info@tevini.co.uk';
-    //     $array['cc'] = $contactmail;
-    //     $array['name'] = $charity->name;
-    //     $email = $charity->email;
-    //     $array['charity'] = $charity;
-    //     $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
-    //     $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
-    //     $array['subjectsingle'] = 'Report Placed - '.$charity->id;
+        //     foreach($result as $chrt_id => $vchr_ids)
+        //     {
 
-    //     Mail::to($email)
-    //     ->cc($contactmail)
-    //     ->send(new PendingvReport($array));
-    // }
+        //     $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+        //     $charity = Charity::where('id','=',$chrt_id)->first();
 
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher cancel successfully.</b></div>";
-    return response()->json(['status'=> 300,'message'=>$message]);
+        //     $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
+        //     $output = $pdf->output();
+        //     file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
+
+        //     $contactmail = ContactMail::where('id', 1)->first()->name;
+
+        //     $array['subject'] = 'Remittance Report';
+        //     $array['from'] = 'info@tevini.co.uk';
+        //     $array['cc'] = $contactmail;
+        //     $array['name'] = $charity->name;
+        //     $email = $charity->email;
+        //     $array['charity'] = $charity;
+        //     $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
+        //     $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
+        //     $array['subjectsingle'] = 'Report Placed - '.$charity->id;
+
+        //     Mail::to($email)
+        //     ->cc($contactmail)
+        //     ->send(new PendingvReport($array));
+        // }
+
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Waiting voucher cancel successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
 
     }
 

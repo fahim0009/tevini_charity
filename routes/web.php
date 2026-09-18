@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\App;
 
-if (App::environment('production')) {
-    abort(503, 'The site is temporarily unavailable due to maintenance.');
-}
+// if (App::environment('production')) {
+//     abort(503, 'The site is temporarily unavailable due to maintenance.');
+// }
 
 
 use Illuminate\Http\Request;
@@ -120,6 +120,8 @@ Route::post('/create-payment-intent', [GuestVoucherController::class, 'createPay
 // webhook stripe route
 Route::post('/voucher-cart/stripe/webhook', [GuestVoucherController::class, 'voucherCartHandleWebhook'])->name('voucher.stripe.webhook');
 Route::post('/guest/voucher/pending/store', [GuestVoucherController::class, 'storePendingOrderData'])->name('guest.voucher.pending.store');
+// Alternative to webhook: Frontend verifies payment
+Route::post('/voucher-cart/payment-success', [GuestVoucherController::class, 'paymentSuccess'])->name('voucher.payment.success');
 
 
 

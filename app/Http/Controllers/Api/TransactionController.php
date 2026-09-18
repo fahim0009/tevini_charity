@@ -3,151 +3,176 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Provoucher;
-use App\Models\Charity;
-use App\Models\Transaction;
+use Illuminate\Http\Request;
 use App\Models\Usertransaction;
-use App\Models\Donation;
 use App\Models\User;
 
 class TransactionController extends Controller
 {
     public function userTransactionShow(Request $request)
     {
-
-        
         $userId = auth()->id();
         $fromDate = $request->input('fromDate');
         $toDate = $request->input('toDate') ? $request->input('toDate') . ' 23:59:59' : null;
         $hasDateRange = $fromDate && $toDate;
 
-        if(!empty($request->input('fromDate')) && !empty($request->input('toDate'))){
-            $fromDate = $request->input('fromDate');
-            $toDate   = $request->input('toDate');
+        // ---------------------------------------------------------
+        // 1. All Transactions with Running Balance (Exact match with Web)
+        // ---------------------------------------------------------
+        $query = Usertransaction::with(['charity:id,name', 'standingdonationDetail.standingDonation', 'donation', 'campaign', 'provoucher'])
+            ->where('user_id', $userId)
+            ->where(function ($q) {
+                $q->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->where(function ($q) use ($hasDateRange, $fromDate, $toDate) {
+                if ($hasDateRange) {
+                    $q->whereBetween('created_at', [$fromDate, $toDate])->where('status', 1);
+                } else {
+                    $q->where('status', 1);
+                }
+            })
+            ->orWhere(function ($q) use ($userId, $hasDateRange, $fromDate, $toDate) {
+                $q->where('user_id', $userId);
+                if ($hasDateRange) {
+                    $q->whereBetween('created_at', [$fromDate, $toDate])->where('pending', '0');
+                } else {
+                    $q->where('pending', '0');
+                }
+            })
+            ->orderBy('created_at', 'asc') // Sort ASC to calculate balance forward
+            ->get();
 
-        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-        ])->where('status','=', '1')->orderBy('id','DESC')->get();
+        $currentBalanceTracker = 0;
+        $alltransactions = $query->flatMap(function ($data) use (&$currentBalanceTracker) {
+            $rows = [];
 
-        $alltransactions = Usertransaction::with(['charity:id,name'])->where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
+            $isExpired = (isset($data->expired) && $data->expired == '0') || (isset($data->provoucher) && $data->provoucher->expired == "Yes");
+            $isPending = ($data->status != 1);
 
-            
+            // Commission Row
+            if ($data->commission != 0) {
+                if (!$isExpired && !$isPending) {
+                    $currentBalanceTracker -= $data->commission;
+                }
+                
+                $commRow = clone $data;
+                $commRow->display_type = 'commission';
+                $commRow->calculated_balance = $currentBalanceTracker;
+                $rows[] = $commRow;
+            }
 
-        $intransactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'In'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
+            // Main Transaction Row
+            if (!$isExpired && !$isPending) {
+                if ($data->t_type == "In") {
+                    $currentBalanceTracker += ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
+                } else {
+                    $currentBalanceTracker -= $data->amount;
+                }
+            }
 
-        $outtransactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
+            $currentRow = clone $data;
+            $currentRow->display_type = 'main';
+            $currentRow->calculated_balance = $currentBalanceTracker;
 
-        $pending_transactions = Usertransaction::where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
-        ])->orderBy('id','DESC')->get();
-
-
-        $giftAid = Usertransaction::with('user')->where([
-            ['created_at', '>=', $fromDate],
-            ['created_at', '<=', $toDate.' 23:59:59'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->whereNotNull('gift')->orderby('id', 'DESC')->get();
-
-
-
-        }else{
-
-        $tamount = Usertransaction::where('user_id','=', auth()->user()->id)->where('status','=', '1')->orderBy('id','DESC')->get();
-
-        
-        $giftAid = Usertransaction::with('user')->where('user_id', auth()->user()->id)->where('status', 1)->whereNotNull('gift')->orderby('id', 'DESC')->get();
-
-        // All transactions
-        $alltransactions = Usertransaction::with([
-            'standingDonation',
-            'charity:id,name',
-            'standingdonationDetail.standingDonation:id,charitynote,mynote',
-            'donation:id,charitynote,mynote',
-            'campaign:id,campaign_title'
-        ])
-        ->where('user_id', $userId)
-        ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
-            $query->where('status', 1)
-                ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
-        })
-        ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
-            $query->where('user_id', $userId)
-                ->where('pending', 1)
-                ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
-        })
-        ->orderByDesc('id')
-        ->get();
+            $rows[] = $currentRow;
+            return $rows;
+        })->reverse()->values(); // Reverse to show latest first
 
 
-        $intransactions = Usertransaction::where([
-            ['t_type','=', 'In'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orderBy('id','DESC')->get();
-
-        $outtransactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
-
-        $pending_transactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
-        ])->orderBy('id','DESC')->get();
+        // ---------------------------------------------------------
+        // 2. Total Amount (Valid Transactions Only)
+        // ---------------------------------------------------------
+        $tamount = Usertransaction::where('user_id', $userId)
+            ->where('status', 1)
+            ->where(function ($q) {
+                $q->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+            ->orderBy('id', 'DESC')
+            ->get();
 
 
+        // ---------------------------------------------------------
+        // 3. In Transactions
+        // ---------------------------------------------------------
+        $intransactions = Usertransaction::where('user_id', $userId)
+            ->where('t_type', 'In')
+            ->where('status', 1)
+            ->where(function ($q) {
+                $q->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+            ->orderBy('id', 'DESC')
+            ->get();
 
-        }
 
-        
+        // ---------------------------------------------------------
+        // 4. Out Transactions (Including Pending)
+        // ---------------------------------------------------------
+        // $outtransactions = Usertransaction::where('user_id', $userId)->with('provoucher')
+        //     ->where('t_type', 'Out')
+        //     ->where(function ($q) {
+        //         $q->where('status', 1)->orWhere('pending', '0');
+        //     })
+        //     ->where(function ($q) {
+        //         $q->whereNull('expired')->orWhere('expired', '1');
+        //     })
+        //     ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+        //     ->orderBy('id', 'DESC')
+        //     ->get();
+
+        $outTransactionsQuery = Usertransaction::where('t_type', 'Out')->with('provoucher')
+            ->where('user_id', $userId)
+            ->where(function ($query){
+                    $query->where('status', '1');
+            })->orWhere(function ($query) {
+                $query->where('t_type', 'Out')->where('pending', '0');
+            });
+
+        $outtransactions = $outTransactionsQuery->orderByDesc('id')->get();
+
+
+        // ---------------------------------------------------------
+        // 5. Pending Transactions Only
+        // ---------------------------------------------------------
+        // $pending_transactions = Usertransaction::where('user_id', $userId)
+        //     ->where('t_type', 'Out')
+        //     ->where('pending', '0')
+        //     ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+        //     ->orderBy('id', 'DESC')
+        //     ->get();
+        $pending_transactions = Provoucher::pendingVouchers($userId, $fromDate, $toDate)->get();
+
+
+        // ---------------------------------------------------------
+        // 6. Gift Aid Transactions
+        // ---------------------------------------------------------
+        $giftAid = Usertransaction::with('user')
+            ->where('user_id', $userId)
+            ->where('status', 1)
+            ->whereNotNull('gift')
+            ->where(function ($q) {
+                $q->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+            ->orderBy('id', 'DESC')
+            ->get();
+
+
+        // ---------------------------------------------------------
+        // Return Response
+        // ---------------------------------------------------------
         $success['alltransactions'] = $alltransactions;
         $success['intransactions'] = $intransactions;
         $success['tamount'] = $tamount;
         $success['giftAid'] = $giftAid;
         $success['outtransactions'] = $outtransactions;
         $success['pending_transactions'] = $pending_transactions;
-        return response()->json(['success'=>true,'response'=> $success], 200);
+        
+        // Also returning the final live balance for convenience
+        $success['live_balance'] = (float) auth()->user()->getLiveBalance();
 
+        return response()->json(['success' => true, 'response' => $success], 200);
     }
 }

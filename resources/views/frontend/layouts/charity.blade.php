@@ -9,7 +9,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tevini</title>
     <!-- FOR SEO -->
-    <!-- <meta property='og:title' content='MarinOne soft'/>
+    <!-- <meta property='og:title' content='Tevini'/>
     <meta property='og:image' content='./assets/images/link.jpg'/>
     <meta property='og:description' content='DESCRIPTION OF YOUR SITE'/>
     <meta property='og:url' content='URL OF YOUR WEBSITE'/>

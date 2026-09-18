@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Campaign extends Model
 {
     use HasFactory;
+    
+    protected $guarded = [];
 
     public function charity(){
         return $this->belongsTo('App\Models\Charity');

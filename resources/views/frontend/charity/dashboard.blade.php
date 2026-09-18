@@ -17,8 +17,8 @@ use Illuminate\Support\Carbon;
     </div>
     <br>
     <h4 class="txt-dash">Account Balance</h4>
-    <h2 class="amount">{{auth('charity')->user()->balance}} GBP</h2>
-    <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
+    <h2 class="amount">{{ auth('charity')->user()->balance }} GBP</h2>
+    <p>Pending Balance: {{ number_format(auth('charity')->user()->pendingVouchers()->sum('amount'), 2) }} GBP</p>
 
     <div class="row my-2">
 

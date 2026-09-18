@@ -26,7 +26,7 @@
             <div class="space-1">
                 <!-- Copyright -->
                 <div class="text-center">
-                    <p class="mb-0 small text-white">Copyright© 2022 Teveni All rights reserved.</p>
+                    <p class="mb-0 small text-white">Copyright© 2026 Tevini All rights reserved.</p>
                 </div>
                 <div class="text-center">
                     <p class="mb-0 small text-white">Design & Developed by :MentoSoftware</a></p>

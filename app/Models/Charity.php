@@ -67,6 +67,15 @@ class Charity extends Authenticatable
             !empty($this->post_code);
   }
 
-
+  public function pendingVouchers()
+  {
+      return $this->hasMany(Provoucher::class, 'charity_id')
+          ->where('waiting', 'No')
+          ->where('status', '0')
+          ->where(function ($q) {
+              $q->where('expired', '!=', 'Yes')
+                ->orWhereNull('expired');
+          });
+  }
 
 }

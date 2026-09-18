@@ -1,8 +1,6 @@
-
 @extends('layouts.admin')
 
 @section('content')
-
 
 <div class="dashboard-content py-2 px-4">
     <div class="rows bg-white shadow-sm my-3">
@@ -69,40 +67,46 @@
     <div class="rows bg-white shadow-sm my-3">
         <div class="cols" id="contentContainer">
             <div class="card">
-                <h3 class="text-center">Notification</h3>
-                @foreach (\App\Models\User::where('notification','=', 1)->get() as $user)
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <strong>New donor!</strong> To view this Donor.<a href="{{ route('donor') }}"> Click here</a>
-                        <a id="donorBtn" donor_id="{{$user->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
-                    </div>
-                @endforeach
+                <!-- Added Flexbox to align title and Clear All button -->
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <h3 class="text-center mb-0">Notifications</h3>
+                    <button type="button" class="btn btn-danger btn-sm" id="clearAllNotiBtn">
+                        Clear All Notifications
+                    </button>
+                </div>
 
-                @foreach (\App\Models\Order::where('notification','=', 1)->get() as $order)
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>New order!</strong> To process this order.<a href="{{ route('singleorder',$order->id) }}"> Click here</a>
-                    <a id="orderBtn" order_id="{{$order->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
-                  </div>
-                @endforeach
+                <div class="p-3">
+                    @foreach (\App\Models\User::where('notification','=', 1)->get() as $user)
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>New donor!</strong> To view this Donor.<a href="{{ route('donor') }}"> Click here</a>
+                            <a class="donorBtn" donor_id="{{$user->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                        </div>
+                    @endforeach
 
-                @foreach (\App\Models\Donation::where('notification','=', 1)->get() as $donation)
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>New donation!</strong> To process this donation.<a href="{{ route('donationlist') }}"> Click here</a>
-                    <a id="donationBtn" donation_id="{{$donation->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
-                  </div>
-                @endforeach
+                    @foreach (\App\Models\Order::where('notification','=', 1)->get() as $order)
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>New order!</strong> To process this order.<a href="{{ route('singleorder',$order->id) }}"> Click here</a>
+                            <a class="orderBtn" order_id="{{$order->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                        </div>
+                    @endforeach
 
-                @foreach (\App\Models\StripeTopup::where('notification','=', 1)->get() as $topup)
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>New Stripe Topup!</strong> To view this.<a href="{{ route('stripetopup') }}"> Click here</a>
-                    <a id="topupBtn" topup_id="{{$topup->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
-                  </div>
-                @endforeach
+                    @foreach (\App\Models\Donation::where('notification','=', 1)->get() as $donation)
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>New donation!</strong> To process this donation.<a href="{{ route('donationlist') }}"> Click here</a>
+                            <a class="donationBtn" donation_id="{{$donation->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                        </div>
+                    @endforeach
 
+                    @foreach (\App\Models\StripeTopup::where('notification','=', 1)->get() as $topup)
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>New Stripe Topup!</strong> To view this.<a href="{{ route('stripetopup') }}"> Click here</a>
+                            <a class="topupBtn" topup_id="{{$topup->id}}"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></a>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
-
-
 </div>
 
 @endsection
@@ -110,119 +114,84 @@
 @section('script')
 <script>
     $(document).ready(function () {
+        // Setup CSRF token globally for all AJAX requests
+        $.ajaxSetup({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        });
 
-    //header for csrf-token is must in laravel
-    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
-    //
-
-
-                //  donor notification
-                var url = "{{URL::to('/admin/donornoti')}}";
-                $("#contentContainer").on('click','#donorBtn', function(){
-
-                    var donorid= $(this).attr('donor_id');
-
-                    $.ajax({
-                        url: url,
-                        method: "POST",
-                        data: {donorid},
-                        success: function (d) {
-                            if (d.status == 303) {
-                                $(".ermsg").html(d.message);
-                            }else if(d.status == 300){
-                                $(".ermsg").html(d.message);
-                                window.setTimeout(function(){location.reload()},2000)
-                            }
-                        },
-                        error: function (d) {
-                            console.log(d);
-                        }
-                    });
-
+        // Reusable function to handle single notification dismissal
+        function dismissNotification(url, data, $element) {
+            $.ajax({
+                url: url,
+                method: "POST",
+                data: data,
+                success: function (response) {
+                    if (response.status == 300) {
+                        // Hide the specific alert smoothly without reloading the page
+                        $element.closest('.alert').alert('close');
+                        $(".ermsg").html(response.message);
+                    } else {
+                        console.error('Error processing request');
+                    }
+                },
+                error: function (err) {
+                    console.error('AJAX Error:', err);
+                }
             });
+        }
 
+        // Handle Individual Donor Notification
+        $("#contentContainer").on('click', '.donorBtn', function(e){
+            e.preventDefault();
+            dismissNotification("{{ route('donornoti') }}", { donorid: $(this).attr('donor_id') }, $(this));
+        });
 
-                // order notification
-                var url2 = "{{URL::to('/admin/ordernoti')}}";
-                $("#contentContainer").on('click','#orderBtn', function(){
+        // Handle Individual Order Notification
+        $("#contentContainer").on('click', '.orderBtn', function(e){
+            e.preventDefault();
+            dismissNotification("{{ route('ordernoti') }}", { orderid: $(this).attr('order_id') }, $(this));
+        });
 
-                    var orderid= $(this).attr('order_id');
+        // Handle Individual Donation Notification
+        $("#contentContainer").on('click', '.donationBtn', function(e){
+            e.preventDefault();
+            dismissNotification("{{ route('donationnoti') }}", { donationid: $(this).attr('donation_id') }, $(this));
+        });
 
-                    $.ajax({
-                        url: url2,
-                        method: "POST",
-                        data: {orderid},
-                        success: function (d) {
-                            if (d.status == 303) {
-                                $(".ermsg").html(d.message);
-                            }else if(d.status == 300){
-                                $(".ermsg").html(d.message);
-                                window.setTimeout(function(){location.reload()},2000)
-                            }
-                        },
-                        error: function (d) {
-                            console.log(d);
-                        }
-                    });
+        // Handle Individual Topup Notification
+        $("#contentContainer").on('click', '.topupBtn', function(e){
+            e.preventDefault();
+            dismissNotification("{{ route('topupnoti') }}", { topupid: $(this).attr('topup_id') }, $(this));
+        });
 
+        // Handle Clear All Notifications Button
+        $("#clearAllNotiBtn").on('click', function(){
+            var $btn = $(this);
+            
+            // Add loading state to button
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Clearing...');
+
+            $.ajax({
+                url: "{{ route('clearallnoti') }}",
+                method: "POST",
+                success: function (response) {
+                    if (response.status == 300) {
+                        $(".ermsg").html(response.message);
+                        
+                        // Close all alerts smoothly
+                        $("#contentContainer .alert").each(function(){
+                            $(this).alert('close');
+                        });
+                    }
+                    // Restore button state
+                    $btn.prop('disabled', false).html('Clear All Notifications');
+                },
+                error: function (err) {
+                    console.error('AJAX Error:', err);
+                    $btn.prop('disabled', false).html('Clear All Notifications');
+                }
             });
-
-
-                // donation notification
-                var url3 = "{{URL::to('/admin/donationnoti')}}";
-                $("#contentContainer").on('click','#donationBtn', function(){
-
-                    var donationid= $(this).attr('donation_id');
-
-                    $.ajax({
-                        url: url3,
-                        method: "POST",
-                        data: {donationid},
-                        success: function (d) {
-                            if (d.status == 303) {
-                                $(".ermsg").html(d.message);
-                            }else if(d.status == 300){
-                                $(".ermsg").html(d.message);
-                                window.setTimeout(function(){location.reload()},2000)
-                            }
-                        },
-                        error: function (d) {
-                            console.log(d);
-                        }
-                    });
-
-            });
-
-
-            // topup notification
-            var url4 = "{{URL::to('/admin/topupnoti')}}";
-                $("#contentContainer").on('click','#topupBtn', function(){
-
-                    var topupid= $(this).attr('topup_id');
-
-                    $.ajax({
-                        url: url4,
-                        method: "POST",
-                        data: {topupid},
-                        success: function (d) {
-                            if (d.status == 303) {
-                                $(".ermsg").html(d.message);
-                            }else if(d.status == 300){
-                                $(".ermsg").html(d.message);
-                                window.setTimeout(function(){location.reload()},2000)
-                            }
-                        },
-                        error: function (d) {
-                            console.log(d);
-                        }
-                    });
-
-            });
-
-
-
-
+        });
     });
 </script>
-
 @endsection

@@ -23,6 +23,7 @@ class Provoucher extends Model
       'voucher_type',
       'amount',
       'note',
+      'waiting',
       'expired',
       'status',
 
@@ -56,4 +57,28 @@ class Provoucher extends Model
       {
           return $this->belongsTo(Usertransaction::class, 'tran_id', 'id');
       }
+
+
+    public function scopePendingVouchers($query, $userId = null, $fromDate = null, $toDate = null)
+    {
+        return $query->with(['charity', 'user'])
+            ->select('id','user_id','charity_id','created_at','amount','note','cheque_no','status','expired')
+            ->where('waiting', 'No')
+            ->where('status', '0')
+            ->where(function ($q) {
+                $q->where('expired', '!=', 'Yes')->orWhereNull('expired');
+            })
+            ->when($userId, function($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->when($fromDate && $toDate, function($q) use ($fromDate, $toDate) {
+                $q->whereBetween('created_at', [$fromDate, $toDate]);
+            })
+            ->orderBy('id', 'DESC');
+    }
+
+
+
+
+
 }

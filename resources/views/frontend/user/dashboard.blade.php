@@ -2,19 +2,6 @@
 @section('content')
 
 @php
-    // $alltransactions = \App\Models\Usertransaction::where([
-    //         ['user_id','=', auth()->user()->id],
-    //         ['status','=', '1']
-    //     ])->orwhere([
-    //         ['user_id','=', auth()->user()->id],
-    //         ['pending','=', '1']
-    //         ])
-    //         ->where(function ($query) {
-    //             $query->whereNull('expired')->orWhere('expired', '1');
-    //         })
-    //         ->orderBy('id','DESC')->with('provoucher')->limit(5)->get();
-
-
     $tamount = \App\Models\Usertransaction::where([
                 ['user_id','=', auth()->user()->id],
                 ['status','=', '1']
@@ -31,7 +18,7 @@
 
     $donation_req = \App\Models\CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
 
-use Illuminate\Support\Carbon;
+    use Illuminate\Support\Carbon;
 @endphp
 <!-- Image loader -->
 <div id='loading' style='display:none ;'>
@@ -118,8 +105,8 @@ use Illuminate\Support\Carbon;
         <div class="row ">
             <div class="col-lg-6">
                 <h4 class="txt-dash">Account Balance</h4>
-                <h2 class="amount">{{$donorUpBalance}} GBP</h2>
-                <p>Pending Balance: {{number_format($pending_transactions, 2)}} GBP</p>
+                <h2 class="amount">{{ number_format($donorUpBalance, 2) }} GBP</h2>
+                <p>Pending Balance: {{ number_format(auth()->user()->pendingVouchers()->sum('amount'), 2) }} GBP</p>
             </div>
             <div class="col-lg-6">
                 <h4 class="txt-dash">Tevini Ltd</h4>
@@ -246,54 +233,32 @@ use Illuminate\Support\Carbon;
                     </tr>
                 </thead>
 
-                <?php
-                $tbalance = 0;
-                ?>
-
-                @foreach ($tamount as $data)
-                    @if($data->commission != 0)
-                        @php
-                        $tbalance = $tbalance - $data->commission;
-                        @endphp
-                    @endif
-
-                    @php
-                    if($data->t_type == "In"){
-                        if($data->commission != 0){
-
-                        $tbalance = $tbalance + $data->amount + $data->commission;
-                        }else {
-
-                        $tbalance = $tbalance + $data->amount;
-                        }
-
-                    }
-                    @endphp
-
-                    @php
-                    if($data->t_type == "Out"){
-                    $tbalance = $tbalance - $data->amount;
-                    }
-                    @endphp
-                @endforeach
-
-
                 <tbody>
-                    @foreach ($alltransactions as $data)
-                        @if($data->commission != 0)
+                    @php
+                    $tbalance = $donorUpBalance; 
+                    @endphp
 
+                    @foreach ($alltransactions as $data)
+                        @php
+                        $isExpired = isset($data->expired) && $data->expired == '0';
+                        $isCounted = ($data->status == 1) && !$isExpired;
+                        @endphp
+
+                        @if($data->commission != 0)
                             <tr>
-                                <td>{{Carbon::parse($data->created_at)->format('d/m/Y')}}</td>
+                                <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                                 <td>
                                     <div class="d-flex flex-column">
                                         <span class="fs-20 txt-secondary fw-bold"></span>
                                         <span class="fs-16 txt-secondary">Commission</span>
                                     </div>
                                 </td>
-                                <td>-£{{$data->commission}}</td>
+                                <td>-£{{ number_format($data->commission, 2) }}</td>
                                 <td>£{{ number_format($tbalance, 2) }}</td>
                                 @php
-                                $tbalance = $tbalance + $data->commission;
+                                if ($isCounted) {
+                                    $tbalance += $data->commission;
+                                }
                                 @endphp
                             </tr>
                         @endif
@@ -302,60 +267,50 @@ use Illuminate\Support\Carbon;
                             <td>{{ Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
                             <td>
                                 <div class="d-flex flex-column">
-                                    <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name}}@endif</span>
-                                    <span class="fs-16 txt-secondary">{{$data->title}}</span>
+                                    <span class="fs-20 txt-secondary fw-bold">@if($data->charity_id){{ $data->charity->name }}@endif</span>
+                                    <span class="fs-16 txt-secondary">{{ $data->title }}</span>
                                 </div>
                             </td>
                             @if($data->t_type == "In")
-
                                 @if($data->commission != 0)
                                     <td class="fs-16 info txt-primary">
                                         £{{ number_format($data->amount + $data->commission, 2) }}
                                     </td>
-                                    <td class="fs-16 txt-secondary">
-                                        £{{ number_format($tbalance, 2) }}
-                                    </td>
-                                    @php $tbalance = $tbalance - $data->amount - $data->commission; @endphp
                                 @else
-
                                     <td class="fs-16 info txt-primary">
-                                        £{{number_format($data->amount, 2)}}
+                                        £{{ number_format($data->amount, 2) }}
                                     </td>
-                                    <td class="fs-16 txt-secondary">
-                                        £{{ number_format($tbalance, 2) }}
-                                    </td>
-                                    @php $tbalance = $tbalance - $data->amount; @endphp
                                 @endif
-
+                                <td class="fs-16 txt-secondary">
+                                    £{{ number_format($tbalance, 2) }}
+                                </td>
+                                @php
+                                if ($isCounted) {
+                                    $tbalance -= ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
+                                }
+                                @endphp
                             @elseif($data->t_type == "Out")
-                                <td class="fs-16 info" class="info">
-                                    -£{{number_format($data->amount, 2) }}
+                                <td class="fs-16 info">
+                                    -£{{ number_format($data->amount, 2) }}
                                 </td>
                                 <td class="fs-16 txt-secondary">
                                     £{{ number_format($tbalance, 2) }}
                                 </td>
-                                {{-- @if($data->pending != "0")
-                                @php  $tbalance = $tbalance + $data->amount;  @endphp
-                                @endif --}}
-
-                                @if($data->pending != "0" && (!isset($data->provoucher) || $data->provoucher->expired != "Yes"))
-                                    @php
-                                        $tbalance += $data->amount;
-                                    @endphp
-                                @endif
-
+                                @php
+                                if ($isCounted) {
+                                    $tbalance += $data->amount;
+                                }
+                                @endphp
                             @endif
                         </tr>
+                    @endforeach
 
-                        @endforeach
-
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td>Previous Balance</td>
-                            <td>£{{ number_format($tbalance, 2) }}</td>
-                        </tr>
-
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td>Previous Balance</td>
+                        <td>£{{ number_format($tbalance, 2) }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

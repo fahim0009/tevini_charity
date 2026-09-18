@@ -53,29 +53,7 @@
     if (isset($_GET["amount"])) {
         $amount = $_GET["amount"];
     } 
-
-               // donor balance
-               $gettrans = \App\Models\Usertransaction::where([
-                    ['user_id','=', auth()->user()->id],
-                    ['status','=', '1']
-                ])->orwhere([
-                    ['user_id','=', auth()->user()->id],
-                    ['pending','=', '1']
-                ])->orderBy('id','DESC')->get();
-
-                $donorUpBalance = 0;
-
-                foreach ($gettrans as $key => $tran) {
-                    if ($tran->t_type == "In") {
-                        $donorUpBalance = $donorUpBalance + $tran->amount;
-                    }elseif ($tran->t_type == "Out") {
-                        $donorUpBalance = $donorUpBalance - $tran->amount;
-                    } else {
-                        # code...
-                    }
-                }
-                // donor balance end
-
+    $donorUpBalance = Auth::user()->getLiveBalance();
 @endphp
 
 <div class="content">

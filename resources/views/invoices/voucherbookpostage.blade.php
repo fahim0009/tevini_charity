@@ -104,24 +104,35 @@
         <div class="section">
             <p class="bold">Delivery To:</p>
             <p>
-                @if ($user->profile_type == 'Personal')
-                {{ $user->name ?? ""   }} <br>
+                @if ($user)
+                    {{-- Registered User --}}
+                    @if ($user->profile_type == 'Personal')
+                        {{ $user->name ?? "" }} <br>
+                    @elseif ($user->profile_type == 'Company')
+                        {{ $user->surname ?? "" }} <br>
+                    @else
+                        {{ $user->name ?? "" }} <br>
+                    @endif
+                    
+                    {{ $user->houseno ?? "" }} 
+                    @if (!empty($user->street)) <br> @endif 
+                    {{ $user->street ?? "" }} 
+                    @if (!empty($user->address_third_line)) <br> @endif 
+                    {{ $user->address_third_line ?? "" }} <br>
+                    {{ $user->town ?? "" }} <br> 
+                    {{ $user->postcode ?? "" }} <br>
+                    United Kingdom
+                @else
+                    {{-- Guest User --}}
+                    {{ $order->first_name ?? "" }} {{ $order->last_name ?? "" }} <br>
+                    {{ $order->address_line_1 ?? "" }} 
+                    @if (!empty($order->address_line_2)) <br> {{ $order->address_line_2 }} @endif 
+                    <br>
+                    {{ $order->town ?? "" }} <br> 
+                    {{ $order->postcode ?? "" }} <br>
+                    United Kingdom
                 @endif
-                @if ($user->profile_type == 'Company')
-                {{ $user->surname ?? ""   }} <br>
-                @endif
-                @if ($user->profile_type == null)    {{ $user->name ?? ""   }} <br>
-                @endif
-                {{ $user->houseno ?? ""   }} @if ($user->street) <br> @endif 
-                {{ $user->street ?? ""   }} @if ($user->address_third_line) <br> @endif 
-                {{ $user->address_third_line ?? ""   }} <br>
-                {{ $user->town ?? ""   }} <br> 
-                {{ $user->postcode ?? ""   }}  <br>
-                United Kingdom
             </p>
-            
-
-            
         </div>
     </div>
 </body>

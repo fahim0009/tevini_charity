@@ -22,11 +22,13 @@ use App\Http\Controllers\Admin\TDFTransactionController;
 use App\Http\Controllers\Admin\DonorBalanceController;
 use App\Http\Controllers\Admin\ProcessVoucherController;
 use App\Http\Controllers\Admin\CredentialController;
+use App\Http\Controllers\Admin\GuestController;
 use App\Http\Controllers\Admin\OneGivCardAdminController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\VouchersController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\BalanceTransferController;
+use App\Http\Controllers\Developer\DeveloperToolController;
 use App\Http\Controllers\ExpiredVoucherController;
 use App\Http\Controllers\OTPController;
 use App\Http\Controllers\TopupController;
@@ -57,6 +59,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::post('/ordernoti', [DashboardController::class, 'orderNoti'])->name('ordernoti');
     Route::post('/donationnoti', [DashboardController::class, 'donationNoti'])->name('donationnoti');
     Route::post('/topupnoti', [DashboardController::class, 'topupNoti'])->name('topupnoti');
+    Route::post('/clearallnoti', [DashboardController::class, 'clearAllNoti'])->name('clearallnoti');
 
     /*
     |----------------------------------------------------------------------
@@ -194,9 +197,25 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::post('/charity-tran/update-payment-status', [TransactionController::class, 'updatePaymentStatus'])
         ->name('transaction.update-payment-status');
 
+    Route::get('/charity/{id}/transactions-in/data', [TransactionController::class, 'getInTransactionsData'])->name('charity.transactions.in.data');
+    Route::get('/charity/{id}/transactions-out/data', [TransactionController::class, 'getOutTransactionsData'])->name('charity.transactions.out.data');
+    Route::get('/charity/{id}/ledger/data', [TransactionController::class, 'getLedgerData'])->name('charity.ledger.data');
+    Route::get('/charity/{id}/reports/data', [TransactionController::class, 'getReportsData'])->name('charity.reports.data');
+    Route::get('/charity/{id}/pending-vouchers/data', [TransactionController::class, 'getPendingVouchersData'])->name('charity.pending.vouchers.data');
+    Route::get('/charity/{id}/check-trans-in/data', [TransactionController::class, 'getCheckTransInData'])->name('charity.check.trans.in.data');
+    Route::get('/charity/{id}/check-trans-out/data', [TransactionController::class, 'getCheckTransOutData'])->name('charity.check.trans.out.data');
+
+
     // Charity Balance Mismatch Check
     Route::get('/charity-balance-check-transaction', [TransactionController::class, 'allCharityBalances'])
         ->name('charity.checkTranBalance');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Developer tool Routes
+    |--------------------------------------------------------------------------
+    */
 
     // Transaction Delete/Update (Admin Tools)
     Route::get('/transaction-delete', [TransactionController::class, 'checkTran'])
@@ -207,6 +226,26 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
         ->name('admin.transactionChangeStatus');
     Route::post('/transaction-status-update', [TransactionController::class, 'deleteTransactionUpdate'])
         ->name('admin.deleteTransactionUpdate');
+
+        
+    Route::match(['get', 'post'], '/dev/standing-donation-check', [DeveloperToolController::class, 'checkStandingDonation'])
+        ->name('dev.checkStandingDonation');
+    Route::delete('/dev/standing-donation-delete/{id}', [DeveloperToolController::class, 'deleteStandingDonation'])
+        ->name('dev.deleteStandingDonation');
+        
+    Route::match(['get', 'post'], '/dev/transaction-check', [DeveloperToolController::class, 'searchTransaction'])
+        ->name('dev.searchTransaction');
+    Route::delete('/dev/transaction-delete/{id}', [DeveloperToolController::class, 'deleteTransaction'])
+        ->name('dev.deleteTransaction');
+    Route::put('/dev/transaction-update/{id}', [DeveloperToolController::class, 'updateTransaction'])
+    ->name('dev.updateTransaction');
+        
+    /*
+    |--------------------------------------------------------------------------
+    | Developer tool Routes  End
+    |--------------------------------------------------------------------------
+    */
+
 
     /*
     |----------------------------------------------------------------------
@@ -407,6 +446,13 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::post('/pvoucher-draft', [OrderController::class, 'pvoucherDraft'])
         ->name('pvoucher.draft');
 
+
+    // Voucher Bulk Edit Routes
+    Route::get('/voucher/bulk-edit', [OrderController::class, 'bulkEdit'])->name('voucher.bulkEdit');
+    Route::post('/voucher/bulk-update', [OrderController::class, 'bulkUpdate'])->name('voucher.bulkupdateDetails');
+
+
+
     // Process Voucher PDF Upload
     Route::post('/upload-barcode-pdf', [ProcessVoucherController::class, 'uploadAndExtract']);
     Route::post('/pdf-to-text', [ProcessVoucherController::class, 'uploadAndExtractMultiplepdf'])
@@ -439,6 +485,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::post('/pvcancel', [OrderController::class, 'pvCancel']);
     Route::get('/decline-voucher', [OrderController::class, 'declineVoucher'])->name('declineVoucher');
     Route::post('/voucher/re-accept/{voucher}', [OrderController::class, 'adminVoucherReAccept'])->name('admin.voucher.reaccept');
+    Route::post('/voucher/update-details', [OrderController::class, 'updateVoucherDetails'])->name('voucher.updateDetails');
 
     // Donor Voucher Orders
     Route::get('/donor-voucher-order/{id}', [OrderController::class, 'voucherinAdmin'])
@@ -469,6 +516,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     // Barcode Search & Delete
     Route::get('/get-voucher', [VouchersController::class, 'getVoucher'])->name('getVoucher');
     Route::post('/get-voucher', [VouchersController::class, 'getVoucher'])->name('voucherSearch');
+    Route::post('/delete-voucher', [VouchersController::class, 'deleteVoucher'])->name('deleteVoucher');
     Route::get('/barcode-delete', [VouchersController::class, 'getBarcode'])
         ->name('admin.getBarcode');
     Route::post('/barcode-delete', [VouchersController::class, 'getBarcode'])
@@ -507,6 +555,8 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     |----------------------------------------------------------------------
     */
     Route::get('/batch', [BatchController::class, 'index'])->name('admin.batches');
+    Route::get('/batch/data', [BatchController::class, 'getData'])->name('admin.batches.data'); 
+    Route::get('/batch/{id}/vouchers', [BatchController::class, 'getVouchers'])->name('admin.batches.vouchers'); 
     Route::post('/voucher-upload-barcode-image', [BatchController::class, 'uploadBarcode'])
         ->name('voucher.upload.barcode');
     Route::post('/batch/upload-pdf', [BatchController::class, 'uploadPdf'])
@@ -514,6 +564,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::get('/batch-edit/{id}', [BatchController::class, 'edit'])->name('admin.batchesEdit');
     Route::post('/pvoucher-update', [BatchController::class, 'pvoucherUpdate'])
         ->name('pvoucher.update');
+
 
     /*
     |----------------------------------------------------------------------
@@ -627,6 +678,19 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
         ->name('admin.audit.adjust');
     Route::post('/change-card-donor', [AdminController::class, 'changeRealDonor'])
         ->name('change.real.donor');
+
+    /*
+    |----------------------------------------------------------------------
+    | Donation and Voucher book routes for admin
+    |----------------------------------------------------------------------
+    */
+
+    Route::get('/guest-online-donation', [DonationController::class, 'guestOnlineDonations'])
+        ->name('admin.guestOnlineDonations');
+
+    Route::get('/guest-voucher-book', [GuestController::class, 'guestVoucherBookOrders'])
+        ->name('admin.guestVoucherBookOrders');
+
 
     /*
     |----------------------------------------------------------------------

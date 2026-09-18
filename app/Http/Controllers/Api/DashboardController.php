@@ -234,34 +234,21 @@ class DashboardController extends Controller
     // app version check
     public function userBalance()
     {
+        $user = auth()->user();
 
-        // donor balance
-        $userTransactionBalance = UserTransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', auth()->user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=', auth()->user()->id],
-                ['pending','=', '1']
-            ])
-            ->first();
-        // donor balance end
+        // Get balance from the User model's getLiveBalance() method
+        $balance = $user->getLiveBalance();
 
         $data = [
-                    'balance' => number_format($userTransactionBalance->balance, 2)
-                ];
-        
-        if($data == null){
-            $data = 'Data Not Found';
-        }
+            'balance' => number_format($balance, 2)
+        ];
+
         $responseArray = [
-            'status'=>'ok',
-            'data'=>$data
+            'status' => 'ok',
+            'data' => $data
         ]; 
-        return response()->json($responseArray,200);
+
+        return response()->json($responseArray, 200);
     }
 
     // address finder api

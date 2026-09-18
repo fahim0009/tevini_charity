@@ -37,6 +37,11 @@
         background-color: #212529 !important;
         color: #ffffff !important;
     }
+
+    /* Ensure all DataTables stretch full width */
+    table.dataTable {
+        width: 100% !important;
+    }
 </style>
 <div class="dashboard-content">
     <section class="profile purchase-status">
@@ -64,7 +69,7 @@
 
                 <div class="tab-content bg-white shadow-sm p-3" id="nav-tabContent">
                     
-                    {{-- 1. DAILY SUMMARY TAB (Optimized) --}}
+                    {{-- 1. DAILY SUMMARY TAB --}}
                     <div class="tab-pane fade" id="nav-summary" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="mb-0">Grouped Daily Totals</h5>
@@ -84,10 +89,9 @@
                                     <tr>
                                         <td>{{ \Carbon\Carbon::parse($summary->trans_date)->format('d/m/Y') }}</td>
                                         <td>{{ $summary->charity->name ?? 'Unknown Charity' }}</td>
-
                                         <td class="text-center">
                                             <div class="d-flex justify-content-center align-items-center gap-2">
-                                                <span class="badge  bg-primary text-white px-3 view-daily-details" 
+                                                <span class="badge bg-primary text-white px-3 view-daily-details" 
                                                     style="cursor: pointer;"
                                                     data-date="{{ $summary->trans_date }}"
                                                     data-formatted-date="{{ \Carbon\Carbon::parse($summary->trans_date)->format('d/m/Y') }}">
@@ -95,7 +99,6 @@
                                                 </span>
                                             </div>
                                         </td>
-
                                         <td class="text-end font-monospace fw-bold text-success">£{{ number_format($summary->total_amount, 2) }}</td>
                                     </tr>
                                     @endforeach
@@ -106,8 +109,7 @@
 
                     {{-- 2. TRANSACTION IN --}}
                     <div class="tab-pane fade show active" id="nav-transactionIn" role="tabpanel">
-                        
-                        <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
+                        <form id="searchFormIn" action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
                             @csrf
                             <div class="col-md-3">
                                 <label class="small">Date From</label>
@@ -121,10 +123,9 @@
                                 <button type="submit" class="btn btn-theme text-white w-100">Search</button>
                             </div>
                         </form>
-                        
 
                         <div class="overflow mt-3">
-                            <table class="table table-custom datatable-init">
+                            <table class="table table-custom" id="inTransactionsTable" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
@@ -136,109 +137,7 @@
                                         <th>Details</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @foreach ($intransactions as $transaction)
-                                    <tr>
-                                        <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
-                                        <td>{{ $transaction->user->name ?? 'N/A' }}</td>
-                                        <td>{{ $transaction->t_id }}</td>
-                                        <td>{{ $transaction->title }}</td>
-                                        <td>{{ $transaction->cheque_no }}</td>
-                                        <td>{{ number_format($transaction->amount, 2) }}</td>
-                                        <td>
-                                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#tranDetailModal{{ $transaction->id }}" title="View Details">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#18988B" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
-                                                    <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
-                                                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12z"/>
-                                                </svg>
-                                            </a>
-
-                                            {{-- Modal --}}
-                                            <div class="modal fade" id="tranDetailModal{{ $transaction->id }}" tabindex="-1" aria-labelledby="tranDetailLabel{{ $transaction->id }}" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content" style="background-color: #fdf3ee;">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title txt-secondary" id="tranDetailLabel{{ $transaction->id }}">Transaction Details</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <table class="table table-borderless mb-0">
-                                                                <tr>
-                                                                    <td class="text-muted">Date</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Transaction ID</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td><code>{{ $transaction->t_id }}</code></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Transaction Type</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->title }}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Charity Name</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->charity->name ?? 'N/A' }}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Donor</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->user->name ?? 'N/A' }}</td>
-                                                                </tr>
-                                                                @if($transaction->donation_by)
-                                                                <tr>
-                                                                    <td class="text-muted">Donate By</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->donation_by }}</td>
-                                                                </tr>
-                                                                @endif
-                                                                <tr>
-                                                                    <td class="text-muted fw-bold">Amount</td>
-                                                                    <td class="px-2 fw-bold">:</td>
-                                                                    <td class="fw-bold text-success">£{{ number_format($transaction->amount, 2) }}</td>
-                                                                </tr>
-                                                                @if($transaction->cheque_no)
-                                                                <tr>
-                                                                    <td class="text-muted">Voucher Number</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->cheque_no }}</td>
-                                                                </tr>
-                                                                @endif
-                                                                @if($transaction->note)
-                                                                <tr>
-                                                                    <td class="text-muted">Comment</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->note }}</td>
-                                                                </tr>
-                                                                @endif
-                                                                @if($transaction->standing_donationdetails_id && $transaction->standingdonationDetail && $transaction->standingdonationDetail->StandingDonation && $transaction->standingdonationDetail->StandingDonation->charitynote)
-                                                                <tr>
-                                                                    <td class="text-muted">Charity Note</td>
-                                                                    <td class="px-2">:</td>
-                                                                    <td>{{ $transaction->standingdonationDetail->StandingDonation->charitynote }}</td>
-                                                                </tr>
-                                                                @endif
-                                                                @if($transaction->barcode_image)
-                                                                <tr>
-                                                                    <td class="text-muted align-top">Barcode</td>
-                                                                    <td class="px-2 align-top">:</td>
-                                                                    <td>
-                                                                        <img src="{{ asset($transaction->barcode_image) }}" alt="Barcode Image" class="img-fluid" style="max-width: 250px;">
-                                                                    </td>
-                                                                </tr>
-                                                                @endif
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -252,7 +151,7 @@
 
                     {{-- 3. TRANSACTION OUT --}}
                     <div class="tab-pane fade" id="nav-transactionOut" role="tabpanel">
-                        <form action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
+                        <form id="searchFormOut" action="{{ route('charity.tranview_search', $id) }}" method="POST" class="row g-3 bg-light p-3 rounded mb-3">
                             @csrf
                             <div class="col-md-3">
                                 <label class="small">Date From</label>
@@ -267,7 +166,7 @@
                             </div>
                         </form>
                         <div class="overflow mt-3">
-                            <table class="table table-custom datatable-init">
+                            <table class="table table-custom" id="outTransactionsTable" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
@@ -278,34 +177,14 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @foreach ($outtransactions as $transaction)
-                                    <tr>
-                                        <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('d/m/Y') }}</td>
-                                        <td>{{ $transaction->t_id }}</td>
-                                        <td>{{ $transaction->name }}</td>
-                                        <td>{{ $transaction->note }}</td>
-                                        <td>{{ number_format($transaction->amount, 2) }}</td>
-                                        <td>
-                                            <div class="form-check form-switch d-flex justify-content-center">
-                                                <input class="form-check-input status-switch"
-                                                    type="checkbox"
-                                                    role="switch"
-                                                    id="status-{{ $transaction->id }}"
-                                                    data-id="{{ $transaction->id }}"
-                                                    @if($transaction->bank_payment_status) checked @endif >
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
 
                     {{-- 4. REPORTS --}}
                     <div class="tab-pane fade" id="nav-report" role="tabpanel">
-                        <table class="table table-custom datatable-init">
+                        <table class="table table-custom" id="reportsTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>SL</th>
@@ -313,15 +192,7 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach ($reports as $key => $report)
-                                <tr>
-                                    <td>{{ $key + 1 }}</td>
-                                    <td>{{ $report->created_at->format('d/m/Y H:i') }}</td>
-                                    <td><a class="btn btn-sm btn-theme text-white" href="{{ route('instreport', $report->id) }}">View Report</a></td>
-                                </tr>
-                                @endforeach
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
 
@@ -340,7 +211,7 @@
                         <div class="row justify-content-center mt-4">
                             <div class="col-md-12">
                                 <div class="table-responsive">
-                                    <table id="ledgerTable" class="table table-bordered table-striped">
+                                    <table id="ledgerTable" class="table table-bordered table-striped" style="width:100%">
                                         <thead>
                                             <tr class="table-dark">
                                                 <th>Date</th>
@@ -351,41 +222,7 @@
                                                 <th class="text-end">Balance</th>
                                             </tr>
                                         </thead>
-                                        <tfoot>
-                                            <tr class="table-info font-weight-bold">
-                                                <td colspan="5" class="text-end">Current Total Balance:</td>
-                                                <td class="text-end">{{ number_format($currentTotalBalance, 2) }}</td>
-                                            </tr>
-                                        </tfoot>
-                                        <tbody>
-                                            @foreach($finalLedger as $entry)
-                                                <tr>
-                                                    <td>
-                                                        {{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d H:i') }}
-                                                        @if($entry['credit'] > 0)
-                                                            <a href="javascript:void(0)" 
-                                                            class="text-primary ml-2 edit-date-btn" 
-                                                            data-id="{{ $entry['real_id'] }}" 
-                                                            data-date="{{ \Carbon\Carbon::parse($entry['date'])->format('Y-m-d\TH:i') }}"
-                                                            data-toggle="modal" 
-                                                            data-target="#editDateModal"
-                                                            title="Edit Date">
-                                                                <i class="fas fa-edit fa-sm"></i>
-                                                            </a>
-                                                        @endif
-                                                    </td>
-                                                    <td><code>{{ $entry['t_id'] }}</code> ({{ $entry['ut_status'] }})</td>
-                                                    <td>{{ $entry['description'] }}</td>
-                                                    <td class="text-danger text-end">
-                                                        {{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}
-                                                    </td>
-                                                    <td class="text-success text-end">
-                                                        {{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}
-                                                    </td>
-                                                    <td class="text-end"><strong>{{ number_format($entry['balance'], 2) }}</strong></td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -394,7 +231,7 @@
 
                     {{-- 6. PENDING VOUCHERS --}}
                     <div class="tab-pane fade" id="nav-pendingVoucher" role="tabpanel">
-                        <table class="table table-custom datatable-init">
+                        <table class="table table-custom" id="pendingVouchersTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -403,20 +240,7 @@
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach ($pvouchers as $voucher)
-                                <tr>
-                                    <td>{{ $voucher->created_at->format('d/m/Y') }}</td>
-                                    <td>{{ $voucher->user->name ?? 'N/A' }}</td>
-                                    <td>£{{ number_format($voucher->amount, 2) }}</td>
-                                    <td>
-                                        <span class="badge {{ $voucher->status == 0 ? 'bg-warning' : ($voucher->status == 1 ? 'bg-success' : 'bg-danger') }}">
-                                            {{ $voucher->status == 0 ? 'Pending' : ($voucher->status == 1 ? 'Complete' : 'Cancelled') }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
 
@@ -465,8 +289,7 @@
                         </table>
                     </div>
 
-                    {{-- 8. --}}
-
+                    {{-- 8. CHECK TRANSACTIONS --}}
                     <div class="tab-pane fade" id="check-trans" role="tabpanel">
                         <div class="accordion mt-4" id="transactionAccordion">
                             
@@ -478,7 +301,7 @@
                                 </h2>
                                 <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#transactionAccordion">
                                     <div class="accordion-body">
-                                        <table class="table table-custom" id="emailTable1">
+                                        <table class="table table-custom" id="checkTransOutTable" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Date</th>
@@ -489,28 +312,7 @@
                                                     <th class="text-right">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @foreach (\App\Models\Transaction::where('charity_id', $id)->orderby('id', 'DESC')->get() as $data)
-                                                <tr>
-                                                    <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                                    <td class="email-cell">
-                                                        @if($data->status == 0)
-                                                            <span class="badge bg-danger">{{ $data->t_id }}</span>
-                                                        @else
-                                                            {{ $data->t_id }}
-                                                        @endif
-                                                    </td>
-                                                    <td class="email-cell">{{ $data->t_type }}</td>
-                                                    <td class="email-cell">{{ $data->amount }}</td>
-                                                    <td class="email-cell">
-                                                        <span class="{{ $data->status == 0 ? 'text-danger fw-bold' : '' }}">
-                                                            {{ $data->status }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-right"></td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
+                                            <tbody></tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -524,7 +326,7 @@
                                 </h2>
                                 <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#transactionAccordion">
                                     <div class="accordion-body">
-                                        <table class="table table-custom" id="emailTable2">
+                                        <table class="table table-custom" id="checkTransInTable" style="width:100%">
                                             <thead>
                                                 <tr>
                                                     <th>Date</th>
@@ -535,28 +337,7 @@
                                                     <th class="text-right">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @foreach (\App\Models\Usertransaction::where('charity_id', $id)->orderby('id', 'DESC')->limit(200)->get() as $data)
-                                                <tr>
-                                                    <td>{{ \Carbon\Carbon::parse($data->created_at)->format('d/m/Y') }}</td>
-                                                    <td class="email-cell">
-                                                        @if($data->status == 0)
-                                                            <span class="badge bg-danger">{{ $data->t_id }}</span>
-                                                        @else
-                                                            {{ $data->t_id }}
-                                                        @endif
-                                                    </td>
-                                                    <td class="email-cell">{{ $data->t_type }}</td>
-                                                    <td class="email-cell">{{ $data->amount }}</td>
-                                                    <td class="email-cell">
-                                                        <span class="{{ $data->status == 0 ? 'text-danger fw-bold' : '' }}">
-                                                            {{ $data->status }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-right"></td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
+                                            <tbody></tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -589,15 +370,13 @@
                                 <th class="text-end">Amount</th>
                             </tr>
                         </thead>
-                        <tbody id="modal-body-content">
-                            </tbody>
+                        <tbody id="modal-body-content"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 
 <div class="modal fade" id="editDateModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -627,261 +406,332 @@
 </div>
 
 
+{{-- Single Dynamic Transaction Details Modal --}}
+<div class="modal fade" id="tranDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: #fdf3ee;">
+            <div class="modal-header">
+                <h5 class="modal-title txt-secondary">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-borderless mb-0" id="tranDetailTable">
+                    {{-- Populated via JS --}}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 @endsection
+
 @section('script')
 <script>
-$(document).ready(function() {
-    $('.edit-date-btn').on('click', function() {
+    window.appRoutes = {
+        inData: "{{ route('charity.transactions.in.data', $id) }}",
+        outData: "{{ route('charity.transactions.out.data', $id) }}",
+        ledgerData: "{{ route('charity.ledger.data', $id) }}",
+        reportsData: "{{ route('charity.reports.data', $id) }}",
+        pendingVouchersData: "{{ route('charity.pending.vouchers.data', $id) }}",
+        checkTransOutData: "{{ route('charity.check.trans.out.data', $id) }}",
+        checkTransInData: "{{ route('charity.check.trans.in.data', $id) }}",
+        emailStore: "{{ route('useremail.store') }}",
+        emailUpdate: "{{ route('charityemail.update') }}"
+    };
+    window.csrfToken = "{{ csrf_token() }}";
+</script>
+
+@verbatim
+<script>
+ $(document).ready(function() {
+    
+    // --- Daily Details Modal AJAX ---
+    $('.view-daily-details').on('click', function() {
+        const targetDate = $(this).data('date').toString();
+        const displayDate = $(this).data('formatted-date');
+        
+        $.ajax({
+            url: window.appRoutes.inData,
+            type: 'GET',
+            data: {
+                fromDate: targetDate,
+                toDate: targetDate,
+                length: 1000 
+            },
+            success: function(res) {
+                let rows = '';
+                if (res.data && res.data.length > 0) {
+                    res.data.forEach(trans => {
+                        rows += `
+                            <tr>
+                                <td>${trans.t_id || 'N/A'}</td>
+                                <td>${trans.cheque_no || 'N/A'}</td>
+                                <td>${trans.title || 'Charity Transaction'}</td>
+                                <td class="text-end fw-bold">£${parseFloat(trans.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    rows = '<tr><td colspan="4" class="text-center text-muted">No details found for this date.</td></tr>';
+                }
+                $('#modal-date-display').text(displayDate);
+                $('#modal-body-content').html(rows);
+                $('#dailyDetailsModal').modal('show');
+            },
+            error: function() {
+                alert('Error fetching daily details.');
+            }
+        });
+    });
+
+    // --- Transaction Details Modal ---
+    $(document).on('click', '.view-tran-btn', function() {
+        var data = $(this).data('json');
+        
+        var html = `
+            <tr>
+                <td class="text-muted">Date</td>
+                <td class="px-2">:</td>
+                <td>${data.date || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td class="text-muted">Transaction ID</td>
+                <td class="px-2">:</td>
+                <td><code>${data.t_id || 'N/A'}</code></td>
+            </tr>
+            <tr>
+                <td class="text-muted">Transaction Type</td>
+                <td class="px-2">:</td>
+                <td>${data.title || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td class="text-muted">Charity Name</td>
+                <td class="px-2">:</td>
+                <td>${data.charity || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td class="text-muted">Donor</td>
+                <td class="px-2">:</td>
+                <td>${data.user || 'N/A'}</td>
+            </tr>`;
+            
+        if (data.donation_by) {
+            html += `
+            <tr>
+                <td class="text-muted">Donate By</td>
+                <td class="px-2">:</td>
+                <td>${data.donation_by}</td>
+            </tr>`;
+        }
+        
+        html += `
+            <tr>
+                <td class="text-muted fw-bold">Amount</td>
+                <td class="px-2 fw-bold">:</td>
+                <td class="fw-bold text-success">£${data.amount || '0.00'}</td>
+            </tr>`;
+            
+        if (data.cheque_no) {
+            html += `
+            <tr>
+                <td class="text-muted">Voucher Number</td>
+                <td class="px-2">:</td>
+                <td>${data.cheque_no}</td>
+            </tr>`;
+        }
+        
+        if (data.note) {
+            html += `
+            <tr>
+                <td class="text-muted">Comment</td>
+                <td class="px-2">:</td>
+                <td>${data.note}</td>
+            </tr>`;
+        }
+        
+        if (data.charitynote) {
+            html += `
+            <tr>
+                <td class="text-muted">Charity Note</td>
+                <td class="px-2">:</td>
+                <td>${data.charitynote}</td>
+            </tr>`;
+        }
+        
+        if (data.barcode_image) {
+            html += `
+            <tr>
+                <td class="text-muted align-top">Barcode</td>
+                <td class="px-2 align-top">:</td>
+                <td>
+                    <img src="${data.barcode_image}" alt="Barcode Image" class="img-fluid" style="max-width: 250px;">
+                </td>
+            </tr>`;
+        }
+        
+        $('#tranDetailTable').html(html);
+        $('#tranDetailModal').modal('show');
+    });
+
+    // --- Edit Date Modal Trigger ---
+    $(document).on('click', '.edit-date-btn', function() {
         const id = $(this).data('id');
-        const date = $(this).data('date');
+        let date = $(this).data('date');
+        
+        if (date && date.length >= 16) {
+            date = date.substring(0, 10) + 'T' + date.substring(11, 16);
+        }
         
         $('#modal_transaction_id').val(id);
         $('#modal_date_input').val(date);
+        $('#editDateModal').modal('show');
     });
-});
-</script>
-<script>
-    $(document).ready(function() {
-        // 1. Convert the PHP Collection to a JS Object
-        const allTransactions = @json($intransactions);
 
-        $('.view-daily-details').on('click', function() {
-            const targetDate = $(this).data('date').toString(); // Ensure it's a string
-            const displayDate = $(this).data('formatted-date');
-            
-            console.log('Filtering for date:', targetDate);
-            console.log('Total pool size:', allTransactions.length);
+    // ==========================================
+    // YAJRA DATATABLES INITIALIZATIONS
+    // ==========================================
 
-            // 2. Filter transactions (Handling potential timestamp mismatches)
-            const filtered = allTransactions.filter(item => {
-                if (!item.created_at) return false;
-                // Split by ' ' or 'T' to handle different ISO formats and get YYYY-MM-DD
-                const itemDate = item.created_at.split(/[ T]/)[0]; 
-                return itemDate === targetDate;
-            });
+    var dtDom = '<"row"<"col-md-6"l><"col-md-6 text-end"f>>rtip';
 
-            console.log('Found matches:', filtered.length);
-
-            // 3. Populate the Modal
-            let rows = '';
-            if (filtered.length > 0) {
-                filtered.forEach(trans => {
-                    rows += `
-                        <tr>
-                            <td>${trans.t_id || 'N/A'}</td>
-                            <td>${trans.cheque_no || 'N/A'}</td>
-                            <td>${trans.note || 'Charity Transaction'}</td>
-                            <td class="text-end fw-bold">£${parseFloat(trans.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                rows = '<tr><td colspan="4" class="text-center text-muted">No details found for this date.</td></tr>';
+    $('#inTransactionsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: dtDom,
+        ajax: {
+            url: window.appRoutes.inData,
+            data: function (d) {
+                d.fromDate = $('#nav-transactionIn input[name="fromDate"]').val();
+                d.toDate = $('#nav-transactionIn input[name="toDate"]').val();
             }
-
-            $('#modal-date-display').text(displayDate);
-            $('#modal-body-content').html(rows);
-            
-            // 4. Show the Modal
-            $('#dailyDetailsModal').modal('show');
-        });
+        },
+        columns: [
+            { data: 'formatted_date', name: 'created_at' },
+            { data: 'donor_name', name: 'user.name' },
+            { data: 't_id', name: 't_id' },
+            { data: 'title', name: 'title' },
+            { data: 'cheque_no', name: 'cheque_no' },
+            { data: 'amount', name: 'amount' },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[0, 'desc']] // Sorts by Date descending
     });
-</script>
 
-<script>
-    $(document).ready(function() {
-
-        var title = 'Report: ';
-        var data = 'Data: ';
-
-
-        // datatable common
-        $('#reportDT').DataTable({
-            pageLength: 25,
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            responsive: true,
-            columnDefs: [ { type: 'date', 'targets': [0] } ],
-            order: [[ 0, 'desc' ]],
-            dom: '<"html5buttons"B>lTfgitp',
-            buttons: [
-                {extend: 'copy'},
-                {extend: 'excel', title: title},
-                {extend: 'print',
-                exportOptions: {
-                stripHtml: false
-            },
-                title: "<p style='text-align:center;'>"+data+"<br>"+title+"</p>",
-                header:true,
-                    customize: function (win){
-                    $(win.document.body).addClass('white-bg');
-                    $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                    .addClass('compact')
-                    .css('font-size', 'inherit');
-                }
-                }
-            ]
-        });
-
-    });
-</script>
-
-<script>
-$(document).ready(function(){
-
-    // -------------------
-    // Add Email (AJAX)
-    // -------------------
-    $("#addBtn").click(function(e){
-        e.preventDefault();
-
-        var email = $("#newemail").val();
-        var charity_id = $("#charity_id").val();
-
-        $.ajax({
-            url: "{{ route('useremail.store') }}",
-            type: "POST",
-            data: {
-                email: email,
-                charity_id: charity_id,
-                _token: "{{ csrf_token() }}"
-            },
-            success: function(res){
-
-                if(res.status == 200){                    
-                    $(".errmsg").html(`<div class="alert alert-success">${res.message}</div>`);
-
-                    $("#example tbody").prepend(`
-                        <tr id="row_${res.data.id}">
-                            <td>${res.data.date}</td>
-                            <td class="email_${res.data.id}">${res.data.email}</td>
-                            <td class="text-right">
-                                <button data-id="${res.data.id}" data-email="${res.data.email}" class="btn btn-sm btn-primary mr-1 editBtn">Edit</button>
-                                <form action="/useremail/${res.data.id}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-warning mr-1">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    `);
-
-                    $("#newemail").val("");
-                }
+    $('#outTransactionsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: dtDom,
+        ajax: {
+            url: window.appRoutes.outData,
+            data: function (d) {
+                d.fromDate = $('#nav-transactionOut input[name="fromDate"]').val();
+                d.toDate = $('#nav-transactionOut input[name="toDate"]').val();
             }
-        });
+        },
+        columns: [
+            { data: 'formatted_date', name: 'created_at' },
+            { data: 't_id', name: 't_id' },
+            { data: 'name', name: 'name' },
+            { data: 'note', name: 'note' },
+            { data: 'amount', name: 'amount' },
+            { data: 'status_switch', name: 'status_switch', orderable: false, searchable: false }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[0, 'desc']] // Sorts by Date descending
     });
 
-    // -------------------
-    // Get Edit Data
-    // -------------------
-    $("body").on("click", ".editBtn", function(){
-
-        var id = $(this).data("udid");
-        var email = $(this).data("email");
-
-        $("#update_id").val(id);
-        $("#newemail").val(email);
-
-        // Switch form buttons
-        $("#addBtn").addClass("d-none");
-        $("#updateBtn").removeClass("d-none");
-
+    $('#reportsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: dtDom,
+        ajax: window.appRoutes.reportsData,
+        columns: [
+            { data: 'id', name: 'id' },
+            { data: 'formatted_date', name: 'created_at' },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[1, 'desc']] // Sorts by Date descending (Column 1)
     });
 
-    // -------------------
-    // Update Email (AJAX)
-    // -------------------
-    $("#updateBtn").click(function(e){
-        e.preventDefault();
-
-        var id = $("#update_id").val();
-        var email = $("#newemail").val();
-
-        $.ajax({
-            url: "{{ route('charityemail.update') }}",
-            type: "POST",
-            data: {
-                id: id,
-                email: email,
-                _token: "{{ csrf_token() }}"
-            },
-            success: function(res){
-
-                if(res.status == 200){
-                    $(".errmsg").html(`<div class="alert alert-success">${res.message}</div>`);
-
-                    // Update email in table row
-                    $(".email_" + id).text(email);
-
-                    // reset form
-                    $("#newemail").val("");
-                    $("#update_id").val("");
-
-                    $("#updateBtn").addClass("d-none");
-                    $("#addBtn").removeClass("d-none");
-                }
-            }
-        });
-
+    $('#pendingVouchersTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: dtDom,
+        ajax: window.appRoutes.pendingVouchersData,
+        columns: [
+            { data: 'formatted_date', name: 'created_at' },
+            { data: 'user_name', name: 'user.name' },
+            { data: 'amount', name: 'amount' },
+            { data: 'status_badge', name: 'status_badge', orderable: false, searchable: false }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[0, 'desc']] // Sorts by Date descending
     });
 
-});
-</script>
-
-<script>
- $(document).ready(function() {
-    $(document).on('change', '.status-switch', function(e) {
-        e.preventDefault();
-        
-        var id = $(this).data('id');
-        var isChecked = $(this).is(':checked');
-        var $switch = $(this);
-        
-        $.ajax({
-            url:  '/admin/charity-tran/update-payment-status',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                id: id,
-                status: isChecked ? 1 : 0,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Success - keep the new state
-                    alert('Updated successfully');
-                } else {
-                }
-            },
-            error: function(xhr) {
-                $switch.prop('checked', !isChecked);
-                $switch.prop('disabled', false);
-                
-                console.log('=== DEBUG INFO ===');
-                console.log('Status Code:', xhr.status);
-                console.log('Response:', xhr.responseJSON);
-                console.log('Response Text:', xhr.responseText);
-                
-            }
-        });
+    $('#checkTransOutTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: dtDom,
+        ajax: window.appRoutes.checkTransOutData,
+        columns: [
+            { data: 'formatted_date', name: 'created_at' },
+            { data: 't_id_html', name: 't_id' },
+            { data: 't_type', name: 't_type' },
+            { data: 'amount', name: 'amount' },
+            { data: 'status', name: 'status' },
+            { data: null, name: 'action', orderable: false, searchable: false, defaultContent: '' }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[0, 'desc']] // Sorts by Date descending
     });
-});
-</script>
 
-<script>
-    // Ledger DataTable
- $(document).ready(function () {
+    $('#checkTransInTable').DataTable({
+        processing: true,
+        serverSide: true,
+        dom: dtDom,
+        ajax: window.appRoutes.checkTransInData,
+        columns: [
+            { data: 'formatted_date', name: 'created_at' },
+            { data: 't_id_html', name: 't_id' },
+            { data: 't_type', name: 't_type' },
+            { data: 'amount', name: 'amount' },
+            { data: 'status', name: 'status' },
+            { data: null, name: 'action', orderable: false, searchable: false, defaultContent: '' }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[0, 'desc']] // Sorts by Date descending
+    });
+
     $('#ledgerTable').DataTable({
-        responsive: true,
-        pageLength: 100,           // Show 100 rows per page
-        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]], // Page length options
-        order: [[0, 'desc']],      // Sort by Date descending (newest first)
+        processing: true,
+        serverSide: true,
+        ajax: window.appRoutes.ledgerData,
+        columns: [
+            { data: 'date', name: 'date' },
+            { data: 't_id', name: 't_id' },
+            { data: 'description', name: 'description' },
+            { data: 'debit', name: 'debit' },
+            { data: 'credit', name: 'credit' },
+            { data: 'balance', name: 'balance' },
+            { data: 'edit_btn', name: 'edit_btn', orderable: false, searchable: false }
+        ],
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 250, -1], [25, 50, 100, 250, "All"]],
+        order: [[0, 'desc']],
         autoWidth: false,
-        dom: '<"row mb-3"<"col-sm-6"l><"col-sm-6"f>>rtip', // Show length menu and search
+        dom: '<"row mb-3"<"col-sm-6"l><"col-sm-6"f>>rtip',
         columnDefs: [
-            { orderable: false, targets: [1, 2] }, // Disable sorting on Transaction ID and Description
-            { className: 'text-end', targets: [3, 4, 5] } // Right-align numeric columns
+            { orderable: false, targets: [1, 2, 6] },
+            { className: 'text-end', targets: [3, 4, 5] }
         ],
         language: {
             search: "",
@@ -896,25 +746,108 @@ $(document).ready(function(){
                 next: '<i class="fas fa-angle-right"></i>',
                 previous: '<i class="fas fa-angle-left"></i>'
             }
-        },
-        footerCallback: function (row, data, start, end, display) {
-            var api = this.api();
-
-            // Calculate totals for visible page only
-            var pageDebit = api.column(3, { page: 'current' }).data().reduce(function (a, b) {
-                return a + parseFloat(b.replace(/[^0-9.-]/g, '')) || 0;
-            }, 0);
-
-            var pageCredit = api.column(4, { page: 'current' }).data().reduce(function (a, b) {
-                return a + parseFloat(b.replace(/[^0-9.-]/g, '')) || 0;
-            }, 0);
-
-            // Update footer (optional - shows page totals)
-            // If you want to keep only Current Total Balance, remove this
         }
     });
+
+    $('#searchFormIn').on('submit', function(e) {
+        e.preventDefault();
+        $('#inTransactionsTable').DataTable().ajax.reload();
+    });
+
+    $('#searchFormOut').on('submit', function(e) {
+        e.preventDefault();
+        $('#outTransactionsTable').DataTable().ajax.reload();
+    });
+
+    // --- Email AJAX Logic ---
+    $("#addBtn").click(function(e){
+        e.preventDefault();
+        var email = $("#newemail").val();
+        var charity_id = $("#charity_id").val();
+
+        $.ajax({
+            url: window.appRoutes.emailStore,
+            type: "POST",
+            data: { email: email, charity_id: charity_id, _token: window.csrfToken },
+            success: function(res){
+                if(res.status == 200){                    
+                    $(".errmsg").html(`<div class="alert alert-success">${res.message}</div>`);
+                    $("#emailTable tbody").prepend(`
+                        <tr id="row_${res.data.id}">
+                            <td>${res.data.date}</td>
+                            <td class="email-cell">${res.data.email}</td>
+                            <td class="text-right">
+                                <button data-udid="${res.data.id}" data-email="${res.data.email}" class="btn btn-sm btn-outline-primary editBtn">Edit</button>
+                                <form action="/useremail/${res.data.id}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="_token" value="${window.csrfToken}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    `);
+                    $("#newemail").val("");
+                }
+            }
+        });
+    });
+
+    $("body").on("click", ".editBtn", function(){
+        var id = $(this).data("udid");
+        var email = $(this).data("email");
+        $("#update_id").val(id);
+        $("#newemail").val(email);
+        $("#addBtn").addClass("d-none");
+        $("#updateBtn").removeClass("d-none");
+    });
+
+    $("#updateBtn").click(function(e){
+        e.preventDefault();
+        var id = $("#update_id").val();
+        var email = $("#newemail").val();
+
+        $.ajax({
+            url: window.appRoutes.emailUpdate,
+            type: "POST",
+            data: { id: id, email: email, _token: window.csrfToken },
+            success: function(res){
+                if(res.status == 200){
+                    $(".errmsg").html(`<div class="alert alert-success">${res.message}</div>`);
+                    $("#newemail").val("");
+                    $("#update_id").val("");
+                    $("#updateBtn").addClass("d-none");
+                    $("#addBtn").removeClass("d-none");
+                }
+            }
+        });
+    });
+
+    // --- Status Switch AJAX ---
+    $(document).on('change', '.status-switch', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var isChecked = $(this).is(':checked');
+        var $switch = $(this);
+        
+        $.ajax({
+            url: '/admin/charity-tran/update-payment-status',
+            type: 'POST',
+            dataType: 'json',
+            data: { id: id, status: isChecked ? 1 : 0, _token: window.csrfToken },
+            success: function(response) {
+                if (response.success) {
+                    alert('Updated successfully');
+                }
+            },
+            error: function(xhr) {
+                $switch.prop('checked', !isChecked);
+                $switch.prop('disabled', false);
+                console.log('Error:', xhr.responseJSON);
+            }
+        });
+    });
+
 });
 </script>
-
-
+@endverbatim
 @endsection

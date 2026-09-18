@@ -235,11 +235,7 @@ use Illuminate\Support\Carbon;
                                             {{$transaction->note}}
                                         </td>
                                         <td class="fs-16 txt-secondary">
-                                            @if ($transaction->title == "Voucher")
                                             {{$transaction->cheque_no}}
-                                            @else
-                                            {{$transaction->t_id}}
-                                            @endif
                                         </td>
                                         <td class="fs-16 txt-secondary">
                                             £{{number_format($transaction->amount, 2)}}
@@ -271,7 +267,9 @@ use Illuminate\Support\Carbon;
                                 <th>Transaction Id</th>
                                 <th>Donor Name</th>
                                 <th>Source</th>
+                                <th>Note</th>
                                 <th>Gift Amount</th>
+                                <th>Amount</th>
                               </tr>
                           </thead>
                           <tbody>
@@ -284,7 +282,9 @@ use Illuminate\Support\Carbon;
                                 <td>{{ $gift->t_id }}</td>
                                 <td>{{$gift->user->name ?? ""}}</td>
                                 <td>{{ $gift->source}}</td>
-                                <td>£{{ $gift->amount}}</td>
+                                <td>{{ $gift->note}}</td>
+                                <td>£{{ $gift->commission }}</td>
+                                <td>£{{ $gift->amount + $gift->commission}}</td>
                             </tr>
                             @endforeach
 

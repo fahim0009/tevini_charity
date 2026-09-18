@@ -131,6 +131,12 @@
                             Cancel order list
                         </a>
                     </li>
+                    <li class="{{ (request()->is('admin/guest-voucher-book')) ? 'active' : '' }}">
+                        <a href="{{ route('admin.guestVoucherBookOrders') }}">
+                            <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                            Guest Order list
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -289,7 +295,14 @@
                 </a>
             </li>
 
-            
+            <li class="nav-item {{ (request()->is('admin/guest-online-donation')) ? 'active' : '' }}" >
+                <a href="{{ route('admin.guestOnlineDonations') }}">
+                    <span class="iconify" data-icon="icon-park-outline:transaction"></span>
+                    Guest Online Donation
+                </a>
+            </li>
+
+        
             <li class="nav-item {{ (request()->is('admin/settings*')) ? 'active' : '' }}" id="">
                 <a href="{{ route('admin.settings') }}">
                     <span class="iconify" data-icon="mdi:magnify"></span>

@@ -11,6 +11,8 @@ use App\Models\Charity;
 use App\Models\User;
 use App\Models\ContactMail;
 use App\Mail\DonationstandingReport;
+use App\Models\StandingdonationDetail;
+use App\Models\Usertransaction;
 use Auth;
 use Illuminate\Support\Facades\Http;
 
@@ -57,9 +59,40 @@ class StandingDonationController extends Controller
         $data->charitynote = $request->charitynote;
         $data->mynote = $request->mynote;
         $data->notification = 1;
-        $data->status = 0;
+        $data->status = 1;
 
         if($data->save()){
+
+            $doncaldetl = new StandingdonationDetail();
+            $doncaldetl->standing_donation_id = $data->id;
+            $doncaldetl->user_id = $data->user_id;
+            $doncaldetl->charity_id = $data->charity_id;
+            $doncaldetl->amount = $data->amount;
+            $doncaldetl->instalment_date = $request->starting;
+            $doncaldetl->instalment_mode = $request->payments_type == "1" ? "Fixed" : "continuous";
+            $doncaldetl->status = 0;
+            $doncaldetl->save();
+
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = time() . "-" . $data->user_id;
+            $utransaction->user_id = $data->user_id;
+            $utransaction->charity_id = $data->charity_id;
+            $utransaction->standing_donationdetails_id = $data->id;
+            $utransaction->t_type = "Out";
+            $utransaction->amount =   $data->amount;
+            $utransaction->title =  "Standing order donation";
+            $utransaction->status =  1;
+            $utransaction->save();
+
+            $user = User::find(Auth::user()->id);
+            $user->decrement('balance',$request->amount);
+            $user->save();
+
+            $charity = Charity::find($request->charity_id);
+            $charity->increment('balance',$request->amount);
+            $charity->save();
+
+
 
             $user = User::where('id',Auth::user()->id)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;

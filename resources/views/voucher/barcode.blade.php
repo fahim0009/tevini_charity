@@ -30,27 +30,38 @@
                         <h6 class="mb-0 fw-bold text-uppercase small tracking-wider text-muted">Customer & Delivery Info</h6>
                     </div>
                     <div class="card-body">
+                        <!-- Inside the Customer & Delivery Info Card -->
                         <div class="row">
                             <div class="col-sm-6">
                                 <label class="text-muted small d-block">Customer Name</label>
                                 <p class="fw-semibold">
-                                    @if ($user->profile_type == 'Personal')
-                                        {{$user->name}} {{$user->surname}}
+                                    @if ($user)
+                                        @if ($user->profile_type == 'Personal')
+                                            {{$user->name}} {{$user->surname}}
+                                        @else
+                                            {{$user->name}} <br>
+                                            <span class="text-muted small">(Donor: {{$user->surname}})</span>
+                                        @endif
                                     @else
-                                        {{$user->name}} <br>
-                                        <span class="text-muted small">(Donor: {{$user->surname}})</span>
+                                        {{-- Guest User --}}
+                                        {{$order->first_name}} {{$order->last_name}}
                                     @endif
                                 </p>
                                 
                                 <label class="text-muted small d-block">Email Address</label>
-                                <p>{{$user->email}}</p>
+                                <p>{{ $user ? $user->email : $order->email }}</p>
                             </div>
                             <div class="col-sm-6">
                                 <label class="text-muted small d-block">Shipping Address</label>
                                 <p class="small text-dark">
-                                    {{ $user->houseno }} {{ $user->street }}<br>
-                                    {{ $user->address_third_line }}<br>
-                                    {{ $user->town }}, {{ $user->postcode }}
+                                    @if ($user)
+                                        {{ $user->houseno }} {{ $user->street }}<br>                {{ $user->address_third_line }}<br>
+                                        {{ $user->town }}, {{ $user->postcode }}
+                                    @else
+                                        {{-- Guest User --}}
+                                        {{ $order->address_line_1 }}<br>                @if($order->address_line_2) {{ $order->address_line_2 }}<br> @endif
+                                        {{ $order->town }}, {{ $order->postcode }}
+                                    @endif
                                 </p>
                                 <label class="text-muted small d-block">Delivery Option</label>
                                 <span class="badge bg-light text-dark border">{{$order->delivery_option}}</span>
@@ -212,7 +223,7 @@
                     <label for="pages" class="form-label small text-muted">Enter Total Pages</label>
                     <input type="number" class="form-control form-control-lg" id="pages">
                     <input type="hidden" id="orderhisid2">
-                    <input type="hidden" value="{{ $user->id }}" id="user_id">
+                    <input type="hidden" value="{{ $user->id ?? '' }}" id="user_id">
                     <input type="hidden" id="voucherType">
                     <input type="hidden" id="mixedamount">
                 </div>

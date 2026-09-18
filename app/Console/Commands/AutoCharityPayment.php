@@ -7,48 +7,65 @@ use App\Models\Usertransaction;
 use App\Models\Transaction;
 use App\Models\Charity;
 use App\Models\ContactMail;
+use App\Models\CompanyDetail;
+use App\Models\CharityPaymentBatch;
 use Illuminate\Support\Facades\DB;
 use App\Mail\CharityDailyReport;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class AutoCharityPayment extends Command
 {
     protected $signature = 'payments:process-charity';
     protected $description = 'Consolidates daily balances and creates a single payment record per charity';
 
-
-
-
     public function handle()
     {
         set_time_limit(0);
-        Log::info("Payment Process: Starting charity payout for 16:30 rolling window.");
+        Log::info("Payment Process: Starting charity payout rolling window.");
 
-        // 1. Define the Rolling Time Window
-        // The "Base" is today at 16:30:00
-        $baseCutoff = now()->setTime(16, 30, 0);
+        // Fetch the dynamic payment time from CompanyDetail (default to 16:30 if not found)
+        $companyDetail = CompanyDetail::first();
+        $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
+        
+        $timeParts = explode(':', $autoPaymentTime);
+        $hour = (int) $timeParts[0];
+        $minute = (int) $timeParts[1];
 
-        // If this script runs before 16:30 today, we want to process the window that ended yesterday.
-        // This ensures we always target a "completed" window.
-        if (now()->lt($baseCutoff)) {
+        $now = now();
+        $baseCutoff = $now->copy()->setTime($hour, $minute, 0);
+
+        // If the script runs before the cutoff time today, we target yesterday's cutoff
+        if ($now->lt($baseCutoff)) {
             $baseCutoff->subDay();
         }
 
-        /**
-         * Start Time: Exactly 24 hours ago from the base cutoff (e.g., Yesterday 16:30:00)
-         * End Time: One second before the base cutoff (e.g., Today 16:29:59)
-         * This prevents a transaction at 16:30:00 from being counted in two different days.
-         */
-        $startTime = (clone $baseCutoff)->subDay(); 
-        $endTime   = (clone $baseCutoff)->subSecond(); 
+        $dayOfWeek = $baseCutoff->dayOfWeek; // 0 = Sunday, 6 = Saturday
+
+        // Weekend Logic: Skip processing if the cutoff lands on Saturday or Sunday.
+        // These will be processed together on Monday.
+        if (in_array($dayOfWeek, [0, 6])) { // 0=Sunday, 6=Saturday
+            Log::info("Payment Process: Skipped. Target cutoff is a weekend. Will process on Monday.");
+            return;
+        }
+
+        // Calculate Start and End Time based on the Day
+        $endTime = $baseCutoff->copy()->subSecond();
+
+        if ($dayOfWeek === Carbon::MONDAY) {
+            // If today is Monday, start from Friday's cutoff time to cover Fri, Sat, Sun
+            $startTime = $baseCutoff->copy()->subDays(3); 
+        } else {
+            // For other days, start exactly 24 hours ago
+            $startTime = $baseCutoff->copy()->subDay();
+        }
 
         Log::info("Processing Window: From {$startTime->toDateTimeString()} to {$endTime->toDateTimeString()}");
 
-        $contactmail = ContactMail::where('id', 1)->first()->name;
+        $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
-        // 2. Get transactions within the window
-
+        // Get transactions within the window
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
             ->where('status', 1)
             ->whereBetween('created_at', [$startTime, $endTime])
@@ -74,7 +91,6 @@ class AutoCharityPayment extends Command
                 continue;
             }
 
-            // Check for manual 'Out' transactions in this window
             $alreadyPaid = Transaction::where('charity_id', $charity->id)->where('status', 1)
                 ->where('t_type', 'Out')
                 ->whereBetween('created_at', [$startTime, $endTime])
@@ -85,6 +101,15 @@ class AutoCharityPayment extends Command
             if ($amountToPayNow > 0.01) {
                 try {
                     DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $startTime, $contactmail) {
+                        
+                        // Fetch the specific Usertransaction IDs for this window to save in the new table
+                        $userTransactions = Usertransaction::where('charity_id', $charity->id)
+                            ->where('status', 1)
+                            ->whereBetween('created_at', [$startTime, $endTime])
+                            ->get();
+                            
+                        $userTxIds = $userTransactions->pluck('id')->toArray();
+
                         // Create Payout Record
                         $transaction = new Transaction();
                         $transaction->t_id = "Out-" . time() . "-" . $charity->id;
@@ -98,10 +123,17 @@ class AutoCharityPayment extends Command
 
                         $charity->decrement('balance', $amountToPayNow);
 
+                        // Save data to the new tracking table
+                        CharityPaymentBatch::create([
+                            'charity_id'           => $charity->id,
+                            'transaction_id'       => $transaction->id,
+                            'last_payment_date'    => $endTime,
+                            'usertransactions_ids' => $userTxIds, // Saved as JSON automatically by model cast
+                            'amount'               => $amountToPayNow,
+                        ]);
+
                         // PDF Generation
-                        $details = Usertransaction::where('charity_id', $charity->id)->where('status', 1)
-                            ->whereBetween('created_at', [$startTime, $endTime])
-                            ->with(['user', 'donation'])->get();
+                        $details = $userTransactions->load(['user', 'donation']);
 
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
                             'charity' => $charity,
@@ -123,11 +155,10 @@ class AutoCharityPayment extends Command
                             'file'          => $filePath,
                         ];
 
-                        // 3. Queue the Emails (No more sleep timers!)
                         Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
                         Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
 
-                        Log::info("Payment Process: Success for {$charity->name}. Emails queued.");
+                        Log::info("Payment Process: Success for {$charity->name}. Emails queued. Batch saved.");
                     });
                 } catch (\Exception $e) {
                     Log::error("Payment Process: Failed for Charity {$charity->id}. Error: " . $e->getMessage());
@@ -137,6 +168,5 @@ class AutoCharityPayment extends Command
 
         Log::info("Payment Process: Completed for cut-off " . $endTime);
     }
-
 
 }

@@ -52,7 +52,7 @@
     
     <a href="{{ route('donor.vorderReport', $donor_id) }}" class="{{ (request()->is('admin/donor-voucher-report*')) ? 'actv' : '' }}"> Voucher Report </a>
 
-    <a href="{{ route('donor.donation', $donor_id) }}" class="{{ (request()->is('admin/make-donation*')) ? 'actv' : '' }}"> Online Doantion </a>
+    <a href="{{ route('donor.donation', $donor_id) }}" class="{{ (request()->is('admin/make-donation*')) ? 'actv' : '' }}"> Online Donation </a>
     <a href="{{ route('donor.report', $donor_id) }}" class="{{ (request()->is('admin/donor-report*')) ? 'actv' : '' }}"> Report </a>
     <a href="{{ route('donor.topupreport', $donor_id) }}" class="{{ (request()->is('admin/donor-topup-report*')) ? 'actv' : '' }}">Donation Receipt </a>
 

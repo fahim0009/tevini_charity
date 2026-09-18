@@ -114,8 +114,35 @@
                             <div>
                             <a href="{{ route('register') }}" class="btn-theme bg-secondary">Open an account</a>
                             <a href="{{ route('howitWorks') }}" class="btn-theme bg-primary">How it works</a>
-                            <a href="{{ route('onlineDonation') }}" class="btn-theme bg-primary">Online Donation</a>
-                            <a href="{{ route('orderVoucherBooks') }}" class="btn-theme bg-secondary">Voucher Book</a>
+                            {{-- <a href="{{ route('onlineDonation') }}" class="btn-theme bg-primary">Online Donation</a>
+                            <a href="{{ route('orderVoucherBooks') }}" class="btn-theme bg-secondary">Voucher Book</a> --}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="my-5">
+                        <div class="row my-5">
+                            <div class="col-lg-6 col-md-6 upperGap">
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <img src="{{ asset('assets/front/images/tevini helps you to help others-02 1.svg') }}" class="arrow">
+                                    </div>
+                                    <div class="col-lg-8">
+                                        <div class="paratitle">Voucher Book</div>
+                                        <a href="{{ route('orderVoucherBooks') }}" class="btn-theme bg-primary btn-line">Get Order</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 upperGap">
+                                <div class="row">
+                                    <div class="col-lg-4">
+                                        <img src="{{ asset('assets/front/images/tevini helps you to help others-04 1.svg') }}" class="arrow">
+                                    </div>
+                                    <div class="col-lg-8">
+                                        <div class="paratitle">Online Donation</div>
+                                        <a href="{{ route('onlineDonation') }}" class="btn-theme bg-primary btn-line">Make Donate</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -124,6 +151,7 @@
         </div>
     </div>
 </section>
+
 
 {{-- massas calcluter  --}}
 <section class="bleesed default">

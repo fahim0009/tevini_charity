@@ -9,6 +9,8 @@ class StandingdonationDetail extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
+
     public function user(){
         return $this->belongsTo('App\Models\User');
       }
@@ -22,8 +24,15 @@ class StandingdonationDetail extends Model
       }
 
       public function getInstalmentModeAttribute($value)
-    {
-        return $value === 'fiexed' ? 'fixed' : $value;
-    }
+      {
+          return $value === 'fiexed' ? 'fixed' : $value;
+      }
+
+
+      public  function usertransaction(){
+        return $this->hasOne('App\Models\UserTransaction', 'standing_donationdetails_id', 'id');
+      }
+
+
 
 }

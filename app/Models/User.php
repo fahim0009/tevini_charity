@@ -193,5 +193,16 @@ class User extends Authenticatable
     }
 
 
+    public function pendingVouchers()
+  {
+      return $this->hasMany(Provoucher::class, 'user_id')
+          ->where('waiting', 'No')
+          ->where('status', '0')
+          ->where(function ($q) {
+              $q->where('expired', '!=', 'Yes')
+                ->orWhereNull('expired');
+          });
+  }
+
 
 }

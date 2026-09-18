@@ -436,24 +436,35 @@ class DonationController extends Controller
 
         if($data->save()){
 
-            // $utransaction = new Usertransaction();
-            // $utransaction->t_id = time() . "-" . Auth::user()->id;
-            // $utransaction->user_id = Auth::user()->id;
-            // $utransaction->charity_id = $request->charity_id;
-            // $utransaction->donation_id = $data->id;
-            // $utransaction->t_type = "Out";
-            // $utransaction->amount =  $request->amount;
-            // $utransaction->title =  "Donation request confirmation";
-            // $utransaction->status =  1;
-            // $utransaction->save();
+            $doncaldetl = new StandingdonationDetail();
+            $doncaldetl->standing_donation_id = $data->id;
+            $doncaldetl->user_id = $data->user_id;
+            $doncaldetl->charity_id = $data->charity_id;
+            $doncaldetl->amount = $data->amount;
+            $doncaldetl->instalment_date = $request->starting;
+            $doncaldetl->instalment_mode = $request->payments_type == "1" ? "Fixed" : "continuous";
+            $doncaldetl->status = 0;
+            $doncaldetl->save();
 
-            // $user = User::find(Auth::user()->id);
-            // $user->decrement('balance',$request->amount);
-            // $user->save();
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = time() . "-" . $data->user_id;
+            $utransaction->user_id = $data->user_id;
+            $utransaction->charity_id = $data->charity_id;
+            $utransaction->standing_donationdetails_id = $data->id;
+            $utransaction->t_type = "Out";
+            $utransaction->amount =   $data->amount;
+            $utransaction->title =  "Standing order donation";
+            $utransaction->status =  1;
+            $utransaction->save();
 
-            // $charity = Charity::find($request->charity_id);
-            // $charity->increment('balance',$request->amount);
-            // $charity->save();
+
+            $user = User::find(Auth::user()->id);
+            $user->decrement('balance',$request->amount);
+            $user->save();
+
+            $charity = Charity::find($request->charity_id);
+            $charity->increment('balance',$request->amount);
+            $charity->save();
 
             $user = User::where('id',$userid)->first();
             $contactmail = ContactMail::where('id', 1)->first()->name;
@@ -806,7 +817,18 @@ class DonationController extends Controller
         }
     }
     
+    public function guestOnlineDonations()
+    {
+        // Eager load 'charity' to prevent N+1 query problem in the view
+        $donations = Donation::whereNull('user_id')
+            ->where('standing_order', 'false')
+            ->with('charity')
+            ->latest() // Orders by created_at DESC automatically
+            ->get();
 
+
+        return view('admin.onlineDonation.index', compact('donations'));
+    }
 
 
 

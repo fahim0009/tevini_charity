@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <link href="{{URL::to('/css/additional.css')}}" rel="stylesheet">
+<link href="{{URL::to('/css/additional.css')}}" rel="stylesheet">
 
 <div class="dashboard-content">
     <div class="container-fluid px-4">
@@ -36,104 +36,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($batches as $batch)
-                        <tr>
-                            <td><span class="text-muted small"><i class="far fa-calendar-alt me-1"></i> {{ $batch->date ? $batch->date->format('d-M-Y') : 'N/A' }}</span></td>
-                            <td>
-                                <div class="fw-bold">{{ $batch->charity->name }}</div>
-                                <div class="text-muted small">ID: #{{ $batch->charity->id }}</div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark border">#{{ $batch->batch_no }}</span>
-                            </td>
-                            <td class="fw-bold text-primary">£{{ number_format($batch->total_amount, 2) }}</td>
-                            <td class="text-end">
-                                <div class="d-flex flex-column align-items-end gap-2">
-                                    <button type="button" class="btn btn-sm btn-view-vouchers px-3" data-bs-toggle="modal" data-bs-target="#batchModal{{ $batch->id }}">
-                                        View Vouchers ({{ $batch->provoucher->count() }})
-                                    </button>
-                                    
-                                </div>
-
-                                <div class="modal fade" id="batchModal{{ $batch->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                                        <div class="modal-content border-0 shadow">
-                                            <div class="modal-header bg-light">
-                                                <h5 class="modal-title fw-bold">Batch #{{ $batch->batch_no }} - Items</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body p-0">
-                                                <table class="table table-hover align-middle mb-0">
-                                                    <thead class="bg-light sticky-top">
-                                                        <tr>
-                                                            <th class="ps-4">Cheque No</th>
-                                                            <th>Donor Acc</th>
-                                                            <th>Title</th>
-                                                            <th>Amount</th>
-                                                            <th>Cheque Image</th>
-                                                            <th class="pe-4">Added</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @forelse($batch->transaction as $voucher)
-                                                        <tr>
-                                                            <td class="ps-4 fw-medium">{{ $voucher->cheque_no }}</td>
-                                                            <td>{{ $voucher->user->name }}</td>
-                                                            <td class="small">{{ $voucher->title }}</td>
-                                                            <td class="fw-bold text-success">£{{ number_format($voucher->amount, 2) }}</td>
-                                                            <td>
-                                                                <div class="d-flex align-items-center gap-2" id="barcode-container-{{ $voucher->id }}">
-                                                                    @if($voucher->barcode_image)
-                                                                        <img src="{{ asset($voucher->barcode_image) }}" id="img-{{ $voucher->id }}" class="img-preview-thumb img-preview">
-                                                                    @else
-                                                                        <span class="text-muted small italic" id="text-{{ $voucher->id }}">None</span>
-                                                                    @endif
-                                                                    
-                                                                    <div class="file-upload-wrapper" style="width: 40px;">
-                                                                        <div class="file-upload-label p-1">
-                                                                            <i class="fas fa-upload small"></i>
-                                                                        </div>
-                                                                        <input type="file" class="file-upload-input barcode-input" data-id="{{ $voucher->id }}" accept="image/*">
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="pe-4 small text-muted">{{ $voucher->created_at->format('d/m/y') }}</td>
-                                                        </tr>
-                                                        @empty
-                                                        <tr><td colspan="6" class="text-center py-4">No vouchers found.</td></tr>
-                                                        @endforelse
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="d-flex flex-column align-items-end gap-2">
-                                    <div class="input-group input-group-sm justify-content-end" style="width: 250px;">
-                                        <div class="file-upload-wrapper me-1">
-                                            <div class="file-upload-label" id="pdf-label-{{ $batch->id }}">
-                                                <i class="fas fa-file-pdf text-danger"></i> <span class="text-truncate" style="max-width: 80px;">Select PDF</span>
-                                            </div>
-                                            <input type="file" class="file-upload-input pdf-input" id="pdf-{{ $batch->id }}" accept="application/pdf" data-id="{{ $batch->id }}">
-                                        </div>
-                                        <button class="btn btn-dark upload-pdf-btn" data-id="{{ $batch->id }}"  data-batch_no="{{ $batch->batch_no }}">Submit</button>
-                                    </div>
-                                    <small class="status-msg" id="status-{{ $batch->id }}"></small>
-                                </div>
-                            </td>
-
-                            <td>
-                                <div class="d-flex flex-column align-items-end gap-2">
-                                    <a href="{{ route('admin.batchesEdit', $batch->id)}}" class="btn btn-sm btn-view-vouchers px-3">Edit</a>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
+                        <!-- DataTables will inject rows here -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ONE Global Modal instead of hundreds -->
+<div class="modal fade" id="globalBatchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="globalBatchModalTitle">Batch - Items</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" id="globalBatchModalBody">
+                <div class="text-center p-5"><div class="spinner-border"></div></div>
             </div>
         </div>
     </div>
@@ -154,17 +74,55 @@
 
 @section('script')
 <script>
-$(document).ready(function () {
+ $(document).ready(function () {
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // Show selected filename for PDF
-    $('.pdf-input').on('change', function() {
+    // Initialize Yajra DataTables
+        // Initialize Yajra DataTables
+    var table = $('#donorexample').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('admin.batches.data') }}",
+        order: [[0, 'desc']], // Sorts index 0
+        columns: [
+            // Use name: 'created_at' so Yajra sorts by the correct DB column
+            { data: 'date', name: 'created_at' }, 
+            { data: 'charity_details', name: 'charity_details' },
+            { data: 'batch_no', name: 'batch_no' },
+            { data: 'total_amount', name: 'total_amount' },
+            { data: 'vouchers_btn', name: 'vouchers_btn', orderable: false, searchable: false },
+            { data: 'pdf_upload', name: 'pdf_upload', orderable: false, searchable: false },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ]
+    });
+    // Handle "View Vouchers" click to load modal via AJAX
+    $(document).on('click', '.btn-view-vouchers', function() {
+        let batchId = $(this).data('id');
+        console.log('Loading vouchers for batch ID:', batchId); // Debugging line
+        $('#globalBatchModalTitle').text('Loading Vouchers...');
+        $('#globalBatchModalBody').html('<div class="text-center p-5"><div class="spinner-border"></div></div>');
+        
+        $.ajax({
+            url: `/admin/batch/${batchId}/vouchers`,
+            success: function(html) {
+                // Extract batch_no from the returned HTML or pass it via data attribute
+                $('#globalBatchModalTitle').text('Batch Items');
+                $('#globalBatchModalBody').html(html);
+            },
+            error: function() {
+                $('#globalBatchModalBody').html('<div class="p-4 text-danger">Failed to load vouchers.</div>');
+            }
+        });
+    });
+
+    // Show selected filename for PDF (Delegate event for DataTables injected rows)
+    $(document).on('change', '.pdf-input', function() {
         let fileName = this.files[0] ? this.files[0].name : "Select PDF";
         let batchId = $(this).data('id');
         $(`#pdf-label-${batchId} span`).text(fileName);
     });
 
-    // Barcode Upload logic
+    // Barcode Upload logic (Delegate event for DataTables injected rows)
     $(document).on('change', '.barcode-input', function() {
         let id = $(this).data('id');
         let file = this.files[0];
@@ -195,8 +153,8 @@ $(document).ready(function () {
         });
     });
 
-    // PDF Upload logic
-    $('.upload-pdf-btn').on('click', function() {
+    // PDF Upload logic (Delegate event for DataTables injected rows)
+    $(document).on('click', '.upload-pdf-btn', function() {
         let batchId = $(this).data('id');
         let batch_no = $(this).data('batch_no');
         let fileInput = $('#pdf-' + batchId)[0];
@@ -228,7 +186,7 @@ $(document).ready(function () {
         });
     });
 
-    // Image Zoom
+    // Image Zoom (Delegate event for DataTables injected rows)
     $(document).on('click', '.img-preview', function() {
         $('#fullSizeImage').attr('src', $(this).attr('src'));
         $('#imagePreviewModal').modal('show');

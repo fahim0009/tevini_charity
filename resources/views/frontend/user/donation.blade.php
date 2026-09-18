@@ -115,7 +115,7 @@
             <div class="col-lg-6  px-3">
                 <h4 class="txt-dash mt-5">Account Balance</h4>
                 <h3 id="usertestID"></h3>
-                <h2 class="amount">{{ Auth::user()->getLiveBalance() }}
+                <h2 class="amount">{{ number_format(Auth::user()->getLiveBalance(), 2) }}
                     GBP</h2>
                     
                 <div class="row">

@@ -41,6 +41,7 @@
                                                         <th>Standing Order</th>
                                                         <th>Charity Note</th>
                                                         <th>Note</th>
+                                                        <th>Others</th>
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
@@ -59,13 +60,47 @@
                                                             @else
                                                                 No
                                                             @endif</td>
-                                                            <td>@if ($data->standing_order == "true")
+                                                            <td>@if ($data->standing_order == "true" || $data->standing_order == "on")
                                                                 Yes
                                                             @else
                                                                 No
                                                             @endif</td>
                                                             <td>{{$data->charitynote}}</td>
                                                             <td>{{$data->mynote}}</td>
+
+
+                                                            <td>
+                                                                Payment type: @if ($data->payments == 1)
+                                                                    Fixed number of payments
+                                                                @elseif ($data->payments == 2)
+                                                                    Continuous payments
+                                                                @else
+                                                                    {{ $data->payments }}
+                                                                @endif
+                                                                <br>
+                                                                Number of payments: @if ($data->payments == 1)
+                                                                    {{ $data->number_payments }}
+                                                                @else
+                                                                    N/A
+                                                                @endif
+                                                                <br>
+                                                                    Standing order: 
+                                                                        {{ $data->standing_order }}
+                                                                <br>Status: 
+                                                                        {{ $data->status }}
+                                                                <br>
+                                                                Interval: @if ($data->interval == 1)
+                                                                    Monthly
+                                                                @elseif ($data->interval == 3)
+                                                                    Every 3 months
+                                                                @elseif ($data->interval == 6)
+                                                                    Every 6 months
+                                                                @elseif ($data->interval == 12)
+                                                                    Yearly
+                                                                @else
+                                                                    {{ $data->interval }}
+                                                                @endif
+                                                            </td>
                                                             <td>
                                                                 <button type="button" class="btn btn-sm btn-warning edit-standing-btn"
                                                                         data-id="{{ $data->id }}"
@@ -79,6 +114,12 @@
                                                                         data-details="{{ json_encode($data->standingdonationDetail) }}">
                                                                     <span class="iconify" data-icon="clarity:edit-solid"></span>
                                                                 </button>
+                                                                    <!-- NEW VIEW BUTTON -->
+                                                                <button type="button" class="btn btn-sm btn-info view-donation-btn"
+                                                                        data-donation='{{ json_encode($data->toArray()) }}'>
+                                                                    <span class="iconify" data-icon="ep:view"></span>
+                                                                </button>
+
                                                             </td>
                                                            
                                                         </tr>
@@ -275,6 +316,29 @@
     </div>
 </div>
 
+<!-- View Donation Details Modal -->
+<div class="modal fade" id="viewDonationModal" tabindex="-1" aria-labelledby="viewDonationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewDonationModalLabel">
+                    <span class="iconify me-2" data-icon="icon-park-outline:transaction"></span>
+                    Donation Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="viewDonationContent">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @endsection
 
@@ -377,6 +441,95 @@
             }
         });
     });
+
+
+
+    // View Donation Modal - Show all attributes
+    $('.view-donation-btn').on('click', function() {
+        var donation = $(this).data('donation');
+
+        // Helper: format Yes/No for boolean-like fields
+        function boolLabel(val) {
+            if (val === "true" || val === 1 || val === "1" || val === "on" || val === true) return 'Yes';
+            if (val === "false" || val === 0 || val === "0" || val === false || val === null) return 'No';
+            return val;
+        }
+
+        // Helper: format status
+        function statusLabel(val) {
+            return val == 1
+                ? '<span class="badge bg-success">Active (1)</span>'
+                : '<span class="badge bg-secondary">Inactive (0)</span>';
+        }
+
+        // Helper: format payment type
+        function paymentTypeLabel(val) {
+            if (val == 1) return 'Fixed number of payments';
+            if (val == 2) return 'Continuous payments';
+            return val;
+        }
+
+        // Helper: format interval
+        function intervalLabel(val) {
+            const map = {1:'Monthly', 3:'Every 3 months', 6:'Every 6 months', 12:'Yearly'};
+            return map[val] || val;
+        }
+
+        // Build HTML table showing ALL attributes (exact same as dump output)
+        var rows = [
+            ['id',                donation.id],
+            ['user_id',           donation.user_id],
+            ['charity_id',        donation.charity_id],
+            ['amount',            '£' + donation.amount],
+            ['currency',          donation.currency],
+            ['ano_donation',      boolLabel(donation.ano_donation)],
+            ['standing_order',    boolLabel(donation.standing_order)],
+            ['payments',          paymentTypeLabel(donation.payments)],
+            ['number_payments',   donation.number_payments ?? 'N/A'],
+            ['payment_made',      donation.payment_made ?? 'N/A'],
+            ['starting',          donation.starting],
+            ['interval',          intervalLabel(donation.interval)],
+            ['charitynote',       donation.charitynote ?? '—'],
+            ['mynote',            donation.mynote ?? '—'],
+            ['notification',      boolLabel(donation.notification)],
+            ['status',            statusLabel(donation.status)],
+            ['updated_by',        donation.updated_by ?? 'null'],
+            ['created_by',        donation.created_by ?? 'null'],
+            ['created_at',        donation.created_at],
+            ['updated_at',        donation.updated_at],
+        ];
+
+        var html = `
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 35%;">Attribute</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        $.each(rows, function(i, row) {
+            html += `
+                <tr>
+                    <td class="fw-semibold text-primary">${row[0]}</td>
+                    <td>${row[1] !== undefined && row[1] !== null && row[1] !== '' ? row[1] : '<span class="text-muted">null</span>'}</td>
+                </tr>
+            `;
+        });
+
+        html += `</tbody></table></div>`;
+
+        $('#viewDonationContent').html(html);
+
+        var modal = new bootstrap.Modal(document.getElementById('viewDonationModal'));
+        modal.show();
+    });
+
+
+
 
 });
 </script>

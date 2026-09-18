@@ -162,10 +162,17 @@ class FrontendController extends Controller
             }
 
             // ── Calculate fee (server-side, never trust client) ──
-            $feeAmt         = $this->calcFee($baseAmount);
-            $totalChargeable = round($baseAmount + $feeAmt, 2);
+             $paymentMethod = $request->payment_method;
 
-            $paymentMethod = $request->payment_method;
+            // Fee is ONLY charged for Stripe (card) payments.
+            // Balance payments are free of the 6% admin charge.
+            if ($paymentMethod === 'balance') {
+                $feeAmt          = 0;
+                $totalChargeable = $baseAmount;
+            } else {
+                $feeAmt          = $this->calcFee($baseAmount);
+                $totalChargeable = round($baseAmount + $feeAmt, 2);
+            }
 
             \Log::info('Donation store — base: ' . $baseAmount . ', fee: ' . $feeAmt . ', total: ' . $totalChargeable . ', method: ' . $paymentMethod);
 

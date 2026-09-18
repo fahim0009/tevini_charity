@@ -35,6 +35,7 @@
                             </div>
                             <button class="btn btn-primary" id="vsrComplete" type="button">Complete</button>
                             <button class="btn btn-danger" id="vsrCancel" type="button">Cancel</button>
+                            <button class="btn btn-success" id="vsrBulkEdit" type="button">Edit</button>
                         </div>
 
                         <div class="col-md-12 mt-2 text-center">
@@ -50,6 +51,7 @@
                                             <th>Note</th>
                                             <th>Amount</th>
                                             <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -63,12 +65,74 @@
     </div>
   </section>
 </div>
+
+
+<!-- Voucher Edit Modal -->
+<div class="modal fade" id="editCharityModal" tabindex="-1" aria-labelledby="editCharityModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCharityModalLabel">Edit Voucher Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editing_voucher_id">
+        
+        <div class="form-group mb-2">
+            <label for="new_charity_id">Select Charity</label>
+            <select class="form-control select2" id="new_charity_id">
+                @foreach (\App\Models\Charity::all() as $charity)
+                    <option value="{{ $charity->id }}">{{ $charity->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="form-group mb-2">
+            <label for="new_donor_id">Select Donor</label>
+            <select class="form-control select2" id="new_donor_id">
+                @foreach (\App\Models\User::where('is_type','user')->get() as $donor)
+                    <option value="{{ $donor->id }}">{{ $donor->name }} {{ $donor->surname }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="form-group mb-2">
+            <label for="new_voucher_status">Change Status</label>
+            <select class="form-control" id="new_voucher_status">
+                <option value="Pending">Pending</option>
+                <option value="Waiting">Waiting</option>
+                <option value="Expired">Expired</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="new_note">Note</label>
+            <textarea class="form-control" id="new_note" rows="3" placeholder="Enter note..."></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveNewCharityBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @section('script')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script type="text/javascript">
 
 $(document).ready(function() {
+
+    $('#new_charity_id, #new_donor_id').select2({
+        width: '100%',
+        dropdownParent: $('#editCharityModal')
+    });
 
     $("#checkAll").click(function(){
     $('input:checkbox').not(this).prop('checked', this.checked);
@@ -197,7 +261,8 @@ function initDT() {
             { data: 'cheque_no' },
             { data: 'note' },
             { data: 'amount' },
-            { data: 'status' }
+            { data: 'status' },
+            { data: 'action', orderable: false, searchable: false } 
         ],
 
         buttons: [
@@ -260,6 +325,79 @@ function initDT() {
         ]
     });
 }
+
+
+// Edit Button Click Handler
+ $(document).on('click', '.editCharityBtn', function() {
+    var voucherId = $(this).data('voucher_id');
+    var currentCharity = $(this).data('current_charity');
+    var currentDonor = $(this).data('current_donor'); // 👈 NEW
+    var currentNote = $(this).data('current_note');
+    var currentStatus = $(this).data('current_status');
+    
+    $('#editing_voucher_id').val(voucherId);
+    $('#new_charity_id').val(currentCharity).trigger('change');
+    $('#new_donor_id').val(currentDonor).trigger('change'); // 👈 NEW
+    $('#new_note').val(currentNote);
+    $('#new_voucher_status').val(currentStatus);
+    
+    $('#editCharityModal').modal('show');
+});
+
+// Save Button Click Handler
+ $("#saveNewCharityBtn").click(function() {
+    $("#loading").show();
+    var voucherId = $('#editing_voucher_id').val();
+    var newCharityId = $('#new_charity_id').val();
+    var newDonorId = $('#new_donor_id').val(); // 👈 NEW
+    var newNote = $('#new_note').val();
+    var newStatus = $('#new_voucher_status').val();
+    
+    $.ajax({
+        url: "{{ route('voucher.updateDetails') }}",
+        method: "POST",
+        data: { 
+            voucher_id: voucherId, 
+            charity_id: newCharityId, 
+            donor_id: newDonorId, // 👈 NEW
+            note: newNote, 
+            voucher_status: newStatus 
+        },
+        success: function (d) {
+            $("#loading").hide();
+            if (d.status == 300) {
+                $("#editCharityModal").modal('hide');
+                $('#pendingTable').DataTable().ajax.reload(null, false); 
+            } else {
+                alert(d.message);
+            }
+        },
+        error: function (d) {
+            $("#loading").hide();
+            console.log(d);
+        }
+    });
+});
+
+// Bulk Edit Button Click
+ $("#vsrBulkEdit").click(function(){
+    var voucherIds = [];
+    $('.getvid:checkbox:checked').each(function(i){
+        voucherIds[i] = $(this).val();
+    });
+
+    if(voucherIds.length === 0){
+        alert("Please select at least one voucher to edit.");
+        return;
+    }
+
+    var idsString = voucherIds.join(',');
+    
+    var editUrl = "{{ route('voucher.bulkEdit') }}?ids=" + idsString;
+    window.location.href = editUrl;
+});
+
+
 </script>
 
 @endsection

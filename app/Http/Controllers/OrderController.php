@@ -1384,8 +1384,9 @@ class OrderController extends Controller
             $user = User::find($donorId);
             if (!$user) continue;
 
+            $standardAmount = $user->standard_amount ?: 500;
             $limit     = $user->getAvailableLimit();
-            $isPending = ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes' || $amount >= 500);
+            $isPending = ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes' || $amount >= $standardAmount);
 
 
             $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
@@ -1423,7 +1424,6 @@ class OrderController extends Controller
             $voucher->save();
 
             $charity = Charity::find($charityId);
-            $standardAmount = $user->standard_amount ?: 500;
 
             if ($user->ppv_account == 0 && $amount >= $standardAmount) {
                 $voucher->waiting              = 'Yes';
@@ -1432,7 +1432,8 @@ class OrderController extends Controller
                 $acceptUrl = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
                 $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
                 
-                $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl);
+                // $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl);
+                $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl, $barcodeImagePath);
             }
 
             if (!$isPending) {
@@ -1479,10 +1480,51 @@ class OrderController extends Controller
         return null;
     }
 
+
+    private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, string $charityName, string $acceptUrl, string $declineUrl, ?string $barcodeImagePath = null): void
+    {
+        try {
+            \Mail::send('mail.voucher_processed', [
+                'user'        => $user,
+                'charityName' => $charityName,
+                'voucher'     => $voucher,
+                'acceptUrl'   => $acceptUrl,
+                'declineUrl'  => $declineUrl,
+            ], function ($message) use ($user, $voucher, $barcodeImagePath) {
+                $message->to($user->email, $user->name)
+                        ->subject('Voucher Verification Required — #' . $voucher->cheque_no);
+                
+                if ($barcodeImagePath) {
+                    $absolutePath = public_path($barcodeImagePath);
+                    
+                    if (file_exists($absolutePath)) {
+                        $fileName = basename($absolutePath); 
+                        
+                        $message->attach($absolutePath, [
+                            'as' => 'voucher-' . $voucher->cheque_no . '-' . $fileName,
+                        ]);
+                    } else {
+                        \Log::warning('Barcode image not found for attachment', [
+                            'cheque_no' => $voucher->cheque_no,
+                            'path'      => $absolutePath
+                        ]);
+                    }
+                }
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send voucher verification email', [
+                'donor_id'  => $user->id,
+                'cheque_no' => $voucher->cheque_no,
+                'error'     => $e->getMessage(),
+            ]);
+        }
+    }
+
+
     /**
      * Send voucher verification email to the donor.
      */
-    private function sendVoucherProcessedEmail(User $user, Provoucher $voucher, string $charityName, string $acceptUrl, string $declineUrl): void
+    private function sendVoucherProcessedEmail2(User $user, Provoucher $voucher, string $charityName, string $acceptUrl, string $declineUrl): void
     {
         try {
             \Mail::send('mail.voucher_processed', [
@@ -1504,31 +1546,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Send voucher processed notification email to the donor.
-     */
-    private function sendVoucherProcessedEmail2(User $user, Provoucher $voucher, string $charityName, bool $isPending): void
-    {
 
-        try {
-            \Mail::send('mail.voucher_processed', [
-                'user'          => $user,
-                'charityName'   => $charityName,
-                'voucher'       => $voucher,
-                'isPending'     => $isPending,
-            ], function ($message) use ($user, $voucher, $isPending, $charityName) {
-                $message->to($user->email, $user->name)
-                        ->subject('Voucher #' . $voucher->cheque_no . ' — ' . ($isPending ? 'Pending Review' : 'Successfully Processed'));
-            });
-        } catch (\Exception $e) {
-            \Log::error('Failed to send voucher email to donor', [
-                'donor_id'  => $user->id,
-                'cheque_no' => $voucher->cheque_no,
-                'isPending' => $isPending,
-                'error'     => $e->getMessage(),
-            ]);
-        }
-    }
 
 
     private function errorResponse($message)
@@ -1677,18 +1695,7 @@ class OrderController extends Controller
     {
         if ($request->ajax()) {
             $id = $request->id;
-            $cvouchers = Provoucher::with(['charity','user'])
-                ->select('id','user_id','charity_id','created_at','amount','note','cheque_no','status')
-                ->where('waiting', 'No')
-                ->where(function ($q) {
-                    $q->where('expired', '!=', 'Yes')
-                    ->orWhereNull('expired');
-                })
-                ->where('status', '0')
-                ->when($request->id, function($q) use ($id){
-                    $q->where('user_id', $id);
-                })
-                ->orderBy('id','DESC');  
+            $cvouchers = Provoucher::pendingVouchers($id); 
 
             return DataTables::eloquent($cvouchers)
                 ->addColumn('checkbox', function ($row) {
@@ -1734,7 +1741,24 @@ class OrderController extends Controller
                         $order
                     );
                 })
-                ->rawColumns(['checkbox', 'status'])
+                ->addColumn('action', function($row) {
+                    $currentStatus = ($row->waiting == 'Yes') ? 'Waiting' : 'Pending';
+                    if ($row->expired == 'Yes') {
+                        $currentStatus = 'Expired';
+                    }
+                    
+                    $note = htmlspecialchars($row->note ?? '', ENT_QUOTES);
+
+                    return '<button class="btn btn-sm btn-warning editCharityBtn" 
+                                    data-voucher_id="'.$row->id.'" 
+                                    data-current_charity="'.$row->charity_id.'" 
+                                    data-current_donor="'.$row->user_id.'" 
+                                    data-current_note="'.$note.'" 
+                                    data-current_status="'.$currentStatus.'">
+                                <i class="fas fa-edit"></i>
+                            </button>';
+                })
+                ->rawColumns(['checkbox', 'status', 'action']) 
                 ->make(true);
         }
 
@@ -1986,7 +2010,8 @@ class OrderController extends Controller
             abort(404);
         }
 
-        $user = User::find($order->user_id);
+        // FIX: Only fetch user if user_id exists. Otherwise, $user will be null.
+        $user = $order->user_id ? User::find($order->user_id) : null;
 
         $orderDtls = OrderHistory::where('order_id', $id)->get();
 
@@ -2000,12 +2025,9 @@ class OrderController extends Controller
         $baseTime = time();
 
         foreach ($needsUpdate as $group) {
-
-            // Split into chunks of 4 rows
             $chunks = $group->chunk(4);
 
             foreach ($chunks as $index => $chunk) {
-
                 $first = $chunk->first();
 
                 $unique = $first->order_id
@@ -2017,7 +2039,6 @@ class OrderController extends Controller
             }
         }
 
-        // Reload updated data
         $orderDtls = OrderHistory::where('order_id', $id)->get();
 
         return view('voucher.barcode', compact('user', 'order', 'orderDtls'));
@@ -2027,12 +2048,14 @@ class OrderController extends Controller
     // download voucher book invoice
     public function downloadpostage($id)
     {
+        $order = Order::where('id', $id)->first();
         
-        $order = Order::where('id',$id)->first();
-        $user_id = $order->user_id;
-        $user = User::where('id','=', $user_id)->first();
-        $orderDtls = OrderHistory::where('order_id',  $id)->get();
-        $pdf = PDF::loadView('invoices.voucherbookpostage', compact('user','order','orderDtls'));
+        // FIX: Only fetch user if user_id exists. Otherwise, $user will be null.
+        $user = $order->user_id ? User::find($order->user_id) : null;
+
+        $orderDtls = OrderHistory::where('order_id', $id)->get();
+        
+        $pdf = PDF::loadView('invoices.voucherbookpostage', compact('user', 'order', 'orderDtls'));
         return $pdf->download('voucherbook_' . $order->id . '.pdf');
 
         // return view('invoices.voucherbookpostage', compact('user','order','orderDtls'));
@@ -2060,33 +2083,58 @@ class OrderController extends Controller
     }
 
         //get data using barcode
-        public function getbarCode(Request $request)
-        {
-            $orderDtl = Barcode::where('barcode', '=', $request->barcode)->first();
+        // Get data using barcode
+    public function getbarCode(Request $request)
+    {
+        $barcode = Barcode::with(['user', 'orderhistory.voucher'])
+            ->where('barcode', $request->barcode)
+            ->first();
 
-            $barcode = Barcode::with(['user', 'orderhistory.voucher'])
-                ->where('barcode', $request->barcode)
-                ->first();
+        // Check barcode exists
+        if (!$barcode) {
+            $message = "<div class='alert alert-danger'>
+                <a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
+                <b>No data found.</b>
+            </div>";
 
-            
-            $user = User::find($barcode->user_id);
-            $limitChk = $user->getAvailableLimit() ?? 0;
-
-            if ($limitChk < $barcode->amount ) {
-                $barcodeStatus = 'Will be pending';
-            } else {
-                $barcodeStatus = 'Will be complete';
-            }
-
-
-            if(empty($orderDtl)){
-                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>No data found.</b></div>";
-                return response()->json(['status'=> 303,'message'=>$message]);
-                exit();
-            }else{
-                return response()->json(['status'=> 300,'donorname'=>$orderDtl->user->name, 'donorid'=>$orderDtl->user_id,'donoracc'=>$orderDtl->user->accountno, 'amount'=>$orderDtl->amount, 'barcodeStatus'=>$barcodeStatus ?? '' ]);
-            }
+            return response()->json([
+                'status' => 303,
+                'message' => $message
+            ]);
         }
+
+        // Check user exists
+        $user = User::find($barcode->user_id);
+
+        if (!$user) {
+            $message = "<div class='alert alert-danger'>
+                <a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
+                <b>User not found for this barcode.</b>
+            </div>";
+
+            return response()->json([
+                'status' => 303,
+                'message' => $message
+            ]);
+        }
+
+        $limitChk = $user->getAvailableLimit() ?? 0;
+
+        if ($limitChk < $barcode->amount) {
+            $barcodeStatus = 'Will be pending';
+        } else {
+            $barcodeStatus = 'Will be complete';
+        }
+
+        return response()->json([
+            'status' => 300,
+            'donorname' => $user->name,
+            'donorid' => $barcode->user_id,
+            'donoracc' => $user->accountno,
+            'amount' => $barcode->amount,
+            'barcodeStatus' => $barcodeStatus
+        ]);
+    }
 
         public function getCharitybarCode_old(Request $request)
         {
@@ -2612,72 +2660,98 @@ public function watingvoucherCancel(Request $request)
 
     }
 
-    public function watingvoucherImageadd(Request $request)
-    {
-        $process_voucherId =$request->process_voucher_id;
+public function watingvoucherImageadd(Request $request)
+{
+    $process_voucherId = $request->process_voucher_id;
 
-        $image_record = ProvouchersImages::where('provouchers_id', $process_voucherId)->first();
+    // 1. Find the voucher to get its associated transaction ID
+    $voucher = Provoucher::find($process_voucherId);
 
-        if ($image_record) {
-            $Old_image_path = public_path('images/waiting_voucher/'.$image_record->image_name);
-            unlink($Old_image_path);
-            $image_record->delete();
-        }
-
-        if ($request->image) {
-            $file = $request->image;
-            if($file != null){
-            $originalName = $file->getClientOriginalName();
-            $filename = $process_voucherId . '_' . $originalName;
-
-            $request->image->move(public_path('images/waiting_voucher'), $filename);
-
-            // Insert a record in the database with the unique filename and the unique ID
-            $image = new ProvouchersImages();
-            $image->image_name = $filename;
-            $image->provouchers_id = $process_voucherId;
-            $image->save();
-            }
-        }
-
-        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>File added successfully.</b></div>";
-        return response()->json(['status'=> 300,'message'=>$message]);
-
+    if (!$voucher) {
+        $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher not found.</b></div>";
+        return response()->json(['status' => 303, 'message' => $message]);
     }
 
+    $image_record = ProvouchersImages::where('provouchers_id', $process_voucherId)->first();
 
-    public function watingvoucherMail(Request $request)
+    if ($image_record) {
+        $Old_image_path = public_path('images/waiting_voucher/' . $image_record->image_name);
+        if (file_exists($Old_image_path)) {
+            unlink($Old_image_path);
+        }
+        $image_record->delete();
+    }
+
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $originalName = $file->getClientOriginalName();
+        $filename = $process_voucherId . '_' . $originalName;
+
+        // Move the new file
+        $file->move(public_path('images/waiting_voucher'), $filename);
+
+        // Save to relative path format so asset() works properly in Blade
+        $imagePath = 'images/waiting_voucher/' . $filename;
+
+        // Insert a record in the database
+        $image = new ProvouchersImages();
+        $image->image_name = $filename;
+        $image->provouchers_id = $process_voucherId;
+        $image->save();
+
+        // 2. Update the Usertransaction table with the new image path
+        if ($voucher->tran_id) {
+            $transaction = Usertransaction::find($voucher->tran_id);
+            
+            if ($transaction) {
+                // Optional: delete the old barcode image if it exists
+                if ($transaction->barcode_image && file_exists(public_path($transaction->barcode_image))) {
+                    unlink(public_path($transaction->barcode_image));
+                }
+
+                $transaction->barcode_image = $imagePath;
+                $transaction->save();
+            }
+        }
+    }
+
+    $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>File added successfully.</b></div>";
+    return response()->json(['status' => 300, 'message' => $message]);
+}
+
+
+public function watingvoucherMail(Request $request)
+{
+    if(empty($request->voucherIds)){
+        $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
+        return response()->json(['status'=> 303,'message'=>$message]);
+        exit();
+    }
+
+    $donor_ids = $request->donorIds;
+    $voucher_ids = $request->voucherIds;
+
+    $result = [];
+
+    $index = 0;
+    foreach( $donor_ids as $key => $value ){
+        $result[$value][] = $voucher_ids[$index];
+        $index++;
+    }
+
+    foreach($result as $donor_id => $vchr_ids)
     {
-     if(empty($request->voucherIds)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        $donor_ids = $request->donorIds;
-        $voucher_ids = $request->voucherIds;
-
-        $result = [];
-
-        $index = 0;
-        foreach( $donor_ids as $key => $value ){
-            $result[$value][] = $voucher_ids[$index];
-            $index++;
-        }
-
-
-        foreach($result as $donor_id => $vchr_ids)
-        {
-
-        $image_records = ProvouchersImages::whereIn('provouchers_id', $vchr_ids)->get(); 
+        // Get the vouchers
+        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+        $donor = User::where('id','=',$donor_id)->first();
 
         $image_attachments = [];
 
+        // 1. Fetch images from ProvouchersImages table (Uploaded files)
+        $image_records = ProvouchersImages::whereIn('provouchers_id', $vchr_ids)->get(); 
         foreach ($image_records as $image_record) {
             $image_path = public_path('images/waiting_voucher/'.$image_record->image_name);
-    
             if (file_exists($image_path)) {
-                // If the image file exists, add it as an attachment to the email
                 $image_attachments[] = [
                     'path' => $image_path,
                     'name' => $image_record->image_name,
@@ -2685,10 +2759,24 @@ public function watingvoucherCancel(Request $request)
             }
         }
 
-
-
-        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-        $donor = User::where('id','=',$donor_id)->first();
+        // 2. Fetch barcode images from Usertransaction table
+        $transaction_ids = $remittances->pluck('tran_id')->filter()->unique();
+        if ($transaction_ids->isNotEmpty()) {
+            $transactions = Usertransaction::whereIn('id', $transaction_ids)->get();
+            
+            foreach ($transactions as $transaction) {
+                if (!empty($transaction->barcode_image)) {
+                    $barcode_path = public_path($transaction->barcode_image);
+                    
+                    if (file_exists($barcode_path)) {
+                        $image_attachments[] = [
+                            'path' => $barcode_path,
+                            'name' => basename($transaction->barcode_image), // gets just the filename
+                        ];
+                    }
+                }
+            }
+        }
 
         $pdf = PDF::loadView('invoices.waiting_vreport', compact('remittances','donor'));
         $output = $pdf->output();
@@ -2710,17 +2798,15 @@ public function watingvoucherCancel(Request $request)
         Mail::to($email)
         ->cc($contactmail)
         ->send(new WaitingvoucherReport($array));
-        }
+    }
 
     $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Send mail to donor successfully.</b></div>";
     return response()->json(['status'=> 300,'message'=>$message]);
-
-    }
-
+}
 
 
 
-    public function orderStatus(Request $request)
+    public function orderStatus2(Request $request)
     {
 
         if($request->status == "3"){
@@ -2829,6 +2915,144 @@ public function watingvoucherCancel(Request $request)
 
     }
 
+    public function orderStatus(Request $request)
+    {
+        // Fetch the order once at the beginning
+        $order = Order::find($request->orderId);
+
+        if (!$order) {
+            return response()->json(['status' => 404, 'message' => 'Order not found.']);
+        }
+
+        // 1. Handle Cancellation (Status 3)
+        if ($request->status == "3") {
+            $orders = OrderHistory::where('order_id', $request->orderId)->get();
+
+            foreach ($orders as $ord) {
+                $voucher = Voucher::where('id', $ord->voucher_id)->first();
+
+                if ($voucher && $voucher->type == "Prepaid") {
+                    $amount = $voucher->amount;
+
+                    // FIX: Only refund if a registered user exists
+                    if ($order->user_id) {
+                        $donor = User::find($order->user_id);
+                        if ($donor) {
+                            $donor->increment('balance', $amount * $ord->number_voucher);
+                            $donor->save();
+                            Usertransaction::where(['order_id' => $request->orderId])->update(['status' => '0']);
+                        }
+                    } else {
+                        // Guest user: No balance to refund in the system. 
+                        // (Refund must be handled manually via Stripe/payment gateway)
+                        \Log::info("Order #{$order->order_id} cancelled. Guest user refund skipped.");
+                    }
+                }
+            }
+        }
+
+        // 2. Update Order Status
+        $order->status = $request->status;
+
+        if ($order->save()) {
+            
+            // 3. Handle Completion (Status 1)
+            if ($request->status == 1) {
+                
+                foreach ($order->orderhistories as $key => $orderhistories) {
+                    $chkvoucher = Voucher::where('id', $orderhistories->voucher_id)->first();
+
+                    // Define the mapping of single_amount to accountno
+                    $accountMapping = [
+                        '0.50' => '000',
+                        '1.00' => '1111',
+                        '2.00' => '222',
+                        '3.00' => '333',
+                        '5.00' => '5555',
+                    ];
+
+                    $lookupKey = number_format((float)$chkvoucher->single_amount, 2, '.', '');
+                    $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+                    
+                    if ($targetAccountNo) {
+                        $targetUser = User::where('accountno', $targetAccountNo)->first();
+                        
+                        if ($targetUser) {
+                            $creditAmount = $orderhistories->amount;
+
+                            // Create Global Transaction (In)
+                            $transaction = new Transaction();
+                            $transaction->t_id = "In-" . time() . "-" . $targetUser->id;
+                            $transaction->user_id = $targetUser->id;
+                            $transaction->t_type = "In";
+                            $transaction->amount = $creditAmount;
+                            $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                            $transaction->status = "1";
+                            $transaction->save();
+
+                            // Create User Transaction for the System Account (In)
+                            $utransactionIn = new Usertransaction();
+                            $utransactionIn->t_id = $transaction->t_id;
+                            $utransactionIn->user_id = $targetUser->id;
+                            $utransactionIn->t_type = "In";
+                            $utransactionIn->amount = $creditAmount;
+                            $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                            $utransactionIn->title = 'Credit';
+                            $utransactionIn->status = 1;
+                            $utransactionIn->order_id = $order->id;
+                            $utransactionIn->save();
+
+                            // Update the System User's actual balance
+                            $targetUser->increment('balance', $creditAmount);
+
+                            \Log::warning('Step 1 Success: Target user found', [
+                                'account_no' => $targetAccountNo
+                            ]);
+                        } else {
+                            \Log::warning('Step 2 Failed: Target user not found', [
+                                'account_no' => $targetAccountNo
+                            ]);
+                        }
+                    } else {
+                        \Log::warning('Step 1 Failed: Target account not found in mapping', [
+                            'available_mappings' => array_keys($accountMapping)
+                        ]);
+                    }
+                }
+
+                // --- Email Logic ---
+                $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
+                $array['subject'] = 'Voucher order complete';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['cc'] = $contactmail;
+                $array['order'] = $order; // Pass order to mail view if needed
+
+                // FIX: Check if registered user or guest
+                if ($order->user_id) {
+                    // Registered User
+                    $donor = User::find($order->user_id);
+                    $array['name'] = $donor->name;
+                    $email = $donor->email;
+                } else {
+                    // Guest User
+                    $array['name'] = $order->first_name;
+                    $email = $order->email;
+                }
+
+                Mail::to($email)
+                    ->cc($contactmail)
+                    ->send(new VoucherOrderBookStatusMail($array));
+            }
+
+            $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Order status change successfully.</b></div>";
+            
+            return response()->json([
+                'status'  => 300,
+                'message' => $message,
+                'order'   => $order->orderhistories
+            ]);
+        }
+    }
 
     public function newOrder(Request $request)
     {
@@ -2838,6 +3062,7 @@ public function watingvoucherCancel(Request $request)
             
 
             $orders = Order::with('user')
+                ->whereNotNull('user_id')
                 ->select('id','user_id','order_id','amount','status','created_at', 'delivery_option', 'delivery_charge')
                 ->where('status', '0')
                 ->when($request->delivery_option, function ($query) use ($request) {
@@ -2881,6 +3106,7 @@ public function watingvoucherCancel(Request $request)
         if ($request->ajax()) {
 
             $orders = Order::with('user')
+                ->whereNotNull('user_id')
                 ->select('id','user_id','order_id','amount','status','created_at')
                 ->where('status', '1')
                 ->orderBy('id', 'DESC'); 
@@ -2920,6 +3146,7 @@ public function watingvoucherCancel(Request $request)
         if ($request->ajax()) {
 
             $orders = Order::with('user')
+                ->whereNotNull('user_id')
                 ->select('id','user_id','order_id','amount','status','created_at')
                 ->where('status', '3')
                 ->orderBy('id', 'DESC'); 
@@ -3184,63 +3411,301 @@ public function watingvoucherCancel(Request $request)
         return view('voucher.declineVoucher')->with('wvouchers', $wvouchers);
     }
 
-/**
- * Admin re-accept a cancelled voucher
- */
-public function adminVoucherReAccept(Provoucher $voucher)
-{
-    // Only allow re-accepting cancelled (status 3) vouchers
-    if ($voucher->status !== 3) {
+    /**
+     * Admin re-accept a cancelled voucher
+     */
+    public function adminVoucherReAccept(Provoucher $voucher)
+    {
+        // Only allow re-accepting cancelled (status 3) vouchers
+        if ($voucher->status !== 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This voucher cannot be re-accepted.'
+            ], 400);
+        }
+
+        $user = User::findOrFail($voucher->user_id);
+
+        // Check available balance
+        if ($user->getAvailableLimit() < $voucher->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient user balance to accept this voucher.'
+            ], 400);
+        }
+
+        DB::transaction(function () use ($voucher) {
+            // Update transaction status
+            Usertransaction::where('id', $voucher->tran_id)->update([
+                'status'  => 1,
+                'pending' => 1,
+                'expired' => null,
+            ]);
+
+            // Update voucher status
+            Provoucher::where('id', $voucher->id)->update([
+                'status'  => 1,
+                'waiting' => "No",
+                'expired' => null,
+            ]);
+
+            // Update balances
+            Charity::where('id', $voucher->charity_id)
+                ->increment('balance', $voucher->amount);
+
+            User::where('id', $voucher->user_id)
+                ->decrement('balance', $voucher->amount);
+        });
+
+        \Log::info('Voucher re-accepted by admin', [
+            'voucher_id' => $voucher->id,
+            'cheque_no'  => $voucher->cheque_no,
+            'amount'     => $voucher->amount,
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => 'This voucher cannot be re-accepted.'
-        ], 400);
+            'success' => true,
+            'message' => 'Voucher #' . $voucher->id . ' has been re-accepted successfully.'
+        ]);
     }
 
-    $user = User::findOrFail($voucher->user_id);
 
-    // Check available balance
-    if ($user->getAvailableLimit() < $voucher->amount) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Insufficient user balance to accept this voucher.'
-        ], 400);
-    }
+    public function updateVoucherDetails(Request $request)
+    {
+        $request->validate([
+            'voucher_id'     => 'required|exists:provouchers,id',
+            'charity_id'     => 'required|exists:charities,id',
+            'donor_id'       => 'required|exists:users,id', // 👈 NEW Validation
+            'voucher_status' => 'required|in:Pending,Waiting,Expired',
+            'note'           => 'nullable|string',
+        ]);
 
-    DB::transaction(function () use ($voucher) {
-        // Update transaction status
+        $voucher = Provoucher::find($request->voucher_id);
+
+        if ($voucher->status != 0) {
+            return response()->json([
+                'status'  => 303,
+                'message' => 'Completed vouchers cannot be edited.'
+            ]);
+        }
+
+        $oldValues = [
+            'charity_id' => $voucher->charity_id,
+            'user_id'    => $voucher->user_id, // 👈 NEW
+            'note'       => $voucher->note,
+            'waiting'    => $voucher->waiting,
+            'expired'    => $voucher->expired,
+        ];
+
+        $isWaiting = $request->voucher_status === 'Waiting';
+        $isExpired = $request->voucher_status === 'Expired';
+
+        // Update Voucher
+        $voucher->charity_id = $request->charity_id;
+        $voucher->user_id    = $request->donor_id; // 👈 NEW
+        $voucher->note       = $request->note;
+        $voucher->waiting    = $isWaiting ? 'Yes' : 'No';
+        $voucher->expired    = $isExpired ? 'Yes' : 'No';
+        $voucher->status     = 0; 
+        $voucher->save();
+
+        // Update Transaction
         Usertransaction::where('id', $voucher->tran_id)->update([
-            'status'  => 1,
-            'pending' => 1,
-            'expired' => null,
+            'charity_id' => $request->charity_id,
+            'user_id'    => $request->donor_id, // 👈 NEW
+            'pending'    => $isWaiting ? 0 : 1, 
+            'status'     => 0,
+            'expired'    => $isExpired ? 0 : 1,
         ]);
 
-        // Update voucher status
-        Provoucher::where('id', $voucher->id)->update([
-            'status'  => 1,
-            'waiting' => "No",
-            'expired' => null,
+        \Log::info('Voucher details updated', [
+            'voucher_id'  => $voucher->id,
+            'cheque_no'   => $voucher->cheque_no,
+            'updated_by'  => auth()->check() ? auth()->user()->name . ' (ID: ' . auth()->id() . ')' : 'System',
+            'old_values'  => $oldValues,
+            'new_values'  => [
+                'charity_id' => $voucher->charity_id,
+                'user_id'    => $voucher->user_id, // 👈 NEW
+                'note'       => $voucher->note,
+                'waiting'    => $voucher->waiting,
+                'expired'    => $voucher->expired,
+            ],
+            'transaction_id' => $voucher->tran_id,
         ]);
 
-        // Update balances
-        Charity::where('id', $voucher->charity_id)
-            ->increment('balance', $voucher->amount);
+        return response()->json([
+            'status'  => 300,
+            'message' => 'Voucher details updated successfully.'
+        ]);
+    }
 
-        User::where('id', $voucher->user_id)
-            ->decrement('balance', $voucher->amount);
-    });
 
-    \Log::info('Voucher re-accepted by admin', [
-        'voucher_id' => $voucher->id,
-        'cheque_no'  => $voucher->cheque_no,
-        'amount'     => $voucher->amount,
-    ]);
+    public function bulkEdit(Request $request)
+    {
+        $ids = explode(',', $request->ids);
+        
+        $vouchers = Provoucher::whereIn('id', $ids)->get();
+        
+        $charities = Charity::all();
+        $donors = User::where('is_type', 'user')->where('status', '1')->get();
+        return view('voucher.bulk-edit', compact('vouchers', 'charities', 'donors'));
+    }
+
+
+public function bulkUpdate(Request $request)
+{
+    $voucherIds = $request->input('voucher_id', []);
+    $charityIds = $request->input('charity', []);
+    $donorIds   = $request->input('donor', []);
+    $donorAccs  = $request->input('donor_acc', []);
+    $chqNos     = $request->input('check', []);
+    $amts       = $request->input('amount', []);
+    $notes      = $request->input('note', []);
+    $waitings   = $request->input('waiting', []);
+    $expireds   = $request->input('expired', []);
+
+    if (empty($voucherIds)) {
+        return response()->json(['status' => 303, 'message' => 'No vouchers selected for update.']);
+    }
+
+    $duplicateCheques = array_filter(array_count_values($chqNos), fn($c) => $c > 1);
+    if (!empty($duplicateCheques)) {
+        return response()->json([
+            'status' => 303, 
+            'message' => "Voucher " . array_key_first($duplicateCheques) . " is entered more than once."
+        ]);
+    }
+
+    foreach ($voucherIds as $index => $id) {
+        $voucher = Provoucher::find($id);
+        
+        if (!$voucher) continue;
+
+        // Ignore if voucher is complete
+        if ($voucher->status == 1 || !empty($voucher->completed_date)) {
+            \Log::info("Voucher ID {$id} skipped because it is already completed.", ['voucher_id' => $id]);
+            continue; 
+        }
+
+        $newCharityId = $charityIds[$index] ?? $voucher->charity_id;
+        $newUserId    = $donorIds[$index] ?? $voucher->user_id;
+        $newChequeNo  = $chqNos[$index] ?? $voucher->cheque_no;
+        $newAmount    = $amts[$index] ?? $voucher->amount;
+        $newNote      = $notes[$index] ?? $voucher->note;
+        $newWaiting   = $waitings[$index] ?? 'No';
+        $newExpired   = $expireds[$index] ?? 'No';
+        $newDonorAcc  = $donorAccs[$index] ?? $voucher->donor_acc;
+
+        // Log initial data before update
+        \Log::info("Updating Voucher ID: {$id}", [
+            'old_charity' => $voucher->charity_id,
+            'new_charity' => $newCharityId,
+            'old_amount'  => $voucher->amount,
+            'new_amount'  => $newAmount,
+            'form_waiting'=> $newWaiting,
+            'form_expired'=> $newExpired,
+        ]);
+
+        if ($voucher->cheque_no != $newChequeNo) {
+            $exists = Provoucher::where('cheque_no', $newChequeNo)->where('id', '!=', $voucher->id)->exists();
+            if ($exists) {
+                return response()->json([
+                    'status' => 303, 
+                    'message' => "Voucher number $newChequeNo is already processed."
+                ]);
+            }
+            
+            if (Barcode::where('barcode', $newChequeNo)->where('status', 1)->exists()) {
+                return response()->json([
+                    'status' => 303, 
+                    'message' => "Voucher number $newChequeNo is already cancelled."
+                ]);
+            }
+        }
+
+        $user = User::find($newUserId);
+        if (!$user) continue;
+
+        $standardAmount = $user->standard_amount ?: 500;
+        $limit          = $user->getAvailableLimit();
+        
+        $newIsPending = ($limit < $newAmount || $newWaiting === 'Yes' || $newExpired === 'Yes' || $newAmount >= $standardAmount);
+
+        // ===== Balance Reverse Logic =====
+        $oldCharityId = $voucher->charity_id;
+        $oldUserId    = $voucher->user_id;
+        $oldAmount    = $voucher->amount;
+        $oldIsPending = ($voucher->status == 0); 
+
+        if (!$oldIsPending) {
+            Charity::where('id', $oldCharityId)->decrement('balance', $oldAmount);
+            User::where('id', $oldUserId)->increment('balance', $oldAmount);
+        }
+
+        $barcodeImagePath = null;
+        if ($voucher->cheque_no != $newChequeNo) {
+            $barcodeImagePath = $this->moveBarcodeImageAndGetPath($newChequeNo);
+        }
+
+        // ===== Update Transaction =====
+        $transaction = Usertransaction::find($voucher->tran_id);
+        if ($transaction) {
+            $transaction->user_id     = $newUserId;
+            $transaction->charity_id  = $newCharityId;
+            $transaction->amount      = $newAmount;
+            $transaction->cheque_no   = $newChequeNo;
+            $transaction->pending     = $newWaiting === 'Yes' ? 0 : 1;
+            $transaction->status      = $newIsPending ? 0 : 1;
+            $transaction->expired     = $newExpired === 'Yes' ? 0 : 1;
+            
+            if ($barcodeImagePath) {
+                $transaction->barcode_image = $barcodeImagePath;
+            }
+            $transaction->save();
+        }
+
+        // ===== Update Voucher =====
+        $voucher->charity_id     = $newCharityId;
+        $voucher->user_id        = $newUserId;
+        $voucher->donor_acc      = $newDonorAcc;
+        $voucher->cheque_no      = $newChequeNo;
+        $voucher->amount          = $newAmount;
+        $voucher->note           = $newNote;
+        $voucher->expired         = $newExpired;
+        $voucher->status          = $newIsPending ? 0 : 1;
+        $voucher->completed_date  = $newIsPending ? null : now();
+        
+        $voucher->waiting         = $newWaiting; 
+        $voucher->save();
+
+        // ===== Apply New Balance Logic =====
+        if (!$newIsPending) {
+            Charity::where('id', $newCharityId)->increment('balance', $newAmount);
+            User::where('id', $newUserId)->decrement('balance', $newAmount);
+        }
+
+        // ===== Send Email Logic =====
+        $charity = Charity::find($newCharityId);
+        
+        if ($user->ppv_account == 0 && $newAmount >= $standardAmount && $newIsPending) {
+
+            $acceptUrl  = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
+            $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
+            
+            $imgPath = $transaction->barcode_image ?? null;
+            $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl, $imgPath);
+        }
+        
+        \Log::info("Voucher ID: {$id} successfully updated.", [
+            'final_status' => $voucher->status, 
+            'final_waiting' => $voucher->waiting
+        ]);
+    }
 
     return response()->json([
-        'success' => true,
-        'message' => 'Voucher #' . $voucher->id . ' has been re-accepted successfully.'
+        'status'  => 300,
+        'message' => 'Selected vouchers updated successfully!'
     ]);
 }
-
 
 }

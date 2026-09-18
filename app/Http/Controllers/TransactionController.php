@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Provoucher;
 use App\Models\Charity;
+use App\Models\CompanyDetail;
 use App\Models\Transaction;
 use App\Models\Usertransaction;
 use App\Models\Donation;
@@ -23,6 +24,35 @@ class TransactionController extends Controller
 
 
 
+    /**
+     * Helper function to calculate dynamic start and end time
+     * based on the selected business date and weekend logic.
+     */
+    private function getBusinessDateWindow($dateStr)
+    {
+        $companyDetail = CompanyDetail::first();
+        $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
+        
+        $timeParts = explode(':', $autoPaymentTime);
+        $hour = (int) $timeParts[0];
+        $minute = (int) $timeParts[1] + 1; // +1 minute to match previous 16:31 logic safely
+
+        $businessDate = Carbon::createFromFormat('Y-m-d', $dateStr);
+
+        if ($businessDate->isMonday()) {
+            // If business date is Monday, start from Thursday's cutoff time
+            // This covers Friday, Saturday, Sunday, and Monday
+            $startDateTime = $businessDate->copy()->subDays(4)->setTime($hour, $minute, 0);
+        } else {
+            // Standard 24 hours window: Yesterday's cutoff time
+            $startDateTime = $businessDate->copy()->subDay()->setTime($hour, $minute, 0);
+        }
+
+        $endDateTime = $businessDate->copy()->setTime($hour, $minute, 59);
+
+        return [$startDateTime, $endDateTime];
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -32,46 +62,63 @@ class TransactionController extends Controller
 
             if ($type === 'Summary' || $type === 'PreviousSummary') {
 
-                // Define the exact second where the next day starts
-                $cutoffTime = '16:31:00';
-                $cutoffTime2 = '16:30:00';
+                // Fetch dynamic cutoff time
+                $companyDetail = CompanyDetail::first();
+                $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
+                $cutoffTime = $autoPaymentTime . ':00';
 
                 /*
                 |--------------------------------------------------------------------------
-                | Business Date Logic (Updated)
+                | Dynamic Business Date Logic with Weekend Shift
                 |--------------------------------------------------------------------------
-                | If time >= 16:30:00 → belongs to NEXT day
-                | If time < 16:30:00 → belongs to SAME day
-                | This effectively closes the current day at 16:29:59.
+                | 1. If time >= cutoffTime -> belongs to NEXT day
+                | 2. If that day is Friday(4), Saturday(5), or Sunday(6) -> shift to Monday
                 */
-
-                $businessDateRaw = "
-                    DATE(
-                        CASE 
-                            WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
-                            THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
-                            ELSE usertransactions.created_at
-                        END
-                    )
+                
+                $baseDateCalc = "
+                    CASE 
+                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
+                        THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
+                        ELSE usertransactions.created_at
+                    END
                 ";
+
+                $weekendShift = "
+                    CASE 
+                        WHEN WEEKDAY($baseDateCalc) IN (4, 5, 6) 
+                        THEN DATE_ADD($baseDateCalc, INTERVAL (7 - WEEKDAY($baseDateCalc)) DAY)
+                        ELSE $baseDateCalc
+                    END
+                ";
+
+                $businessDateRaw = "DATE($weekendShift)";
 
                 /*
                 |--------------------------------------------------------------------------
                 | Paid Subquery (Applying same logic to 'Out' transactions)
                 |--------------------------------------------------------------------------
                 */
+                $baseDateCalcTx = "
+                    CASE 
+                        WHEN TIME(transactions.created_at) >= '$cutoffTime'
+                        THEN DATE_ADD(transactions.created_at, INTERVAL 1 DAY)
+                        ELSE transactions.created_at
+                    END
+                ";
+
+                $weekendShiftTx = "
+                    CASE 
+                        WHEN WEEKDAY($baseDateCalcTx) IN (4, 5, 6) 
+                        THEN DATE_ADD($baseDateCalcTx, INTERVAL (7 - WEEKDAY($baseDateCalcTx)) DAY)
+                        ELSE $baseDateCalcTx
+                    END
+                ";
+
+                $businessDateRawTx = "DATE($weekendShiftTx)";
 
                 $paidSubquery = DB::table('transactions')
                     ->select(
-                        DB::raw("
-                            DATE(
-                                CASE 
-                                    WHEN TIME(created_at) >= '$cutoffTime'
-                                    THEN DATE_ADD(created_at, INTERVAL 1 DAY)
-                                    ELSE created_at
-                                END
-                            ) as pay_date
-                        "),
+                        DB::raw("$businessDateRawTx as pay_date"),
                         'charity_id',
                         DB::raw('SUM(amount) as total_paid'),
                         DB::raw('MAX(bank_payment_status) as current_status')
@@ -85,7 +132,6 @@ class TransactionController extends Controller
                 | Main Query
                 |--------------------------------------------------------------------------
                 */
-
                 $query = Usertransaction::query()
                         ->where('status', 1)
                         ->whereNotNull('usertransactions.charity_id')
@@ -102,62 +148,35 @@ class TransactionController extends Controller
                             DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
                             DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
                         ])
-                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($cutoffTime2) {
-                            // Ensure the join uses the same >= 16:30:00 logic
-                            $join->on(DB::raw("
-                                DATE(
-                                    CASE 
-                                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime2'
-                                        THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
-                                        ELSE usertransactions.created_at
-                                    END
-                                )
-                            "), '=', 'paid_data.pay_date')
-                            ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
+                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($businessDateRaw) {
+                            $join->on(DB::raw($businessDateRaw), '=', 'paid_data.pay_date')
+                                 ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
                         })
                         ->groupBy('date_group', 'usertransactions.charity_id')
                         ->orderByRaw('date_group DESC')
                         ->orderBy('usertransactions.charity_id')
                         ->with('charity');
 
-
                 if ($type === 'Summary') {
-
                     $query->where(DB::raw($businessDateRaw), '>', '2026-02-07');
-                    // 2. Filter by the aggregated payment status
                     $query->having('payment_status', '=', 0);
-                    // 3. NEW: Only show charities where auto_payment is enabled (1)
                     $query->whereHas('charity', function($q) {
                         $q->where('auto_payment', 1);
                     });
-
                 } elseif ($type === 'PreviousSummary') {
-                    // Only show items where bank_payment_status is 1
                     $query->having('payment_status', '=', 1);
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Date Filter (based on business date)
-                |--------------------------------------------------------------------------
-                */
-
                 if ($fromDate && $toDate) {
-
-                    $query->whereBetween(
-                        DB::raw($businessDateRaw),
-                        [$fromDate, $toDate]
-                    );
+                    $query->whereBetween(DB::raw($businessDateRaw), [$fromDate, $toDate]);
                 }
 
                 return DataTables::of($query)
                     ->addColumn('date_group', function ($row) {
-
                         return '<span data-raw="'.$row->date_group.'">'.
                             \Carbon\Carbon::parse($row->date_group)->format('d/m/Y').
                         '</span>';
                     })
-
                     ->addColumn('charity_name', function ($row) {
                         $charity = $row->charity;
                         $name = $charity->name ?? 'N/A';
@@ -171,36 +190,18 @@ class TransactionController extends Controller
                         }
                         return '<span' . $title . ' ' . $style . '>' . $name . ' (' . $balance . ')</span>';
                     })
-
                     ->filterColumn('charity_name', function($query, $keyword) {
                         $query->whereHas('charity', function($q) use ($keyword) {
                             $q->where('name', 'like', "%{$keyword}%");
                         });
                     })
-
                     ->addColumn('balance', function ($row) {
-
-                        $totalGenerated =
-                                $row->online_sum +
-                                $row->standing_sum +
-                                $row->voucher_sum +
-                                $row->campaign_sum +
-                                $row->card_sum;
-
+                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
                         $balance = $totalGenerated - $row->paid_sum;
-
                         return '£' . number_format($balance, 2);
                     })
-
                     ->addColumn('action', function ($row) {
-
-                         $totalGenerated =
-                                $row->online_sum +
-                                $row->standing_sum +
-                                $row->voucher_sum +
-                                $row->campaign_sum +
-                                $row->card_sum;
-
+                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
                         $isChecked = ($row->payment_status == 1) ? 'checked' : '';
 
                         return '
@@ -214,10 +215,8 @@ class TransactionController extends Controller
                                     data-total="'.$totalGenerated.'">
                             </div>';
                     })
-
                     ->editColumn('paid_sum', function($row) {
                         if ($row->paid_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        
                         return '<a href="javascript:void(0)" class="view-details text-success text-decoration-none fw-bold" 
                                 data-type="paid" 
                                 data-charity="'.$row->charity_id.'" 
@@ -225,7 +224,6 @@ class TransactionController extends Controller
                                 £' . number_format($row->paid_sum, 2) . '
                                 </a>';
                     })
-
                     ->editColumn('online_sum', function($row) {
                         if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
                         return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->online_sum, 2) . '</a>';
@@ -242,37 +240,23 @@ class TransactionController extends Controller
                         if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
                         return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->campaign_sum, 2) . '</a>';
                     })
-
                     ->editColumn('card_sum', function($row) {
                         if ($row->card_sum <= 0) return '<span class="text-muted">£0.00</span>';
                         return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="card" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->card_sum, 2) . '</a>';
                     })
-
                     ->addColumn('raw_date', function ($row) {
                         return $row->date_group;
                     })
                     ->addColumn('raw_total', function ($row) {
                         return $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
                     })
-
-
                     ->rawColumns([
-                        'date_group',
-                        'online_sum',
-                        'standing_sum',
-                        'voucher_sum',
-                        'campaign_sum',
-                        'card_sum',
-                        'paid_sum',
-                        'charity_name',
-                        'action',
-                        'raw_date',
-                        'raw_total' 
+                        'date_group', 'online_sum', 'standing_sum', 'voucher_sum', 
+                        'campaign_sum', 'card_sum', 'paid_sum', 'charity_name', 
+                        'action', 'raw_date', 'raw_total' 
                     ])
-
                     ->make(true);
             }
-
 
             $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
 
@@ -305,45 +289,17 @@ class TransactionController extends Controller
 
         return view('transaction.index');
     }
-	
-	
-	
+
     public function getDayDetails(Request $request)
     {
-        $cutoffHour = 16;
-        $cutoffMinute = 31;
+        // Use helper to get dynamic window
+        [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($request->date);
 
-        // The date selected from the UI (Business Date)
-        $businessDate = Carbon::createFromFormat('Y-m-d', $request->date);
-
-        /**
-         * START TIME: Previous Day at 16:31:00
-         * Logic: (Selected Date - 1 Day) @ 16:31:00
-         */
-        $startDateTime = $businessDate->copy()
-            ->subDay()
-            ->setTime($cutoffHour, $cutoffMinute, 0);
-
-        /**
-         * END TIME: Today at 16:31:59
-         * Logic: Selected Date @ 16:31:59
-         */
-        $endDateTime = $businessDate->copy()
-            ->setTime($cutoffHour, $cutoffMinute, 59);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Query Implementation
-        |--------------------------------------------------------------------------
-        */
         if ($request->type == 'paid') {
-
             $data = Transaction::with('charity')
                 ->where('charity_id', $request->charity_id)
                 ->where('t_type', 'Out')
                 ->where('status', 1)
-                // This will capture everything from 16:31:00 yesterday 
-                // up to 16:31:59 today (inclusive)
                 ->whereBetween('created_at', [$startDateTime, $endDateTime])
                 ->get();
 
@@ -358,30 +314,16 @@ class TransactionController extends Controller
             }));
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | CASE 2: Usertransactions
-        |--------------------------------------------------------------------------
-        */
-
         $query = Usertransaction::with('user')
             ->where('status', 1)
             ->where('charity_id', $request->charity_id)
             ->whereBetween('created_at', [$startDateTime, $endDateTime]);
 
-        if ($request->type == 'online')
-            $query->whereNotNull('donation_id');
-
-        if ($request->type == 'standing')
-            $query->whereNotNull('standing_donationdetails_id');
-
-        if ($request->type == 'voucher')
-            $query->whereNotNull('cheque_no');
-
-        if ($request->type == 'campaign')
-            $query->whereNotNull('campaign_id');
-        if ($request->type == 'card')
-            $query->whereNotNull('onegiv_transaction_id');
+        if ($request->type == 'online') $query->whereNotNull('donation_id');
+        if ($request->type == 'standing') $query->whereNotNull('standing_donationdetails_id');
+        if ($request->type == 'voucher') $query->whereNotNull('cheque_no');
+        if ($request->type == 'campaign') $query->whereNotNull('campaign_id');
+        if ($request->type == 'card') $query->whereNotNull('onegiv_transaction_id');
 
         $data = $query->get();
 
@@ -396,187 +338,143 @@ class TransactionController extends Controller
         }));
     }
 
+    public function toggleCharityPayment(Request $request)
+    {
+        $charityId = $request->charity_id;
+        $date = $request->date;
+        $total = $request->total;
+        $status = $request->status === 'true' ? '1' : '0';
 
+        return DB::transaction(function () use ($charityId, $date, $total, $status) {
+            // Use helper to get dynamic window
+            [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($date);
 
-
-
-public function toggleCharityPayment(Request $request)
-{
-    $charityId = $request->charity_id;
-    $date = $request->date;
-    $total = $request->total;
-    $status = $request->status === 'true' ? '1' : '0'; // Convert JS boolean to "1" or "0"
-
-    return DB::transaction(function () use ($charityId, $date, $total, $status) {
-        // 1. Check if the transaction record already exists for this charity and date
-        $transaction = Transaction::where('charity_id', $charityId)
-            ->where('t_type', 'Out')
-            ->whereDate('created_at', $date)
-            ->first();
-
-        if ($transaction) {
-            // 2. If it exists, just update the status
-            $transaction->update(['bank_payment_status' => $status]);
-            
-            return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
-        } 
-        
-        return response()->json(['success' => false, 'message' => 'No record found to deactivate.']);
-    });
-}
-
-
-public function exportSummaryCsv(Request $request)
-{
-    $items = $request->get('items', []);
-    
-    if (empty($items)) {
-        return response()->json(['success' => false, 'message' => 'No items selected']);
-    }
-    
-    $filename = 'summary-export-' . date('Y-m-d-His') . '.csv';
-    
-    $headers = [
-        'Content-Type' => 'text/csv',
-        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-    ];
-    
-    $callback = function() use ($items) {
-        $file = fopen('php://output', 'w');
-        fputcsv($file, ['Charity Name', 'Account number', 'Sort Code', 'Account type', 'Reference', 'Amount']);
-        
-        // Same cutoff logic as getDayDetails
-        $cutoffHour = 16;
-        $cutoffMinute = 31;
-        
-        foreach ($items as $item) {
-            $charity = Charity::find($item['charity_id']);
-            
-            /*
-            |--------------------------------------------------------------------------
-            | Calculate Business Date Range (Same as getDayDetails)
-            |--------------------------------------------------------------------------
-            */
-            $businessDate = \Carbon\Carbon::createFromFormat('Y-m-d', $item['date']);
-            
-            // START TIME: Previous Day at 16:31:00
-            $startDateTime = $businessDate->copy()
-                ->subDay()
-                ->setTime($cutoffHour, $cutoffMinute, 0);
-            
-            // END TIME: Today at 16:31:59
-            $endDateTime = $businessDate->copy()
-                ->setTime($cutoffHour, $cutoffMinute, 59);
-            
-            /*
-            |--------------------------------------------------------------------------
-            | Fetch Paid Transaction IDs
-            |--------------------------------------------------------------------------
-            */
-            $paidTransactionIds = Transaction::where('charity_id', $item['charity_id'])
+            $transaction = Transaction::where('charity_id', $charityId)
                 ->where('t_type', 'Out')
-                ->where('status', 1)
                 ->whereBetween('created_at', [$startDateTime, $endDateTime])
-                ->pluck('t_id')
-                ->toArray();
+                ->first();
+
+            if ($transaction) {
+                $transaction->update(['bank_payment_status' => $status]);
+                return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+            } 
             
-            // Join all reference IDs with comma separator
-            $references = !empty($paidTransactionIds) 
-                ? implode(', ', $paidTransactionIds) 
-                : '';
+            return response()->json(['success' => false, 'message' => 'No record found to deactivate.']);
+        });
+    }
+
+    public function exportSummaryCsv(Request $request)
+    {
+        $items = $request->get('items', []);
+        
+        if (empty($items)) {
+            return response()->json(['success' => false, 'message' => 'No items selected']);
+        }
+        
+        $filename = 'summary-export-' . date('Y-m-d-His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        $callback = function() use ($items) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Charity Name', 'Account number', 'Sort Code', 'Account type', 'Reference', 'Amount']);
             
-            fputcsv($file, [
-                $charity->name ?? 'N/A',
-                $charity->account_number ?? 'N/A',
-                $charity->account_sortcode ?? 'N/A',
-                'Business',
-                $references,  
-                $item['amount']
+            foreach ($items as $item) {
+                $charity = Charity::find($item['charity_id']);
+                
+                // Use helper to get dynamic window
+                [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($item['date']);
+                
+                $paidTransactionIds = Transaction::where('charity_id', $item['charity_id'])
+                    ->where('t_type', 'Out')
+                    ->where('status', 1)
+                    ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                    ->pluck('t_id')
+                    ->toArray();
+                
+                $references = !empty($paidTransactionIds) ? implode(', ', $paidTransactionIds) : '';
+                
+                fputcsv($file, [
+                    $charity->name ?? 'N/A',
+                    $charity->account_number ?? 'N/A',
+                    $charity->account_sortcode ?? 'N/A',
+                    'Business',
+                    $references,  
+                    $item['amount']
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function bulkTogglePayment(Request $request)
+    {
+        $items  = $request->get('items', []);
+        $status = $request->status === 'true' ? '1' : '0';
+
+        if (empty($items)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No items selected.'
             ]);
         }
-        
-        fclose($file);
-    };
-    
-    return response()->stream($callback, 200, $headers);
-}
 
-public function bulkTogglePayment(Request $request)
-{
-    $items  = $request->get('items', []);
-    $status = $request->status === 'true' ? '1' : '0';
+        return DB::transaction(function () use ($items, $status) {
+            $updated  = 0;
+            $notFound = 0;
+            $notFoundList = [];
 
-    if (empty($items)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No items selected.'
-        ]);
+            foreach ($items as $item) {
+                $charityId = $item['charity_id'] ?? null;
+                $date      = $item['date'] ?? null;
+
+                if (!$charityId || !$date) {
+                    $notFound++;
+                    continue;
+                }
+
+                try {
+                    // Use helper to get dynamic window
+                    [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($date);
+                } catch (\Exception $e) {
+                    $notFound++;
+                    $notFoundList[] = "Invalid date for Charity #{$charityId}";
+                    continue;
+                }
+
+                $affectedRows = Transaction::where('charity_id', $charityId)
+                    ->where('t_type', 'Out')
+                    ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                    ->update(['bank_payment_status' => $status]);
+
+                if ($affectedRows > 0) {
+                    $updated++;
+                } else {
+                    $notFound++;
+                    $notFoundList[] = "Charity #{$charityId} on {$date}";
+                }
+            }
+
+            $message = "{$updated} record(s) marked as " . ($status == '1' ? 'PAID' : 'UNPAID') . ".";
+            if ($notFound > 0) {
+                $message .= " {$notFound} record(s) could not be found.";
+            }
+
+            return response()->json([
+                'success'        => $updated > 0,
+                'message'        => $message,
+                'updated'        => $updated,
+                'not_found'      => $notFound,
+                'not_found_list' => $notFoundList,
+            ]);
+        });
     }
-
-    // Business Date Cutoff Logic
-    $cutoffHour = 16;
-    $cutoffMinute = 31;
-
-    return DB::transaction(function () use ($items, $status, $cutoffHour, $cutoffMinute) {
-        $updated  = 0;
-        $notFound = 0;
-        $notFoundList = [];
-
-        foreach ($items as $item) {
-            $charityId = $item['charity_id'] ?? null;
-            $date      = $item['date'] ?? null;
-
-            if (!$charityId || !$date) {
-                $notFound++;
-                continue;
-            }
-
-            try {
-                $businessDate = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
-                
-                // START TIME: Previous Day at 16:31:00
-                $startDateTime = $businessDate->copy()
-                    ->subDay()
-                    ->setTime($cutoffHour, $cutoffMinute, 0);
-                
-                // END TIME: Today at 16:31:59
-                $endDateTime = $businessDate->copy()
-                    ->setTime($cutoffHour, $cutoffMinute, 59);
-            } catch (\Exception $e) {
-                $notFound++;
-                $notFoundList[] = "Invalid date for Charity #{$charityId}";
-                continue;
-            }
-
-            // Update ALL matching Out transactions for this charity and business date range
-            $affectedRows = Transaction::where('charity_id', $charityId)
-                ->where('t_type', 'Out')
-                ->whereBetween('created_at', [$startDateTime, $endDateTime])
-                ->update(['bank_payment_status' => $status]);
-
-            if ($affectedRows > 0) {
-                $updated++;
-            } else {
-                $notFound++;
-                $notFoundList[] = "Charity #{$charityId} on {$date}";
-            }
-        }
-
-        $message = "{$updated} record(s) marked as " . ($status == '1' ? 'PAID' : 'UNPAID') . ".";
-        if ($notFound > 0) {
-            $message .= " {$notFound} record(s) could not be found.";
-        }
-
-        return response()->json([
-            'success'        => $updated > 0,
-            'message'        => $message,
-            'updated'        => $updated,
-            'not_found'      => $notFound,
-            'not_found_list' => $notFoundList,
-        ]);
-    });
-}
-
 
 
 
@@ -692,30 +590,6 @@ public function bulkTogglePayment(Request $request)
             ->orderByDesc('id')
             ->get();
 
-        // All transactions
-        $alltransactions = Usertransaction::with([
-                'charity:id,name',
-                'standingdonationDetail.standingDonation:id,charitynote,mynote',
-                'donation:id,charitynote,mynote',
-                'campaign:id,campaign_title'
-            ])
-            ->where('user_id', $userId)
-            ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
-                $query->where('status', 1)
-                    ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
-            })
-            ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
-                $query->where('user_id', $userId)
-                    ->where('pending', 1)
-                    ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]));
-            })
-            ->where(function ($query) {
-                $query->whereNull('expired')->orWhere('expired', '1');
-            })
-            ->orderByDesc('id')
-            ->get();
-
-
         // In Transactions
         $intransactions = Usertransaction::where('user_id', $userId)
             ->where('t_type', 'In')
@@ -727,38 +601,28 @@ public function bulkTogglePayment(Request $request)
             ->get();
 
         // Out Transactions
-        $outtransactions = Usertransaction::where('user_id', $userId)
-            ->where('t_type', 'Out')
-            ->where(function ($query) {
-                $query->where('status', 1);
-            })
-            ->where(function ($query) {
-                $query->whereNull('expired')->orWhere('expired', '1');
-            })
-            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
-                $query->whereBetween('created_at', [$fromDate, $toDate]);
+         $outtransactions = Usertransaction::where('t_type', 'Out')
+            ->where('user_id', $userId)
+            ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
+                $query->where('status', 1)
+                    ->when($hasDateRange, function ($q) use ($fromDate, $toDate) {
+                        $q->whereBetween('created_at', [$fromDate, $toDate]);
+                    });
             })
             ->orWhere(function ($query) use ($userId, $hasDateRange, $fromDate, $toDate) {
                 $query->where('user_id', $userId)
                     ->where('t_type', 'Out')
-                    ->where('pending', 1);
-
-                if ($hasDateRange) {
-                    $query->whereBetween('created_at', [$fromDate, $toDate]);
-                }
+                    ->where('pending', '0')
+                    ->when($hasDateRange, function ($q) use ($fromDate, $toDate) {
+                        $q->whereBetween('created_at', [$fromDate, $toDate]);
+                    });
             })
             ->orderByDesc('id')
             ->get();
 
         // Pending Transactions
-        $pending_transactions = Usertransaction::where('user_id', $userId)
-            ->where('t_type', 'Out')
-            ->where('pending', 0)
-            ->when($hasDateRange, function ($query) use ($fromDate, $toDate) {
-                $query->whereBetween('created_at', [$fromDate, $toDate]);
-            })
-            ->orderByDesc('id')
-            ->get();
+        $pending_transactions = Provoucher::pendingVouchers($userId, $fromDate, $toDate)->get();
+
 
         // Gift Aid Transactions
         $giftAid = Usertransaction::where('user_id', $userId)
@@ -771,7 +635,6 @@ public function bulkTogglePayment(Request $request)
             ->get();
 
         return view('frontend.user.transaction', compact(
-            'alltransactions',
             'intransactions',
             'tamount',
             'outtransactions',
@@ -788,47 +651,64 @@ public function bulkTogglePayment(Request $request)
         $hasDateRange = $fromDate && $toDate;
 
         // 1. Calculate the initial Total Balance (This remains the same)
-        $tamount = Usertransaction::where('user_id', $userId)
-            ->where('status', 1)
-            ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
-            ->get();
 
-        $runningBalance = 0;
-        foreach ($tamount as $data) {
-            if ($data->commission != 0) $runningBalance -= $data->commission;
-            if ($data->t_type == "In") {
-                $runningBalance += ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
-            } else {
-                $runningBalance -= $data->amount;
-            }
-        }
 
         // 2. Fetch All Transactions - ORDER BY ASC for calculation logic
+        // ✅ FIXED QUERY: Matches Admin logic exactly
         $query = Usertransaction::with(['charity:id,name', 'standingdonationDetail.standingDonation', 'donation', 'campaign', 'provoucher'])
-            ->where(function ($q) use ($userId, $hasDateRange, $fromDate, $toDate) {
-                $q->where('user_id', $userId)
-                    ->where('status', 1)
-                    ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
+            ->where('user_id', $userId)
+            ->where(function ($q) {
+                $q->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->where(function ($q) use ($hasDateRange, $fromDate, $toDate) {
+                if ($hasDateRange) {
+                    $q->whereBetween('created_at', [$fromDate, $toDate])
+                        ->where('status', 1);
+                } else {
+                    $q->where('status', 1);
+                }
             })
             ->orWhere(function ($q) use ($userId, $hasDateRange, $fromDate, $toDate) {
-                $q->where('user_id', $userId)
-                    ->where('pending', 1)
-                    ->when($hasDateRange, fn($sub) => $sub->whereBetween('created_at', [$fromDate, $toDate]));
+                $q->where('user_id', $userId);
+                if ($hasDateRange) {
+                    $q->whereBetween('created_at', [$fromDate, $toDate])
+                        ->where('pending', '0'); // ✅ Changed from 1 to '0'
+                } else {
+                    $q->where('pending', '0'); // ✅ Changed from 1 to '0'
+                }
             })
             ->orderBy('created_at', 'asc') // Sort ASC to calculate balance forward
             ->get();
 
-        // 3. Transform and Calculate
-        $currentBalanceTracker = 0; // Start from 0 or your historical starting point
+        // 3. Transform and Calculate - EXACTLY matches Admin Blade logic
+        $currentBalanceTracker = 0; 
         $transformed = $query->flatMap(function ($data) use (&$currentBalanceTracker) {
             $rows = [];
 
-            // Main Transaction Logic
-            if ($data->t_type == "In") {
-                $currentBalanceTracker += ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
-            } else {
-                // Only deduct if not pending or special voucher logic
-                if(!($data->pending != "0" && (isset($data->provoucher) && $data->provoucher->expired == "Yes"))) {
+            // ✅ FIX: provoucher check বাদ দেওয়া হয়েছে যাতে getLiveBalance() এর সাথে মেলে
+            $isExpired = isset($data->expired) && $data->expired == '0';
+            
+            // ✅ FIX: Pending ট্রানজেকশন চেক করার শর্ত যোগ করা হয়েছে
+            $isPending = ($data->pending == "0" || $data->pending === 0);
+
+            // Commission row is processed FIRST
+            if ($data->commission != 0) {
+                // Expired বা Pending না হলেই ব্যালেন্স থেকে কমবে
+                if (!$isExpired && !$isPending) {
+                    $currentBalanceTracker -= $data->commission;
+                }
+                
+                $commRow = clone $data;
+                $commRow->display_type = 'commission';
+                $commRow->calculated_balance = $currentBalanceTracker;
+                $rows[] = $commRow;
+            }
+
+            // Main transaction row processed SECOND
+            if (!$isExpired && !$isPending) {
+                if ($data->t_type == "In") {
+                    $currentBalanceTracker += ($data->commission != 0) ? ($data->amount + $data->commission) : $data->amount;
+                } else {
                     $currentBalanceTracker -= $data->amount;
                 }
             }
@@ -836,16 +716,6 @@ public function bulkTogglePayment(Request $request)
             $currentRow = clone $data;
             $currentRow->display_type = 'main';
             $currentRow->calculated_balance = $currentBalanceTracker;
-
-            // If Commission exists, it affects the balance after the main transaction
-            if ($data->commission != 0) {
-                $currentBalanceTracker -= $data->commission;
-                
-                $commRow = clone $data;
-                $commRow->display_type = 'commission';
-                $commRow->calculated_balance = $currentBalanceTracker;
-                $rows[] = $commRow;
-            }
 
             $rows[] = $currentRow;
             return $rows;
@@ -995,68 +865,24 @@ public function bulkTogglePayment(Request $request)
 
     public function charityTransaction(Request $request, $id)
     {
-        $request->validate([
-            'fromDate' => 'nullable|date',
-            'toDate'   => 'nullable|date|after_or_equal:fromDate',
-        ]);
-
-        $fromDate = $request->input('fromDate');
-        $toDate   = $request->input('toDate');
-        $endDateTime = $toDate ? $toDate . ' 23:59:59' : null;
-
-        // --- 1. Optimized Daily Summary (The New Tab Data) ---
+        // 1. Optimized Daily Summary (Keep as is, usually small due to grouping)
         $dailySummaryQuery = Usertransaction::query()
             ->selectRaw('DATE(created_at) as trans_date, charity_id, SUM(amount) as total_amount, COUNT(*) as total_entries')
             ->where('charity_id', $id)
-            ->where('t_type', 'Out') // As per your logic, In-transactions are labeled 'Out' in this table
-            ->where('status', '1');
-
-        // --- 2. Detailed Transactions (Transaction In Tab) ---
-        // $userTransQuery = Usertransaction::with('charity')
-        //     ->where('charity_id', $id)
-        //     ->where('t_type', 'Out')
-        //     ->where(function ($query) {
-        //         $query->whereNull('expired')->orWhere('expired', '1');
-        //     })
-        //     ->where('status', '1');
-
-         $userTransQuery = Usertransaction::with(['charity', 'user', 'provoucher', 'standingdonationDetail.StandingDonation'])
-                ->where('charity_id', $id)
-                ->where('t_type', 'Out')
-                ->where(function ($query) {
-                    $query->whereNull('expired')->orWhere('expired', '1');
-                })
-                ->where('status', '1');
-
-        // --- 3. External Transactions (Transaction Out Tab) ---
-        $transQuery = Transaction::where('charity_id', $id)
             ->where('t_type', 'Out')
             ->where('status', '1');
 
-        $reportQuery = Batchprov::where('charity_id', $id);
-
-        // Apply Date Filters to all queries
-        if ($fromDate && $toDate) {
-            $dailySummaryQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
-            $userTransQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
-            $transQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
-            $reportQuery->whereBetween('created_at', [$fromDate, $endDateTime]);
+        if ($request->fromDate && $request->toDate) {
+            $endDateTime = $request->toDate . ' 23:59:59';
+            $dailySummaryQuery->whereBetween('created_at', [$request->fromDate, $endDateTime]);
         }
 
-        // Execute Queries
-        $dailySummary    = $dailySummaryQuery->groupBy('trans_date', 'charity_id')->orderBy('trans_date', 'DESC')->with('charity')->get();
-        $intransactions  = $userTransQuery->orderBy('id', 'DESC')->get();
-        $outtransactions = $transQuery->orderBy('id', 'DESC')->get();
-        $reports         = $reportQuery->orderBy('id', 'DESC')->get();
+        $dailySummary = $dailySummaryQuery->groupBy('trans_date', 'charity_id')->orderBy('trans_date', 'DESC')->with('charity')->get();
 
-        $totalIN  = $intransactions->sum('amount');
-        $totalOUT = $outtransactions->sum('amount');
-
-        $pvouchers = Provoucher::with('user')->where('charity_id', $id)
-            ->where('waiting', 'No')
-            ->where('status', '0')
-            ->orderBy('id', 'DESC')
-            ->get();
+        // Calculate Totals efficiently using SQL Sum instead of loading collections
+        $totalIN  = Usertransaction::where('charity_id', $id)->where('t_type', 'Out')->where('status', '1')->sum('amount');
+        $totalOUT = Transaction::where('charity_id', $id)->where('t_type', 'Out')->where('status', '1')->sum('amount');
+        $currentTotalBalance = $totalIN - $totalOUT;
 
         $paidDates = Transaction::where('charity_id', $id)
             ->where('t_type', 'Out')
@@ -1065,100 +891,246 @@ public function bulkTogglePayment(Request $request)
             ->map(fn($t) => \Carbon\Carbon::parse($t->created_at)->format('Y-m-d'))
             ->toArray();
 
-
-            // ledger
-            // 1. Get the data
-            $userTransactionsledger = Usertransaction::with('charity')
-                ->where('charity_id', $id)
-                ->where('t_type', 'Out')
-                ->where('status', '1')
-                ->get();
-
-            $externalTransactionsledger = Transaction::where('charity_id', $id)
-                ->where('t_type', 'Out')
-                ->where('status', '1')
-                ->get();
-                
-
-            // 2. Normalize and Combine
-            $ledgerEntries = collect();
-
-            // Normalize User Transactions (Debits)
-            foreach ($userTransactionsledger as $ut) {
-                // Start building the dynamic description
-                $descParts = [];
-                
-                // Add the Title first
-                if ($ut->title) {
-                    $descParts[] = $ut->title;
-                }
-
-                // Rule: donation_id not null
-                if ($ut->donation_id !== null) {
-                    $descParts[] = "(Online donation transaction)";
-                }
-
-                // Rule: standing_donationdetails_id not null
-                if ($ut->standing_donationdetails_id !== null) {
-                    $descParts[] = "(Standing Donation Transaction)";
-                }
-
-                // Rule: cheque_no not null (Voucher No)
-                if ($ut->cheque_no !== null) {
-                    $descParts[] = "Voucher No: " . $ut->cheque_no;
-                }
-
-                // Join everything with a space or separator
-                $finalDescription = implode(' - ', $descParts);
-
-                $ledgerEntries->push([
-                    'real_id' => $ut->id,
-                    'date' => $ut->created_at,
-                    't_id' => $ut->t_id ?? $ut->id, 
-                    'description' => $finalDescription ?: 'User Transfer', // Fallback if empty
-                    'debit' => $ut->amount,
-                    'credit' => 0,
-                    'ut_status' => $ut->status,
-                    'type' => 'User'
-                ]);
-            }
-
-            foreach ($externalTransactionsledger as $et) {
-                $ledgerEntries->push([
-                    'real_id' => $et->id,
-                    'date' => $et->created_at,
-                    't_id' => $et->t_id ?? $et->id, // Ensure t_id is captured
-                    'description' => 'Desc: ' . $et->note,
-                    'debit' => 0,
-                    'credit' => $et->amount,
-                    'ut_status' => $et->status,
-                    'type' => 'External'
-                ]);
-            }
-
-            // 3. Sort by Date ASCENDING to calculate running balance correctly
-            $sortedLedger = $ledgerEntries->sortBy('date');
-
-            $runningBalance = 0;
-            $ledgerWithBalance = $sortedLedger->map(function ($entry) use (&$runningBalance) {
-                // Standard Ledger: Balance = (Previous Balance + Credit) - Debit
-                $runningBalance += ($entry['debit'] - $entry['credit']);
-                $entry['balance'] = $runningBalance;
-                return $entry;
-            });
-
-            // 4. Now reverse it for the View (Descending order: Newest at top)
-            $finalLedger = $ledgerWithBalance->reverse();
-
-            // Capture the total current balance to show at the top of the table
-            $currentTotalBalance = $runningBalance;
-            // ledger
-
         return view('charity.transaction', compact(
-            'dailySummary', 'intransactions', 'outtransactions', 
-            'reports', 'totalIN', 'totalOUT', 'pvouchers', 'id', 'paidDates','finalLedger','currentTotalBalance'
+            'dailySummary', 'totalIN', 'totalOUT', 'currentTotalBalance', 'id', 'paidDates'
         ));
     }
+
+
+// Transaction In Data
+public function getInTransactionsData(Request $request, $id)
+{
+    $query = Usertransaction::with(['charity', 'user', 'provoucher', 'standingdonationDetail.StandingDonation'])
+        ->where('charity_id', $id)
+        ->where('t_type', 'Out')
+        ->where(function ($query) {
+            $query->whereNull('expired')->orWhere('expired', '1');
+        })
+        ->where('status', '1')
+        ->select('usertransactions.*');
+
+    if ($request->has('fromDate') && $request->has('toDate') && $request->fromDate && $request->toDate) {
+        $endDateTime = $request->toDate . ' 23:59:59';
+        $query->whereBetween('created_at', [$request->fromDate, $endDateTime]);
+    }
+
+    return DataTables::of($query)
+        ->addColumn('formatted_date', function ($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y');
+        })
+        ->addColumn('donor_name', function ($row) {
+            return $row->user->name ?? 'N/A';
+        })
+        ->addColumn('action', function ($row) {
+            // Prepare data for the modal
+            $charitynote = null;
+            if ($row->standing_donationdetails_id && $row->standingdonationDetail && $row->standingdonationDetail->StandingDonation) {
+                $charitynote = $row->standingdonationDetail->StandingDonation->charitynote;
+            }
+            
+            $data = [
+                'date' => \Carbon\Carbon::parse($row->created_at)->format('d/m/Y'),
+                't_id' => $row->t_id,
+                'title' => $row->title,
+                'charity' => $row->charity->name ?? 'N/A',
+                'user' => $row->user->name ?? 'N/A',
+                'donation_by' => $row->donation_by,
+                'amount' => number_format($row->amount, 2),
+                'cheque_no' => $row->cheque_no,
+                'note' => $row->note,
+                'charitynote' => $charitynote,
+                'barcode_image' => $row->barcode_image ? asset($row->barcode_image) : null,
+            ];
+            
+            // Return the View Icon button with data-json attribute
+            return '<a href="javascript:void(0)" class="view-tran-btn" data-json=\''.json_encode($data).'\' title="View Details">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#18988B" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+                    <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12z"/>
+                </svg>
+            </a>';
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+// Ledger Data (Using Yajra Collection because of running balance logic)
+public function getLedgerData(Request $request, $id)
+{
+    $userTransactionsledger = Usertransaction::with('charity')
+        ->where('charity_id', $id)
+        ->where('t_type', 'Out')
+        ->where('status', '1')
+        ->get();
+
+    $externalTransactionsledger = Transaction::where('charity_id', $id)
+        ->where('t_type', 'Out')
+        ->where('status', '1')
+        ->get();
+
+    $ledgerEntries = collect();
+
+    foreach ($userTransactionsledger as $ut) {
+        $descParts = [];
+        if ($ut->title) $descParts[] = $ut->title;
+        if ($ut->donation_id !== null) $descParts[] = "(Online donation transaction)";
+        if ($ut->standing_donationdetails_id !== null) $descParts[] = "(Standing Donation Transaction)";
+        if ($ut->cheque_no !== null) $descParts[] = "Voucher No: " . $ut->cheque_no;
+        
+        $finalDescription = implode(' - ', $descParts) ?: 'User Transfer';
+
+        $ledgerEntries->push([
+            'real_id' => $ut->id,
+            'date' => $ut->created_at->format('Y-m-d H:i'),
+            't_id' => $ut->t_id ?? $ut->id,
+            'description' => $finalDescription,
+            'debit' => $ut->amount,
+            'credit' => 0,
+            'ut_status' => $ut->status,
+            'type' => 'User'
+        ]);
+    }
+
+    foreach ($externalTransactionsledger as $et) {
+        $ledgerEntries->push([
+            'real_id' => $et->id,
+            'date' => $et->created_at->format('Y-m-d H:i'),
+            't_id' => $et->t_id ?? $et->id,
+            'description' => 'Desc: ' . $et->note,
+            'debit' => 0,
+            'credit' => $et->amount,
+            'ut_status' => $et->status,
+            'type' => 'External'
+        ]);
+    }
+
+    $sortedLedger = $ledgerEntries->sortBy('date')->values();
+
+    $runningBalance = 0;
+    $ledgerWithBalance = $sortedLedger->map(function ($entry) use (&$runningBalance) {
+        $runningBalance += ($entry['debit'] - $entry['credit']);
+        $entry['balance'] = $runningBalance;
+        return $entry;
+    })->reverse()->values(); // Reverse for newest first
+
+    // Return as a Collection to DataTables
+    return DataTables::of($ledgerWithBalance)
+        ->addColumn('edit_btn', function ($entry) {
+            if ($entry['credit'] > 0) {
+                return '<a href="javascript:void(0)" class="text-primary ml-2 edit-date-btn" data-id="'.$entry['real_id'].'" data-date="'.$entry['date'].'" title="Edit Date"><i class="fas fa-edit fa-sm"></i></a>';
+            }
+            return '';
+        })
+        ->rawColumns(['edit_btn'])
+        ->make(true);
+}
+
+
+// Transaction Out Data
+public function getOutTransactionsData(Request $request, $id)
+{
+    $query = Transaction::where('charity_id', $id)
+        ->where('t_type', 'Out')
+        ->where('status', '1');
+
+    if ($request->has('fromDate') && $request->has('toDate') && $request->fromDate && $request->toDate) {
+        $endDateTime = $request->toDate . ' 23:59:59';
+        $query->whereBetween('created_at', [$request->fromDate, $endDateTime]);
+    }
+
+    return DataTables::of($query)
+        ->addColumn('formatted_date', function($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y');
+        })
+        ->addColumn('status_switch', function($row) {
+            $checked = $row->bank_payment_status ? 'checked' : '';
+            return '<div class="form-check form-switch d-flex justify-content-center">
+                        <input class="form-check-input status-switch" type="checkbox" role="switch" data-id="'.$row->id.'" '.$checked.'>
+                    </div>';
+        })
+        ->rawColumns(['status_switch'])
+        ->make(true);
+}
+
+// Reports Data
+public function getReportsData(Request $request, $id)
+{
+    $query = Batchprov::where('charity_id', $id);
+    return DataTables::of($query)
+        ->addColumn('formatted_date', function($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y H:i');
+        })
+        ->addColumn('action', function($row) {
+            return '<a class="btn btn-sm btn-theme text-white" href="'.route('instreport', $row->id).'">View Report</a>';
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+
+// Pending Vouchers Data
+public function getPendingVouchersData(Request $request, $id)
+{
+    $query = Provoucher::with('user')->where('charity_id', $id)
+        ->where('waiting', 'No')
+        ->where('status', '0');
+
+    return DataTables::of($query)
+        ->addColumn('formatted_date', function($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y');
+        })
+        ->addColumn('user_name', function($row) {
+            return $row->user->name ?? 'N/A';
+        })
+        ->addColumn('status_badge', function($row) {
+            $badge = $row->status == 0 ? 'bg-warning' : ($row->status == 1 ? 'bg-success' : 'bg-danger');
+            $text = $row->status == 0 ? 'Pending' : ($row->status == 1 ? 'Complete' : 'Cancelled');
+            return '<span class="badge '.$badge.'">'.$text.'</span>';
+        })
+        ->rawColumns(['status_badge'])
+        ->make(true);
+}
+
+// Check Trans In Data
+public function getCheckTransInData(Request $request, $id)
+{
+    $query = Usertransaction::where('charity_id', $id)->orderby('id', 'DESC');
+    return DataTables::of($query)
+        ->addColumn('formatted_date', function($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y');
+        })
+        ->addColumn('t_id_html', function($row) {
+            if ($row->status == 0) return '<span class="badge bg-danger">'.$row->t_id.'</span>';
+            return $row->t_id;
+        })
+        ->rawColumns(['t_id_html'])
+        ->make(true);
+}
+
+// Check Trans Out Data
+public function getCheckTransOutData(Request $request, $id)
+{
+    $query = Transaction::where('charity_id', $id)->orderby('id', 'DESC');
+    return DataTables::of($query)
+        ->addColumn('formatted_date', function($row) {
+            return \Carbon\Carbon::parse($row->created_at)->format('d/m/Y');
+        })
+        ->addColumn('t_id_html', function($row) {
+            if ($row->status == 0) return '<span class="badge bg-danger">'.$row->t_id.'</span>';
+            return $row->t_id;
+        })
+        ->rawColumns(['t_id_html'])
+        ->make(true);
+}
+
+
+
+
+
+
+
+
+
+
+
 
     public function updateDate(Request $request)
     {
@@ -1323,6 +1295,10 @@ public function bulkTogglePayment(Request $request)
             ], 500);
         }
     }
+
+
+
+
 
 
 }

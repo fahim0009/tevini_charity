@@ -80,8 +80,10 @@ use Illuminate\Support\Carbon;
                                 <th>Charity Name</th>
                                 <th>Donor Name</th>
                                 <th>Donor Account</th>
+                                <th>Voucher </th>
                                 <th>Amount </th>
                                 <th>Status </th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,6 +91,7 @@ use Illuminate\Support\Carbon;
                             @foreach ($chkVoucher as $transaction)
                             @php
                                 $tranId = \App\Models\Usertransaction::where('cheque_no', $vnumber)->first();
+                                $isProvoucher = ($transaction instanceof \App\Models\Provoucher);
                             @endphp
                            
                             <tr>
@@ -109,12 +112,25 @@ use Illuminate\Support\Carbon;
                                     </td>
                                     <td>{{ $transaction->user->name}}</td>
                                     <td>{{ $transaction->user->accountno ?? ''}}</td>
+                                    <td>{{ $transaction->cheque_no}}</td>
                                     <td>£{{ $transaction->amount}}</td>
                                     
                                     <td>
-                                        @if($transaction->status == "0") Pending @endif
-                                        @if($transaction->status == "1") Complete @endif
+                                        @if($transaction->waiting == "Yes") waiting @endif
+                                        @if($transaction->expired == "Yes" && $transaction->status != "3") expired @endif
+                                        @if($transaction->expired != "Yes" && $transaction->waiting == "No") Pending @endif
+                                        @if($transaction->status == "1" && $transaction->waiting == "No") Complete @endif
                                         @if($transaction->status == "3") Cancel @endif
+                                    </td>
+                                    <td>
+                                        @if ($isProvoucher)
+                                            <button type="button" class="btn btn-danger btn-sm delete-voucher" 
+                                                    data-cheque="{{ $transaction->cheque_no }}">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        @else
+                                            <span class="text-muted">No action</span>
+                                        @endif
                                     </td>
                             </tr>
                             @endforeach
@@ -132,9 +148,44 @@ use Illuminate\Support\Carbon;
 
 </div>
 @endsection
-
 @section('script')
 <script>
-    
+    $(document).on('click', '.delete-voucher', function(e) {
+        e.preventDefault();
+        var chequeNo = $(this).data('cheque');
+        var row = $(this).closest('tr');
+
+        // Standard browser confirmation dialog
+        if (confirm('Are you sure you want to delete this voucher? This will remove records from both Provoucher and Usertransactions tables.')) {
+            
+            $.ajax({
+                url: '{{ route("deleteVoucher") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    cheque_no: chequeNo
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Fade out the row and remove it from the DOM
+                        row.fadeOut('slow', function() {
+                            $(this).remove();
+                        });
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    // Handle validation errors or server errors
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        alert(xhr.responseJSON.message);
+                    } else {
+                        alert('Something went wrong. Please try again.');
+                    }
+                }
+            });
+        }
+    });
 </script>
 @endsection

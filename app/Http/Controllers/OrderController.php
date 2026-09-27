@@ -36,6 +36,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
+use App\DTOs\VoucherBookOrderData;
+use App\Exceptions\VoucherOrder\VoucherOrderException;
+use App\Services\VoucherBook\VoucherBookOrderService;
 
 
 class OrderController extends Controller
@@ -134,6 +137,48 @@ class OrderController extends Controller
     }
 
     public function storeVoucher(Request $request)
+    {
+        try {
+            $data = VoucherBookOrderData::fromAdminRequest(
+                donorId:    (int)$request->did,
+                adminId:    Auth::id(),
+                voucherIds: $request->voucherIds,
+                qtys:       $request->qtys,
+                isDelivery:   $request->delivery === 'true',
+                isCollection: $request->collection === 'true',
+            );
+
+            $order = app(VoucherBookOrderService::class)->createOrder($data);
+
+            $message = "<div class='alert alert-success'>
+                <a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
+                <b>Voucher order place successfully.</b>
+            </div>";
+
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (VoucherOrderException $e) {
+            $message = "<div class='alert alert-danger'>
+                <a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
+                <b>{$e->getUserMessage()}</b>
+            </div>";
+
+            return response()->json(['status' => 303, 'message' => $message]);
+
+        } catch (\Throwable $e) {
+            \Log::error('Admin voucher order failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status'  => 303,
+                'message' => "<div class='alert alert-danger'><b>Something went wrong.</b></div>"
+            ]);
+        }
+    }
+
+    public function storeVoucherPrev(Request $request)
     {
         $voucher_ids= $request->voucherIds;
         $qtys = $request->qtys;

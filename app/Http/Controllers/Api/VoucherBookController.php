@@ -30,6 +30,9 @@ use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use PDF;
 use Illuminate\Support\Facades\DB;
+use App\DTOs\VoucherBookOrderData;
+use App\Exceptions\VoucherOrder\VoucherOrderException;
+use App\Services\VoucherBook\VoucherBookOrderService;
 
 use Illuminate\Support\Facades\Http;
 
@@ -46,8 +49,48 @@ class VoucherBookController extends Controller
 
     }
 
-
     public function storeVoucher(Request $request)
+    {
+        try {
+            $data = VoucherBookOrderData::fromDonorRequest(
+                donorId:      Auth::id(),
+                vouchersJson: $request->vouchers,
+                isDelivery:   $request->delivery !== 'false',
+                isCollection: $request->collection !== 'false',
+            );
+            $data->source = 'app'; // override
+
+            $order = app(VoucherBookOrderService::class)->createOrder($data);
+
+            return response()->json([
+                'success'  => true,
+                'response' => [
+                    'message' => 'Voucher order place successfully.',
+                    'data'    => $order,
+                ]
+            ], 200);
+
+        } catch (VoucherOrderException $e) {
+            return response()->json([
+                'success'  => false,
+                'response' => ['message' => $e->getUserMessage()]
+            ], 202);
+
+        } catch (\Throwable $e) {
+            \Log::error('API voucher order failed', [
+                'user_id' => Auth::id(),
+                'error'   => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success'  => false,
+                'response' => ['message' => 'Something went wrong.']
+            ], 500);
+        }
+    }
+
+
+    public function storeVoucherprev(Request $request)
     {
         $vouchersData = json_decode($request->vouchers, true);
         $prepaid_amount = 0;

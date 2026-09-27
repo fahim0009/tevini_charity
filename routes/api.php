@@ -91,8 +91,6 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/book-add-to-cart', [VoucherBookController::class, 'userOrderVoucherBookstoreCart']);
     Route::get('voucher-order-edit/{id}', [VoucherBookController::class, 'voucherEditByDonor']);
     Route::post('voucher-order-update', [VoucherBookController::class, 'voucherUpdateByDonor']);
-
-    
     Route::post('waiting-completeBydonor', [VoucherBookController::class, 'waiting_CompleteBydonor']);
     Route::post('waiting-cancelBydonor', [VoucherBookController::class, 'waiting_CancelBydonor']);
 

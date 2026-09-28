@@ -756,37 +756,77 @@
 
         // ==========================================
         // PATH 2: Stripe payment (guest or insufficient balance)
+        // No amount parameters — server calculates everything
         // ==========================================
-        function payWithStripe(stripeAmount, baseAmount, feeAmount) {
+        function payWithStripe() {
             return new Promise(function (resolve, reject) {
 
-                // Show Stripe modal with fee breakdown
-                $('#stripeAmountDisplay').html(
-                    'Subtotal: £' + baseAmount.toFixed(2) + 
-                    '<br><small style="font-size:14px; color:#b45309;">+ 6% Platform Fee: £' + feeAmount.toFixed(2) + '</small>' +
-                    '<br><span style="font-size:20px;">Total: £' + stripeAmount.toFixed(2) + '</span>'
-                );
+                // Show modal with "calculating" placeholder
+                $('#stripeAmountDisplay').html('Calculating total...');
                 $('#card-errors').text('');
                 $('#stripeModal').addClass('show');
 
-                // Set up the pay button handler (remove old one first)
+                // Set up the pay button handler
                 $('#payWithStripeBtn').off('click').on('click', async function () {
 
                     var $payBtn = $(this);
                     $payBtn.prop('disabled', true).text('Processing payment...');
 
                     try {
-                        // Step 1: Create PaymentIntent from server
-                        var intentResp = await $.ajax({
-                            url: paymentIntentUrl,
-                            method: "POST",
-                            data: {
-                                amount: stripeAmount.toFixed(2),
-                                _token: "{{ csrf_token() }}"
+                        // ==========================================
+                        // Step 1: Create PaymentIntent
+                        // Send ONLY delivery choice + donor info
+                        // Server reads cart from session/DB and calculates total
+                        // ==========================================
+                        var intentResp;
+                        try {
+                            intentResp = await $.ajax({
+                                url: paymentIntentUrl,
+                                method: "POST",
+                                data: {
+                                    delivery: $('#delivery').is(':checked'),
+                                    collection: $('#collection').is(':checked'),
+                                    // Guest donor info (ignored for auth users)
+                                    first_name: $('#first_name').val(),
+                                    last_name: $('#last_name').val(),
+                                    email: $('#email').val(),
+                                    phone: $('#phone').val(),
+                                    address_line_1: $('#address_line_1').val(),
+                                    address_line_2: $('#address_line_2').val(),
+                                    town: $('#town').val(),
+                                    postcode: $('#postcode').val(),
+                                    _token: "{{ csrf_token() }}"
+                                }
+                            });
+                        } catch (intentErr) {
+                            // Server rejected (e.g. cart empty, stock issue)
+                            var intentMsg = 'Could not start payment. Please try again.';
+                            if (intentErr.responseJSON && intentErr.responseJSON.error) {
+                                if (intentErr.responseJSON.error.message) {
+                                    intentMsg = intentErr.responseJSON.error.message;
+                                } else {
+                                    intentMsg = intentErr.responseJSON.error;
+                                }
                             }
-                        });
+                            $('#card-errors').text(intentMsg);
+                            $payBtn.prop('disabled', false).text('Pay Now');
+                            reject('payment_failed');
+                            return;
+                        }
 
-                        // Step 2: Confirm card payment with Stripe
+                        // ==========================================
+                        // Step 2: Display breakdown from SERVER response
+                        // (not from JS calculation)
+                        // ==========================================
+                        $('#stripeAmountDisplay').html(
+                            'Subtotal: £' + intentResp.base_amount.toFixed(2) +
+                            '<br><small style="font-size:14px; color:#b45309;">+ 6% Platform Fee: £' + intentResp.fee.toFixed(2) + '</small>' +
+                            '<br><span style="font-size:20px;">Total: £' + intentResp.amount.toFixed(2) + '</span>'
+                        );
+
+                        // ==========================================
+                        // Step 3: Confirm card payment with Stripe
+                        // ==========================================
                         var result = await stripe.confirmCardPayment(intentResp.client_secret, {
                             payment_method: { card: cardElement }
                         }, {
@@ -794,17 +834,18 @@
                         });
 
                         if (result.error) {
-                            // Show error in card element
                             $('#card-errors').text(result.error.message);
                             $payBtn.prop('disabled', false).text('Pay Now');
                             reject('card_error');
                             return;
                         }
 
-                        // Step 3: Payment successful on frontend -> Verify & Save on Backend
+                        // ==========================================
+                        // Step 4: Payment succeeded
+                        // → Call paymentSuccess to create order on backend
+                        // ==========================================
                         if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
                             try {
-                                // Call the new alternative route to save order, log payment, etc.
                                 var verifyResp = await $.ajax({
                                     url: paymentSuccessUrl,
                                     method: "POST",
@@ -815,12 +856,10 @@
                                 });
 
                                 if (verifyResp.success) {
-                                    // Order successfully saved by backend!
                                     $('#stripeModal').removeClass('show');
                                     resolve(result);
                                 } else {
-                                    // Backend failed to save
-                                    $('#card-errors').text('Payment taken, but order failed to save. Please contact support with ID: ' + result.paymentIntent.id);
+                                    $('#card-errors').text('Payment taken, but order failed to save. Contact support with ID: ' + result.paymentIntent.id);
                                     $payBtn.prop('disabled', false).text('Pay Now');
                                     reject('order_save_failed');
                                 }
@@ -836,20 +875,17 @@
                             }
                         }
 
-                        // Step 3: Payment successful
-                        $('#stripeModal').removeClass('show');
-                        resolve(result);
-
                     } catch (err) {
                         console.log(err);
 
                         if (err.message && err.message.includes('Redirecting')) {
-                            // 3DS authentication in progress — don't show error
                             return;
                         }
 
                         var errorMsg = 'Payment failed. Please try again.';
-                        if (err.responseJSON && err.responseJSON.message) {
+                        if (err.responseJSON && err.responseJSON.error) {
+                            errorMsg = err.responseJSON.error;
+                        } else if (err.responseJSON && err.responseJSON.message) {
                             errorMsg = err.responseJSON.message;
                         }
                         $('#card-errors').text(errorMsg);
@@ -859,6 +895,8 @@
                 });
             });
         }
+
+
 
         // ==========================================
         // MAIN: Place Order Button Click
@@ -885,19 +923,15 @@
             var orderData = getOrderData();
 
             // --- Determine payment path ---
+            // Note: totalAmount is ONLY used to decide which path to take.
+            // The actual amount is always calculated server-side.
             var useBalance = false;
-            var stripeAmount = 0;
-            var baseAmount = totalAmount; // Actual voucher + delivery total
-            var feeAmount = 0;
 
             if (isLoggedIn && userBalance >= totalAmount) {
                 // PATH A: Full balance payment (No 6% fee)
                 useBalance = true;
-            } else {
-                // PATH B / C: Stripe payment (Add 6% platform fee)
-                feeAmount = Math.round(baseAmount * (6 / 100) * 100) / 100;
-                stripeAmount = Math.round((baseAmount + feeAmount) * 100) / 100;
             }
+            // PATH B/C: Stripe payment — amount calculated server-side
 
             // --- Execute payment ---
             var $btn = $(this);
@@ -916,28 +950,13 @@
                 } else {
                     // ==========================================
                     // PATH B / C: Pay with Stripe
+                    // The createPaymentIntent endpoint handles:
+                    //   - Reading cart from session/DB
+                    //   - Calculating total + 6% fee server-side
+                    //   - Storing pending order data in session (for webhook fallback)
                     // ==========================================
-                    
-                    // 1. Save order data to backend session temporarily for the Webhook
-                    try {
-                        await $.ajax({
-                            url: "{{ route('guest.voucher.pending.store') }}",
-                            method: "POST",
-                            data: { 
-                                order_data: orderData, 
-                                fee_amount: feeAmount,
-                                _token: "{{ csrf_token() }}" 
-                            }
-                        });
-                    } catch (err) {
-                        Swal.fire({ icon: 'error', title: 'Setup Error', text: 'Could not prepare order. Please try again.' });
-                        return; 
-                    }
+                    var result = await payWithStripe();
 
-                    // 2. Open Stripe Modal and process payment
-                    var result = await payWithStripe(stripeAmount, baseAmount, feeAmount);
-
-                    // 3. Success (Order is actually created securely by the Webhook in the background)
                     $('.ermsg').html('<div class="alert alert-success"><b>Payment successful! Your order is being processed.</b></div>');
                     $('html, body').animate({ scrollTop: 0 }, 500);
                     window.setTimeout(function () { location.reload(); }, 2000);

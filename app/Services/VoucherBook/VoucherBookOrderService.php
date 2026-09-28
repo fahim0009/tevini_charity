@@ -10,6 +10,7 @@ use App\Exceptions\VoucherOrder\{
     StockExceededException,
     VoucherOrderException
 };
+use App\Models\PaymentLog; 
 use App\Models\{Order, OrderHistory, User, Usertransaction, Voucher, VoucherCart, ContactMail};
 use Illuminate\Support\Facades\{DB, Log, Mail};
 
@@ -350,29 +351,54 @@ class VoucherBookOrderService
     /**
      * Send order confirmation email
      */
-    private function sendOrderConfirmationEmail(Order $order, int $donorId, string $deliveryOption): void
+    private function sendOrderConfirmationEmail(Order $order, ?int $donorId, string $deliveryOption): void
     {
         try {
-            $user = User::find($donorId);
-            if (!$user) return;
+            $email    = null;
+            $name     = null;
+            $clientNo = 'Guest';
 
-            $contact = ContactMail::find(1);
+            if ($donorId) {
+                // Authenticated user — get from User model
+                $user = User::find($donorId);
+                if (!$user) return;
+
+                $email    = $user->email;
+                $name     = $user->name;
+                $clientNo = $user->accountno ?? 'N/A';
+            } else {
+                // Guest — get name/email from the order itself
+                $email    = $order->email;
+                $name     = trim(($order->first_name ?? '') . ' ' . ($order->last_name ?? ''));
+                $clientNo = 'Guest';
+            }
+
+            // Safety check — don't send if no email
+            if (!$email) {
+                Log::warning('Order email skipped — no email on order', [
+                    'order_id' => $order->id,
+                    'donor_id' => $donorId,
+                ]);
+                return;
+            }
+
+            $contact     = ContactMail::find(1);
             $contactmail = $contact?->name ?: 'info@tevini.co.uk';
 
             $array = [
                 'subject'         => 'Voucher books order confirmation',
                 'from'            => 'info@tevini.co.uk',
                 'cc'              => $contactmail,
-                'name'            => $user->name,
-                'client_no'       => $user->accountno,
+                'name'            => $name,
+                'client_no'       => $clientNo,
                 'order_id'        => $order->id,
                 'orderid'         => $order->order_id,
                 'delivery_option' => $deliveryOption,
             ];
 
-            Mail::send('mail.order', compact('array'), function ($message) use ($array, $user) {
+            Mail::send('mail.order', compact('array'), function ($message) use ($array, $email) {
                 $message->from($array['from'], 'Tevini.co.uk')
-                        ->to($user->email)
+                        ->to($email)
                         ->cc($array['cc'])
                         ->subject($array['subject']);
             });
@@ -384,4 +410,200 @@ class VoucherBookOrderService
             // Don't fail the order if email fails
         }
     }
+
+
+
+
+
+
+
+    // ====================================================================
+    // STIPE / GUEST ORDER METHODS
+    // ====================================================================
+
+    private const PLATFORM_FEE_RATE = 0.06; // 6%
+
+    /**
+     * Calculate order total WITHOUT creating the order.
+     * Used by createPaymentIntent to get the server-side amount.
+     *
+     * @return array{base_amount: float, fee: float, total: float, delivery_charge: float, ...}
+     */
+    public function calculateOrderTotal(VoucherBookOrderData $data, bool $withFee = false): array
+    {
+        $validation = $this->validateAndCalculate($data);
+
+        $baseAmount = $validation['amount_to_deduct']; // prepaid + delivery
+        $fee = 0;
+
+        if ($withFee) {
+            $fee = round($baseAmount * self::PLATFORM_FEE_RATE, 2);
+        }
+
+        return [
+            'base_amount'      => $baseAmount,
+            'fee'              => $fee,
+            'total'            => $baseAmount + $fee,
+            'delivery_charge'  => $validation['delivery_charge'],
+            'prepaid_amount'   => $validation['prepaid_amount'],
+            'items'            => $validation['items'],
+            'delivery_option'  => $validation['delivery_option'],
+        ];
+    }
+
+    /**
+     * Create order AFTER Stripe payment succeeds.
+     * Handles both guest and auth-user-with-Stripe scenarios.
+     *
+     * Idempotency: if order already exists for this payment_intent_id, return it.
+     */
+    public function createOrderFromStripePayment(
+        VoucherBookOrderData $data,
+        string $paymentIntentId,
+        float $paidAmount
+    ): Order {
+        // 1. Idempotency check
+        $existing = Order::where('stripe_payment_intent_id', $paymentIntentId)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        // 2. Validate & calculate (recalculate server-side, don't trust frontend)
+        $validation = $this->validateAndCalculate($data);
+
+        // 3. Recalculate platform fee server-side
+        $fee = round($validation['amount_to_deduct'] * self::PLATFORM_FEE_RATE, 2);
+
+        // 4. Verify paid amount matches expected total
+        $expectedTotal = $validation['amount_to_deduct'] + $fee;
+        if (abs($paidAmount - $expectedTotal) > 0.01) {
+            Log::warning('Stripe payment amount mismatch', [
+                'expected'  => $expectedTotal,
+                'paid'      => $paidAmount,
+                'intent_id' => $paymentIntentId,
+            ]);
+            // You may want to throw an exception here
+        }
+
+        // 5. Persist order (no balance deduction, no Usertransaction)
+        $order = DB::transaction(function () use ($data, $validation, $paymentIntentId, $fee) {
+            return $this->persistStripeOrder($data, $validation, $paymentIntentId, $fee);
+        });
+
+        // 6. Create PaymentLog
+        $this->createPaymentLog($order, $paymentIntentId, $paidAmount, $data->donorId);
+
+        // 7. Send email
+        $this->sendOrderConfirmationEmail($order, $data->donorId, $validation['delivery_option']);
+
+        return $order;
+    }
+
+    /**
+     * Persist order for Stripe payment (no balance deduction)
+     */
+    private function persistStripeOrder(
+        VoucherBookOrderData $data,
+        array $validation,
+        string $paymentIntentId,
+        float $fee
+    ): Order {
+        $order = new Order();
+
+        $order->user_id         = $data->donorId;          // null for guest
+        $order->order_id        = $this->generateOrderId($data->donorId ?? 0);
+        $order->amount          = $validation['amount_to_deduct'] + $fee;
+        $order->admin_charge    = $fee;
+        $order->delivery_charge = $validation['delivery_charge'];
+        $order->delivery_option = $validation['delivery_option'];
+        $order->notification    = 1;
+        $order->status          = 0;
+        $order->payment_method  = 'stripe';
+        $order->stripe_payment_intent_id = $paymentIntentId;
+
+        // Store donor info (for guest, this is the only reference)
+        if ($data->donorInfo) {
+            $order->first_name     = $data->donorInfo['first_name'] ?? null;
+            $order->last_name      = $data->donorInfo['last_name'] ?? null;
+            $order->email          = $data->donorInfo['email'] ?? null;
+            $order->phone          = $data->donorInfo['phone'] ?? null;
+            $order->address_line_1 = $data->donorInfo['address_line_1'] ?? null;
+            $order->address_line_2 = $data->donorInfo['address_line_2'] ?? null;
+            $order->town           = $data->donorInfo['town'] ?? null;
+            $order->postcode        = $data->donorInfo['postcode'] ?? null;
+        }
+
+        $order->save();
+
+        // Create OrderHistory (same as balance orders, supports Mixed too)
+        foreach ($validation['items'] as $item) {
+            $voucher = $item['voucher'];
+            $qty     = $item['qty'];
+
+            for ($x = 0; $x < $qty; $x++) {
+                $uniqueCode = $this->generateUniqueCode();
+
+                if ($voucher->type === 'Mixed') {
+                    $this->createMixedOrderHistories($order, $voucher, $uniqueCode);
+                } else {
+                    OrderHistory::create([
+                        'order_id'       => $order->id,
+                        'voucher_id'     => $voucher->id,
+                        'number_voucher' => 1,
+                        'amount'         => $voucher->amount,
+                        'o_unq'          => $uniqueCode,
+                        'status'         => '0',
+                    ]);
+                }
+            }
+
+            $voucher->decrement('stock', $qty);
+        }
+
+        // Clear cart (DB for auth, Session for guest — handled in controller)
+        if ($data->donorId) {
+            VoucherCart::where('user_id', $data->donorId)->delete();
+        }
+
+        Log::info('Stripe voucher book order created', [
+            'order_id'    => $order->id,
+            'donor_id'    => $data->donorId,
+            'intent_id'   => $paymentIntentId,
+            'base_amount' => $validation['amount_to_deduct'],
+            'fee'         => $fee,
+            'total'       => $order->amount,
+        ]);
+
+        return $order;
+    }
+
+    /**
+     * Create PaymentLog record
+     */
+    private function createPaymentLog(Order $order, string $intentId, float $amount, ?int $userId): void
+    {
+        try {
+            PaymentLog::create([
+                'user_id'           => $userId,
+                'payment_intent_id' => $intentId,
+                'amount'            => $amount,
+                'currency'          => 'gbp',
+                'status'            => 'succeeded',
+                'type'              => 'voucher_book_order',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('PaymentLog creation failed', [
+                'order_id' => $order->id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
+    }
+
+
+
+
+
+
+
+
 }

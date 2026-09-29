@@ -30,6 +30,11 @@ use Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
+use App\DTOs\OnlineDonationData;
+use App\Exceptions\Donation\DonationException;
+use App\Services\Donation\OnlineDonationService;
+
+
 class DonorController extends Controller
 {
     public function index()
@@ -1035,7 +1040,7 @@ class DonorController extends Controller
         return view('donor.onlinedonation',compact('donor_id'));
     }
 
-    public function userOnlineDonationStore(Request $request) 
+    public function userOnlineDonationStorePrev(Request $request) 
     {
         
 
@@ -1191,7 +1196,7 @@ class DonorController extends Controller
 
 
 
-    public function userDonationStore(Request $request)
+    public function userDonationStoreprev(Request $request)
     {
         
         $userid = $request->userid;
@@ -1318,7 +1323,7 @@ class DonorController extends Controller
 
     }
 
-    public function userDonationAdminStore(Request $request)
+    public function userDonationAdminStoreprev(Request $request)
     {
 
 
@@ -1420,7 +1425,7 @@ class DonorController extends Controller
     }
 
 
-    public function userstandingDonationAdminStore(Request $request)
+    public function userstandingDonationAdminStoreprev(Request $request)
     {
 
 
@@ -1515,7 +1520,7 @@ class DonorController extends Controller
 
     }
 
-    public function userstandingDonationAdminUpdate(Request $request)
+    public function userstandingDonationAdminUpdateprev(Request $request)
     {
         // Basic Validation
         if(empty($request->amount)){
@@ -1553,6 +1558,229 @@ class DonorController extends Controller
             return response()->json(['status'=> 303, 'message'=>$message]);
         }
     }
+
+
+    // ================================================================
+    // App: One-Time OR Standing Donation
+    // ================================================================
+    public function userOnlineDonationStore(Request $request)
+    {
+        try {
+            $isStanding = ($request->standard == "on" || $request->standard == "true");
+
+            $data = OnlineDonationData::fromDonorApp(
+                donorId:        (int) $request->userid,
+                charityId:      (int) $request->charity_id,
+                amount:         (float) $request->amount,
+                isAnonymous:    $request->boolean('ano_donation'),
+                isStandingOrder: $isStanding,
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: $request->has('confirm_donation') || $request->has('c_donation'),
+                paymentsType:    $request->payments_type,
+                numberPayments:  $request->number_payments ? (int) $request->number_payments : null,
+                startingDate:    $request->starting,
+                intervalValue:   $request->interval ? (int) $request->interval : null,
+            );
+
+            $service = app(OnlineDonationService::class);
+
+            if ($isStanding) {
+                $service->createStandingDonation($data);
+                $msg = 'Standing order donation submitted successfully.';
+            } else {
+                $service->createOneTimeDonation($data);
+                $msg = 'Donation submitted successfully.';
+            }
+
+            return view('frontend.user.donationsuccess')
+                ->with('success', $msg)
+                ->with('userid', $request->userid);
+
+        } catch (DonationException $e) {
+            return back()->with('error', $e->getUserMessage());
+        } catch (\Throwable $e) {
+            \Log::error('App donation failed: ' . $e->getMessage());
+            return back()->with('error', 'Something went wrong. Please try again.');
+        }
+    }
+
+
+    // ================================================================
+    // One-Time Donation
+    // ================================================================
+    public function userDonationAdminStore(Request $request)
+    {
+        try {
+            $data = OnlineDonationData::fromAdminOneTime(
+                donorId:        (int) $request->donner_id,
+                adminId:        Auth::id(),
+                charityId:      (int) $request->charity_id,
+                amount:         (float) $request->amount,
+                isAnonymous:    $request->boolean('ano_donation'),
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: $request->c_donation !== 'false',
+            );
+
+            $donation = app(OnlineDonationService::class)->createOneTimeDonation($data);
+
+            $message = "<div class='alert alert-success'><b>Donation submitted successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (DonationException $e) {
+            $message = "<div class='alert alert-danger'><b>{$e->getUserMessage()}</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        } catch (\Throwable $e) {
+            \Log::error('Admin donation failed: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 303,
+                'message' => "<div class='alert alert-danger'><b>Something went wrong.</b></div>"
+            ]);
+        }
+    }
+
+    // ================================================================
+    // Standing Order Donation
+    // ================================================================
+    public function userstandingDonationAdminStore(Request $request)
+    {
+        try {
+            $data = OnlineDonationData::fromAdminStanding(
+                donorId:        (int) $request->donner_id,
+                adminId:        Auth::id(),
+                charityId:      (int) $request->charity_id,
+                amount:         (float) $request->amount,
+                isAnonymous:    $request->boolean('ano_donation'),
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: $request->c_donation !== 'false',
+                paymentsType:    $request->payments_type,
+                numberPayments:  $request->number_payments ? (int) $request->number_payments : null,
+                startingDate:    $request->starting,
+                intervalValue:   (int) $request->interval,
+            );
+
+            $standing = app(OnlineDonationService::class)->createStandingDonation($data);
+
+            $message = "<div class='alert alert-success'><b>Standing order donation submitted successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (DonationException $e) {
+            $message = "<div class='alert alert-danger'><b>{$e->getUserMessage()}</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        } catch (\Throwable $e) {
+            \Log::error('Admin standing donation failed: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 303,
+                'message' => "<div class='alert alert-danger'><b>Something went wrong.</b></div>"
+            ]);
+        }
+    }
+
+    // ================================================================
+    // Update Standing Order
+    // ================================================================
+    public function userstandingDonationAdminUpdate(Request $request)
+    {
+        try {
+            $data = new OnlineDonationData(
+                donorId:        0,
+                orderedByUserId: Auth::id(),
+                source:         'admin',
+                charityId:      0,
+                amount:         (float) $request->amount,
+                isAnonymous:    false,
+                isStandingOrder: true,
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: true,
+                paymentsType:    $request->payments,
+                numberPayments:  $request->number_payments ? (int) $request->number_payments : null,
+                startingDate:    $request->starting,
+                intervalValue:   (int) $request->interval,
+            );
+
+            $standing = app(OnlineDonationService::class)->updateStandingDonation($request->donation_id, $data);
+
+            $message = "<div class='alert alert-success'><b>Standing order updated successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (\Throwable $e) {
+            $message = "<div class='alert alert-danger'><b>Failed to update standing order.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+    }
+
+
+    // ================================================================
+    // One-Time Donation
+    // ================================================================
+    public function userDonationStore(Request $request)
+    {
+        try {
+            $data = OnlineDonationData::fromDonorWebOneTime(
+                donorId:        (int) $request->userid,
+                charityId:      (int) $request->charity_id,
+                amount:         (float) $request->amount,
+                isAnonymous:    $request->boolean('ano_donation'),
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: $request->c_donation !== 'false',
+            );
+
+            $donation = app(OnlineDonationService::class)->createOneTimeDonation($data);
+
+            $message = "<div class='alert alert-success'><b>Donation submitted successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (DonationException $e) {
+            $message = "<div class='alert alert-danger'><b>{$e->getUserMessage()}</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 303,
+                'message' => "<div class='alert alert-danger'><b>Something went wrong.</b></div>"
+            ]);
+        }
+    }
+
+    // ================================================================
+    // Standing Order Donation
+    // ================================================================
+    public function userStantingDonationStore(Request $request)
+    {
+        try {
+            $data = OnlineDonationData::fromDonorWebStanding(
+                donorId:        (int) $request->userid,
+                charityId:      (int) $request->charity_id,
+                amount:         (float) $request->amount,
+                isAnonymous:    $request->boolean('ano_donation'),
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: $request->c_donation !== 'false',
+                paymentsType:    $request->payments_type,
+                numberPayments:  $request->number_payments ? (int) $request->number_payments : null,
+                startingDate:    $request->starting,
+                intervalValue:   (int) $request->interval,
+            );
+
+            $standing = app(OnlineDonationService::class)->createStandingDonation($data);
+
+            $message = "<div class='alert alert-success'><b>Standing order donation submitted successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (DonationException $e) {
+            $message = "<div class='alert alert-danger'><b>{$e->getUserMessage()}</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 303,
+                'message' => "<div class='alert alert-danger'><b>Something went wrong.</b></div>"
+            ]);
+        }
+    }
+
 
 
     public function addAccount(Request $request)

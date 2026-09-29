@@ -26,6 +26,9 @@ use App\Mail\DonationreportCharity;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use App\DTOs\OnlineDonationData;
+use App\Exceptions\Donation\DonationException;
+use App\Services\Donation\OnlineDonationService;
 
 class DonationController extends Controller
 {
@@ -388,7 +391,7 @@ class DonationController extends Controller
 
     // standing order start 
 
-    public function userStantingDonationStore(Request $request)
+    public function userStantingDonationStoreprev(Request $request)
     {
 
         
@@ -508,6 +511,42 @@ class DonationController extends Controller
         }
 
 
+    }
+
+    // ================================================================
+    // Standing Order Donation
+    // ================================================================
+    public function userStantingDonationStore(Request $request)
+    {
+        try {
+            $data = OnlineDonationData::fromDonorWebStanding(
+                donorId:        (int) $request->userid,
+                charityId:      (int) $request->charity_id,
+                amount:         (float) $request->amount,
+                isAnonymous:    $request->boolean('ano_donation'),
+                charityNote:    $request->charitynote,
+                myNote:         $request->mynote,
+                confirmDonation: $request->c_donation !== 'false',
+                paymentsType:    $request->payments_type,
+                numberPayments:  $request->number_payments ? (int) $request->number_payments : null,
+                startingDate:    $request->starting,
+                intervalValue:   (int) $request->interval,
+            );
+
+            $standing = app(OnlineDonationService::class)->createStandingDonation($data);
+
+            $message = "<div class='alert alert-success'><b>Standing order donation submitted successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+
+        } catch (DonationException $e) {
+            $message = "<div class='alert alert-danger'><b>{$e->getUserMessage()}</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 303,
+                'message' => "<div class='alert alert-danger'><b>Something went wrong.</b></div>"
+            ]);
+        }
     }
 
     public function donationStanding(Request $request)

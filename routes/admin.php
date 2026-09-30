@@ -244,10 +244,19 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     ->name('dev.updateTransaction');
 
 
+
     Route::get('/fix-old-dates', function () {
         set_time_limit(0);
 
-        // 1. Add default history
+        // 1. Update old 'Out' transactions
+        DB::table('transactions')
+            ->whereNull('business_date')
+            ->where('t_type', 'Out')
+            ->update([
+                'business_date' => DB::raw('DATE(created_at)')
+            ]);
+
+        // 2. Add default history for usertransactions
         DB::table('cutoff_histories')->insertOrIgnore([
             'effective_date' => '2000-01-01',
             'cutoff_time' => '16:30',
@@ -255,7 +264,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
             'updated_at' => now()
         ]);
 
-        // 2. Update old transactions in chunks
+        // 3. Update old usertransactions
         $count = 0;
         Usertransaction::whereNull('business_date')->chunkById(200, function ($transactions) use (&$count) {
             foreach ($transactions as $transaction) {
@@ -265,7 +274,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
             }
         });
 
-        return "Success! Updated {$count} old transactions.";
+        return "Success! Updated transactions and {$count} old usertransactions.";
     });
         
     /*

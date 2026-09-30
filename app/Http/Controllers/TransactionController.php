@@ -89,13 +89,14 @@ class TransactionController extends Controller
                 // Paid Subquery
                 $paidSubquery = DB::table('transactions')
                     ->select(
-                        DB::raw("$businessDateRawTx as pay_date"), 
+                        'business_date as pay_date',
                         'charity_id',
                         DB::raw('SUM(amount) as total_paid'),
                         DB::raw('MAX(bank_payment_status) as current_status')
                     )
                     ->where('status', 1)
                     ->where('t_type', 'Out')
+                    ->whereNotNull('business_date')
                     ->groupBy('pay_date', 'charity_id');
 
                 // Main Query using business_date

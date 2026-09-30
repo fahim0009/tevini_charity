@@ -119,6 +119,7 @@ class AutoCharityPayment extends Command
                         $transaction->amount = $amountToPayNow;
                         $transaction->status = "1"; 
                         $transaction->created_at = $endTime;
+                        $transaction->business_date = $endTime->toDateString();
                         $transaction->save();
 
                         $charity->decrement('balance', $amountToPayNow);

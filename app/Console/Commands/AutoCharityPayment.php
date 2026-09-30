@@ -68,7 +68,7 @@ class AutoCharityPayment extends Command
         // Get transactions within the window
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
             ->where('status', 1)
-            ->whereBetween('created_at', [$startTime, $endTime])
+            ->whereBetween('business_date', [$startTime->toDateString(), $endTime->toDateString()]) // business_date
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })

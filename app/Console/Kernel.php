@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Models\CompanyDetail;
 
 class Kernel extends ConsoleKernel
 {
@@ -27,7 +28,15 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('donation:deduct-standing')->daily();
         // $schedule->command('queue:work')->everyFiveMinutes();
-        $schedule->command('payments:process-charity')->dailyAt('16:30');
+        
+        try {
+            $companyDetail = CompanyDetail::first();
+            $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
+        } catch (\Exception $e) {
+            $autoPaymentTime = '16:30';
+        }
+
+        $schedule->command('payments:process-charity')->dailyAt($autoPaymentTime);
     }
 
     /**

@@ -248,33 +248,40 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     Route::get('/fix-old-dates', function () {
         set_time_limit(0);
 
-        // 1. Update old 'Out' transactions
+        // 1. Reset all 'Out' transactions business_date to their creation date
         DB::table('transactions')
-            ->whereNull('business_date')
             ->where('t_type', 'Out')
             ->update([
                 'business_date' => DB::raw('DATE(created_at)')
             ]);
 
-        // 2. Add default history for usertransactions
-        DB::table('cutoff_histories')->insertOrIgnore([
-            'effective_date' => '2000-01-01',
-            'cutoff_time' => '16:30',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        // 2. Reset all usertransactions to NULL so they can be recalculated
+        DB::table('usertransactions')->whereNotNull('charity_id')->update(['business_date' => null]);
 
-        // 3. Update old usertransactions
+        // 3. Ensure history is set to 16:30 for today and default
+        DB::table('cutoff_histories')->updateOrInsert(
+            ['effective_date' => '2000-01-01'],
+            ['cutoff_time' => '16:30', 'updated_at' => now(), 'created_at' => now()]
+        );
+        
+        DB::table('cutoff_histories')->updateOrInsert(
+            ['effective_date' => \Carbon\Carbon::today()->toDateString()],
+            ['cutoff_time' => '16:30', 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        // 4. Recalculate all usertransactions for 16:30
         $count = 0;
-        Usertransaction::whereNull('business_date')->chunkById(200, function ($transactions) use (&$count) {
-            foreach ($transactions as $transaction) {
-                $transaction->business_date = Usertransaction::calculateBusinessDate($transaction->created_at);
-                $transaction->save();
-                $count++;
-            }
-        });
+        \App\Models\Usertransaction::whereNull('business_date')
+            ->whereNotNull('charity_id')
+            ->chunkById(200, function ($transactions) use (&$count) {
+                foreach ($transactions as $transaction) {
+                    $transaction->business_date = \App\Models\Usertransaction::calculateBusinessDate($transaction->created_at);
+                    $transaction->save();
+                    $count++;
+                }
+            });
 
-        return "Success! Updated transactions and {$count} old usertransactions.";
+        return "Success! Reset everything to 16:30. Total updated: {$count}";
     });
         
     /*

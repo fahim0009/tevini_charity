@@ -68,7 +68,7 @@ class HomepageController extends Controller
 
     public function updateCutoffTime(Request $request)
     {
-        set_time_limit(0); // Remove time limit for this process
+        set_time_limit(0);
         
         $request->validate([
             'auto_payment_time' => 'required|date_format:H:i',
@@ -93,22 +93,29 @@ class HomepageController extends Controller
             ]
         );
 
-        // 3. Recalculate business_date ONLY for unpaid transactions
-        $paidIds = \App\Models\CharityPaymentBatch::pluck('usertransactions_ids')
-            ->flatten()
-            ->unique()
+        // 3. Find all "Charity ID + Date" combinations that have ALREADY been paid
+        $paidDates = DB::table('transactions')
+            ->where('t_type', 'Out')
+            ->where('status', 1)
+            ->whereNotNull('business_date')
+            ->select(DB::raw("CONCAT(charity_id, '-', business_date) as unique_key"))
+            ->pluck('unique_key')
             ->toArray();
 
-        // Use chunkById to process in small batches to prevent timeout
+        // 4. Recalculate business_date ONLY for unpaid transactions
         Usertransaction::where('status', 1)
             ->whereNotNull('charity_id')
-            ->when(!empty($paidIds), function($query) use ($paidIds) {
-                $query->whereNotIn('id', $paidIds);
-            })
-            ->chunkById(200, function ($transactions) {
+            ->whereNotNull('business_date')
+            ->chunkById(200, function ($transactions) use ($paidDates) {
                 foreach ($transactions as $transaction) {
-                    $transaction->business_date = Usertransaction::calculateBusinessDate($transaction->created_at);
-                    $transaction->save();
+                    // Check if this transaction's date is in the paid list
+                    $currentKey = $transaction->charity_id . '-' . $transaction->business_date;
+                    
+                    // If NOT paid, then recalculate its business_date
+                    if (!in_array($currentKey, $paidDates)) {
+                        $transaction->business_date = Usertransaction::calculateBusinessDate($transaction->created_at);
+                        $transaction->save();
+                    }
                 }
             });
 

@@ -34,6 +34,9 @@ use App\Http\Controllers\OTPController;
 use App\Http\Controllers\TopupController;
 use App\Http\Controllers\User\UserController;
 
+use App\Models\Usertransaction;
+use Illuminate\Support\Facades\DB;
+
 /*
 |--------------------------------------------------------------------------
 | ADMIN ROUTES
@@ -161,7 +164,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
 
     // General Settings
     Route::get('/settings', [HomepageController::class, 'adminSettings'])->name('admin.settings');
-    Route::post('/settings/auto-payment-time', [HomepageController::class, 'updateAutoPaymentTime'])->name('admin.settings.auto_payment_time');
+    Route::post('/settings/auto-payment-time', [HomepageController::class, 'updateCutoffTime'])->name('admin.settings.auto_payment_time');
 
     /*
     |----------------------------------------------------------------------
@@ -239,6 +242,31 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
         ->name('dev.deleteTransaction');
     Route::put('/dev/transaction-update/{id}', [DeveloperToolController::class, 'updateTransaction'])
     ->name('dev.updateTransaction');
+
+
+    Route::get('/fix-old-dates', function () {
+        set_time_limit(0);
+
+        // 1. Add default history
+        DB::table('cutoff_histories')->insertOrIgnore([
+            'effective_date' => '2000-01-01',
+            'cutoff_time' => '16:30',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        // 2. Update old transactions in chunks
+        $count = 0;
+        Usertransaction::whereNull('business_date')->chunkById(200, function ($transactions) use (&$count) {
+            foreach ($transactions as $transaction) {
+                $transaction->business_date = Usertransaction::calculateBusinessDate($transaction->created_at);
+                $transaction->save();
+                $count++;
+            }
+        });
+
+        return "Success! Updated {$count} old transactions.";
+    });
         
     /*
     |--------------------------------------------------------------------------

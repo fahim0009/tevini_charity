@@ -62,42 +62,12 @@ class TransactionController extends Controller
 
             if ($type === 'Summary' || $type === 'PreviousSummary') {
 
-                // Fetch dynamic cutoff time
+                 // Fetch dynamic cutoff time for Paid Subquery
                 $companyDetail = CompanyDetail::first();
                 $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
                 $cutoffTime = $autoPaymentTime . ':00';
 
-                /*
-                |--------------------------------------------------------------------------
-                | Dynamic Business Date Logic with Weekend Shift
-                |--------------------------------------------------------------------------
-                | 1. If time >= cutoffTime -> belongs to NEXT day
-                | 2. If that day is Friday(4), Saturday(5), or Sunday(6) -> shift to Monday
-                */
-                
-                $baseDateCalc = "
-                    CASE 
-                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
-                        THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
-                        ELSE usertransactions.created_at
-                    END
-                ";
-
-                $weekendShift = "
-                    CASE 
-                        WHEN WEEKDAY($baseDateCalc) IN (4, 5, 6) 
-                        THEN DATE_ADD($baseDateCalc, INTERVAL (7 - WEEKDAY($baseDateCalc)) DAY)
-                        ELSE $baseDateCalc
-                    END
-                ";
-
-                $businessDateRaw = "DATE($weekendShift)";
-
-                /*
-                |--------------------------------------------------------------------------
-                | Paid Subquery (Applying same logic to 'Out' transactions)
-                |--------------------------------------------------------------------------
-                */
+                // Dynamic Business Date Logic for Transactions (Out) table
                 $baseDateCalcTx = "
                     CASE 
                         WHEN TIME(transactions.created_at) >= '$cutoffTime'
@@ -116,9 +86,10 @@ class TransactionController extends Controller
 
                 $businessDateRawTx = "DATE($weekendShiftTx)";
 
+                // Paid Subquery
                 $paidSubquery = DB::table('transactions')
                     ->select(
-                        DB::raw("$businessDateRawTx as pay_date"),
+                        DB::raw("$businessDateRawTx as pay_date"), 
                         'charity_id',
                         DB::raw('SUM(amount) as total_paid'),
                         DB::raw('MAX(bank_payment_status) as current_status')
@@ -127,38 +98,36 @@ class TransactionController extends Controller
                     ->where('t_type', 'Out')
                     ->groupBy('pay_date', 'charity_id');
 
-                /*
-                |--------------------------------------------------------------------------
-                | Main Query
-                |--------------------------------------------------------------------------
-                */
+                // Main Query using business_date
                 $query = Usertransaction::query()
-                        ->where('status', 1)
-                        ->whereNotNull('usertransactions.charity_id')
-                        ->select([
-                            DB::raw("$businessDateRaw as date_group"),
-                            'usertransactions.charity_id',
-
-                            DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
-                            DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
-                            DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
-                            DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
-                            DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
-
-                            DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
-                            DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
-                        ])
-                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($businessDateRaw) {
-                            $join->on(DB::raw($businessDateRaw), '=', 'paid_data.pay_date')
-                                 ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
-                        })
-                        ->groupBy('date_group', 'usertransactions.charity_id')
-                        ->orderByRaw('date_group DESC')
-                        ->orderBy('usertransactions.charity_id')
-                        ->with('charity');
+                    ->where('status', 1)
+                    ->whereNotNull('usertransactions.charity_id')
+                    ->whereNotNull('usertransactions.business_date')
+                    ->select([
+                        'usertransactions.business_date as date_group',
+                        'usertransactions.charity_id',
+                        
+                        DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
+                        DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
+                        DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
+                        DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
+                        DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
+                        
+                        DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
+                        DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
+                    ])
+                    ->leftJoinSub($paidSubquery, 'paid_data', function ($join) {
+                        $join->on('usertransactions.business_date', '=', 'paid_data.pay_date')
+                            ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
+                    })
+                    ->groupBy('date_group', 'usertransactions.charity_id')
+                    ->orderByRaw('date_group DESC')
+                    ->orderBy('usertransactions.charity_id')
+                    ->with('charity');
 
                 if ($type === 'Summary') {
-                    $query->where(DB::raw($businessDateRaw), '>', '2026-02-07');
+                    // RESTORED: The date filter from your original code
+                    $query->where('usertransactions.business_date', '>', '2026-02-07');
                     $query->having('payment_status', '=', 0);
                     $query->whereHas('charity', function($q) {
                         $q->where('auto_payment', 1);
@@ -168,8 +137,9 @@ class TransactionController extends Controller
                 }
 
                 if ($fromDate && $toDate) {
-                    $query->whereBetween(DB::raw($businessDateRaw), [$fromDate, $toDate]);
+                    $query->whereBetween('usertransactions.business_date', [$fromDate, $toDate]);
                 }
+
 
                 return DataTables::of($query)
                     ->addColumn('date_group', function ($row) {

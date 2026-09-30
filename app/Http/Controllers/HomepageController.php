@@ -13,6 +13,7 @@ use App\Models\FingerprintDonation;
 use App\Models\Gateway;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\{DB, Log};
+use Carbon\Carbon;
 
 class HomepageController extends Controller
 {
@@ -62,13 +63,18 @@ class HomepageController extends Controller
         
         return view('setting.index', compact('companyDetail'));
     }
-    public function updateAutoPaymentTime(Request $request)
+
+
+
+    public function updateCutoffTime(Request $request)
     {
+        set_time_limit(0); // Remove time limit for this process
+        
         $request->validate([
             'auto_payment_time' => 'required|date_format:H:i',
         ]);
 
-        // Since there is only one record, we grab the first one and update it
+        // 1. Update the current time in company_details
         $companyDetail = CompanyDetail::first();
         
         if ($companyDetail) {
@@ -77,7 +83,36 @@ class HomepageController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.settings')->with('success', 'Auto payment time updated successfully.');
+        // 2. Save or update the history for today
+        DB::table('cutoff_histories')->updateOrInsert(
+            ['effective_date' => Carbon::today()->toDateString()],
+            [
+                'cutoff_time' => $request->auto_payment_time, 
+                'updated_at' => now(), 
+                'created_at' => now()
+            ]
+        );
+
+        // 3. Recalculate business_date ONLY for unpaid transactions
+        $paidIds = \App\Models\CharityPaymentBatch::pluck('usertransactions_ids')
+            ->flatten()
+            ->unique()
+            ->toArray();
+
+        // Use chunkById to process in small batches to prevent timeout
+        Usertransaction::where('status', 1)
+            ->whereNotNull('charity_id')
+            ->when(!empty($paidIds), function($query) use ($paidIds) {
+                $query->whereNotIn('id', $paidIds);
+            })
+            ->chunkById(200, function ($transactions) {
+                foreach ($transactions as $transaction) {
+                    $transaction->business_date = Usertransaction::calculateBusinessDate($transaction->created_at);
+                    $transaction->save();
+                }
+            });
+
+        return redirect()->back()->with('success', 'Cutoff time updated successfully!');
     }
 
     public function tdf()

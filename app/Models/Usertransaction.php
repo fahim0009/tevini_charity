@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class Usertransaction extends Model
 {
@@ -59,6 +61,47 @@ class Usertransaction extends Model
       {
           return $this->hasOne(Provoucher::class, 'tran_id', 'id');
       }
+
+    protected static function booted()
+    {
+        static::creating(function ($transaction) {
+            // Automatically set business_date when a new transaction is created
+            if (empty($transaction->business_date)) {
+                $transaction->business_date = self::calculateBusinessDate($transaction->created_at);
+            }
+        });
+    }
+
+    public static function calculateBusinessDate($createdAt)
+    {
+        $date = Carbon::parse($createdAt);
+        
+        // Find the cutoff time that was active on the transaction's creation date
+        $history = DB::table('cutoff_histories')
+            ->where('effective_date', '<=', $date->toDateString())
+            ->orderBy('effective_date', 'desc')
+            ->first();
+
+        // Use found time or fallback to default 16:30
+        $cutoffTime = $history ? $history->cutoff_time : '16:30';
+        $cutoffDateTime = $date->copy()->setTimeFromTimeString($cutoffTime);
+
+        // If transaction time is after cutoff, move to the next day
+        if ($date->gte($cutoffDateTime)) {
+            $date->addDay();
+        }
+
+        // Weekend Logic: Shift Friday, Saturday, Sunday to Monday
+        if ($date->isFriday()) {
+            $date->addDays(3); 
+        } else if ($date->isSaturday()) {
+            $date->addDays(2); 
+        } else if ($date->isSunday()) {
+            $date->addDay();   
+        }
+
+        return $date->toDateString();
+    }
 
 
 }

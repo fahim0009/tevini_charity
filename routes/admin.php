@@ -250,20 +250,12 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
 
 
 
-
 Route::get('/fix-old-dates', function () {
     set_time_limit(0);
 
-    // 1. Reset and set all 'Out' transactions business_date to their creation date
-    DB::table('transactions')
-        ->where('t_type', 'Out')
-        ->update([
-            'business_date' => DB::raw('DATE(created_at)')
-        ]);
-
-    // 2. Reset and update all usertransactions using a single SQL query
     $cutoffTime = '16:30:00';
     
+    // Shared dynamic logic for both tables
     $baseDateCalc = "
         CASE 
             WHEN TIME(created_at) >= '$cutoffTime'
@@ -280,7 +272,14 @@ Route::get('/fix-old-dates', function () {
         END
     ";
 
-    // Notice: We removed ->whereNull('business_date') so it forces recalculation
+    // 1. Reset and set all 'Out' transactions business_date using dynamic logic
+    DB::table('transactions')
+        ->where('t_type', 'Out')
+        ->update([
+            'business_date' => DB::raw("DATE($weekendShift)")
+        ]);
+
+    // 2. Reset and update all usertransactions using the SAME dynamic logic
     $updatedCount = DB::table('usertransactions')
         ->whereNotNull('charity_id')
         ->update([
@@ -298,9 +297,8 @@ Route::get('/fix-old-dates', function () {
         ['cutoff_time' => '16:30', 'updated_at' => now(), 'created_at' => now()]
     );
 
-    return "Success! Recalculated and updated {$updatedCount} user transactions instantly.";
+    return "Success! Recalculated and updated {$updatedCount} user transactions and all Out transactions instantly.";
 });
-
 
 
 

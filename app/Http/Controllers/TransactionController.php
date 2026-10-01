@@ -21,38 +21,9 @@ class TransactionController extends Controller
 {
 
 
-
-
-
     /**
-     * Helper function to calculate dynamic start and end time
-     * based on the selected business date and weekend logic.
+     * Display a listing of the resource.
      */
-    private function getBusinessDateWindow($dateStr)
-    {
-        $companyDetail = CompanyDetail::first();
-        $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
-        
-        $timeParts = explode(':', $autoPaymentTime);
-        $hour = (int) $timeParts[0];
-        $minute = (int) $timeParts[1] + 1; // +1 minute to match previous 16:31 logic safely
-
-        $businessDate = Carbon::createFromFormat('Y-m-d', $dateStr);
-
-        if ($businessDate->isMonday()) {
-            // If business date is Monday, start from Thursday's cutoff time
-            // This covers Friday, Saturday, Sunday, and Monday
-            $startDateTime = $businessDate->copy()->subDays(4)->setTime($hour, $minute, 0);
-        } else {
-            // Standard 24 hours window: Yesterday's cutoff time
-            $startDateTime = $businessDate->copy()->subDay()->setTime($hour, $minute, 0);
-        }
-
-        $endDateTime = $businessDate->copy()->setTime($hour, $minute, 59);
-
-        return [$startDateTime, $endDateTime];
-    }
-
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -62,269 +33,7 @@ class TransactionController extends Controller
 
             if ($type === 'Summary' || $type === 'PreviousSummary') {
 
-                // Fetch dynamic cutoff time
-                $companyDetail = CompanyDetail::first();
-                $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
-                $cutoffTime = $autoPaymentTime . ':00';
-
-                /*
-                |--------------------------------------------------------------------------
-                | Dynamic Business Date Logic with Weekend Shift
-                |--------------------------------------------------------------------------
-                | 1. If time >= cutoffTime -> belongs to NEXT day
-                | 2. If that day is Friday(4), Saturday(5), or Sunday(6) -> shift to Monday
-                */
-                
-                $baseDateCalc = "
-                    CASE 
-                        WHEN TIME(usertransactions.created_at) >= '$cutoffTime'
-                        THEN DATE_ADD(usertransactions.created_at, INTERVAL 1 DAY)
-                        ELSE usertransactions.created_at
-                    END
-                ";
-
-                $weekendShift = "
-                    CASE 
-                        WHEN WEEKDAY($baseDateCalc) IN (4, 5, 6) 
-                        THEN DATE_ADD($baseDateCalc, INTERVAL (7 - WEEKDAY($baseDateCalc)) DAY)
-                        ELSE $baseDateCalc
-                    END
-                ";
-
-                $businessDateRaw = "DATE($weekendShift)";
-
-                /*
-                |--------------------------------------------------------------------------
-                | Paid Subquery (Applying same logic to 'Out' transactions)
-                |--------------------------------------------------------------------------
-                */
-                $baseDateCalcTx = "
-                    CASE 
-                        WHEN TIME(transactions.created_at) >= '$cutoffTime'
-                        THEN DATE_ADD(transactions.created_at, INTERVAL 1 DAY)
-                        ELSE transactions.created_at
-                    END
-                ";
-
-                $weekendShiftTx = "
-                    CASE 
-                        WHEN WEEKDAY($baseDateCalcTx) IN (4, 5, 6) 
-                        THEN DATE_ADD($baseDateCalcTx, INTERVAL (7 - WEEKDAY($baseDateCalcTx)) DAY)
-                        ELSE $baseDateCalcTx
-                    END
-                ";
-
-                $businessDateRawTx = "DATE($weekendShiftTx)";
-
-                $paidSubquery = DB::table('transactions')
-                    ->select(
-                        DB::raw("$businessDateRawTx as pay_date"),
-                        'charity_id',
-                        DB::raw('SUM(amount) as total_paid'),
-                        DB::raw('MAX(bank_payment_status) as current_status')
-                    )
-                    ->where('status', 1)
-                    ->where('t_type', 'Out')
-                    ->groupBy('pay_date', 'charity_id');
-
-                /*
-                |--------------------------------------------------------------------------
-                | Main Query
-                |--------------------------------------------------------------------------
-                */
-                $query = Usertransaction::query()
-                        ->where('status', 1)
-                        ->whereNotNull('usertransactions.charity_id')
-                        ->select([
-                            DB::raw("$businessDateRaw as date_group"),
-                            'usertransactions.charity_id',
-
-                            DB::raw("SUM(CASE WHEN donation_id IS NOT NULL THEN amount ELSE 0 END) as online_sum"),
-                            DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
-                            DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
-                            DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
-                            DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
-
-                            DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
-                            DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
-                        ])
-                        ->leftJoinSub($paidSubquery, 'paid_data', function ($join) use ($businessDateRaw) {
-                            $join->on(DB::raw($businessDateRaw), '=', 'paid_data.pay_date')
-                                 ->on('usertransactions.charity_id', '=', 'paid_data.charity_id');
-                        })
-                        ->groupBy('date_group', 'usertransactions.charity_id')
-                        ->orderByRaw('date_group DESC')
-                        ->orderBy('usertransactions.charity_id')
-                        ->with('charity');
-
-                if ($type === 'Summary') {
-                    $query->where(DB::raw($businessDateRaw), '>', '2026-02-07');
-                    $query->having('payment_status', '=', 0);
-                    $query->whereHas('charity', function($q) {
-                        $q->where('auto_payment', 1);
-                    });
-                } elseif ($type === 'PreviousSummary') {
-                    $query->having('payment_status', '=', 1);
-                }
-
-                if ($fromDate && $toDate) {
-                    $query->whereBetween(DB::raw($businessDateRaw), [$fromDate, $toDate]);
-                }
-
-                return DataTables::of($query)
-                    ->addColumn('date_group', function ($row) {
-                        return '<span data-raw="'.$row->date_group.'">'.
-                            \Carbon\Carbon::parse($row->date_group)->format('d/m/Y').
-                        '</span>';
-                    })
-                    ->addColumn('charity_name', function ($row) {
-                        $charity = $row->charity;
-                        $name = $charity->name ?? 'N/A';
-                        $balance = $charity->balance ?? '0';
-                        $title = '';
-                        $style = 'style="color: #28a745; font-weight: bold;"'; 
-
-                        if ($charity && $charity->auto_payment == 0) {
-                            $title = ' title="Auto Payment Off"';
-                            $style = 'style="color: #dc3545; font-weight: bold;"';
-                        }
-                        return '<span' . $title . ' ' . $style . '>' . $name . ' (' . $balance . ')</span>';
-                    })
-                    ->filterColumn('charity_name', function($query, $keyword) {
-                        $query->whereHas('charity', function($q) use ($keyword) {
-                            $q->where('name', 'like', "%{$keyword}%");
-                        });
-                    })
-                    ->addColumn('balance', function ($row) {
-                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
-                        $balance = $totalGenerated - $row->paid_sum;
-                        return '£' . number_format($balance, 2);
-                    })
-                    ->addColumn('action', function ($row) {
-                        $totalGenerated = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
-                        $isChecked = ($row->payment_status == 1) ? 'checked' : '';
-
-                        return '
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input status-switch"
-                                    type="checkbox"
-                                    role="switch"
-                                    '.$isChecked.'
-                                    data-charity-id="'.$row->charity_id.'"
-                                    data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'"
-                                    data-total="'.$totalGenerated.'">
-                            </div>';
-                    })
-                    ->editColumn('paid_sum', function($row) {
-                        if ($row->paid_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-success text-decoration-none fw-bold" 
-                                data-type="paid" 
-                                data-charity="'.$row->charity_id.'" 
-                                data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">
-                                £' . number_format($row->paid_sum, 2) . '
-                                </a>';
-                    })
-                    ->editColumn('online_sum', function($row) {
-                        if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->online_sum, 2) . '</a>';
-                    })
-                    ->editColumn('standing_sum', function($row) {
-                        if ($row->standing_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="standing" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->standing_sum, 2) . '</a>';
-                    })
-                    ->editColumn('voucher_sum', function($row) {
-                        if ($row->voucher_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="voucher" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->voucher_sum, 2) . '</a>';
-                    })
-                    ->editColumn('campaign_sum', function($row) {
-                        if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->campaign_sum, 2) . '</a>';
-                    })
-                    ->editColumn('card_sum', function($row) {
-                        if ($row->card_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="card" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->card_sum, 2) . '</a>';
-                    })
-                    ->addColumn('raw_date', function ($row) {
-                        return $row->date_group;
-                    })
-                    ->addColumn('raw_total', function ($row) {
-                        return $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
-                    })
-                    ->rawColumns([
-                        'date_group', 'online_sum', 'standing_sum', 'voucher_sum', 
-                        'campaign_sum', 'card_sum', 'paid_sum', 'charity_name', 
-                        'action', 'raw_date', 'raw_total' 
-                    ])
-                    ->make(true);
-            }
-
-            $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
-
-            if ($type === 'In' || $type === 'Out') {
-                $query->where('usertransactions.t_type', $type);
-            }
-
-            if ($type === 'Out') {
-                $query->where(function ($query) {
-                    $query->whereNull('usertransactions.expired')->orWhere('usertransactions.expired', '1');
-                });
-            }
-
-            if ($fromDate && $toDate) {
-                $query->whereBetween('usertransactions.created_at', [$fromDate, $toDate . ' 23:59:59']);
-            }
-
-            return DataTables::of($query)
-                ->editColumn('created_at', fn($row) => \Carbon\Carbon::parse($row->created_at)->format('d/m/Y'))
-                ->addColumn('beneficiary', function($row) {
-                    return $row->charity->name ?? $row->crdAcptLoc ?? 'N/A';
-                })
-                ->addColumn('donor', function($row) {
-                    return $row->user ? $row->user->name.' '.$row->user->surname : 'N/A';
-                })
-                ->editColumn('amount', fn($row) => '£' . number_format($row->amount, 2))
-                ->rawColumns(['beneficiary', 'donor'])
-                ->make(true);
-        }
-
-        return view('transaction.index');
-    }
-
-
-    public function index2(Request $request)
-    {
-        if ($request->ajax()) {
-            $type = $request->get('t_type');
-            $fromDate = $request->get('fromDate');
-            $toDate = $request->get('toDate');
-
-            if ($type === 'Summary' || $type === 'PreviousSummary') {
-
-                 // Fetch dynamic cutoff time for Paid Subquery
-                $companyDetail = CompanyDetail::first();
-                $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
-                $cutoffTime = $autoPaymentTime . ':00';
-
-                // Dynamic Business Date Logic for Transactions (Out) table
-                $baseDateCalcTx = "
-                    CASE 
-                        WHEN TIME(transactions.created_at) >= '$cutoffTime'
-                        THEN DATE_ADD(transactions.created_at, INTERVAL 1 DAY)
-                        ELSE transactions.created_at
-                    END
-                ";
-
-                $weekendShiftTx = "
-                    CASE 
-                        WHEN WEEKDAY($baseDateCalcTx) IN (4, 5, 6) 
-                        THEN DATE_ADD($baseDateCalcTx, INTERVAL (7 - WEEKDAY($baseDateCalcTx)) DAY)
-                        ELSE $baseDateCalcTx
-                    END
-                ";
-
-                $businessDateRawTx = "DATE($weekendShiftTx)";
-
-                // Paid Subquery
+                // Paid Subquery (Directly using business_date)
                 $paidSubquery = DB::table('transactions')
                     ->select(
                         'business_date as pay_date',
@@ -365,7 +74,6 @@ class TransactionController extends Controller
                     ->with('charity');
 
                 if ($type === 'Summary') {
-                    // RESTORED: The date filter from your original code
                     $query->where('usertransactions.business_date', '>', '2026-02-07');
                     $query->having('payment_status', '=', 0);
                     $query->whereHas('charity', function($q) {
@@ -379,11 +87,10 @@ class TransactionController extends Controller
                     $query->whereBetween('usertransactions.business_date', [$fromDate, $toDate]);
                 }
 
-
                 return DataTables::of($query)
                     ->addColumn('date_group', function ($row) {
                         return '<span data-raw="'.$row->date_group.'">'.
-                            \Carbon\Carbon::parse($row->date_group)->format('d/m/Y').
+                            Carbon::parse($row->date_group)->format('d/m/Y').
                         '</span>';
                     })
                     ->addColumn('charity_name', function ($row) {
@@ -420,7 +127,7 @@ class TransactionController extends Controller
                                     role="switch"
                                     '.$isChecked.'
                                     data-charity-id="'.$row->charity_id.'"
-                                    data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'"
+                                    data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'"
                                     data-total="'.$totalGenerated.'">
                             </div>';
                     })
@@ -429,29 +136,29 @@ class TransactionController extends Controller
                         return '<a href="javascript:void(0)" class="view-details text-success text-decoration-none fw-bold" 
                                 data-type="paid" 
                                 data-charity="'.$row->charity_id.'" 
-                                data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">
+                                data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">
                                 £' . number_format($row->paid_sum, 2) . '
                                 </a>';
                     })
                     ->editColumn('online_sum', function($row) {
                         if ($row->online_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->online_sum, 2) . '</a>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="online" data-charity="'.$row->charity_id.'" data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->online_sum, 2) . '</a>';
                     })
                     ->editColumn('standing_sum', function($row) {
                         if ($row->standing_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="standing" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->standing_sum, 2) . '</a>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="standing" data-charity="'.$row->charity_id.'" data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->standing_sum, 2) . '</a>';
                     })
                     ->editColumn('voucher_sum', function($row) {
                         if ($row->voucher_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="voucher" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->voucher_sum, 2) . '</a>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="voucher" data-charity="'.$row->charity_id.'" data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->voucher_sum, 2) . '</a>';
                     })
                     ->editColumn('campaign_sum', function($row) {
                         if ($row->campaign_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->campaign_sum, 2) . '</a>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="campaign" data-charity="'.$row->charity_id.'" data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->campaign_sum, 2) . '</a>';
                     })
                     ->editColumn('card_sum', function($row) {
                         if ($row->card_sum <= 0) return '<span class="text-muted">£0.00</span>';
-                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="card" data-charity="'.$row->charity_id.'" data-date="'.\Carbon\Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->card_sum, 2) . '</a>';
+                        return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="card" data-charity="'.$row->charity_id.'" data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->card_sum, 2) . '</a>';
                     })
                     ->addColumn('raw_date', function ($row) {
                         return $row->date_group;
@@ -467,6 +174,7 @@ class TransactionController extends Controller
                     ->make(true);
             }
 
+            // Standard In/Out Transactions
             $query = Usertransaction::with(['user', 'charity'])->select('usertransactions.*');
 
             if ($type === 'In' || $type === 'Out') {
@@ -484,7 +192,7 @@ class TransactionController extends Controller
             }
 
             return DataTables::of($query)
-                ->editColumn('created_at', fn($row) => \Carbon\Carbon::parse($row->created_at)->format('d/m/Y'))
+                ->editColumn('created_at', fn($row) => Carbon::parse($row->created_at)->format('d/m/Y'))
                 ->addColumn('beneficiary', function($row) {
                     return $row->charity->name ?? $row->crdAcptLoc ?? 'N/A';
                 })
@@ -501,15 +209,15 @@ class TransactionController extends Controller
 
     public function getDayDetails(Request $request)
     {
-        // Use helper to get dynamic window
-        [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($request->date);
+        // No need for time window calculation, we directly use business_date
+        $date = $request->date;
 
         if ($request->type == 'paid') {
             $data = Transaction::with('charity')
                 ->where('charity_id', $request->charity_id)
                 ->where('t_type', 'Out')
                 ->where('status', 1)
-                ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                ->where('business_date', $date) // Directly matching business_date
                 ->get();
 
             return response()->json($data->map(function($item) {
@@ -526,7 +234,7 @@ class TransactionController extends Controller
         $query = Usertransaction::with('user')
             ->where('status', 1)
             ->where('charity_id', $request->charity_id)
-            ->whereBetween('created_at', [$startDateTime, $endDateTime]);
+            ->where('business_date', $date); // Directly matching business_date
 
         if ($request->type == 'online') $query->whereNotNull('donation_id');
         if ($request->type == 'standing') $query->whereNotNull('standing_donationdetails_id');
@@ -551,16 +259,13 @@ class TransactionController extends Controller
     {
         $charityId = $request->charity_id;
         $date = $request->date;
-        $total = $request->total;
         $status = $request->status === 'true' ? '1' : '0';
 
-        return DB::transaction(function () use ($charityId, $date, $total, $status) {
-            // Use helper to get dynamic window
-            [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($date);
-
+        return DB::transaction(function () use ($charityId, $date, $status) {
+            // Directly match business_date instead of time window
             $transaction = Transaction::where('charity_id', $charityId)
                 ->where('t_type', 'Out')
-                ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                ->where('business_date', $date)
                 ->first();
 
             if ($transaction) {
@@ -594,13 +299,11 @@ class TransactionController extends Controller
             foreach ($items as $item) {
                 $charity = Charity::find($item['charity_id']);
                 
-                // Use helper to get dynamic window
-                [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($item['date']);
-                
+                // Directly match business_date instead of time window
                 $paidTransactionIds = Transaction::where('charity_id', $item['charity_id'])
                     ->where('t_type', 'Out')
                     ->where('status', 1)
-                    ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                    ->where('business_date', $item['date'])
                     ->pluck('t_id')
                     ->toArray();
                 
@@ -648,18 +351,10 @@ class TransactionController extends Controller
                     continue;
                 }
 
-                try {
-                    // Use helper to get dynamic window
-                    [$startDateTime, $endDateTime] = $this->getBusinessDateWindow($date);
-                } catch (\Exception $e) {
-                    $notFound++;
-                    $notFoundList[] = "Invalid date for Charity #{$charityId}";
-                    continue;
-                }
-
+                // Directly match business_date instead of time window
                 $affectedRows = Transaction::where('charity_id', $charityId)
                     ->where('t_type', 'Out')
-                    ->whereBetween('created_at', [$startDateTime, $endDateTime])
+                    ->where('business_date', $date)
                     ->update(['bank_payment_status' => $status]);
 
                 if ($affectedRows > 0) {
@@ -684,7 +379,6 @@ class TransactionController extends Controller
             ]);
         });
     }
-
 
 
 

@@ -244,11 +244,10 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
     ->name('dev.updateTransaction');
 
 
-
     Route::get('/fix-old-dates', function () {
         set_time_limit(0);
 
-        // 1. Set all 'Out' transactions business_date to their creation date
+        // 1. Set all 'Out' transactions business_date to their creation date (Super fast)
         DB::table('transactions')
             ->where('t_type', 'Out')
             ->whereNull('business_date')
@@ -256,24 +255,31 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
                 'business_date' => DB::raw('DATE(created_at)')
             ]);
 
-        // 2. Align usertransactions to PAID Out transactions
-        // We find all "Out" transactions, and assign their date to user transactions that happened before them.
-        $outTransactions = DB::table('transactions')
-            ->where('t_type', 'Out')
-            ->where('status', 1)
-            ->orderBy('created_at', 'asc')
-            ->get(['id', 'charity_id', 'created_at', 'business_date']);
+        // 2. Update all usertransactions using a single SQL query (No loops!)
+        $cutoffTime = '16:30:00';
+        
+        $baseDateCalc = "
+            CASE 
+                WHEN TIME(created_at) >= '$cutoffTime'
+                THEN DATE_ADD(created_at, INTERVAL 1 DAY)
+                ELSE created_at
+            END
+        ";
+        
+        $weekendShift = "
+            CASE 
+                WHEN WEEKDAY($baseDateCalc) IN (4, 5, 6) 
+                THEN DATE_ADD($baseDateCalc, INTERVAL (7 - WEEKDAY($baseDateCalc)) DAY)
+                ELSE $baseDateCalc
+            END
+        ";
 
-        $alignedCount = 0;
-        foreach ($outTransactions as $outTx) {
-            // Find user transactions for this charity that happened BEFORE this Out transaction, and haven't been assigned a business_date yet
-            $updated = \App\Models\Usertransaction::where('charity_id', $outTx->charity_id)
-                ->where('created_at', '<=', $outTx->created_at)
-                ->whereNull('business_date')
-                ->update(['business_date' => $outTx->business_date]);
-            
-            $alignedCount += $updated;
-        }
+        $updatedCount = DB::table('usertransactions')
+            ->whereNull('business_date')
+            ->whereNotNull('charity_id')
+            ->update([
+                'business_date' => DB::raw("DATE($weekendShift)")
+            ]);
 
         // 3. Ensure history is set to 16:30 for default and today
         DB::table('cutoff_histories')->updateOrInsert(
@@ -286,19 +292,7 @@ Route::group(['prefix' => 'admin/', 'middleware' => ['auth', 'is_admin']], funct
             ['cutoff_time' => '16:30', 'updated_at' => now(), 'created_at' => now()]
         );
 
-        // 4. Recalculate remaining UNPAID usertransactions (where business_date is still NULL)
-        $count = 0;
-        \App\Models\Usertransaction::whereNull('business_date')
-            ->whereNotNull('charity_id')
-            ->chunkById(200, function ($transactions) use (&$count) {
-                foreach ($transactions as $transaction) {
-                    $transaction->business_date = \App\Models\Usertransaction::calculateBusinessDate($transaction->created_at);
-                    $transaction->save();
-                    $count++;
-                }
-            });
-
-        return "Success! Aligned {$alignedCount} paid transactions. Recalculated {$count} unpaid transactions.";
+        return "Success! Updated {$updatedCount} user transactions instantly.";
     });
         
     /*

@@ -3,6 +3,11 @@
 @section('content')
 
 <style>
+
+    a {
+        text-decoration: none;
+    }
+
     #addThisFormContainer .card {
         transition: all 0.3s ease;
     }
@@ -240,7 +245,7 @@
                                     <th>Status</th>
                                     <th>Auto Payment</th>
                                     <th>Bank</th>
-                                    <th>Action</th>
+                                    <th style="width: 8%">Action</th>
                                 </tr>
                             </thead>
                         </table>

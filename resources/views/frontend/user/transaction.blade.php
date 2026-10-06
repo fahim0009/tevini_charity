@@ -180,7 +180,19 @@ use Illuminate\Support\Carbon;
                                     </div>
                                 </td>
                                 <td class="fs-16 txt-secondary">
-                                    {{$transaction->note}}
+                                    
+                                            @if ($transaction->donation)
+                                                {{-- Show Regular Donation Notes --}}
+                                                {{ $transaction->donation->mynote ?? '' }} <br>
+                                                {{ $transaction->donation->charitynote ?? '' }}
+                                            @elseif ($transaction->standingdonationDetail && $transaction->standingdonationDetail->StandingDonation)
+                                                {{-- Show Standing Donation Notes --}}
+                                                {{ $transaction->standingdonationDetail->StandingDonation->mynote ?? '' }} <br>
+                                                {{ $transaction->standingdonationDetail->StandingDonation->charitynote ?? '' }}
+                                            @else
+                                                {{-- Fallback to Transaction Note --}}
+                                                {{ $transaction->note ?? '' }}
+                                            @endif
                                 </td>
                                 <td class="fs-16 txt-secondary">
                                     @if ($transaction->title == "Voucher")

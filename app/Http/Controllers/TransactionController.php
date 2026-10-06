@@ -504,7 +504,8 @@ class TransactionController extends Controller
             ->get();
 
         // Out Transactions
-         $outtransactions = Usertransaction::where('t_type', 'Out')
+        $outtransactions = Usertransaction::where('t_type', 'Out')
+            ->with(['donation', 'standingdonationDetail.StandingDonation', 'provoucher', 'charity'])
             ->where('user_id', $userId)
             ->where(function ($query) use ($hasDateRange, $fromDate, $toDate) {
                 $query->where('status', 1)

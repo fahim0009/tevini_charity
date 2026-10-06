@@ -676,6 +676,7 @@ class CharityController extends Controller
                         ])
                         ->where($dateFilter)
                         ->with([
+                            'donation',
                             'provoucher',
                             'user',
                             'charity',

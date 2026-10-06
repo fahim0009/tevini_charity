@@ -182,7 +182,23 @@ use Illuminate\Support\Carbon;
                                                     </div>
                                                 </td>
                                                 <td>{{ $transaction->cheque_no}}</td>
-                                                <td>{{ $transaction->note}} {{  $charityNote ?  $charityNote->charitynote : "" }}</td>
+
+                                                <td>
+                                                    @if ($transaction->donation)
+                                                        {{-- Show Regular Donation Notes --}}
+                                                        {{ $transaction->donation->mynote ?? '' }} <br>
+                                                        {{ $transaction->donation->charitynote ?? '' }}
+                                                    @elseif ($transaction->standingdonationDetail && $transaction->standingdonationDetail->StandingDonation)
+                                                        {{-- Show Standing Donation Notes --}}
+                                                        {{ $transaction->standingdonationDetail->StandingDonation->mynote ?? '' }} <br>
+                                                        {{ $transaction->standingdonationDetail->StandingDonation->charitynote ?? '' }}
+                                                    @else
+                                                        {{-- Fallback to Transaction Note --}}
+                                                        {{ $transaction->note ?? '' }}
+                                                    @endif
+
+                                                </td>
+
                                                 <td>{{ $transaction->amount}}</td>
                                         </tr>
                                         @endforeach

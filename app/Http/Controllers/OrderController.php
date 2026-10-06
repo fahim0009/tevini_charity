@@ -1431,7 +1431,9 @@ class OrderController extends Controller
 
             $standardAmount = $user->standard_amount ?: 500;
             $limit     = $user->getAvailableLimit();
-            $isPending = ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes' || $amount >= $standardAmount);
+            $isPending = $user->ppv_account == 1
+                        ? false
+                        : ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes' || $amount >= $standardAmount);
 
 
             $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
@@ -1445,9 +1447,9 @@ class OrderController extends Controller
             $transaction->cheque_no          = $chequeNo;
             $transaction->title              = "Voucher";
             $transaction->barcode_image      = $barcodeImagePath;
-            $transaction->pending            = $row['waiting'] === 'Yes' ? 0 : 1;
-            $transaction->status             = $isPending ? 0 : 1;
-            $transaction->expired            = $row['expired'] === 'Yes' ? 0 : 1;
+            $transaction->pending = ($user->ppv_account == 1) ? 1 : ($row['waiting'] === 'Yes' ? 0 : 1);
+            $transaction->status  = ($user->ppv_account == 1) ? 1 : ($isPending ? 0 : 1);
+            $transaction->expired = ($user->ppv_account == 1) ? 1 : ($row['expired'] === 'Yes' ? 0 : 1);
             $transaction->provoucher_batch_id = $probatch->id;
             $transaction->batch_no           = $batchNo;
             $transaction->save();
@@ -1462,9 +1464,9 @@ class OrderController extends Controller
             $voucher->cheque_no            = $chequeNo;
             $voucher->amount               = $amount;
             $voucher->note                 = $row['note'];
-            $voucher->waiting              = $row['waiting'] ?? 'No';
-            $voucher->expired              = $row['expired'] ?? 'No';
-            $voucher->status               = $isPending ? 0 : 1;
+            $voucher->waiting = ($user->ppv_account == 1) ? 'No' : ($row['waiting'] ?? 'No');
+            $voucher->expired = ($user->ppv_account == 1) ? 'No' : ($row['expired'] ?? 'No');
+            $voucher->status  = ($user->ppv_account == 1) ? 1 : ($isPending ? 0 : 1);
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 

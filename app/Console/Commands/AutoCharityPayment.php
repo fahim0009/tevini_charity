@@ -93,7 +93,7 @@ class AutoCharityPayment extends Command
 
             $alreadyPaid = Transaction::where('charity_id', $charity->id)->where('status', 1)
                 ->where('t_type', 'Out')
-                ->whereBetween('created_at', [$startTime, $endTime])
+                ->whereBetween('business_date', [$startTime->toDateString(), $endTime->toDateString()])
                 ->sum('amount');
 
             $amountToPayNow = $record->total - $alreadyPaid;
@@ -105,7 +105,7 @@ class AutoCharityPayment extends Command
                         // Fetch the specific Usertransaction IDs for this window to save in the new table
                         $userTransactions = Usertransaction::where('charity_id', $charity->id)
                             ->where('status', 1)
-                            ->whereBetween('created_at', [$startTime, $endTime])
+                            ->whereBetween('business_date', [$startTime->toDateString(), $endTime->toDateString()])
                             ->get();
                             
                         $userTxIds = $userTransactions->pluck('id')->toArray();

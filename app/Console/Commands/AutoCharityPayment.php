@@ -50,25 +50,22 @@ class AutoCharityPayment extends Command
             return;
         }
 
-        // Calculate Start and End Time based on the Day
+        // Calculate End Time based on the Day
         $endTime = $baseCutoff->copy()->subSecond();
 
-        if ($dayOfWeek === Carbon::MONDAY) {
-            // If today is Monday, start from Friday's cutoff time to cover Fri, Sat, Sun
-            $startTime = $baseCutoff->copy()->subDays(3); 
-        } else {
-            // For other days, start exactly 24 hours ago
-            $startTime = $baseCutoff->copy()->subDay();
-        }
+        // The business date we need to process is simply the date of the baseCutoff
+        // This automatically handles weekends because if today is Monday, baseCutoff is Friday's cutoff,
+        // so targetBusinessDate will be Friday, which includes Sat and Sun due to our model logic!
+        $targetBusinessDate = $baseCutoff->toDateString();
 
-        Log::info("Processing Window: From {$startTime->toDateTimeString()} to {$endTime->toDateTimeString()}");
+        Log::info("Processing Window for Business Date: {$targetBusinessDate}");
 
         $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
         // Get transactions within the window
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
             ->where('status', 1)
-            ->whereBetween('business_date', [$startTime->toDateString(), $endTime->toDateString()]) // business_date
+            ->where('business_date', $targetBusinessDate) // FIXED: Using exact business date
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })
@@ -93,19 +90,19 @@ class AutoCharityPayment extends Command
 
             $alreadyPaid = Transaction::where('charity_id', $charity->id)->where('status', 1)
                 ->where('t_type', 'Out')
-                ->whereBetween('business_date', [$startTime->toDateString(), $endTime->toDateString()])
+                ->where('business_date', $targetBusinessDate) // FIXED: Using exact business date
                 ->sum('amount');
 
             $amountToPayNow = $record->total - $alreadyPaid;
 
             if ($amountToPayNow > 0.01) {
                 try {
-                    DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $startTime, $contactmail) {
+                    DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $targetBusinessDate, $contactmail) {
                         
                         // Fetch the specific Usertransaction IDs for this window to save in the new table
                         $userTransactions = Usertransaction::where('charity_id', $charity->id)
                             ->where('status', 1)
-                            ->whereBetween('business_date', [$startTime->toDateString(), $endTime->toDateString()])
+                            ->where('business_date', $targetBusinessDate) // FIXED: Using exact business date
                             ->get();
                             
                         $userTxIds = $userTransactions->pluck('id')->toArray();
@@ -119,7 +116,7 @@ class AutoCharityPayment extends Command
                         $transaction->amount = $amountToPayNow;
                         $transaction->status = "1"; 
                         $transaction->created_at = $endTime;
-                        $transaction->business_date = $endTime->toDateString();
+                        $transaction->business_date = $targetBusinessDate; // FIXED: Using exact business date
                         $transaction->save();
 
                         $charity->decrement('balance', $amountToPayNow);
@@ -140,7 +137,7 @@ class AutoCharityPayment extends Command
                             'charity' => $charity,
                             'details' => $details,
                             'total'   => $amountToPayNow,
-                            'date'    => $endTime->toDateString()
+                            'date'    => $targetBusinessDate
                         ]);
 
                         $fileName = 'Statement-' . $charity->id . '-' . $endTime->format('Y-m-d-Hi') . '.pdf';
@@ -151,8 +148,8 @@ class AutoCharityPayment extends Command
                             'name'          => $charity->name,
                             'transactionid' => $transaction->t_id,
                             'total'         => number_format($amountToPayNow, 2),
-                            'date'          => $endTime->toDateString(),
-                            'subject'       => 'Daily Statement - ' . $endTime->toDateString(),
+                            'date'          => $targetBusinessDate,
+                            'subject'       => 'Daily Statement - ' . $targetBusinessDate,
                             'file'          => $filePath,
                         ];
 
@@ -167,7 +164,6 @@ class AutoCharityPayment extends Command
             }
         }
 
-        Log::info("Payment Process: Completed for cut-off " . $endTime);
+        Log::info("Payment Process: Completed for business date " . $targetBusinessDate);
     }
-
 }

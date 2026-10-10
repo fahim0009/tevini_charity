@@ -6,60 +6,62 @@
     .donation-checkbox {
         width: 20px;
         height: 20px;
+        cursor: pointer;
     }
 </style>
 
 <div class="rightSection">
-
     <div class="dashboard-content">
 
         <section class="profile purchase-status">
-            <div class="title-section">
-                <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
-                <div class="mx-2">New Donation List</div>
+            <div class="title-section d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <span class="iconify" data-icon="fluent:contact-card-28-regular"></span>
+                    <div class="mx-2">New Donation List</div>
+                </div>
+                <!-- Complete Button Moved to Top -->
+                <button class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1 completeBtn">
+                    <i class="fas fa-check"></i> Complete Selected
+                </button>
             </div>
-            <div class="ermsg"></div>
+            <div class="px-4 ermsg mt-2"></div>
         </section>
    
         <!-- Image loader -->
-        <div id='loading' style='display:none ;'>
+        <div id="loading" style="display: none;">
             <img src="{{ asset('assets/image/loader.gif') }}" id="loading-image" alt="Loading..." />
-       </div>
-     <!-- Image loader -->
+        </div>
 
-
-        <section class="profile purchase-status">
+        <section class="profile purchase-status px-4">
             <div class="title-section">
                 <div class="col-md-6">
                     <label for="charityFilter">Filter by Charity:</label>
                     <select id="charityFilter" class="form-control">
                         <option value="">Select Charity</option>
                         @foreach ($charities as $charity)
-                        <option value="{{$charity->name}}">{{$charity->name}}</option>
+                        <option value="{{ $charity->name }}">{{ $charity->name }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
         </section>
 
-
-
-         <section class="px-4"  id="contentContainer">
+        <section class="px-4" id="contentContainer">
             <div class="row my-3">
-
                 <div class="col-md-12 mt-2 text-center">
                     <div class="overflow">
-
-
                         <table class="table table-custom shadow-sm bg-white" id="example1">
                             <thead>
                                 <tr>
-                                    <th> Mark </th>
+                                    <!-- Select All Checkbox Added Here -->
+                                    <th class="text-center" style="width: 50px;">
+                                        <input type="checkbox" id="selectAll" class="donation-checkbox">
+                                    </th>
                                     <th>Date</th>
                                     <th>Donor</th>
                                     <th>Beneficiary</th> 
                                     <th>Amount</th>
-                                    <th>Annonymous Donation</th>
+                                    <th>Anonymous Donation</th>
                                     <th>Charity Note</th>
                                     <th>Note</th>
                                     <th>Status</th>
@@ -70,15 +72,14 @@
                                 @forelse ($donation as $data)
                                     <tr>
                                         <td class="text-center">
-                                            <input type="checkbox" name="donation_id[]" value="{{ $data->id }}" class="donation-checkbox" data-charity="{{ $data->charity_id}}">
+                                            <input type="checkbox" name="donation_id[]" value="{{ $data->id }}" class="donation-checkbox" data-charity="{{ $data->charity_id }}">
                                         </td>
                                         <td data-order="{{ $data->created_at->timestamp }}">{{ $data->created_at->format('d/m/Y') }}</td>
-                                        <td>{{ $data->user->name ?? ''}} {{ $data->user->surname ?? ''}}</td>
+                                        <td>{{ $data->user->name ?? '' }} {{ $data->user->surname ?? '' }}</td>
 
                                         <td data-search="{{ trim($data->charity->name) }}">
-                                            <a href="{{ route('charity.pay', [$data->charity_id, $data->amount]) }}" 
-                                            class="my-2 btn btn-sm btn-success text-white" target="blank"> 
-                                            {{ trim($data->charity->name) }} 
+                                            <a href="{{ route('charity.pay', [$data->charity_id, $data->amount]) }}" class="my-2 btn btn-sm btn-success text-white" target="blank"> 
+                                                {{ trim($data->charity->name) }} 
                                             </a>
                                         </td>
 
@@ -88,45 +89,33 @@
                                         <td>{{ $data->mynote }}</td>
                                         <td>Pending</td>
                                         <td> 
-                                            <select name="" id="" class="status form-control">
-                                            <option value="0|{{$data->id}}" @if($data->status == "0")Selected @endif>Pending</option> 
-                                            <option value="1|{{$data->id}}" @if($data->status == "1")Selected @endif>Complete</option> 
-                                            <option value="3|{{$data->id}}" @if($data->status == "3")Selected @endif>Cancel</option> 
+                                            <select class="status form-control">
+                                                <option value="0|{{ $data->id }}" @if($data->status == "0") selected @endif>Pending</option> 
+                                                <option value="1|{{ $data->id }}" @if($data->status == "1") selected @endif>Complete</option> 
+                                                <option value="3|{{ $data->id }}" @if($data->status == "3") selected @endif>Cancel</option> 
                                             </select> 
                                         </td>
                                     </tr>
                                 @empty
+                                    <tr>
+                                        <td colspan="10" class="text-center">No donations found.</td>
+                                    </tr>
                                 @endforelse
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="9">
-                                        <button class="text-decoration-none bg-success text-white py-1 px-3 rounded mb-1" id="completeBtn">Complete</button>
-                                    </td>
-                                </tr>
-                            </tfoot>
                         </table>
-
-
-
-
-
-
                     </div>
                 </div>
             </div>
         </section>
 
-
     </div>
 </div>
-
 
 @endsection
 
 @section('script')
 <script type="text/javascript">
-$(document).ready(function() {
+ $(document).ready(function() {
     var title = 'Report: ';
     var data = 'Data: ';
 
@@ -148,20 +137,21 @@ $(document).ready(function() {
                 customize: function(win) {
                     $(win.document.body).addClass('white-bg');
                     $(win.document.body).css('font-size', '10px');
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
+                    $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
                 }
             }
         ]
     });
 
+    // Select All Checkbox Logic
+    $('#selectAll').on('click', function() {
+        var rows = table.rows({ 'search': 'applied' }).nodes();
+        $('.donation-checkbox', rows).prop('checked', this.checked);
+    });
+
+    // Charity Filter Logic
     $('#charityFilter').on('change', function() {
         var charity = $(this).val();
-        
-        // Use column 3 (Beneficiary)
-        // We remove the ^ and $ regex anchors because the cell contains <a> tags
-        // and use smart filtering instead
         if (charity) {
             table.column(3).search(charity).draw();
         } else {
@@ -172,76 +162,106 @@ $(document).ready(function() {
     // CSRF setup
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    // Status update handler
-    var url = "{{ URL::to('/admin/donation-status') }}";
+    // Helper function to display messages
+    function showMessage(message, type = 'success') {
+        var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        var html = "<div class='alert " + alertClass + "'>" + message + "</div>";
+        $(".ermsg").html(html);
+    }
 
+    // Status update handler
+    var statusUrl = "{{ URL::to('/admin/donation-status') }}";
+    
     $('.status').on('change', function() {
         let [status, did] = this.value.split("|");
-
-        // confirm() returns true for OK (Yes), false for Cancel (No)
         let userChoice = confirm("Do you want to send email in charity?");
         let sendEmail = userChoice ? 1 : 2;
 
         $("#loading").show();
+        $(".ermsg").html('');
 
-
-        $.post(url, { 
-            status: status, 
-            did: did, 
-            send_email: sendEmail 
-        })
-        .done(function(d) {
-            if (d.status == 300) {
-                $(".ermsg").html(d.message);
-                setTimeout(() => location.reload(), 500);
+        $.ajax({
+            url: statusUrl,
+            type: 'POST',
+            data: { status: status, did: did, send_email: sendEmail },
+            success: function(d) {
+                if (d.status == 300) {
+                    showMessage(d.message, 'success');
+                    // Delay increased to 2000ms (2 seconds) so user can read it
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showMessage(d.message || 'Something went wrong.', 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'An error occurred while updating the status.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                showMessage(errorMessage, 'error');
+            },
+            complete: function() {
+                $("#loading").hide();
             }
-        })
-        .always(() => $("#loading").hide())
-        .fail(console.log);
+        });
     });
 
-    // Checkbox handler
-
-    $('#completeBtn').on('click', function() {
+    // Complete Button Handler (Triggered from Top Button)
+    $('.completeBtn').on('click', function() {
         var selected = [];
         var charity = [];
-        $('.donation-checkbox:checked').each(function() {
+        
+        $('.donation-checkbox:checked').not('#selectAll').each(function() {
             selected.push($(this).val());
             charity.push($(this).data('charity'));
         });
 
-        let uniqueCharities = [...new Set(charity)];
+        if (selected.length === 0) {
+            showMessage('Please select at least one donation.', 'error');
+            return;
+        }
 
-        
-        // confirm() returns true for OK (Yes), false for Cancel (No)
+        let uniqueCharities = [...new Set(charity)];
         let userChoice = confirm("Do you want to send email in charity?");
         let sendEmail = userChoice ? 1 : 2;
 
+        $("#loading").show();
+        $(".ermsg").html('');
 
-        if (selected.length > 0) {
-            $("#loading").show();
-            $.post("{{ URL::to('/admin/donation-complete') }}", { 
+        $.ajax({
+            url: "{{ URL::to('/admin/donation-complete') }}",
+            type: 'POST',
+            data: { 
                 donation_ids: selected,
                 charity_ids: uniqueCharities,
                 send_email: sendEmail 
-            })
-                .done(function(d) {
-                    console.log(d);
-                    if (d.status == 300) {
-                        $(".ermsg").html(d.message);
-                        setTimeout(() => location.reload(), 500);
-                    }
-                })
-                .always(() => $("#loading").hide())
-                .fail(console.log);
-        } else {
-            alert('Please select at least one donation.');
-        }
+            },
+            success: function(d) {
+                if (d.status == 300) {
+                    showMessage(d.message, 'success');
+                    // Delay increased to 2000ms (2 seconds) so user can read it
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showMessage(d.message || 'Something went wrong.', 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'An error occurred while completing the donation.';
+                // Catch Laravel validation errors or server errors
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } 
+                // If it's a 422 Validation Error and has fields
+                else if (xhr.status === 422 && xhr.responseJSON.errors) {
+                    errorMessage = 'Validation failed: ' + Object.values(xhr.responseJSON.errors).join(', ');
+                }
+                showMessage(errorMessage, 'error');
+            },
+            complete: function() {
+                $("#loading").hide();
+            }
+        });
     });
-
-
-
 });
 </script>
-
 @endsection

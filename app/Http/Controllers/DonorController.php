@@ -34,6 +34,9 @@ use App\DTOs\OnlineDonationData;
 use App\Exceptions\Donation\DonationException;
 use App\Services\Donation\OnlineDonationService;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+
 
 class DonorController extends Controller
 {
@@ -2196,49 +2199,92 @@ class DonorController extends Controller
     }
 
 
-     // donation complete
-
+    /**
+     * Mark selected donations as complete and send emails.
+     */
     public function donationComplete(Request $request)
     {
+        // 1. Validate incoming request
+        $request->validate([
+            'donation_ids'   => 'required|array',
+            'donation_ids.*' => 'required|integer|exists:donations,id',
+            'charity_ids'    => 'required|array',
+            'charity_ids.*'  => 'required|integer|exists:charities,id',
+            'send_email'     => 'required|in:1,2'
+        ]);
 
-        $donationids = $request->donation_ids;
-        $charityids = $request->charity_ids;
+        $donationIds = $request->donation_ids;
+        $charityIds  = $request->charity_ids;
+        $sendEmail   = $request->send_email == "1";
 
-        foreach ($donationids as $key => $did) {
-            $order = Donation::find($did);
-            $order->status = 1;
-            $order->save(); 
-        }
+        try {
+            // 2. Bulk update donation statuses (Much faster than looping)
+            Donation::whereIn('id', $donationIds)->update(['status' => 1]);
 
-        foreach ($charityids as $key => $cid) {
-            
-            $donations = Donation::whereIn('id', $donationids)->where('charity_id', $cid)->get();
+            // 3. Get base contact email safely
+            $contactmail = ContactMail::find(1)?->name;
 
-            $charity = Charity::where('id', $cid)->first();
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $email = $charity->email;
+            // 4. Process emails and PDFs per charity
+            foreach ($charityIds as $cid) {
+                
+                $charity = Charity::find($cid);
+                if (!$charity) {
+                    continue; // Skip if charity doesn't exist
+                }
 
-            $pdf = PDF::loadView('invoices.donations_report_charity', compact('charity','donations'));
-            $output = $pdf->output();
-            file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
+                $donations = Donation::whereIn('id', $donationIds)
+                    ->where('charity_id', $cid)
+                    ->get();
 
-            $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
-            $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
-            $array['cc'] = $contactmail;
-            $array['charity'] = $charity;
+                if ($donations->isEmpty()) {
+                    continue;
+                }
 
-            
-            if ($request->send_email == "1") {
-                Mail::to($email)
-                ->send(new DonationreportCharity($array));
-                Mail::to($contactmail)
-                ->send(new DonationreportCharity($array));
+                // Generate PDF
+                $pdf = PDF::loadView('invoices.donations_report_charity', compact('charity', 'donations'));
+                
+                // Added timestamp to prevent file overwriting conflicts
+                $fileName = 'Donation-report-charity-' . $charity->id . '-' . time() . '.pdf';
+                $filePath = public_path('invoices/' . $fileName);
+                
+                file_put_contents($filePath, $pdf->output());
+
+                $data = [
+                    'file'      => $filePath,
+                    'file_name' => $fileName,
+                    'cc'        => $contactmail,
+                    'charity'   => $charity,
+                ];
+
+                // Send Emails if requested
+                if ($sendEmail) {
+                    if ($charity->email) {
+                        Mail::to($charity->email)->send(new DonationreportCharity($data));
+                    }
+                    if ($contactmail) {
+                        Mail::to($contactmail)->send(new DonationreportCharity($data));
+                    }
+                }
             }
+
+            $message = "<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status changed successfully.</b>";
             
+            return response()->json([
+                'status'  => 300,
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Donation Complete Error: ' . $e->getMessage());
+
+            $errorMessage = "<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Something went wrong. Please try again.</b>";
+
+            return response()->json([
+                'status'  => 500,
+                'message' => $errorMessage
+            ]);
         }
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation status change successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        
     }
 
     // stripe

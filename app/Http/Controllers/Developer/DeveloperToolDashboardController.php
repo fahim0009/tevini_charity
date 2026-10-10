@@ -22,9 +22,29 @@ class DeveloperToolDashboardController extends Controller
     public function dashboard()
     {
         $totalTransactions = Transaction::count();
-        $totalUserTransactions = Usertransaction::count();
         $totalCharities = Charity::count();
         $totalDonors = User::where('is_type', 'user')->count();
+
+        // User Transaction Stats (This Month & Last 30 Days)
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+        $last30Days = Carbon::today()->subDays(30);
+
+        $successfulThisMonth = Usertransaction::where('status', 1)
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->count();
+
+        $unsuccessfulThisMonth = Usertransaction::where('status', 0)
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->count();
+
+        $successfulLast30Days = Usertransaction::where('status', 1)
+            ->where('created_at', '>=', $last30Days)
+            ->count();
+
+        $unsuccessfulLast30Days = Usertransaction::where('status', 0)
+            ->where('created_at', '>=', $last30Days)
+            ->count();
 
         $todaysOnlineDonation = Donation::whereDate('created_at', Carbon::today())->sum('amount');
         $weeklyOnlineDonation = Donation::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
@@ -40,22 +60,20 @@ class DeveloperToolDashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Fetch all records for DataTables (removed limit)
         $stripeSyncIssues = Donation::whereNotNull('stripe_payment_id')
             ->where('status', 0)
             ->with(['user', 'charity'])
             ->latest()
-            ->limit(5)
             ->get();
 
         $pendingDonations = Donation::where('status', 0)
             ->with(['user', 'charity'])
             ->latest()
-            ->limit(5)
             ->get();
 
         $negativeBalanceUsers = User::where('balance', '<', 0)
             ->latest()
-            ->limit(5)
             ->get();
 
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
@@ -72,7 +90,6 @@ class DeveloperToolDashboardController extends Controller
             ->with(['user', 'charity', 'standingdonationDetail' => function($q) {
                 $q->latest('id')->limit(1);
             }])
-            ->limit(100) // Limit to prevent slow load
             ->get();
 
         foreach ($activeOrders as $order) {
@@ -108,7 +125,8 @@ class DeveloperToolDashboardController extends Controller
         }
 
         return view('admin.developer.dashboard', compact(
-            'totalTransactions', 'totalUserTransactions', 'totalCharities', 'totalDonors',
+            'totalTransactions', 'totalCharities', 'totalDonors',
+            'successfulThisMonth', 'unsuccessfulThisMonth', 'successfulLast30Days', 'unsuccessfulLast30Days',
             'todaysOnlineDonation', 'weeklyOnlineDonation', 'todaysStandingDonation', 'weeklyStandingDonation',
             'pendingStandingDonations', 'cutoffHistory', 'stripeSyncIssues', 'pendingDonations', 
             'negativeBalanceUsers', 'tomorrowStandingAmount', 'stuckStandingDonations', 'failingStandingDonations'
@@ -162,8 +180,6 @@ class DeveloperToolDashboardController extends Controller
      */
     public function voucherBookMonitoring()
     {
-        // Assuming you have an Order or VoucherBook model. 
-        // Adjust the model according to your project structure.
         $voucherBooks = \App\Models\Order::whereNotNull('voucher_book_id')->latest()->paginate(25); 
         return view('admin.developer.monitoring.voucher_books', compact('voucherBooks'));
     }
@@ -173,7 +189,6 @@ class DeveloperToolDashboardController extends Controller
      */
     public function voucherMonitoring()
     {
-        // Adjust model as needed
         $vouchers = \App\Models\Provoucher::latest()->paginate(25); 
         return view('admin.developer.monitoring.vouchers', compact('vouchers'));
     }

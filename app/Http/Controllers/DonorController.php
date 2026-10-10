@@ -244,7 +244,7 @@ class DonorController extends Controller
                 ->with('amount',$amount);
     }
 
-    public function topupStore(Request $request)
+    public function topupStore2(Request $request)
     {
 
         if(empty($request->gbalance)){
@@ -320,7 +320,7 @@ class DonorController extends Controller
 
             if($request->cleargift == "true"){
                 $cleargiftaid = User::find($request->topupid);
-                $cleargiftaid->expected_gift_aid = $cleargiftaid->expected_gift_aid - $request->balance;
+                $cleargiftaid->expected_gift_aid = $cleargiftaid->expected_gift_aid - $request->gbalance;
                 $cleargiftaid->save();
 
                 
@@ -367,6 +367,174 @@ class DonorController extends Controller
         }
 
     }
+
+
+    public function topupStore(Request $request)
+    {
+        if (empty($request->gbalance)) {
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+
+        // Use Laravel's boolean method for safer true/false checks
+        $isGift = $request->boolean('gift');
+        $isClearGift = $request->boolean('cleargift');
+        $wantsReceipt = $request->boolean('receipt');
+
+        // Sanitize amounts
+        $topupAmount = (float) $request->gbalance;
+        $finalBalance = (float) $request->balance;
+        $commissionAmount = (float) $request->commission;
+
+        // Generate the new Transaction ID (e.g., TP-1715683405-15)
+        $transactionId = 'TP-' . time() . '-' . $request->topupid;
+
+        // Start Database Transaction to ensure data integrity
+        \DB::beginTransaction();
+
+        try {
+            $user = User::find($request->topupid);
+            $user->balance = $user->balance + $finalBalance;
+            $user->save();
+
+            if ($commissionAmount > 0) {
+                $topup = new Commission();
+                $topup->user_id = $request->topupid;
+                $topup->commission = $commissionAmount;
+                $topup->save();
+            }
+
+            $transaction = new Transaction();
+            $transaction->t_id = $transactionId; // Updated format
+            $transaction->user_id = $request->topupid;
+            $transaction->t_type = "In";
+            $transaction->name = $request->source;
+            $transaction->commission = $commissionAmount;
+            $transaction->amount = $topupAmount;
+            $transaction->note = $request->note;
+            $transaction->status = "1";
+            $transaction->save();
+
+            $utransaction = new Usertransaction();
+            $utransaction->t_id = $transactionId; // Updated format
+            $utransaction->date = $request->date;
+            $utransaction->user_id = $request->topupid;
+            $utransaction->source = $request->source;
+            $utransaction->t_type = "In";
+            $utransaction->commission = $commissionAmount;
+            $utransaction->amount = $finalBalance;
+            $utransaction->note = $request->note;
+            $utransaction->donation_by = $request->donationBy;
+            $utransaction->gift = $isGift ? 1 : 0;
+            $utransaction->title = 'Credit';
+            $utransaction->status = 1;
+            $utransaction->save();
+
+            if ($isGift) {
+                $expgiftaidamnt = $topupAmount * 25 / 100;
+                
+                // Reuse the already loaded $user model instead of querying again
+                $user->expected_gift_aid = $user->expected_gift_aid + $expgiftaidamnt;
+
+                if ($user->gift_aid_currenction > 0) {
+                    $user->gift_aid_currenction = $user->gift_aid_currenction + $expgiftaidamnt;
+                }
+
+                if ($user->current_yr_gift_aid > 0) {
+                    $user->current_yr_gift_aid = $user->current_yr_gift_aid + $expgiftaidamnt;
+                }
+
+                $user->save();
+
+                $expgiftaidtran = new ExpectedGiftAid();
+                $expgiftaidtran->user_id = $request->topupid;
+                $expgiftaidtran->transaction_id = $transaction->id;
+                $expgiftaidtran->usertransaction_id = $utransaction->id;
+                $expgiftaidtran->amount = $finalBalance;
+                $expgiftaidtran->gift_amount = $expgiftaidamnt;
+                $expgiftaidtran->save();
+            }
+
+            if ($isClearGift) {
+                $user->expected_gift_aid = $user->expected_gift_aid - $topupAmount;
+                $user->save();
+
+                $utransaction->clear_gift = 1;
+                $utransaction->save();
+            }
+
+            // Commit to database if everything worked
+            \DB::commit();
+
+        } catch (\Exception $e) {
+            // Rollback if any database query fails
+            \DB::rollBack();
+            
+            // Log the error: \Log::error($e->getMessage());
+            
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>A database error occurred. Transaction failed.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+
+        // Handle PDF & Email (Outside DB Transaction to prevent timeouts)
+        if ($wantsReceipt) {
+            try {
+                $contactmail = ContactMail::where('id', 1)->value('name');
+
+                $balance = $finalBalance;
+                $gbalance = $topupAmount;
+                $commission = $commissionAmount;
+                $source = $request->source;
+                $donationBy = $request->donationBy;
+                $donationDate = $request->date;
+                $title = "DONATION RECEIPT";
+                
+                $pdf = PDF::loadView('invoices.topup_report', compact('balance','source','user','donationBy','title','utransaction','donationDate','gbalance','commission'));
+                $output = $pdf->output();
+                
+                // Ensure directory exists
+                $invoiceDir = public_path('invoices');
+                if (!file_exists($invoiceDir)) {
+                    mkdir($invoiceDir, 0755, true);
+                }
+                
+                $fileName = 'Donation-report#' . $user->id . '.pdf';
+                $filePath = $invoiceDir . '/' . $fileName;
+                file_put_contents($filePath, $output);
+
+                $array['file'] = $filePath;
+                $array['file_name'] = $fileName;
+                $array['cc'] = $contactmail;
+                $array['name'] = $user->name;
+                $array['email'] = $user->email;
+                $array['phone'] = $user->phone;
+                $array['balance'] = $finalBalance;
+                $array['gbalance'] = $topupAmount;
+                $array['commission'] = $commissionAmount;
+                $array['source'] = $request->source;
+                $array['date'] = $request->date;
+                $array['transaction'] = $utransaction;
+
+                Mail::to($user->email)
+                    ->cc($contactmail)
+                    ->send(new TopupReport($array));
+
+                $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Balance added successfully & receipt sent to donor mail.</b></div>";
+                return response()->json(['status' => 300, 'message' => $message]);
+                
+            } catch (\Exception $e) {
+                // If DB saved but email fails, still inform the user the balance was saved
+                // Log::error('Mail Error: ' . $e->getMessage());
+                $message = "<div class='alert alert-warning'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Balance added successfully, but email receipt failed to send.</b></div>";
+                return response()->json(['status' => 300, 'message' => $message]);
+            }
+        }
+
+        $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Balance added successfully.</b></div>";
+        return response()->json(['status' => 300, 'message' => $message]);
+    }
+
+
     public function userTopReportShowinAdmin($id)
     {
         $transaction = Usertransaction::where('id', $id)->first();

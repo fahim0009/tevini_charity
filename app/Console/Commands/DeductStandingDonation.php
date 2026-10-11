@@ -54,7 +54,9 @@ class DeductStandingDonation extends Command
      */
     public function handle()
     {
+        
         $current_date = now()->format('Y-m-d');
+        $current_date_carbon = Carbon::parse($current_date);
 
         // Counters for summary log
         $campaignsProcessed = 0;
@@ -151,6 +153,7 @@ class DeductStandingDonation extends Command
         // ============================================================
 
         // Map string-based interval labels to numeric month values
+        // Map string-based interval labels to numeric month values
         $intervalMap = [
             'Monthly'   => 1,
             'Quarterly' => 3,
@@ -170,7 +173,6 @@ class DeductStandingDonation extends Command
 
         foreach ($activestand_orders as $activestand_order) {
             try {
-                // Reset $array to prevent stale data from previous iteration
                 $array = [];
 
                 // ----------------------------------------------------------
@@ -179,9 +181,6 @@ class DeductStandingDonation extends Command
                 if (!$activestand_order->user_id || !$activestand_order->charity_id || !$activestand_order->amount) {
                     Log::warning('Standing donation has missing required fields, skipping', [
                         'standing_donation_id' => $activestand_order->id,
-                        'user_id'               => $activestand_order->user_id,
-                        'charity_id'            => $activestand_order->charity_id,
-                        'amount'                => $activestand_order->amount,
                     ]);
                     $donationsSkipped++;
                     continue;
@@ -196,19 +195,29 @@ class DeductStandingDonation extends Command
                 }
 
                 // ----------------------------------------------------------
-                // Determine start_date (from last detail or from starting field)
+                // Check if Fixed donation is already completed
+                // ----------------------------------------------------------
+                if ($activestand_order->payments == 1 && $activestand_order->payment_made >= $activestand_order->number_payments) {
+                    $activestand_order->status = 0; // Mark as inactive
+                    $activestand_order->save();
+                    Log::info('Fixed standing donation completed, deactivated', [
+                        'standing_donation_id' => $activestand_order->id,
+                    ]);
+                    continue;
+                }
+
+                // ----------------------------------------------------------
+                // Determine expected instalment date (from last detail or starting field)
                 // ----------------------------------------------------------
                 $donationdetails = StandingdonationDetail::where('standing_donation_id', '=', $activestand_order->id)
                     ->orderBy('id', 'desc')
                     ->first();
 
                 if (isset($donationdetails)) {
-                    $start_date = $donationdetails->instalment_date;
+                    $last_date_carbon = Carbon::parse($donationdetails->instalment_date);
                 } else {
-                    $start_date = $activestand_order->starting;
+                    $last_date_carbon = Carbon::parse($activestand_order->starting);
                 }
-
-                $start_date_carbon = Carbon::parse($start_date);
 
                 // ----------------------------------------------------------
                 // Resolve interval to numeric months
@@ -226,16 +235,19 @@ class DeductStandingDonation extends Command
                     ]);
                 }
 
-                $instalment_date_carbon = $start_date_carbon->copy()->addMonths($intervalMonths);
-                $instalment_date = $instalment_date_carbon->format('Y-m-d');
+                // Prevent infinite loops for weekly/bi-weekly (fallback to 1 month)
+                if ($intervalMonths === 0) {
+                    $intervalMonths = 1;
+                }
+
+                $expected_date = $last_date_carbon->copy()->addMonths($intervalMonths);
 
                 Log::info('Standing donation date calculation', [
                     'standing_donation_id' => $activestand_order->id,
                     'user_id'              => $activestand_order->user_id,
-                    'start_date'           => $start_date,
-                    'interval_raw'         => $intervalValue,
+                    'last_date'            => $last_date_carbon->format('Y-m-d'),
                     'interval_months'      => $intervalMonths,
-                    'instalment_date'      => $instalment_date,
+                    'expected_date'        => $expected_date->format('Y-m-d'),
                     'current_date'         => $current_date,
                     'payments_type'        => $activestand_order->payments,
                     'payment_made'         => $activestand_order->payment_made,
@@ -243,262 +255,162 @@ class DeductStandingDonation extends Command
                 ]);
 
                 // ============================================================
-                // Continuous payments (payments == 2)
+                // NEW LOGIC: Check if the expected month has completely passed
                 // ============================================================
-                if ($activestand_order->payments == 2) {
+                $is_past_expected_month = $current_date_carbon->format('Y-m') > $expected_date->format('Y-m');
 
-                    $user = User::find($activestand_order->user_id);
-                    if (!$user) {
-                        Log::error('User not found for standing donation', [
-                            'standing_donation_id' => $activestand_order->id,
-                            'user_id'              => $activestand_order->user_id,
-                        ]);
-                        $donationsFailed++;
-                        continue;
-                    }
+                if ($is_past_expected_month) {
+                    // The month has passed without a successful payment. Permanently skip it.
+                    DB::transaction(function () use ($activestand_order, $expected_date) {
+                        $doncaldetl = new StandingdonationDetail;
+                        $doncaldetl->standing_donation_id = $activestand_order->id;
+                        $doncaldetl->user_id = $activestand_order->user_id;
+                        $doncaldetl->charity_id = $activestand_order->charity_id;
+                        $doncaldetl->amount = 0; // 0 amount because it was skipped
+                        $doncaldetl->instalment_date = $expected_date->format('Y-m-d');
+                        $doncaldetl->instalment_mode = $activestand_order->payments == 1 ? "Fixed" : "continuous";
+                        $doncaldetl->status = 2; // 2 = Skipped due to insufficient balance
+                        $doncaldetl->save();
 
-                    $availableLimit = $user->getAvailableLimit();
-                    if ($availableLimit < $activestand_order->amount) {
-                        Log::warning('Standing donation skipped: insufficient balance', [
-                            'user_id'              => $user->id,
-                            'standing_donation_id'  => $activestand_order->id,
-                            'amount'                => $activestand_order->amount,
-                            'available_limit'       => $availableLimit,
-                        ]);
-                        $this->warn("Skipped standing donation #{$activestand_order->id} — user #{$user->id} insufficient balance.");
-                        $donationsSkipped++;
-                        continue;
-                    }
-
-                    if ($current_date >= $instalment_date) {
-
-                        DB::transaction(function () use ($activestand_order, $instalment_date) {
-                            $doncaldetl = new StandingdonationDetail;
-                            $doncaldetl->standing_donation_id = $activestand_order->id;
-                            $doncaldetl->user_id = $activestand_order->user_id;
-                            $doncaldetl->charity_id = $activestand_order->charity_id;
-                            $doncaldetl->amount = $activestand_order->amount;
-                            $doncaldetl->instalment_date = $instalment_date;
-                            $doncaldetl->instalment_mode = "continuous";
-                            $doncaldetl->status = 0;
-                            $doncaldetl->save();
-
-                            $utransaction = new Usertransaction();
-                            $utransaction->t_id = time() . "-" . $activestand_order->user_id;
-                            $utransaction->user_id = $activestand_order->user_id;
-                            $utransaction->charity_id = $activestand_order->charity_id;
-                            $utransaction->standing_donationdetails_id = $activestand_order->id;
-                            $utransaction->t_type = "Out";
-                            $utransaction->amount = $activestand_order->amount;
-                            $utransaction->title = "Standing order donation";
-                            $utransaction->status = 1;
-                            $utransaction->save();
-
-                            $u = User::find($activestand_order->user_id);
-                            $u->decrement('balance', $activestand_order->amount);
-
-                            $ch = Charity::find($activestand_order->charity_id);
-                            $ch->increment('balance', $activestand_order->amount);
-                        });
-
-                        // Email notification (outside transaction)
-                        $user = User::find($activestand_order->user_id);
-                        $charity = Charity::find($activestand_order->charity_id);
-                        $contactMailModel = ContactMail::where('id', 1)->first();
-                        $contactmail = $contactMailModel ? $contactMailModel->name : null;
-
-                        if ($user && $charity) {
-                            $array['cc'] = $contactmail;
-                            $array['name'] = $user->name;
-                            $array['email'] = $user->email;
-                            $array['phone'] = $user->phone;
-                            $array['amount'] = $activestand_order->amount;
-                            $array['charity'] = $charity->name;
-                            $array['charityEmail'] = $charity->email;
-                            $email = $user->email;
-                            $array['from'] = 'info@tevini.co.uk';
-                            $array['subject'] = 'Standing order donation';
-                            $array['charity_subject'] = 'Standing order donation';
-
-                            try {
-                                Mail::send('mail.standingDonation', compact('array'), function ($message) use ($array, $email) {
-                                    $message->from($array['from'], 'Tevini.co.uk');
-                                    $message->to($email)->cc($array['cc'])->subject($array['subject']);
-                                });
-                            } catch (\Exception $e) {
-                                Log::error('Failed to send standing donation email', [
-                                    'standing_donation_id' => $activestand_order->id,
-                                    'user_id'              => $activestand_order->user_id,
-                                    'email'                => $email,
-                                    'error'                => $e->getMessage(),
-                                ]);
+                        // Increment payment_made so total interval count decreases for fixed plans
+                        if ($activestand_order->payments == 1) {
+                            $activestand_order->increment('payment_made', 1);
+                            
+                            // Check if plan is completed after skipping
+                            if ($activestand_order->payment_made >= $activestand_order->number_payments) {
+                                $activestand_order->status = 0; // Deactivate
                             }
-                        } else {
-                            Log::error('Cannot send email: user or charity not found after transaction', [
-                                'standing_donation_id' => $activestand_order->id,
-                                'user_id'              => $activestand_order->user_id,
-                                'charity_id'           => $activestand_order->charity_id,
-                            ]);
+                            $activestand_order->save();
                         }
+                    });
 
-                        $donationsProcessed++;
-                        Log::info('Standing donation processed successfully (continuous)', [
-                            'standing_donation_id' => $activestand_order->id,
-                            'user_id'              => $activestand_order->user_id,
-                            'charity_id'           => $activestand_order->charity_id,
-                            'amount'               => $activestand_order->amount,
-                            'instalment_date'      => $instalment_date,
-                        ]);
-
-                    } else {
-                        Log::info('Standing donation not yet due (continuous)', [
-                            'standing_donation_id' => $activestand_order->id,
-                            'instalment_date'       => $instalment_date,
-                            'current_date'          => $current_date,
-                        ]);
-                    }
-
-                // ============================================================
-                // Fixed number of payments (payments == 1)
-                // ============================================================
-                } elseif ($activestand_order->payments == 1) {
-
-                    $user = User::find($activestand_order->user_id);
-                    if (!$user) {
-                        Log::error('User not found for standing donation', [
-                            'standing_donation_id' => $activestand_order->id,
-                            'user_id'              => $activestand_order->user_id,
-                        ]);
-                        $donationsFailed++;
-                        continue;
-                    }
-
-                    $availableLimit = $user->getAvailableLimit();
-                    if ($availableLimit < $activestand_order->amount) {
-                        Log::warning('Standing donation skipped: insufficient balance', [
-                            'user_id'              => $user->id,
-                            'standing_donation_id'  => $activestand_order->id,
-                            'amount'                => $activestand_order->amount,
-                            'available_limit'       => $availableLimit,
-                        ]);
-                        $this->warn("Skipped standing donation #{$activestand_order->id} — user #{$user->id} insufficient balance.");
-                        $donationsSkipped++;
-                        continue;
-                    }
-
-                    if (($current_date >= $instalment_date) && ($activestand_order->payment_made < $activestand_order->number_payments)) {
-
-                        DB::transaction(function () use ($activestand_order, $instalment_date) {
-                            $doncaldetl = new StandingdonationDetail;
-                            $doncaldetl->standing_donation_id = $activestand_order->id;
-                            $doncaldetl->user_id = $activestand_order->user_id;
-                            $doncaldetl->charity_id = $activestand_order->charity_id;
-                            $doncaldetl->amount = $activestand_order->amount;
-                            $doncaldetl->instalment_date = $instalment_date;
-                            $doncaldetl->instalment_mode = "Fixed";
-                            $doncaldetl->status = 0;
-                            $doncaldetl->save();
-
-                            $utransaction = new Usertransaction();
-                            $utransaction->t_id = time() . "-" . $activestand_order->user_id;
-                            $utransaction->user_id = $activestand_order->user_id;
-                            $utransaction->charity_id = $activestand_order->charity_id;
-                            $utransaction->standing_donationdetails_id = $activestand_order->id;
-                            $utransaction->t_type = "Out";
-                            $utransaction->amount = $activestand_order->amount;
-                            $utransaction->title = "Standing order donation";
-                            $utransaction->status = 1;
-                            $utransaction->save();
-
-                            $u = User::find($activestand_order->user_id);
-                            $u->decrement('balance', $activestand_order->amount);
-
-                            $ch = Charity::find($activestand_order->charity_id);
-                            $ch->increment('balance', $activestand_order->amount);
-
-                            $standing_order = StandingDonation::find($activestand_order->id);
-                            $standing_order->increment('payment_made', 1);
-                        });
-
-                        // Email notification (outside transaction)
-                        $user = User::find($activestand_order->user_id);
-                        $charity = Charity::find($activestand_order->charity_id);
-                        $contactMailModel = ContactMail::where('id', 1)->first();
-                        $contactmail = $contactMailModel ? $contactMailModel->name : null;
-
-                        if ($user && $charity) {
-                            $array['cc'] = $contactmail;
-                            $array['name'] = $user->name;
-                            $array['email'] = $user->email;
-                            $array['phone'] = $user->phone;
-                            $array['amount'] = $activestand_order->amount;
-                            $array['charity'] = $charity->name;
-                            $array['charityEmail'] = $charity->email;
-                            $email = $user->email;
-                            $array['from'] = 'info@tevini.co.uk';
-                            $array['subject'] = 'Standing order donation';
-                            $array['charity_subject'] = 'Standing order donation';
-
-                            try {
-                                Mail::send('mail.standingDonation', compact('array'), function ($message) use ($array, $email) {
-                                    $message->from($array['from'], 'Tevini.co.uk');
-                                    $message->to($email)->cc($array['cc'])->subject($array['subject']);
-                                });
-                            } catch (\Exception $e) {
-                                Log::error('Failed to send standing donation email', [
-                                    'standing_donation_id' => $activestand_order->id,
-                                    'user_id'              => $activestand_order->user_id,
-                                    'email'                => $email,
-                                    'error'                => $e->getMessage(),
-                                ]);
-                            }
-                        } else {
-                            Log::error('Cannot send email: user or charity not found after transaction', [
-                                'standing_donation_id' => $activestand_order->id,
-                                'user_id'              => $activestand_order->user_id,
-                                'charity_id'           => $activestand_order->charity_id,
-                            ]);
-                        }
-
-                        $donationsProcessed++;
-                        Log::info('Standing donation processed successfully (fixed)', [
-                            'standing_donation_id' => $activestand_order->id,
-                            'user_id'              => $activestand_order->user_id,
-                            'charity_id'           => $activestand_order->charity_id,
-                            'amount'               => $activestand_order->amount,
-                            'instalment_date'      => $instalment_date,
-                            'payment_made'         => $activestand_order->payment_made + 1,
-                            'number_payments'      => $activestand_order->number_payments,
-                        ]);
-
-                    } else {
-                        Log::info('Standing donation not yet due or all payments completed (fixed)', [
-                            'standing_donation_id' => $activestand_order->id,
-                            'instalment_date'       => $instalment_date,
-                            'current_date'          => $current_date,
-                            'payment_made'          => $activestand_order->payment_made,
-                            'number_payments'       => $activestand_order->number_payments,
-                        ]);
-                    }
-
-                // ============================================================
-                // Unknown payments type
-                // ============================================================
-                } else {
-                    Log::warning('Unknown payments type, skipping', [
+                    Log::warning('Standing donation permanently skipped due to insufficient balance for the month', [
                         'standing_donation_id' => $activestand_order->id,
-                        'payments'              => $activestand_order->payments,
+                        'expected_date'         => $expected_date->format('Y-m-d'),
                     ]);
                     $donationsSkipped++;
+                    continue; // Move to next donation
+                }
+
+                // ============================================================
+                // Process Payment if current date >= expected date
+                // ============================================================
+                if ($current_date_carbon->gte($expected_date)) {
+                    
+                    $user = User::find($activestand_order->user_id);
+                    if (!$user) {
+                        Log::error('User not found for standing donation', [
+                            'standing_donation_id' => $activestand_order->id,
+                            'user_id'              => $activestand_order->user_id,
+                        ]);
+                        $donationsFailed++;
+                        continue;
+                    }
+
+                    $availableLimit = $user->getAvailableLimit();
+                    if ($availableLimit < $activestand_order->amount) {
+                        Log::info('Standing donation waiting for balance in current month', [
+                            'standing_donation_id' => $activestand_order->id,
+                            'user_id'              => $user->id,
+                            'available_limit'       => $availableLimit,
+                            'amount'                => $activestand_order->amount,
+                        ]);
+                        // Do not skip permanently yet, wait until the month ends
+                        $donationsSkipped++;
+                        continue;
+                    }
+
+                    // Enough balance! Process payment inside DB transaction
+                    DB::transaction(function () use ($activestand_order, $expected_date) {
+                        $doncaldetl = new StandingdonationDetail;
+                        $doncaldetl->standing_donation_id = $activestand_order->id;
+                        $doncaldetl->user_id = $activestand_order->user_id;
+                        $doncaldetl->charity_id = $activestand_order->charity_id;
+                        $doncaldetl->amount = $activestand_order->amount;
+                        $doncaldetl->instalment_date = $expected_date->format('Y-m-d'); // Lock to expected date
+                        $doncaldetl->instalment_mode = $activestand_order->payments == 1 ? "Fixed" : "continuous";
+                        $doncaldetl->status = 0;
+                        $doncaldetl->save();
+
+                        $utransaction = new Usertransaction();
+                        $utransaction->t_id = time() . "-" . $activestand_order->user_id;
+                        $utransaction->user_id = $activestand_order->user_id;
+                        $utransaction->charity_id = $activestand_order->charity_id;
+                        $utransaction->standing_donationdetails_id = $activestand_order->id;
+                        $utransaction->t_type = "Out";
+                        $utransaction->amount = $activestand_order->amount;
+                        $utransaction->title = "Standing order donation";
+                        $utransaction->status = 1;
+                        $utransaction->save();
+
+                        $u = User::find($activestand_order->user_id);
+                        $u->decrement('balance', $activestand_order->amount);
+
+                        $ch = Charity::find($activestand_order->charity_id);
+                        $ch->increment('balance', $activestand_order->amount);
+
+                        // Increment payment_made if Fixed
+                        if ($activestand_order->payments == 1) {
+                            $activestand_order->increment('payment_made', 1);
+                            
+                            if ($activestand_order->payment_made >= $activestand_order->number_payments) {
+                                $activestand_order->status = 0; // Deactivate
+                            }
+                            $activestand_order->save();
+                        }
+                    });
+
+                    // Send Email Notification
+                    $user = User::find($activestand_order->user_id);
+                    $charity = Charity::find($activestand_order->charity_id);
+                    $contactMailModel = ContactMail::where('id', 1)->first();
+                    $contactmail = $contactMailModel ? $contactMailModel->name : null;
+
+                    if ($user && $charity) {
+                        $array['cc'] = $contactmail;
+                        $array['name'] = $user->name;
+                        $array['email'] = $user->email;
+                        $array['phone'] = $user->phone;
+                        $array['amount'] = $activestand_order->amount;
+                        $array['charity'] = $charity->name;
+                        $array['charityEmail'] = $charity->email;
+                        $email = $user->email;
+                        $array['from'] = 'info@tevini.co.uk';
+                        $array['subject'] = 'Standing order donation';
+                        $array['charity_subject'] = 'Standing order donation';
+
+                        try {
+                            Mail::send('mail.standingDonation', compact('array'), function ($message) use ($array, $email) {
+                                $message->from($array['from'], 'Tevini.co.uk');
+                                $message->to($email)->cc($array['cc'])->subject($array['subject']);
+                            });
+                        } catch (\Exception $e) {
+                            Log::error('Failed to send standing donation email', [
+                                'standing_donation_id' => $activestand_order->id,
+                                'error'                => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
+                    $donationsProcessed++;
+                    Log::info('Standing donation processed successfully', [
+                        'standing_donation_id' => $activestand_order->id,
+                        'amount'               => $activestand_order->amount,
+                        'instalment_date'      => $expected_date->format('Y-m-d'),
+                    ]);
+
+                } else {
+                    Log::info('Standing donation not yet due', [
+                        'standing_donation_id' => $activestand_order->id,
+                        'expected_date'         => $expected_date->format('Y-m-d'),
+                    ]);
                 }
 
             } catch (\Exception $e) {
                 $donationsFailed++;
                 Log::error('Failed to process standing donation', [
                     'standing_donation_id' => $activestand_order->id,
-                    'user_id'              => $activestand_order->user_id ?? null,
                     'error'                => $e->getMessage(),
-                    'trace'                => $e->getTraceAsString(),
                 ]);
                 continue;
             }

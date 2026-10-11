@@ -153,8 +153,8 @@ class AutoCharityPayment extends Command
                             'file'          => $filePath,
                         ];
 
-                        Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
-                        Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
+                        // Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
+                        // Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
 
                         Log::info("Payment Process: Success for {$charity->name}. Emails queued. Batch saved.");
                     });

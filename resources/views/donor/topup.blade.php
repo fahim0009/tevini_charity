@@ -6,7 +6,7 @@
         <div class="title-section">
             <span class="iconify" data-icon="icon-park-outline:transaction"></span>
             <div class="mx-2">Donor Topup</div>
-            <a href="{{ route('donationlist') }}" class="btn btn-success btn-sm">Back</a>
+            <a href="{{ route('donor') }}" class="btn btn-success btn-sm">Back</a>
         </div>
     </section>
 

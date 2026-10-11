@@ -14,7 +14,7 @@
             Auto Payment Time Setting
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.settings.auto_payment_time') }}" method="POST">
+            <form action="{{ route('admin.settings.auto_payment_time') }}" method="POST" id="cutoffForm">
                 @csrf
 
                 <div class="form-group mb-3">
@@ -32,9 +32,30 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn btn-primary">Update Time</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="btnText">Update Time</span>
+                    <span id="spinner" class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true"></span>
+                </button>
             </form>
         </div>
     </div>
 </div>
+
+@endsection
+
+@section('script')
+<script>
+document.getElementById('cutoffForm').addEventListener('submit', function(e) {
+    
+    var submitBtn = document.getElementById('submitBtn');
+    var spinner = document.getElementById('spinner');
+    var btnText = document.getElementById('btnText');
+    
+    submitBtn.disabled = true;
+    
+    spinner.classList.remove('d-none');
+    
+    btnText.textContent = 'Processing... Please wait';
+});
+</script>
 @endsection

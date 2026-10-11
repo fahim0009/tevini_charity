@@ -172,6 +172,7 @@ class CharityAuthController extends Controller
         $data->acc_no = $request->acc_no;
         $data->post_code = $request->postcode;
         $data->password = Hash::make($request->password);
+        $data->balance = 0;
 
         if(isset($request->bank_statement)){
             $rand = mt_rand(100000, 999999);

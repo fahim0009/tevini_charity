@@ -94,7 +94,7 @@ class OnlineDonationService
     {
         $standing = StandingDonation::findOrFail($id);
 
-        $standing->amount          = (int) $data->amount;
+        $standing->amount          = $data->amount;
         $standing->starting        = $data->startingDate;
         $standing->payments        = $data->paymentsType;
         $standing->number_payments = $data->isFixedPayments() ? $data->numberPayments : null;
@@ -154,7 +154,7 @@ class OnlineDonationService
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
         $paymentIntent = \Stripe\PaymentIntent::create([
-            'amount'   => (int) round($total * 100),
+            'amount'   => round($total * 100),
             'currency' => 'gbp',
             'metadata' => [
                 'type'        => 'online_donation',
@@ -344,7 +344,7 @@ class OnlineDonationService
         $standingDonation = StandingDonation::create([
             'user_id'         => $data->donorId,
             'charity_id'      => $data->charityId,
-            'amount'          => (int) $data->amount,
+            'amount'          => $data->amount,
             'currency'        => 'GBP',
             'ano_donation'    => $data->isAnonymous ? 'true' : 'false',
             'standing_order'  => 'true',
@@ -366,7 +366,7 @@ class OnlineDonationService
             'standing_donation_id' => $standingDonation->id,
             'user_id'              => $data->donorId,
             'charity_id'           => $data->charityId,
-            'amount'               => (int) $data->amount,
+            'amount'               => $data->amount,
             'instalment_date'      => $data->startingDate,
             'instalment_mode'      => $data->isFixedPayments() ? 'Fixed' : 'continuous',
             'status'               => 0,

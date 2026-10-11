@@ -2046,38 +2046,7 @@ class DonorController extends Controller
                 ->with('pdonation',$pdonation);
     }
 
-    public function userDonationrecod()
-    {
-        $donation = Donation::where([
-            ['standing_order','=', 'false'],
-            ['user_id','=', auth()->user()->id]
-        ])->get();
 
-        $data = Usertransaction::with('donation','standingDonations')
-                ->where(function($q) {
-                    $q->whereNotNull('donation_id')
-                    ->orWhereNotNull('standing_donationdetails_id');
-                })
-                ->where('status', 1)
-                ->where('user_id', auth()->user()->id)
-                ->latest()->limit(5)
-                ->get();    
-
-                
-
-
-        return view('frontend.user.donationrecord')
-        ->with('donation',$donation);
-    }
-
-    public function userStandingrecod()
-    {
-        $donation = StandingDonation::with('standingdonationDetail')->where([
-            ['user_id','=', auth()->user()->id]
-        ])->where('status', 1)->get();
-
-        return view('frontend.user.standingdonationrecord', compact('donation'));
-    }
 
     public function userDonationrecodinAdmin($id)
     {

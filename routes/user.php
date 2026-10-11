@@ -1,20 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\DonationController;
-use App\Http\Controllers\DonorController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\CharityController;
-use App\Http\Controllers\StripePaymentController;
-use App\Http\Controllers\VoucherController;
-use App\Http\Controllers\OTPController;
-use App\Http\Controllers\CardServiceController;
-use App\Http\Controllers\BalanceTransferController;
-use App\Http\Controllers\User\GiftAidController;
-use App\Http\Controllers\User\UserController;
+    use Illuminate\Support\Facades\Route;
+    use App\Http\Controllers\HomeController;
+    use App\Http\Controllers\DonationController;
+    use App\Http\Controllers\DonorController;
+    use App\Http\Controllers\OrderController;
+    use App\Http\Controllers\ReportController;
+    use App\Http\Controllers\TransactionController;
+    use App\Http\Controllers\CharityController;
+    use App\Http\Controllers\StripePaymentController;
+    use App\Http\Controllers\VoucherController;
+    use App\Http\Controllers\OTPController;
+    use App\Http\Controllers\CardServiceController;
+    use App\Http\Controllers\BalanceTransferController;
+    use App\Http\Controllers\User\GiftAidController;
+    use App\Http\Controllers\User\UserController;
+    use App\Http\Controllers\Donor\StandingDonationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,14 +53,15 @@ Route::group(['prefix' => 'user/', 'middleware' => ['auth', 'is_user']], functio
     // ==================== Donations ====================
     Route::get('make-donate', [DonorController::class, 'userDonationShow'])->name('user.makedonation');
     Route::post('make-donation', [DonorController::class, 'userDonationStore'])->name('donation.store');
+    
 
     // Standing Donation
-    Route::post('standing-donation', [DonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
-    Route::post('active-standingdonation', [DonationController::class, 'activeStandinguser'])->name('user.standingstatus');
-    Route::get('donation-record', [DonorController::class, 'userDonationrecod'])->name('user.donationrecord');
-    Route::get('standing-order-record', [DonorController::class, 'userStandingrecod'])->name('user.standingrecord');
-    Route::get('standing-order-record/{id}', [DonationController::class, 'usersingleStanding'])->name('user.singlestanding');
-    Route::post('update-standingdonation', [DonationController::class, 'userStandingDonationUpdate'])->name('user.update.standingdonation');
+    Route::post('standing-donation', [StandingDonationController::class, 'userStantingDonationStore'])->name('standing_donation.store');
+    Route::post('active-standingdonation', [StandingDonationController::class, 'activeStandinguser'])->name('user.standingstatus');
+    Route::get('donation-record', [StandingDonationController::class, 'userDonationrecod'])->name('user.donationrecord');
+    Route::get('standing-order-record', [StandingDonationController::class, 'userStandingrecod'])->name('user.standingrecord');
+    Route::get('standing-order-record/{id}', [StandingDonationController::class, 'usersingleStanding'])->name('user.singlestanding');
+    Route::post('update-standingdonation', [StandingDonationController::class, 'userStandingDonationUpdate'])->name('user.update.standingdonation');
 
     // Donation Calculator
     Route::post('donation-calculator', [DonationController::class, 'store'])->name('donation.calculation.store');

@@ -102,13 +102,13 @@ class HomepageController extends Controller
             ->pluck('unique_key')
             ->toArray();
 
-        // 4. Recalculate business_date ONLY for unpaid transactions
+        // 4. Recalculate business_date ONLY for UNPAID transactions created TODAY or YESTERDAY
+        // (We don't need to recalculate 2 lakh old data because their history hasn't changed!)
         Usertransaction::where('status', 1)
             ->whereNotNull('charity_id')
-            ->whereNotNull('business_date')
+            ->where('created_at', '>=', Carbon::today()->subDay()) // <--- SUPER FAST FIX
             ->chunkById(200, function ($transactions) use ($paidDates) {
                 foreach ($transactions as $transaction) {
-                    // Check if this transaction's date is in the paid list
                     $currentKey = $transaction->charity_id . '-' . $transaction->business_date;
                     
                     // If NOT paid, then recalculate its business_date

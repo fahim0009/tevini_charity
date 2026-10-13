@@ -53,6 +53,10 @@ class User extends Authenticatable
         'created_by',
     ];
 
+    protected $attributes = [
+        'standard_amount' => 500.00,
+    ];
+
     /**
      * The attributes that should be hidden for arrays.
      *

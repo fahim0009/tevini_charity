@@ -27,11 +27,14 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('donation:deduct-standing')->daily();
-        // $schedule->command('queue:work')->everyFiveMinutes();
         
         try {
             $companyDetail = CompanyDetail::first();
             $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
+            
+            // FIX: Extract only HH:MM to prevent Laravel dailyAt() bug with seconds
+            $autoPaymentTime = substr($autoPaymentTime, 0, 5);
+            
         } catch (\Exception $e) {
             $autoPaymentTime = '16:30';
         }

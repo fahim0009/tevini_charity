@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>voucher</title>
+    <title>Topup report</title>
    <style>
  * {
 	 margin: 0;
@@ -170,7 +170,7 @@
                     <td>{{$source}}</td>
                     <td></td>
                     <td></td>
-                    <td>£{{ number_format($balance, 2)}}</td>
+                    <td>£{{ number_format($gbalance, 2)}}</td>
                 </tr>
 
                 <tr style="border: 0px;">
@@ -209,7 +209,7 @@
                <tfoot>
                     <tr style="border: 2 px solid #003056;"> 
                         <td colspan="6" style="text-align: left"><b>Total Donated:</b></td>
-                        <td><b>£{{ number_format($balance, 2)}}</b></td>
+                        <td><b>£{{ number_format($gbalance, 2)}}</b></td>
                     </tr>
                </tfoot>
             </table>

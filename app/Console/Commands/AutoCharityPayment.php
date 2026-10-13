@@ -164,6 +164,21 @@ class AutoCharityPayment extends Command
             }
         }
 
+
+
+        $companyDetail->auto_payment_time = '16:30';
+        $companyDetail->save();
+
+        DB::table('cutoff_histories')->updateOrInsert(
+            ['effective_date' => Carbon::today()->toDateString()],
+            [
+                'cutoff_time' => '16:30', 
+                'updated_at' => now(), 
+                'created_at' => now()
+            ]
+        );
+        
+        Log::info("Payment Process: Auto payment time reverted to default 16:30.");
         Log::info("Payment Process: Completed for business date " . $targetBusinessDate);
     }
 }

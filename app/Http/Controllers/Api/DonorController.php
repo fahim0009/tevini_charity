@@ -27,6 +27,7 @@ use Validator;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 class DonorController extends Controller
 {
@@ -252,6 +253,7 @@ class DonorController extends Controller
     // this function is use for mobile app
     public function getMakeDonation()
     {
+        Log::info('getMakeDonation called for user: ' . Auth::user()->id);
         return view('frontend.user.donationapp');
     }
 

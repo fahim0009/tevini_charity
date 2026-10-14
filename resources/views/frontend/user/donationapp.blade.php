@@ -53,7 +53,9 @@
     if (isset($_GET["amount"])) {
         $amount = $_GET["amount"];
     } 
-    $donorUpBalance = Auth::user()->getLiveBalance();
+    
+    $authUser = Auth::user();
+    $donorUpBalance = $authUser ? $authUser->getLiveBalance() : 0;
 @endphp
 
 <div class="content">
@@ -251,7 +253,7 @@
 
             <div class="col-lg-12 mt-2">
                 <div class="form-group ">
-                    <input type="hidden" id="userid" name="userid" value="{{Auth::user()->id}}">
+                    <input type="hidden" id="userid" name="userid" value="{{ $authUser->id ?? '' }}">
                     <!-- Confirm Donation Modal -->
                     <div class="modal fade" id="confirmDonationModal" tabindex="-1" aria-labelledby="confirmDonationModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">

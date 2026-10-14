@@ -333,7 +333,7 @@
                         }
                     </style>
 
-                    <button class="btn-theme bg-primary" type="button" id="openConfirmModalBtn">Make a donation</button>
+                    <button class="btn-theme bg-primary mb-5" type="button" id="openConfirmModalBtn">Make a donation</button>
 
                     <script>
                     document.addEventListener('DOMContentLoaded', function () {

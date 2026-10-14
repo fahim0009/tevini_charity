@@ -74,12 +74,13 @@ class HomepageController extends Controller
             'auto_payment_time' => 'required|date_format:H:i',
         ]);
 
-        // 1. Update the current time in company_details
+        // 1. Update the current time and UNLOCK the payment for today
         $companyDetail = CompanyDetail::first();
         
         if ($companyDetail) {
             $companyDetail->update([
-                'auto_payment_time' => $request->auto_payment_time
+                'auto_payment_time' => $request->auto_payment_time,
+                'last_payment_processed_date' => null // <--- UNLOCK: Allow payment to run again today
             ]);
         }
 
@@ -103,15 +104,13 @@ class HomepageController extends Controller
             ->toArray();
 
         // 4. Recalculate business_date ONLY for UNPAID transactions created TODAY or YESTERDAY
-        // (We don't need to recalculate 2 lakh old data because their history hasn't changed!)
         Usertransaction::where('status', 1)
             ->whereNotNull('charity_id')
-            ->where('created_at', '>=', Carbon::today()->subDay()) // <--- SUPER FAST FIX
+            ->where('created_at', '>=', Carbon::today()->subDay())
             ->chunkById(200, function ($transactions) use ($paidDates) {
                 foreach ($transactions as $transaction) {
                     $currentKey = $transaction->charity_id . '-' . $transaction->business_date;
                     
-                    // If NOT paid, then recalculate its business_date
                     if (!in_array($currentKey, $paidDates)) {
                         $transaction->business_date = Usertransaction::calculateBusinessDate($transaction->created_at);
                         $transaction->save();
@@ -121,6 +120,9 @@ class HomepageController extends Controller
 
         return redirect()->back()->with('success', 'Cutoff time updated successfully!');
     }
+
+
+    
 
     public function tdf()
     {

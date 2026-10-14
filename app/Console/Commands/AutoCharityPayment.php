@@ -23,10 +23,17 @@ class AutoCharityPayment extends Command
     public function handle()
     {
         set_time_limit(0);
+        
+        $companyDetail = CompanyDetail::first();
+        
+        // 🚨 NEW: Check if payment already ran today
+        if ($companyDetail->last_payment_processed_date == Carbon::today()->toDateString()) {
+            Log::info("Payment Process: Skipped. Payment already processed today.");
+            return; // Stop execution!
+        }
+
         Log::info("Payment Process: Starting charity payout rolling window.");
 
-        // Fetch the dynamic payment time from CompanyDetail (default to 16:30 if not found)
-        $companyDetail = CompanyDetail::first();
         $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
         
         $timeParts = explode(':', $autoPaymentTime);
@@ -36,36 +43,27 @@ class AutoCharityPayment extends Command
         $now = now();
         $baseCutoff = $now->copy()->setTime($hour, $minute, 0);
 
-        // If the script runs before the cutoff time today, we target yesterday's cutoff
         if ($now->lt($baseCutoff)) {
             $baseCutoff->subDay();
         }
 
-        $dayOfWeek = $baseCutoff->dayOfWeek; // 0 = Sunday, 6 = Saturday
+        $dayOfWeek = $baseCutoff->dayOfWeek;
 
-        // Weekend Logic: Skip processing if the cutoff lands on Saturday or Sunday.
-        // These will be processed together on Monday.
-        if (in_array($dayOfWeek, [0, 6])) { // 0=Sunday, 6=Saturday
+        if (in_array($dayOfWeek, [0, 6])) {
             Log::info("Payment Process: Skipped. Target cutoff is a weekend. Will process on Monday.");
             return;
         }
 
-        // Calculate End Time based on the Day
         $endTime = $baseCutoff->copy()->subSecond();
-
-        // The business date we need to process is simply the date of the baseCutoff
-        // This automatically handles weekends because if today is Monday, baseCutoff is Friday's cutoff,
-        // so targetBusinessDate will be Friday, which includes Sat and Sun due to our model logic!
         $targetBusinessDate = $baseCutoff->toDateString();
 
         Log::info("Processing Window for Business Date: {$targetBusinessDate}");
 
         $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
-        // Get transactions within the window
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
             ->where('status', 1)
-            ->where('business_date', $targetBusinessDate) // FIXED: Using exact business date
+            ->where('business_date', $targetBusinessDate)
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })
@@ -76,6 +74,7 @@ class AutoCharityPayment extends Command
         Log::info("Payment Process: Found " . $pendingBalances->count() . " charities with transactions.");
 
         foreach ($pendingBalances as $record) {
+            // ... (Your existing loop code stays exactly the same) ...
             $charity = Charity::find($record->charity_id);
             
             if (!$charity || !$charity->email) {
@@ -90,7 +89,7 @@ class AutoCharityPayment extends Command
 
             $alreadyPaid = Transaction::where('charity_id', $charity->id)->where('status', 1)
                 ->where('t_type', 'Out')
-                ->where('business_date', $targetBusinessDate) // FIXED: Using exact business date
+                ->where('business_date', $targetBusinessDate)
                 ->sum('amount');
 
             $amountToPayNow = $record->total - $alreadyPaid;
@@ -99,15 +98,13 @@ class AutoCharityPayment extends Command
                 try {
                     DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $targetBusinessDate, $contactmail) {
                         
-                        // Fetch the specific Usertransaction IDs for this window to save in the new table
                         $userTransactions = Usertransaction::where('charity_id', $charity->id)
                             ->where('status', 1)
-                            ->where('business_date', $targetBusinessDate) // FIXED: Using exact business date
+                            ->where('business_date', $targetBusinessDate)
                             ->get();
                             
                         $userTxIds = $userTransactions->pluck('id')->toArray();
 
-                        // Create Payout Record
                         $transaction = new Transaction();
                         $transaction->t_id = "Out-" . time() . "-" . $charity->id;
                         $transaction->charity_id = $charity->id;
@@ -116,21 +113,19 @@ class AutoCharityPayment extends Command
                         $transaction->amount = $amountToPayNow;
                         $transaction->status = "1"; 
                         $transaction->created_at = $endTime;
-                        $transaction->business_date = $targetBusinessDate; // FIXED: Using exact business date
+                        $transaction->business_date = $targetBusinessDate;
                         $transaction->save();
 
                         $charity->decrement('balance', $amountToPayNow);
 
-                        // Save data to the new tracking table
                         CharityPaymentBatch::create([
                             'charity_id'           => $charity->id,
                             'transaction_id'       => $transaction->id,
                             'last_payment_date'    => $endTime,
-                            'usertransactions_ids' => $userTxIds, // Saved as JSON automatically by model cast
+                            'usertransactions_ids' => $userTxIds,
                             'amount'               => $amountToPayNow,
                         ]);
 
-                        // PDF Generation
                         $details = $userTransactions->load(['user', 'donation']);
 
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
@@ -164,9 +159,9 @@ class AutoCharityPayment extends Command
             }
         }
 
-
-
+        // --- Revert to default time and LOCK payment for today ---
         $companyDetail->auto_payment_time = '16:30';
+        $companyDetail->last_payment_processed_date = Carbon::today()->toDateString(); // <--- LOCK: Payment done for today
         $companyDetail->save();
 
         DB::table('cutoff_histories')->updateOrInsert(

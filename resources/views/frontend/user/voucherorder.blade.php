@@ -121,10 +121,10 @@ use Illuminate\Support\Carbon;
                                                 <!-- Modal -->
                                                 <div class="modal fade" id="orderModal{{ $order->id }}" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel{{ $order->id }}" aria-hidden="true">
                                                     <div class="modal-dialog" role="document">
-                                                        <div class="modal-content">
+                                                        <div class="modal-content" style="background-color: #FDF3EE">
                                                             <div class="modal-header">
                                                                 <h5 class="modal-title" id="orderModalLabel{{ $order->id }}">Order Details</h5>
-                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <button type="button" class="btn-btn-theme bg-secondary close" data-dismiss="modal" aria-label="Close">
                                                                     <span aria-hidden="true">&times;</span>
                                                                 </button>
                                                             </div>
@@ -144,13 +144,13 @@ use Illuminate\Support\Carbon;
                                                                         @if ($item->voucher->id == 176)
                                                                         <tr>
                                                                             <td>{{ $item->voucher->type }}</td>
-                                                                            <td>£{{ $item->voucher->single_amount }}</td>
+                                                                            <td>£{{  number_format($item->voucher->single_amount, 2) }}</td>
                                                                             <td>{{ $item->voucher->note }}</td>
                                                                         </tr> 
                                                                         @else
                                                                         <tr>
                                                                             <td>{{ $item->voucher->type }}</td>
-                                                                            <td>£{{ $item->voucher->single_amount }}</td>
+                                                                            <td>£{{ number_format($item->voucher->single_amount, 2) }}</td>
                                                                             <td>{{ $item->voucher->note }}</td>
                                                                         </tr> 
                                                                         @endif
@@ -163,7 +163,7 @@ use Illuminate\Support\Carbon;
                                                                 <!-- Add more order details here if needed -->
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                <button type="button" class="btn-btn-theme bg-secondary" data-dismiss="modal">Close</button>
                                                             </div>
                                                         </div>
                                                     </div>

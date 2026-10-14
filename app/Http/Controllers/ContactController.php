@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Mail\ContactUsMail;
+use Illuminate\Support\Facades\Log; 
 
 class ContactController extends Controller
 {
@@ -147,18 +148,15 @@ class ContactController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $message = "<div class='alert alert-warning alert-dismissible fade show' role='alert'>".
-                        $validator->errors()->first().
-                        "<button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
-
-            return response()->json(['status' => 303, 'message' => $message]);
+            return response()->json([
+                'status' => 303, 
+                'message' => $validator->errors()->first()
+            ]);
         }
 
         $contactmail = ContactMail::where('id', 1)->value('name') ?? 'info@tevini.co.uk';
 
         try {
-
-
             Mail::mailer('gmail')->to($contactmail)
                 ->cc('info@tevini.co.uk')
                 ->send(
@@ -170,18 +168,18 @@ class ContactController extends Controller
                     )
                 );
 
-            $success = "<div class='alert alert-success alert-dismissible fade show' role='alert'>
-                        Thanks for your message! We will get back to you soon :)
-                        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
-
-            return response()->json(['status' => 200, 'message' => $success]);
+            return response()->json([
+                'status' => 200, 
+                'message' => 'Thanks for your message! We will get back to you soon :)'
+            ]);
 
         } catch (\Exception $e) {
-            $error = "<div class='alert alert-danger alert-dismissible fade show' role='alert'>
-                    Problem with sending message! ({$e->getMessage()})
-                    <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>";
+            Log::error('Contact Form Email Error: ' . $e->getMessage());
 
-            return response()->json(['status' => 303, 'message' => $error]);
+            return response()->json([
+                'status' => 303, 
+                'message' => 'Problem with sending message! (Server mail error)'
+            ]);
         }
     }
 

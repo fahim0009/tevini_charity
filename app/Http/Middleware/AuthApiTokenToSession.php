@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\User;
 
 class AuthApiTokenToSession
 {
@@ -15,27 +14,18 @@ class AuthApiTokenToSession
         $token = $request->query('token');
         
         if ($token) {
-            // ১. Sanctum দিয়ে চেক করা
-            if (class_exists(\Laravel\Sanctum\PersonalAccessToken::class)) {
-                $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-                if ($accessToken) {
-                    $user = $accessToken->tokenable;
-                    if ($user) {
-                        Auth::login($user);
-                    }
-                }
-            }
+            // URL থেকে আসা টোকেনটি Authorization Header এ বসিয়ে দিচ্ছি
+            $request->headers->set('Authorization', 'Bearer ' . $token);
             
-            // ২. যদি Sanctum না থাকে বা কাজ না করে, তবে Passport দিয়ে চেক করা
-            if (!Auth::check() && class_exists(\Laravel\Passport\Token::class)) {
-                $hashedToken = hash('sha256', $token);
-                $passportToken = \Laravel\Passport\Token::where('id', $hashedToken)->where('revoked', 0)->first();
-                if ($passportToken) {
-                    $user = User::find($passportToken->user_id);
-                    if ($user) {
-                        Auth::login($user);
-                    }
-                }
+            // Passport এর 'api' guard দিয়ে ইউজারকে যাচাই করে বের করা হচ্ছে
+            $user = Auth::guard('api')->user();
+            
+            if ($user) {
+                // ওয়েব সেশনে ইউজারকে লগইন করিয়ে দিচ্ছি
+                Auth::login($user);
+                Log::info('getMakeDonation (Middleware) called for user ID: ' . $user->id);
+            } else {
+                Log::error('Passport JWT Authentication failed for token: ' . $token);
             }
         }
 

@@ -58,7 +58,7 @@
     $donorUpBalance = $authUser ? $authUser->getLiveBalance() : 0;
 @endphp
 
-<div class="content">
+<div class="content mb-5">
     <div class="row">
         <div class="col-lg-12">
             <div class="pagetitle pb-2">

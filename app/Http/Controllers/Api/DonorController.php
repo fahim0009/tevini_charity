@@ -253,10 +253,16 @@ class DonorController extends Controller
     // this function is use for mobile app
     public function getMakeDonation()
     {
-        Log::info('getMakeDonation called for user:');
+        if (Auth::check()) {
+            Log::info('getMakeDonation called for user ID: ' . Auth::id());
+        } else {
+            Log::info('getMakeDonation called, but user is NOT authenticated.');
+        }
+        
         return view('frontend.user.donationapp');
     }
 
+    
     public function makeDonationAppMessage()
     {
         return view('frontend.user.donationsuccess');

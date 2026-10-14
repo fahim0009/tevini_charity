@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
-use Laravel\Passport\Token;
 
 class AuthApiTokenToSession
 {
@@ -16,17 +15,27 @@ class AuthApiTokenToSession
         $token = $request->query('token');
         
         if ($token) {
-            $hashedToken = hash('sha256', $token);
-            $accessToken = Token::where('id', $hashedToken)->where('revoked', 0)->first();
-            
-            if ($accessToken) {
-                $user = User::find($accessToken->user_id);
-                if ($user) {
-                    Auth::setUser($user);
-                    Auth::login($user);
+            // ১. Sanctum দিয়ে চেক করা
+            if (class_exists(\Laravel\Sanctum\PersonalAccessToken::class)) {
+                $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if ($accessToken) {
+                    $user = $accessToken->tokenable;
+                    if ($user) {
+                        Auth::login($user);
+                    }
                 }
-            } else {
-                Log::error('Passport Token not found or revoked: ' . $token);
+            }
+            
+            // ২. যদি Sanctum না থাকে বা কাজ না করে, তবে Passport দিয়ে চেক করা
+            if (!Auth::check() && class_exists(\Laravel\Passport\Token::class)) {
+                $hashedToken = hash('sha256', $token);
+                $passportToken = \Laravel\Passport\Token::where('id', $hashedToken)->where('revoked', 0)->first();
+                if ($passportToken) {
+                    $user = User::find($passportToken->user_id);
+                    if ($user) {
+                        Auth::login($user);
+                    }
+                }
             }
         }
 

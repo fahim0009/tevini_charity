@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use Laravel\Passport\Token as PersonalAccessToken;
+use Laravel\Passport\Token;
 
 class AuthApiTokenToSession
 {
@@ -16,11 +16,15 @@ class AuthApiTokenToSession
         $token = $request->query('token');
         
         if ($token) {
-            // Token ta valid kina check korbe
-            $accessToken = PersonalAccessToken::findToken($token);
+            // Passport token gulo hashed (sha256) shape e database e save thake
+            $hashedToken = hash('sha256', $token);
+            
+            // oauth_access_tokens table theke token check korbe
+            $accessToken = Token::where('id', $hashedToken)->where('revoked', 0)->first();
             
             if ($accessToken) {
-                $user = $accessToken->tokenable;
+                // Token er user_id diye user ke khuje ber korbo
+                $user = User::find($accessToken->user_id);
                 if ($user) {
                     // Web session e user login kore dibe
                     Auth::login($user);

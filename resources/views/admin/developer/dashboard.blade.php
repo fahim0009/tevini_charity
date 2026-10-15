@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <!-- Stat Cards: Donation Summary -->
+        <!-- Stat Cards: Donation Summary -->
     <div class="dev-stats-grid" style="margin-top: 20px;">
         <div class="dev-stat-card">
             <div class="info">
@@ -93,6 +93,15 @@
                 <p>Tomorrow's Scheduled</p>
             </div>
             <div class="icon-box bg-purple"><i class="fas fa-forward"></i></div>
+        </div>
+        
+        <!-- NEW CARD ADDED HERE -->
+        <div class="dev-stat-card">
+            <div class="info">
+                <h3>£{{ number_format($next7DaysStandingAmount, 2) }}</h3>
+                <p>Next 7 Days Scheduled</p>
+            </div>
+            <div class="icon-box bg-green"><i class="fas fa-calendar-week"></i></div>
         </div>
     </div>
 

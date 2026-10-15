@@ -63,12 +63,21 @@ class StandingDonationController extends Controller
         if ($request->status == 1) {
             $newDonation = $original->replicate();
             
+            // Apply edited data from the modal form
+            $newDonation->amount = $request->amount;
+            $newDonation->starting = $request->starting;
+            $newDonation->payments = $request->payments;
+            $newDonation->number_payments = $request->payments == "1" ? $request->number_payments : null;
+            $newDonation->interval = $request->interval;
+            $newDonation->charitynote = $request->charitynote;
+            $newDonation->mynote = $request->mynote;
+            
             $newDonation->status = 1;
-            $newDonation->starting = now()->format('Y-m-d');
             $newDonation->created_at = now();
+            $newDonation->updated_at = now();
             $newDonation->save();
 
-            $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b> Donation Active Successfully.</b></div>";
+            $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b> Donation Re-Activated Successfully.</b></div>";
             return response()->json(['status' => 300, 'message' => $message]);
 
         } else {
@@ -103,12 +112,28 @@ class StandingDonationController extends Controller
 
     public function userStandingrecod()
     {
-        $donation = StandingDonation::with('standingdonationDetail')->where([
-            ['user_id','=', auth()->user()->id]
-        ])->where('status', 1)->get();
+        // Get all standing donations for the user with their detail counts
+        $donations = StandingDonation::with('standingdonationDetail')
+            ->withCount('standingdonationDetail as donation_count')
+            ->where('user_id', auth()->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        // Check for completion (status = 2)
+        foreach ($donations as $donation) {
+            // If it's a fixed payment plan, not already completed, and payments made >= number_payments
+            if (
+                $donation->payments == 1 && 
+                !is_null($donation->number_payments) && 
+                $donation->donation_count >= $donation->number_payments && 
+                $donation->status != 2
+            ) {
+                $donation->status = 2; // 2 = Completed
+                $donation->save();
+            }
+        }
 
-        return view('frontend.user.standingdonationrecord', compact('donation'));
+        return view('frontend.user.standingdonationrecord', compact('donations'));
     }
 
     

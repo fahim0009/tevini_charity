@@ -112,6 +112,10 @@
         </div>
         <div class="dev-card-body">
             <div class="dev-btn-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <a href="{{ route('admin.audit.balances') }}" class="dev-btn">
+                    <span><i class="fas fa-donate mr-2"></i> Charity Audit</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
                 <a href="{{ route('developer.online_donations') }}" class="dev-btn">
                     <span><i class="fas fa-donate mr-2"></i> Online Donations</span>
                     <i class="fas fa-chevron-right"></i>

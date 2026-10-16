@@ -183,6 +183,53 @@
                 </div>
             </div>
 
+                <!-- Donor TopUp Records with Commission -->
+            <div class="dev-card" style="margin-top: 25px; margin-bottom: 25px;">
+                <div class="dev-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3><i class="fas fa-wallet mr-2"></i> Donor TopUp Records (with Commission)</h3>
+                    <div class="btn-group" role="group" aria-label="Topup Filters">
+                        <button type="button" class="btn btn-sm btn-primary topup-filter active" data-filter="today">Today</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary topup-filter" data-filter="week">This Week</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary topup-filter" data-filter="month">This Month</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary topup-filter" data-filter="year">This Year</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary topup-filter" data-filter="all">All</button>
+                    </div>
+                </div>
+                <div class="dev-card-body" style="padding: 0;">
+                    <table class="dev-table table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Donor Info</th>
+                                <th>Gross Amount</th>
+                                <th>Commission</th>
+                                <th>Net Added</th>
+                                <th>Source</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topupTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background-color: #f8f9fa;">
+                                <td colspan="2" class="text-right">Total:</td>
+                                <td id="totalGross">£0.00</td>
+                                <td id="totalCommission">£0.00</td>
+                                <td id="totalNet">£0.00</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
             <!-- Will Fail Due To Insufficient Balance -->
             <div class="dev-card dev-alert-card">
                 <div class="dev-card-header" style="background: #fff5f5; border-color: #feb2b2;">
@@ -373,6 +420,72 @@
         } else {
             console.error("jQuery or DataTables library is not loaded properly.");
         }
+
+
+
+
+        // ============================================================
+        // DONOR TOPUP RECORDS FILTERING
+        // ============================================================
+        function loadTopupRecords(filter = 'today') {
+            $.ajax({
+                url: "{{ route('dev.getTopupRecords') }}",
+                type: "GET",
+                data: { filter: filter },
+                beforeSend: function() {
+                    $('#topupTableBody').html('<tr><td colspan="7" class="text-center p-4"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+                },
+                success: function(res) {
+                    $('#topupTableBody').empty();
+                    
+                    if(res.data.length > 0) {
+                        res.data.forEach(function(t) {
+                            $('#topupTableBody').append(`
+                                <tr>
+                                    <td>#${t.id}</td>
+                                    <td>
+                                        ${t.user_name}
+                                        <span class="donor-meta">${t.user_email}</span>
+                                    </td>
+                                    <td>£${t.gross}</td>
+                                    <td>£${t.commission}</td>
+                                    <td>£${t.net}</td>
+                                    <td>${t.source}</td>
+                                    <td>${t.date}</td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        $('#topupTableBody').html('<tr><td colspan="7" class="text-center p-4">No records found for this period.</td></tr>');
+                    }
+
+                    // Update totals
+                    $('#totalGross').text('£' + res.totals.gross);
+                    $('#totalCommission').text('£' + res.totals.commission);
+                    $('#totalNet').text('£' + res.totals.net);
+                },
+                error: function() {
+                    $('#topupTableBody').html('<tr><td colspan="7" class="text-center text-danger p-4">Failed to load data.</td></tr>');
+                }
+            });
+        }
+
+        // Initial Load
+        loadTopupRecords('today');
+
+        // Filter Button Click
+        $('.topup-filter').on('click', function() {
+            $('.topup-filter').removeClass('btn-primary active').addClass('btn-outline-primary');
+            $(this).removeClass('btn-outline-primary').addClass('btn-primary active');
+            
+            var filter = $(this).data('filter');
+            loadTopupRecords(filter);
+        });
+
+
+
+
+
     });
 </script>
 @endsection

@@ -157,6 +157,69 @@ class DeveloperToolDashboardController extends Controller
         ));
     }
 
+        /**
+     * Fetch TopUp Records via AJAX
+     */
+    public function getTopupRecords(Request $request)
+    {
+        $filter = $request->get('filter', 'all');
+        $now = Carbon::now();
+
+        $query = Usertransaction::where('t_type', 'In')->with('user');
+
+        switch ($filter) {
+            case 'today':
+                $query->whereDate('created_at', $now->toDateString());
+                break;
+            case 'week':
+                $query->whereBetween('created_at', [$now->startOfWeek()->toDateTimeString(), $now->endOfWeek()->toDateTimeString()]);
+                break;
+            case 'month':
+                $query->whereMonth('created_at', $now->month)->whereYear('created_at', $now->year);
+                break;
+            case 'year':
+                $query->whereYear('created_at', $now->year);
+                break;
+            case 'all':
+            default:
+                // No date filter
+                break;
+        }
+
+        $topups = $query->latest()->get();
+
+        $totalGross = 0;
+        $totalCommission = 0;
+        $totalNet = 0;
+
+        $data = $topups->map(function ($t) use (&$totalGross, &$totalCommission, &$totalNet) {
+            $gross = $t->amount + $t->commission;
+            $totalGross += $gross;
+            $totalCommission += $t->commission;
+            $totalNet += $t->amount;
+
+            return [
+                'id' => $t->id,
+                'user_name' => $t->user->name ?? 'N/A',
+                'user_email' => $t->user->email ?? 'N/A',
+                'gross' => number_format($gross, 2),
+                'commission' => number_format($t->commission, 2),
+                'net' => number_format($t->amount, 2),
+                'source' => $t->source ?? 'N/A',
+                'date' => \Carbon\Carbon::parse($t->created_at)->format('d M, Y H:i'),
+            ];
+        });
+
+        return response()->json([
+            'data' => $data,
+            'totals' => [
+                'gross' => number_format($totalGross, 2),
+                'commission' => number_format($totalCommission, 2),
+                'net' => number_format($totalNet, 2),
+            ]
+        ]);
+    }
+
     /**
      * Online Donation Monitoring Page
      */

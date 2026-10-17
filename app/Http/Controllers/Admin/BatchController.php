@@ -368,6 +368,17 @@ class BatchController extends Controller
             $isPending = ($limit < $amount || $waitings[$index] === 'Yes' || $expireds[$index] == "Yes");
             $chequeNo = $chequeNos[$index];
 
+            // --- NEW: Determine voucher_state ---
+            $voucherState = 2; // Default Pending
+            if ($expireds[$index] === 'Yes') {
+                $voucherState = 4; // Expired
+            } elseif ($waitings[$index] === 'Yes') {
+                $voucherState = 3; // Waiting
+            } elseif (!$isPending) {
+                $voucherState = 1; // Complete
+            }
+            // ------------------------------------
+
             // Check if this is an update or new
             $existingVoucher = $existingVouchers->where('cheque_no', $chequeNo)->first();
 
@@ -411,10 +422,11 @@ class BatchController extends Controller
                 $existingVoucher->waiting = $waitings[$index] ?? 'No';
                 $existingVoucher->expired = $expireds[$index] ?? 'No';
                 $existingVoucher->status = $newStatus;
+                $existingVoucher->voucher_state = $voucherState; // NEW COLUMN
                 $existingVoucher->batch_id = $bid; 
                 $existingVoucher->save();
 
-                Log::info("Updated voucher: Cheque No: $chequeNo, Donor ID: $donorId, Charity ID: $charityId, Amount: $amount, Status: $newStatus, Status: $newStatus, pbatch_id: $bid");
+                Log::info("Updated voucher: Cheque No: $chequeNo, Donor ID: $donorId, Charity ID: $charityId, Amount: $amount, Status: $newStatus, pbatch_id: $bid");
 
                 // Update transaction record
                 if ($existingVoucher->tran_id) {
@@ -425,6 +437,7 @@ class BatchController extends Controller
                         $transaction->amount = $amount;
                         $transaction->pending = $isPending ? 0 : 1;
                         $transaction->status = $isPending ? 0 : 1;
+                        $transaction->voucher_state = $voucherState; // NEW COLUMN
                         $transaction->save();
                     }
                 }
@@ -447,6 +460,7 @@ class BatchController extends Controller
                 $transaction->barcode_image = $barcodeImagePath;
                 $transaction->pending = $isPending ? 0 : 1;
                 $transaction->status = $isPending ? 0 : 1;
+                $transaction->voucher_state = $voucherState; // NEW COLUMN
                 $transaction->provoucher_batch_id = $probatch->id;
                 $transaction->batch_no = $batchNo;
                 $transaction->save();
@@ -464,6 +478,7 @@ class BatchController extends Controller
                 $voucher->waiting = $waitings[$index] ?? 'No';
                 $voucher->expired = $expireds[$index] ?? 'No';
                 $voucher->status = $isPending ? 0 : 1;
+                $voucher->voucher_state = $voucherState; // NEW COLUMN
                 $voucher->tran_id = $transaction->id;
                 $voucher->batch_id = $bid; 
                 $voucher->save();

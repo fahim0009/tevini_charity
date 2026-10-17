@@ -3627,160 +3627,173 @@ class OrderController extends Controller
     }
 
 
-public function bulkUpdate(Request $request)
-{
-    $voucherIds = $request->input('voucher_id', []);
-    $charityIds = $request->input('charity', []);
-    $donorIds   = $request->input('donor', []);
-    $donorAccs  = $request->input('donor_acc', []);
-    $chqNos     = $request->input('check', []);
-    $amts       = $request->input('amount', []);
-    $notes      = $request->input('note', []);
-    $waitings   = $request->input('waiting', []);
-    $expireds   = $request->input('expired', []);
+    public function bulkUpdate(Request $request)
+    {
+        $voucherIds = $request->input('voucher_id', []);
+        $charityIds = $request->input('charity', []);
+        $donorIds   = $request->input('donor', []);
+        $donorAccs  = $request->input('donor_acc', []);
+        $chqNos     = $request->input('check', []);
+        $amts       = $request->input('amount', []);
+        $notes      = $request->input('note', []);
+        $waitings   = $request->input('waiting', []);
+        $expireds   = $request->input('expired', []);
 
-    if (empty($voucherIds)) {
-        return response()->json(['status' => 303, 'message' => 'No vouchers selected for update.']);
-    }
+        if (empty($voucherIds)) {
+            return response()->json(['status' => 303, 'message' => 'No vouchers selected for update.']);
+        }
 
-    $duplicateCheques = array_filter(array_count_values($chqNos), fn($c) => $c > 1);
-    if (!empty($duplicateCheques)) {
+        $duplicateCheques = array_filter(array_count_values($chqNos), fn($c) => $c > 1);
+        if (!empty($duplicateCheques)) {
+            return response()->json([
+                'status' => 303, 
+                'message' => "Voucher " . array_key_first($duplicateCheques) . " is entered more than once."
+            ]);
+        }
+
+        foreach ($voucherIds as $index => $id) {
+            $voucher = Provoucher::find($id);
+            
+            if (!$voucher) continue;
+
+            // Ignore if voucher is complete
+            if ($voucher->status == 1 || !empty($voucher->completed_date)) {
+                \Log::info("Voucher ID {$id} skipped because it is already completed.", ['voucher_id' => $id]);
+                continue; 
+            }
+
+            $newCharityId = $charityIds[$index] ?? $voucher->charity_id;
+            $newUserId    = $donorIds[$index] ?? $voucher->user_id;
+            $newChequeNo  = $chqNos[$index] ?? $voucher->cheque_no;
+            $newAmount    = $amts[$index] ?? $voucher->amount;
+            $newNote      = $notes[$index] ?? $voucher->note;
+            $newWaiting   = $waitings[$index] ?? 'No';
+            $newExpired   = $expireds[$index] ?? 'No';
+            $newDonorAcc  = $donorAccs[$index] ?? $voucher->donor_acc;
+
+            // Log initial data before update
+            \Log::info("Updating Voucher ID: {$id}", [
+                'old_charity' => $voucher->charity_id,
+                'new_charity' => $newCharityId,
+                'old_amount'  => $voucher->amount,
+                'new_amount'  => $newAmount,
+                'form_waiting'=> $newWaiting,
+                'form_expired'=> $newExpired,
+            ]);
+
+            if ($voucher->cheque_no != $newChequeNo) {
+                $exists = Provoucher::where('cheque_no', $newChequeNo)->where('id', '!=', $voucher->id)->exists();
+                if ($exists) {
+                    return response()->json([
+                        'status' => 303, 
+                        'message' => "Voucher number $newChequeNo is already processed."
+                    ]);
+                }
+                
+                if (Barcode::where('barcode', $newChequeNo)->where('status', 1)->exists()) {
+                    return response()->json([
+                        'status' => 303, 
+                        'message' => "Voucher number $newChequeNo is already cancelled."
+                    ]);
+                }
+            }
+
+            $user = User::find($newUserId);
+            if (!$user) continue;
+
+            $standardAmount = $user->standard_amount ?: 500;
+            $limit          = $user->getAvailableLimit();
+            
+            $newIsPending = ($limit < $newAmount || $newWaiting === 'Yes' || $newExpired === 'Yes' || $newAmount >= $standardAmount);
+
+            // --- NEW: Determine voucher_state ---
+            $newVoucherState = 2; // Default Pending
+            if ($newExpired === 'Yes') {
+                $newVoucherState = 4; // Expired
+            } elseif ($newWaiting === 'Yes') {
+                $newVoucherState = 3; // Waiting
+            } elseif (!$newIsPending) {
+                $newVoucherState = 1; // Complete
+            }
+            // ------------------------------------
+
+            // ===== Balance Reverse Logic =====
+            $oldCharityId = $voucher->charity_id;
+            $oldUserId    = $voucher->user_id;
+            $oldAmount    = $voucher->amount;
+            $oldIsPending = ($voucher->status == 0); 
+
+            if (!$oldIsPending) {
+                Charity::where('id', $oldCharityId)->decrement('balance', $oldAmount);
+                User::where('id', $oldUserId)->increment('balance', $oldAmount);
+            }
+
+            $barcodeImagePath = null;
+            if ($voucher->cheque_no != $newChequeNo) {
+                $barcodeImagePath = $this->moveBarcodeImageAndGetPath($newChequeNo);
+            }
+
+            // ===== Update Transaction =====
+            $transaction = Usertransaction::find($voucher->tran_id);
+            if ($transaction) {
+                $transaction->user_id     = $newUserId;
+                $transaction->charity_id  = $newCharityId;
+                $transaction->amount      = $newAmount;
+                $transaction->cheque_no   = $newChequeNo;
+                $transaction->pending     = $newWaiting === 'Yes' ? 0 : 1;
+                $transaction->status      = $newIsPending ? 0 : 1;
+                $transaction->expired     = $newExpired === 'Yes' ? 0 : 1;
+                $transaction->voucher_state = $newVoucherState; // NEW COLUMN
+                
+                if ($barcodeImagePath) {
+                    $transaction->barcode_image = $barcodeImagePath;
+                }
+                $transaction->save();
+            }
+
+            // ===== Update Voucher =====
+            $voucher->charity_id     = $newCharityId;
+            $voucher->user_id        = $newUserId;
+            $voucher->donor_acc      = $newDonorAcc;
+            $voucher->cheque_no      = $newChequeNo;
+            $voucher->amount          = $newAmount;
+            $voucher->note           = $newNote;
+            $voucher->expired         = $newExpired;
+            $voucher->status          = $newIsPending ? 0 : 1;
+            $voucher->voucher_state   = $newVoucherState; // NEW COLUMN
+            $voucher->completed_date  = $newIsPending ? null : now();
+            
+            $voucher->waiting         = $newWaiting; 
+            $voucher->save();
+
+            // ===== Apply New Balance Logic =====
+            if (!$newIsPending) {
+                Charity::where('id', $newCharityId)->increment('balance', $newAmount);
+                User::where('id', $newUserId)->decrement('balance', $newAmount);
+            }
+
+            // ===== Send Email Logic =====
+            $charity = Charity::find($newCharityId);
+            
+            if ($user->ppv_account == 0 && $newAmount >= $standardAmount && $newIsPending) {
+
+                $acceptUrl  = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
+                $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
+                
+                $imgPath = $transaction->barcode_image ?? null;
+                $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl, $imgPath);
+            }
+            
+            \Log::info("Voucher ID: {$id} successfully updated.", [
+                'final_status' => $voucher->status, 
+                'final_waiting' => $voucher->waiting
+            ]);
+        }
+
         return response()->json([
-            'status' => 303, 
-            'message' => "Voucher " . array_key_first($duplicateCheques) . " is entered more than once."
+            'status'  => 300,
+            'message' => 'Selected vouchers updated successfully!'
         ]);
     }
-
-    foreach ($voucherIds as $index => $id) {
-        $voucher = Provoucher::find($id);
-        
-        if (!$voucher) continue;
-
-        // Ignore if voucher is complete
-        if ($voucher->status == 1 || !empty($voucher->completed_date)) {
-            \Log::info("Voucher ID {$id} skipped because it is already completed.", ['voucher_id' => $id]);
-            continue; 
-        }
-
-        $newCharityId = $charityIds[$index] ?? $voucher->charity_id;
-        $newUserId    = $donorIds[$index] ?? $voucher->user_id;
-        $newChequeNo  = $chqNos[$index] ?? $voucher->cheque_no;
-        $newAmount    = $amts[$index] ?? $voucher->amount;
-        $newNote      = $notes[$index] ?? $voucher->note;
-        $newWaiting   = $waitings[$index] ?? 'No';
-        $newExpired   = $expireds[$index] ?? 'No';
-        $newDonorAcc  = $donorAccs[$index] ?? $voucher->donor_acc;
-
-        // Log initial data before update
-        \Log::info("Updating Voucher ID: {$id}", [
-            'old_charity' => $voucher->charity_id,
-            'new_charity' => $newCharityId,
-            'old_amount'  => $voucher->amount,
-            'new_amount'  => $newAmount,
-            'form_waiting'=> $newWaiting,
-            'form_expired'=> $newExpired,
-        ]);
-
-        if ($voucher->cheque_no != $newChequeNo) {
-            $exists = Provoucher::where('cheque_no', $newChequeNo)->where('id', '!=', $voucher->id)->exists();
-            if ($exists) {
-                return response()->json([
-                    'status' => 303, 
-                    'message' => "Voucher number $newChequeNo is already processed."
-                ]);
-            }
-            
-            if (Barcode::where('barcode', $newChequeNo)->where('status', 1)->exists()) {
-                return response()->json([
-                    'status' => 303, 
-                    'message' => "Voucher number $newChequeNo is already cancelled."
-                ]);
-            }
-        }
-
-        $user = User::find($newUserId);
-        if (!$user) continue;
-
-        $standardAmount = $user->standard_amount ?: 500;
-        $limit          = $user->getAvailableLimit();
-        
-        $newIsPending = ($limit < $newAmount || $newWaiting === 'Yes' || $newExpired === 'Yes' || $newAmount >= $standardAmount);
-
-        // ===== Balance Reverse Logic =====
-        $oldCharityId = $voucher->charity_id;
-        $oldUserId    = $voucher->user_id;
-        $oldAmount    = $voucher->amount;
-        $oldIsPending = ($voucher->status == 0); 
-
-        if (!$oldIsPending) {
-            Charity::where('id', $oldCharityId)->decrement('balance', $oldAmount);
-            User::where('id', $oldUserId)->increment('balance', $oldAmount);
-        }
-
-        $barcodeImagePath = null;
-        if ($voucher->cheque_no != $newChequeNo) {
-            $barcodeImagePath = $this->moveBarcodeImageAndGetPath($newChequeNo);
-        }
-
-        // ===== Update Transaction =====
-        $transaction = Usertransaction::find($voucher->tran_id);
-        if ($transaction) {
-            $transaction->user_id     = $newUserId;
-            $transaction->charity_id  = $newCharityId;
-            $transaction->amount      = $newAmount;
-            $transaction->cheque_no   = $newChequeNo;
-            $transaction->pending     = $newWaiting === 'Yes' ? 0 : 1;
-            $transaction->status      = $newIsPending ? 0 : 1;
-            $transaction->expired     = $newExpired === 'Yes' ? 0 : 1;
-            
-            if ($barcodeImagePath) {
-                $transaction->barcode_image = $barcodeImagePath;
-            }
-            $transaction->save();
-        }
-
-        // ===== Update Voucher =====
-        $voucher->charity_id     = $newCharityId;
-        $voucher->user_id        = $newUserId;
-        $voucher->donor_acc      = $newDonorAcc;
-        $voucher->cheque_no      = $newChequeNo;
-        $voucher->amount          = $newAmount;
-        $voucher->note           = $newNote;
-        $voucher->expired         = $newExpired;
-        $voucher->status          = $newIsPending ? 0 : 1;
-        $voucher->completed_date  = $newIsPending ? null : now();
-        
-        $voucher->waiting         = $newWaiting; 
-        $voucher->save();
-
-        // ===== Apply New Balance Logic =====
-        if (!$newIsPending) {
-            Charity::where('id', $newCharityId)->increment('balance', $newAmount);
-            User::where('id', $newUserId)->decrement('balance', $newAmount);
-        }
-
-        // ===== Send Email Logic =====
-        $charity = Charity::find($newCharityId);
-        
-        if ($user->ppv_account == 0 && $newAmount >= $standardAmount && $newIsPending) {
-
-            $acceptUrl  = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
-            $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
-            
-            $imgPath = $transaction->barcode_image ?? null;
-            $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl, $imgPath);
-        }
-        
-        \Log::info("Voucher ID: {$id} successfully updated.", [
-            'final_status' => $voucher->status, 
-            'final_waiting' => $voucher->waiting
-        ]);
-    }
-
-    return response()->json([
-        'status'  => 300,
-        'message' => 'Selected vouchers updated successfully!'
-    ]);
-}
 
 }

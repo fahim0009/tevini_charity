@@ -1049,6 +1049,13 @@ class CharityController extends Controller
             $user = User::find($donor_id);
             $limitChk = $user->getAvailableLimit() ?? 0;
 
+            // --- NEW: Determine voucher_state ---
+            $voucherState = 2; // Default Pending
+            if ($limitChk >= $amounts[$key]) {
+                $voucherState = 1; // Complete
+            }
+            // ------------------------------------
+
             // Create user transaction
             $utransaction = new Usertransaction();
             $utransaction->t_id = time() . "-" . $donor_id;
@@ -1058,6 +1065,7 @@ class CharityController extends Controller
             $utransaction->amount = $amounts[$key];
             $utransaction->cheque_no = $chqs[$key];
             $utransaction->title = "Voucher";
+            $utransaction->voucher_state = $voucherState; // NEW COLUMN
 
             if ($limitChk < $amounts[$key]) {
                 $utransaction->pending = 0; // pending transaction
@@ -1079,6 +1087,7 @@ class CharityController extends Controller
             $pvsr->note = $notes[$key];
             $pvsr->waiting = "No";
             $pvsr->status = ($limitChk < $amounts[$key]) ? 0 : 1;
+            $pvsr->voucher_state = $voucherState; // NEW COLUMN
             $pvsr->tran_id = $utransaction->id;
             $pvsr->save();
 
@@ -1099,7 +1108,6 @@ class CharityController extends Controller
             'batch_id' => $batch->id
         ]);
     }
-
 
     public function instReport($id)
     {

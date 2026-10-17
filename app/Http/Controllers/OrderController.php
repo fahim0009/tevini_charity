@@ -1431,10 +1431,29 @@ class OrderController extends Controller
 
             $standardAmount = $user->standard_amount ?: 500;
             $limit     = $user->getAvailableLimit();
+            
+            // Determine waiting and expired status
+            $isWaiting = ($user->ppv_account == 1) ? false : (($row['waiting'] ?? 'No') === 'Yes');
+            $isExpired = ($user->ppv_account == 1) ? false : (($row['expired'] ?? 'No') === 'Yes');
+
+            if ($user->ppv_account == 0 && $amount >= $standardAmount) {
+                $isWaiting = true; // Overridden later in the code
+            }
+
             $isPending = $user->ppv_account == 1
                         ? false
-                        : ($limit < $amount || $row['waiting'] === 'Yes' || $row['expired'] === 'Yes' || $amount >= $standardAmount);
+                        : ($limit < $amount || $isWaiting || $isExpired || $amount >= $standardAmount);
 
+            // --- NEW: Determine voucher_state ---
+            $voucherState = 2; // Default Pending
+            if ($isExpired) {
+                $voucherState = 4; // Expired
+            } elseif ($isWaiting) {
+                $voucherState = 3; // Waiting
+            } elseif (!$isPending) {
+                $voucherState = 1; // Complete
+            }
+            // ------------------------------------
 
             $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
 
@@ -1450,6 +1469,7 @@ class OrderController extends Controller
             $transaction->pending = ($user->ppv_account == 1) ? 1 : ($row['waiting'] === 'Yes' ? 0 : 1);
             $transaction->status  = ($user->ppv_account == 1) ? 1 : ($isPending ? 0 : 1);
             $transaction->expired = ($user->ppv_account == 1) ? 1 : ($row['expired'] === 'Yes' ? 0 : 1);
+            $transaction->voucher_state      = $voucherState; // NEW COLUMN
             $transaction->provoucher_batch_id = $probatch->id;
             $transaction->batch_no           = $batchNo;
             $transaction->save();
@@ -1467,6 +1487,7 @@ class OrderController extends Controller
             $voucher->waiting = ($user->ppv_account == 1) ? 'No' : ($row['waiting'] ?? 'No');
             $voucher->expired = ($user->ppv_account == 1) ? 'No' : ($row['expired'] ?? 'No');
             $voucher->status  = ($user->ppv_account == 1) ? 1 : ($isPending ? 0 : 1);
+            $voucher->voucher_state        = $voucherState; // NEW COLUMN
             $voucher->tran_id              = $transaction->id;
             $voucher->save();
 
@@ -1474,12 +1495,12 @@ class OrderController extends Controller
 
             if ($user->ppv_account == 0 && $amount >= $standardAmount) {
                 $voucher->waiting              = 'Yes';
+                $voucher->voucher_state        = 3; // Force state to Waiting
                 $voucher->save();
 
                 $acceptUrl = URL::signedRoute('voucher.accept', ['voucher' => $voucher->id], now()->addDays(7));
                 $declineUrl = URL::signedRoute('voucher.decline', ['voucher' => $voucher->id], now()->addDays(7));
                 
-                // $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl);
                 $this->sendVoucherProcessedEmail($user, $voucher, $charity?->name ?? '', $acceptUrl, $declineUrl, $barcodeImagePath);
             }
 
@@ -2301,6 +2322,7 @@ class OrderController extends Controller
             $utransaction = Usertransaction::find($voucher->tran_id);
             $utransaction->status = '1';
             $utransaction->pending = '1';
+            $utransaction->voucher_state = 1; 
             $utransaction->voucher_create_date = $utransaction->created_at;
             $utransaction->voucher_complete_date = date('Y-m-d');
             $utransaction->created_at = date('Y-m-d H:i:s');
@@ -2316,6 +2338,7 @@ class OrderController extends Controller
 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->status = 1;
+            $pstatus->voucher_state = 1; 
             $pstatus->completed_date = date('Y-m-d');
             $pstatus->save();
         }
@@ -2353,64 +2376,65 @@ class OrderController extends Controller
 
     public function pvCancel(Request $request)
     {
-     if(empty($request->voucherIds)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
+        if(empty($request->voucherIds)){
+                $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
+                return response()->json(['status'=> 303,'message'=>$message]);
+                exit();
+            }
+
+            $array1 = $request->charityIds;
+            $array2 = $request->voucherIds;
+
+            $result = [];
+
+            $index = 0;
+            foreach( $array1 as $key => $value ){
+                $result[$value][] = $array2[$index];
+                $index++;
+            }
+
+            foreach($array2 as $key => $voucher_id)
+            {
+
+            $voucher = Provoucher::where('id',$voucher_id)->first();
+
+            Usertransaction::where('id', $voucher->tran_id)->delete();
+
+            $pstatus = Provoucher::find($voucher_id);
+            $pstatus->status = 3;
+            $pstatus->voucher_state = 0;
+            $pstatus->save();
+
+            }
+            foreach($result as $chrt_id => $vchr_ids)
+            {
+
+            $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+            $charity = Charity::where('id','=',$chrt_id)->first();
+
+            $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['subject'] = 'Remittance Report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $array['name'] = $charity->name;
+            $email = $charity->email;
+            $array['charity'] = $charity;
+            $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
+            $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$charity->id;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new PendingvCancelReport($array));
         }
 
-        $array1 = $request->charityIds;
-        $array2 = $request->voucherIds;
-
-        $result = [];
-
-        $index = 0;
-        foreach( $array1 as $key => $value ){
-            $result[$value][] = $array2[$index];
-            $index++;
-        }
-
-        foreach($array2 as $key => $voucher_id)
-        {
-
-        $voucher = Provoucher::where('id',$voucher_id)->first();
-
-        Usertransaction::where('id', $voucher->tran_id)->delete();
-
-        $pstatus = Provoucher::find($voucher_id);
-        $pstatus->status = 3;
-        $pstatus->save();
-
-        }
-        foreach($result as $chrt_id => $vchr_ids)
-        {
-
-        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-        $charity = Charity::where('id','=',$chrt_id)->first();
-
-        $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
-        $output = $pdf->output();
-        file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
-
-        $contactmail = ContactMail::where('id', 1)->first()->name;
-
-        $array['subject'] = 'Remittance Report';
-        $array['from'] = 'info@tevini.co.uk';
-        $array['cc'] = $contactmail;
-        $array['name'] = $charity->name;
-        $email = $charity->email;
-        $array['charity'] = $charity;
-        $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
-        $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
-        $array['subjectsingle'] = 'Report Placed - '.$charity->id;
-
-        Mail::to($email)
-        ->cc($contactmail)
-        ->send(new PendingvCancelReport($array));
-    }
-
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";
-    return response()->json(['status'=> 300,'message'=>$message]);
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Process voucher status change successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
 
     }
 
@@ -2544,6 +2568,7 @@ class OrderController extends Controller
                 $utransaction = Usertransaction::find($voucher->tran_id);
                 $utransaction->status = '1';
                 $utransaction->pending = '1';
+                $utransaction->voucher_state = 1;
                 $utransaction->voucher_create_date = $utransaction->created_at;
                 $utransaction->voucher_complete_date = date('Y-m-d');
                 $utransaction->created_at = date('Y-m-d H:i:s');
@@ -2559,6 +2584,7 @@ class OrderController extends Controller
                 $pstatus->waiting = "No";
                 $pstatus->expired = "No";
                 $pstatus->status = 1;
+                $pstatus->voucher_state = 1; 
                 $pstatus->completed_date = date('Y-m-d');
                 $pstatus->save();
 
@@ -2570,6 +2596,7 @@ class OrderController extends Controller
                 $pstatus = Provoucher::find($voucher_id);
                 $pstatus->waiting = "No";
                 $pstatus->status = 0;
+                $pstatus->voucher_state = 2;
                 $pstatus->save();
 
                 $failed[] = $voucher_id;
@@ -2641,10 +2668,10 @@ class OrderController extends Controller
 
 
 
-public function watingvoucherCancel(Request $request)
+    public function watingvoucherCancel(Request $request)
     {
 
-     if(empty($request->voucherIds)){
+        if(empty($request->voucherIds)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
@@ -2670,6 +2697,7 @@ public function watingvoucherCancel(Request $request)
 
             $pstatus = Provoucher::find($voucher_id);
             $pstatus->status = 3;
+            $pstatus->voucher_state = 0;
             $pstatus->waiting = "Cancel";
             $pstatus->save();
 
@@ -2678,178 +2706,178 @@ public function watingvoucherCancel(Request $request)
         foreach($result as $chrt_id => $vchr_ids)
         {
 
-        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-        $charity = Charity::where('id','=',$chrt_id)->first();
+            $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+            $charity = Charity::where('id','=',$chrt_id)->first();
 
-        $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
-        $output = $pdf->output();
-        file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
+            $pdf = PDF::loadView('invoices.pendingvreport', compact('remittances','charity'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'voucher_Report#'.$charity->id.'.pdf', $output);
 
-        $contactmail = ContactMail::where('id', 1)->first()->name;
+            $contactmail = ContactMail::where('id', 1)->first()->name;
 
-        $array['subject'] = 'Remittance Report';
-        $array['from'] = 'info@tevini.co.uk';
-        $array['cc'] = $contactmail;
-        $array['name'] = $charity->name;
-        $email = $charity->email;
-        $array['charity'] = $charity;
-        $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
-        $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
-        $array['subjectsingle'] = 'Report Placed - '.$charity->id;
+            $array['subject'] = 'Remittance Report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $array['name'] = $charity->name;
+            $email = $charity->email;
+            $array['charity'] = $charity;
+            $array['file'] = public_path().'/invoices/voucher_Report#'.$charity->id.'.pdf';
+            $array['file_name'] = 'voucher_Report#'.$charity->id.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$charity->id;
 
-        Mail::to($email)
-        ->cc($contactmail)
-        ->send(new WaitingVoucherCancel($array));
-    }
-
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher status change successfully.</b></div>";
-    return response()->json(['status'=> 300,'message'=>$message]);
-
-    }
-
-public function watingvoucherImageadd(Request $request)
-{
-    $process_voucherId = $request->process_voucher_id;
-
-    // 1. Find the voucher to get its associated transaction ID
-    $voucher = Provoucher::find($process_voucherId);
-
-    if (!$voucher) {
-        $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher not found.</b></div>";
-        return response()->json(['status' => 303, 'message' => $message]);
-    }
-
-    $image_record = ProvouchersImages::where('provouchers_id', $process_voucherId)->first();
-
-    if ($image_record) {
-        $Old_image_path = public_path('images/waiting_voucher/' . $image_record->image_name);
-        if (file_exists($Old_image_path)) {
-            unlink($Old_image_path);
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new WaitingVoucherCancel($array));
         }
-        $image_record->delete();
+
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher status change successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
+
     }
 
-    if ($request->hasFile('image')) {
-        $file = $request->file('image');
-        $originalName = $file->getClientOriginalName();
-        $filename = $process_voucherId . '_' . $originalName;
-
-        // Move the new file
-        $file->move(public_path('images/waiting_voucher'), $filename);
-
-        // Save to relative path format so asset() works properly in Blade
-        $imagePath = 'images/waiting_voucher/' . $filename;
-
-        // Insert a record in the database
-        $image = new ProvouchersImages();
-        $image->image_name = $filename;
-        $image->provouchers_id = $process_voucherId;
-        $image->save();
-
-        // 2. Update the Usertransaction table with the new image path
-        if ($voucher->tran_id) {
-            $transaction = Usertransaction::find($voucher->tran_id);
-            
-            if ($transaction) {
-                // Optional: delete the old barcode image if it exists
-                if ($transaction->barcode_image && file_exists(public_path($transaction->barcode_image))) {
-                    unlink(public_path($transaction->barcode_image));
-                }
-
-                $transaction->barcode_image = $imagePath;
-                $transaction->save();
-            }
-        }
-    }
-
-    $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>File added successfully.</b></div>";
-    return response()->json(['status' => 300, 'message' => $message]);
-}
-
-
-public function watingvoucherMail(Request $request)
-{
-    if(empty($request->voucherIds)){
-        $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
-        return response()->json(['status'=> 303,'message'=>$message]);
-        exit();
-    }
-
-    $donor_ids = $request->donorIds;
-    $voucher_ids = $request->voucherIds;
-
-    $result = [];
-
-    $index = 0;
-    foreach( $donor_ids as $key => $value ){
-        $result[$value][] = $voucher_ids[$index];
-        $index++;
-    }
-
-    foreach($result as $donor_id => $vchr_ids)
+    public function watingvoucherImageadd(Request $request)
     {
-        // Get the vouchers
-        $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
-        $donor = User::where('id','=',$donor_id)->first();
+        $process_voucherId = $request->process_voucher_id;
 
-        $image_attachments = [];
+        // 1. Find the voucher to get its associated transaction ID
+        $voucher = Provoucher::find($process_voucherId);
 
-        // 1. Fetch images from ProvouchersImages table (Uploaded files)
-        $image_records = ProvouchersImages::whereIn('provouchers_id', $vchr_ids)->get(); 
-        foreach ($image_records as $image_record) {
-            $image_path = public_path('images/waiting_voucher/'.$image_record->image_name);
-            if (file_exists($image_path)) {
-                $image_attachments[] = [
-                    'path' => $image_path,
-                    'name' => $image_record->image_name,
-                ];
+        if (!$voucher) {
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher not found.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+
+        $image_record = ProvouchersImages::where('provouchers_id', $process_voucherId)->first();
+
+        if ($image_record) {
+            $Old_image_path = public_path('images/waiting_voucher/' . $image_record->image_name);
+            if (file_exists($Old_image_path)) {
+                unlink($Old_image_path);
+            }
+            $image_record->delete();
+        }
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $originalName = $file->getClientOriginalName();
+            $filename = $process_voucherId . '_' . $originalName;
+
+            // Move the new file
+            $file->move(public_path('images/waiting_voucher'), $filename);
+
+            // Save to relative path format so asset() works properly in Blade
+            $imagePath = 'images/waiting_voucher/' . $filename;
+
+            // Insert a record in the database
+            $image = new ProvouchersImages();
+            $image->image_name = $filename;
+            $image->provouchers_id = $process_voucherId;
+            $image->save();
+
+            // 2. Update the Usertransaction table with the new image path
+            if ($voucher->tran_id) {
+                $transaction = Usertransaction::find($voucher->tran_id);
+                
+                if ($transaction) {
+                    // Optional: delete the old barcode image if it exists
+                    if ($transaction->barcode_image && file_exists(public_path($transaction->barcode_image))) {
+                        unlink(public_path($transaction->barcode_image));
+                    }
+
+                    $transaction->barcode_image = $imagePath;
+                    $transaction->save();
+                }
             }
         }
 
-        // 2. Fetch barcode images from Usertransaction table
-        $transaction_ids = $remittances->pluck('tran_id')->filter()->unique();
-        if ($transaction_ids->isNotEmpty()) {
-            $transactions = Usertransaction::whereIn('id', $transaction_ids)->get();
-            
-            foreach ($transactions as $transaction) {
-                if (!empty($transaction->barcode_image)) {
-                    $barcode_path = public_path($transaction->barcode_image);
-                    
-                    if (file_exists($barcode_path)) {
-                        $image_attachments[] = [
-                            'path' => $barcode_path,
-                            'name' => basename($transaction->barcode_image), // gets just the filename
-                        ];
+        $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>File added successfully.</b></div>";
+        return response()->json(['status' => 300, 'message' => $message]);
+    }
+
+
+    public function watingvoucherMail(Request $request)
+    {
+        if(empty($request->voucherIds)){
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Voucher id not define</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        $donor_ids = $request->donorIds;
+        $voucher_ids = $request->voucherIds;
+
+        $result = [];
+
+        $index = 0;
+        foreach( $donor_ids as $key => $value ){
+            $result[$value][] = $voucher_ids[$index];
+            $index++;
+        }
+
+        foreach($result as $donor_id => $vchr_ids)
+        {
+            // Get the vouchers
+            $remittances = Provoucher::whereIn('id', $vchr_ids)->get();
+            $donor = User::where('id','=',$donor_id)->first();
+
+            $image_attachments = [];
+
+            // 1. Fetch images from ProvouchersImages table (Uploaded files)
+            $image_records = ProvouchersImages::whereIn('provouchers_id', $vchr_ids)->get(); 
+            foreach ($image_records as $image_record) {
+                $image_path = public_path('images/waiting_voucher/'.$image_record->image_name);
+                if (file_exists($image_path)) {
+                    $image_attachments[] = [
+                        'path' => $image_path,
+                        'name' => $image_record->image_name,
+                    ];
+                }
+            }
+
+            // 2. Fetch barcode images from Usertransaction table
+            $transaction_ids = $remittances->pluck('tran_id')->filter()->unique();
+            if ($transaction_ids->isNotEmpty()) {
+                $transactions = Usertransaction::whereIn('id', $transaction_ids)->get();
+                
+                foreach ($transactions as $transaction) {
+                    if (!empty($transaction->barcode_image)) {
+                        $barcode_path = public_path($transaction->barcode_image);
+                        
+                        if (file_exists($barcode_path)) {
+                            $image_attachments[] = [
+                                'path' => $barcode_path,
+                                'name' => basename($transaction->barcode_image), // gets just the filename
+                            ];
+                        }
                     }
                 }
             }
+
+            $pdf = PDF::loadView('invoices.waiting_vreport', compact('remittances','donor'));
+            $output = $pdf->output();
+            file_put_contents(public_path().'/invoices/'.'waiting_voucher_Report#'.$donor->id.'.pdf', $output);
+
+            $contactmail = ContactMail::where('id', 1)->first()->name;
+
+            $array['subject'] = 'Waiting Voucher Report';
+            $array['from'] = 'info@tevini.co.uk';
+            $array['cc'] = $contactmail;
+            $array['name'] = $donor->name;
+            $email = $donor->email;
+            $array['donor'] = $donor;
+            $array['image_attachments'] = $image_attachments;
+            $array['file'] = public_path().'/invoices/waiting_voucher_Report#'.$donor->id.'.pdf';
+            $array['file_name'] = 'waiting_voucher_Report#'.$donor->id.'.pdf';
+            $array['subjectsingle'] = 'Report Placed - '.$donor->id;
+
+            Mail::to($email)
+            ->cc($contactmail)
+            ->send(new WaitingvoucherReport($array));
         }
 
-        $pdf = PDF::loadView('invoices.waiting_vreport', compact('remittances','donor'));
-        $output = $pdf->output();
-        file_put_contents(public_path().'/invoices/'.'waiting_voucher_Report#'.$donor->id.'.pdf', $output);
-
-        $contactmail = ContactMail::where('id', 1)->first()->name;
-
-        $array['subject'] = 'Waiting Voucher Report';
-        $array['from'] = 'info@tevini.co.uk';
-        $array['cc'] = $contactmail;
-        $array['name'] = $donor->name;
-        $email = $donor->email;
-        $array['donor'] = $donor;
-        $array['image_attachments'] = $image_attachments;
-        $array['file'] = public_path().'/invoices/waiting_voucher_Report#'.$donor->id.'.pdf';
-        $array['file_name'] = 'waiting_voucher_Report#'.$donor->id.'.pdf';
-        $array['subjectsingle'] = 'Report Placed - '.$donor->id;
-
-        Mail::to($email)
-        ->cc($contactmail)
-        ->send(new WaitingvoucherReport($array));
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Send mail to donor successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
     }
-
-    $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Send mail to donor successfully.</b></div>";
-    return response()->json(['status'=> 300,'message'=>$message]);
-}
 
 
 

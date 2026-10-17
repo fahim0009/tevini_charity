@@ -888,9 +888,6 @@ class AdminController extends Controller
         }));
     }
 
-
-
-
     public function adjustTransaction(Request $request)
     {
         Log::info('Adjustment Started', [
@@ -1059,5 +1056,8 @@ class AdminController extends Controller
             return back()->with('error', 'Something went wrong.');
         }
     }
+
+
+
 
 }

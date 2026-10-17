@@ -54,6 +54,20 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
         ->name('dev.getTopupRecords');
 
 
+    // Donor Audit Routes
+    Route::get('/audit-donors', [DeveloperToolDashboardController::class, 'auditDonors'])->name('dev.auditDonors');
+    Route::get('/audit-donors/details', [DeveloperToolDashboardController::class, 'getDonorDayDetails'])->name('dev.auditDonors.details');
+
+
+    /*
+    |----------------------------------------------------------------------
+    | AUDIT - CHARITIES (Developer Tools)
+    |----------------------------------------------------------------------
+    */
+    Route::get('/audit-charities', [DeveloperToolDashboardController::class, 'auditBalances'])->name('admin.audit.balances');
+    Route::get('/audit-transaction/details', [DeveloperToolDashboardController::class, 'getDayDetails'])->name('audit.dailytransaction.details');
+    Route::post('/admin/audit/adjust-transaction', [DeveloperToolDashboardController::class, 'adjustTransaction'])->name('admin.audit.adjust');
+    Route::post('/change-card-donor', [DeveloperToolDashboardController::class, 'changeRealDonor'])->name('change.real.donor');
 
 
     /*

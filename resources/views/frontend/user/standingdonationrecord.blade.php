@@ -111,8 +111,8 @@ use Illuminate\Support\Carbon;
 
                                                 <!-- Edit Button (Disabled if completed) -->
                                                 <td>
-                                                    @if ($data->status == 2)
-                                                        <button type="button" class="btn-theme bg-secondary" disabled title="Completed donations cannot be edited">
+                                                    @if ($data->status == 2 || $data->donation_count >= $data->number_payments || $data->status == 0)
+                                                        <button type="button" class="btn-theme bg-secondary" disabled title="This donations cannot be edited">
                                                             <i class="fa fa-lock"></i>
                                                         </button>
                                                     @else

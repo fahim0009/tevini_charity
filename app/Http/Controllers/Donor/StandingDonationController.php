@@ -81,6 +81,7 @@ class StandingDonationController extends Controller
             return response()->json(['status' => 300, 'message' => $message]);
 
         } else {
+            
             $original->status = 0;
             $original->save();
             

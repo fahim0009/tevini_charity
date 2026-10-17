@@ -116,6 +116,10 @@
                     <span><i class="fas fa-donate mr-2"></i> Charity Audit</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
+                <a href="{{ route('dev.auditDonors') }}" class="dev-btn">
+                    <span><i class="fas fa-donate mr-2"></i> Donor Audit</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
                 <a href="{{ route('developer.online_donations') }}" class="dev-btn">
                     <span><i class="fas fa-donate mr-2"></i> Online Donations</span>
                     <i class="fas fa-chevron-right"></i>

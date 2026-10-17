@@ -84,7 +84,14 @@ use Illuminate\Support\Carbon;
 
                                         <tr>
                                                 <td><span style="display:none;">{{ $transaction->id }}</span>{{ Carbon::parse($transaction->created_at)->format('d/m/Y')}}</td>
-                                                <td>{{ $transaction->user->name ?? '' }}</td>
+                                                <td>
+                                                    @if ($transaction->donation && $transaction->donation->ano_donation == true)
+                                                        Anonymous
+                                                    @else
+                                                    {{ $transaction->user->name ?? '' }}
+                                                        
+                                                    @endif
+                                                </td>
                                                 <td>{{ $transaction->t_id }}</td>
                                                 <td>{{ $transaction->title}}
                                                     <a href="#" data-bs-toggle="modal" data-bs-target="#tranModal{{$transaction->id}}" style="margin-left: 5px;">

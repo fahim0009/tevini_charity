@@ -88,18 +88,19 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover w-100" id="pv-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Processed</th>
-                            <th>Complete</th>
-                            <th>Pending</th>
-                            <th>Waiting</th>
-                            <th>Expired</th>
-                            <th>Multiple</th> <!-- New Column -->
-                            <th>Total Amount</th>
-                        </tr>
-                    </thead>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Processed</th>
+                                <th>Complete</th>
+                                <th>Pending</th>
+                                <th>Waiting</th>
+                                <th>Expired</th>
+                                <th>Multiple</th>
+                                <th>Cancel</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
                 </table>
             </div>
         </div>
@@ -160,7 +161,8 @@
             {data: 'pending_count', name: 'pending_count', orderable: false, searchable: false},
             {data: 'waiting_count', name: 'waiting_count', orderable: false, searchable: false},
             {data: 'expired_count', name: 'expired_count', orderable: false, searchable: false},
-            {data: 'multiple_count', name: 'multiple_count', orderable: false, searchable: false}, // New Column
+            {data: 'multiple_count', name: 'multiple_count', orderable: false, searchable: false},
+            {data: 'cancel_count', name: 'cancel_count', orderable: false, searchable: false},
             {data: 'total_amount', name: 'total_amount', searchable: false}
         ],
         order: [[0, 'desc']],

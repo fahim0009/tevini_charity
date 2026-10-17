@@ -339,7 +339,7 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Process Voucher Monitoring Page - Grouped by Date
-     */    /**
+     */     /**
      * Process Voucher Monitoring Page - Grouped by Date
      */
     public function processVoucherMonitoring(Request $request)
@@ -359,6 +359,15 @@ class DeveloperToolDashboardController extends Controller
                     SUM(CASE WHEN waiting = 'Yes' AND expired = 'No' THEN 1 ELSE 0 END) as waiting_count,
                     SUM(CASE WHEN expired = 'Yes' AND waiting = 'No' THEN 1 ELSE 0 END) as expired_count,
                     SUM(CASE WHEN waiting = 'Yes' AND expired = 'Yes' THEN 1 ELSE 0 END) as multiple_count,
+                    SUM(CASE 
+                        WHEN NOT (
+                            (status = 1 AND waiting = 'No' AND expired = 'No') OR 
+                            (status = 0 AND waiting = 'No' AND expired = 'No') OR 
+                            (waiting = 'Yes' AND expired = 'No') OR 
+                            (expired = 'Yes' AND waiting = 'No') OR 
+                            (waiting = 'Yes' AND expired = 'Yes')
+                        ) THEN 1 ELSE 0 
+                    END) as cancel_count,
                     SUM(amount) as total_amount
                 ")
                 ->groupBy('date_group')
@@ -404,10 +413,14 @@ class DeveloperToolDashboardController extends Controller
                     $count = $row->multiple_count;
                     return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-dark view-pv-details" data-type="multiple" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
                 })
+                ->addColumn('cancel_count', function($row) {
+                    $count = $row->cancel_count;
+                    return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-secondary view-pv-details" data-type="cancel" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
+                })
                 ->editColumn('total_amount', function($row) {
                     return '£' . number_format($row->total_amount, 2);
                 })
-                ->rawColumns(['date', 'total_processed', 'complete_count', 'pending_count', 'waiting_count', 'expired_count', 'multiple_count'])
+                ->rawColumns(['date', 'total_processed', 'complete_count', 'pending_count', 'waiting_count', 'expired_count', 'multiple_count', 'cancel_count'])
                 ->make(true);
         }
 
@@ -455,6 +468,15 @@ class DeveloperToolDashboardController extends Controller
             $query->where('expired', 'Yes')->where('waiting', 'No');
         } elseif ($type == 'multiple') {
             $query->where('waiting', 'Yes')->where('expired', 'Yes');
+        } elseif ($type == 'cancel') {
+            // Catch all vouchers that don't fit into the above 5 categories
+            $query->whereRaw("NOT (
+                (status = 1 AND waiting = 'No' AND expired = 'No') OR 
+                (status = 0 AND waiting = 'No' AND expired = 'No') OR 
+                (waiting = 'Yes' AND expired = 'No') OR 
+                (expired = 'Yes' AND waiting = 'No') OR 
+                (waiting = 'Yes' AND expired = 'Yes')
+            )");
         }
 
         $data = $query->get();

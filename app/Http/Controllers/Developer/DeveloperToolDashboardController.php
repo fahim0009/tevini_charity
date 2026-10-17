@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
     use Yajra\DataTables\Facades\DataTables;
     use App\Models\AuditTran;
     use App\Models\Authorisation;
-    use Illuminate\Support\Facades\Log;
+use App\Models\Order;
+use Illuminate\Support\Facades\Log;
 
 
 class DeveloperToolDashboardController extends Controller
@@ -345,14 +346,170 @@ class DeveloperToolDashboardController extends Controller
     }
 
     /**
-     * Voucher Monitoring Page
+     * Voucher Monitoring Page - Shows Voucher Book Orders
      */
-    public function voucherMonitoring()
+    public function voucherMonitoring(Request $request)
     {
-        $vouchers = \App\Models\Provoucher::latest()->paginate(25); 
-        return view('admin.developer.monitoring.vouchers', compact('vouchers'));
+        if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+            $today = Carbon::today();
+
+            $orders = Order::with('user')->withCount('barcodes')->latest();
+
+            // Apply Date Filters
+            if ($filterType == 'daily') {
+                $orders->whereDate('created_at', $today);
+            } elseif ($filterType == 'weekly') {
+                $startOfWeek = $today->copy()->startOfWeek();
+                $endOfWeek = $today->copy()->endOfWeek();
+                $orders->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+            } elseif ($filterType == 'monthly') {
+                $orders->whereMonth('created_at', $today->month)
+                       ->whereYear('created_at', $today->year);
+            } elseif ($filterType == 'last7') {
+                $startDate = $today->copy()->subDays(6);
+                $orders->whereBetween('created_at', [$startDate, $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $orders->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+
+            return DataTables::of($orders)
+                ->addColumn('date', function ($row) {
+                    return '<span data-raw="'.$row->created_at.'">'.
+                        Carbon::parse($row->created_at)->format('d/m/Y H:i').
+                    '</span>';
+                })
+                ->addColumn('donor', function ($row) {
+                    if ($row->user) {
+                        $name = $row->user->name . ' ' . $row->user->surname;
+                        $email = $row->user->email;
+                        $style = 'style="color: #28a745; font-weight: bold;"';
+                        return '<span ' . $style . '>' . $name . '</span><br><small>' . $email . '</small>';
+                    } else {
+                        $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? '')) ?: 'Guest';
+                        $email = $row->email ?? 'N/A';
+                        $style = 'style="color: #dc3545; font-weight: bold;"';
+                        return '<span ' . $style . '>' . $name . '</span><br><small>' . $email . '</small>';
+                    }
+                })
+                ->filterColumn('donor', function($query, $keyword) {
+                    $query->whereHas('user', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('surname', 'like', "%{$keyword}%")
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                    })->orWhere('first_name', 'like', "%{$keyword}%")
+                      ->orWhere('last_name', 'like', "%{$keyword}%")
+                      ->orWhere('email', 'like', "%{$keyword}%");
+                })
+                ->addColumn('order_id', function($row) {
+                    $html = '<span class="fw-bold">#'.$row->order_id.'</span>';
+                    $deliveryBadge = $row->delivery_option == 'Delivery' ? 'bg-info' : 'bg-secondary';
+                    $html .= '<br><small><span class="badge '.$deliveryBadge.'">'.$row->delivery_option.'</span> (£'.number_format($row->delivery_charge, 2).')</small>';
+                    $paymentBadge = $row->payment_method == 'stripe' ? 'bg-primary' : 'bg-success';
+                    $paymentText = $row->payment_method == 'stripe' ? 'Stripe' : 'Balance';
+                    $html .= '<br><small><span class="badge '.$paymentBadge.'">'.$paymentText.'</span></small>';
+                    return $html;
+                })
+                ->editColumn('amount', function($row) {
+                    return '<span class="fw-bold">£' . number_format($row->amount, 2) . '</span>';
+                })
+                ->addColumn('total_barcodes', function($row) {
+                    $count = $row->barcodes_count;
+                    if ($count > 0) {
+                        return '<a href="javascript:void(0)" class="badge bg-info text-white view-barcodes" data-id="'.$row->id.'"><i class="fa fa-barcode"></i> '.$count.'</a>';
+                    }
+                    return '<span class="text-muted">No barcodes</span>';
+                })
+                ->addColumn('status', function($row) {
+                    return $row->status == 1 
+                        ? '<span class="badge bg-success">Completed</span>' 
+                        : '<span class="badge bg-warning text-dark">Pending</span>';
+                })
+                ->addColumn('action', function($row) {
+                    return '<a href="javascript:void(0)" class="btn btn-sm btn-outline-primary view-order-details" data-id="'.$row->id.'"><i class="fa fa-eye"></i> View</a>';
+                })
+                ->rawColumns(['date', 'donor', 'order_id', 'amount', 'total_barcodes', 'status', 'action'])
+                ->make(true);
+        }
+
+                // --- Summary Cards Data ---
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        // 1. Barcode Status Stats
+        $dailyWith = Order::whereDate('created_at', $today)->has('barcodes')->count();
+        $dailyWithout = Order::whereDate('created_at', $today)->doesntHave('barcodes')->count();
+
+        $weeklyWith = Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])->has('barcodes')->count();
+        $weeklyWithout = Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])->doesntHave('barcodes')->count();
+
+        $monthlyWith = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->has('barcodes')->count();
+        $monthlyWithout = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->doesntHave('barcodes')->count();
+
+        $allWith = Order::has('barcodes')->count();
+        $allWithout = Order::doesntHave('barcodes')->count();
+
+        // 2. Order Value Stats (For Today, Week, All-Time Cards)
+        $todayStats = Order::whereDate('created_at', $today)
+            ->selectRaw("COUNT(*) as today_orders, SUM(amount) as today_amount, SUM(delivery_charge) as today_delivery")->first();
+
+        $weekStats = Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+            ->selectRaw("COUNT(*) as week_orders, SUM(amount) as week_amount, SUM(delivery_charge) as week_delivery")->first();
+
+        $allTimeStats = Order::selectRaw("COUNT(*) as total_orders, SUM(amount) as total_amount")->first();
+
+        // 3. Assign to Data Array
+        $data = [
+            'dailyWith' => $dailyWith, 'dailyWithout' => $dailyWithout,
+            'weeklyWith' => $weeklyWith, 'weeklyWithout' => $weeklyWithout,
+            'monthlyWith' => $monthlyWith, 'monthlyWithout' => $monthlyWithout,
+            'allWith' => $allWith, 'allWithout' => $allWithout,
+            
+            'todayOrders' => $todayStats->today_orders ?? 0,
+            'todayAmount' => $todayStats->today_amount ?? 0,
+            'todayDelivery' => $todayStats->today_delivery ?? 0,
+            
+            'weekOrders' => $weekStats->week_orders ?? 0,
+            'weekAmount' => $weekStats->week_amount ?? 0,
+            'weekDelivery' => $weekStats->week_delivery ?? 0,
+
+            'totalOrders' => $allTimeStats->total_orders ?? 0,
+            'totalAmount' => $allTimeStats->total_amount ?? 0,
+        ];
+
+        return view('admin.developer.monitoring.vouchers', $data);
     }
 
+    /**
+     * Get Barcodes for a specific order (For Modal)
+     */
+    public function getOrderBarcodes($id)
+    {
+        $order = Order::with('orderhistories.barcodes', 'orderhistories.voucher')->find($id);
+        
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        $barcodes = [];
+        foreach ($order->orderhistories as $history) {
+            foreach ($history->barcodes as $barcode) {
+                $barcodes[] = [
+                    'voucher_type' => $history->voucher->type ?? 'N/A',
+                    'barcode'      => $barcode->barcode,
+                    'amount'       => '£' . number_format($barcode->amount, 2),
+                    'status'       => $barcode->status == 1 ? '<span class="badge bg-danger">Cancelled</span>' : '<span class="badge bg-success">Active</span>'
+                ];
+            }
+        }
+
+        return response()->json($barcodes);
+    }
 
 
     /**

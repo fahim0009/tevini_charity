@@ -26,11 +26,18 @@ class OrderHistory extends Model
       'created_by',
   ];
 
-    public function order(){
-        return $this->belongsTo('App\Models\Order');
-      }
+  public function order(){
+    return $this->belongsTo('App\Models\Order');
+  }
 
-      public function voucher(){
-        return $this->belongsTo('App\Models\Voucher');
-      }
+  public function voucher(){
+    return $this->belongsTo('App\Models\Voucher');
+  }
+
+  public function barcodes()
+    {
+        return $this->hasMany('App\Models\Barcode', 'orderhistory_id', 'id');
+    }
+
+    
 }

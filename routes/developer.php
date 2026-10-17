@@ -50,6 +50,9 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
     Route::get('vouchers', [DeveloperToolDashboardController::class, 'voucherMonitoring'])
         ->name('developer.vouchers');
 
+    Route::get('vouchers/{id}/barcodes', [DeveloperToolDashboardController::class, 'getOrderBarcodes'])->name('developer.vouchers.barcodes');
+
+
     Route::get('/get-topup-records', [DeveloperToolDashboardController::class, 'getTopupRecords'])
         ->name('dev.getTopupRecords');
 

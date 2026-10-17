@@ -26,4 +26,11 @@ class Order extends Model
     {
       return $this->hasMany('App\Models\OrderHistory');
     }
+
+    public function barcodes()
+    {
+        // arguments: (RelatedModel, ThroughModel, FirstKey, SecondKey)
+        return $this->hasManyThrough('App\Models\Barcode', 'App\Models\OrderHistory', 'order_id', 'orderhistory_id');
+    }
+
 }

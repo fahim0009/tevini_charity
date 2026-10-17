@@ -44,8 +44,8 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
     Route::get('charities', [DeveloperToolDashboardController::class, 'charityMonitoring'])
         ->name('developer.charities');
 
-    Route::get('voucher-books', [DeveloperToolDashboardController::class, 'voucherBookMonitoring'])
-        ->name('developer.voucher_books');
+    Route::get('process-voucher-monitoring', [DeveloperToolDashboardController::class, 'processVoucherMonitoring'])->name('developer.process_voucher_monitoring');
+    Route::get('process-voucher-monitoring/details', [DeveloperToolDashboardController::class, 'getProcessVoucherDayDetails'])->name('developer.process_voucher_monitoring.details');
 
     Route::get('vouchers', [DeveloperToolDashboardController::class, 'voucherMonitoring'])
         ->name('developer.vouchers');

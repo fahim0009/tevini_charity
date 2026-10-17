@@ -30,7 +30,7 @@
 @endsection
 
 @section('content')
-<div class="dev-dashboard">
+<div class="dev-dashboard ">
     
     <div class="dev-header">
         <h1>Developer Dashboard</h1>
@@ -136,12 +136,12 @@
                     <span><i class="fas fa-hand-holding-heart mr-2"></i> Charities</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
-                <a href="{{ route('developer.voucher_books') }}" class="dev-btn">
-                    <span><i class="fas fa-book mr-2"></i> Voucher Books</span>
+                <a href="{{ route('developer.process_voucher_monitoring') }}" class="dev-btn">
+                    <span><i class="fas fa-book mr-2"></i> Voucher Process</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
                 <a href="{{ route('developer.vouchers') }}" class="dev-btn">
-                    <span><i class="fas fa-ticket-alt mr-2"></i> Vouchers</span>
+                    <span><i class="fas fa-ticket-alt mr-2"></i> Vouchers Books</span>
                     <i class="fas fa-chevron-right"></i>
                 </a>
             </div>

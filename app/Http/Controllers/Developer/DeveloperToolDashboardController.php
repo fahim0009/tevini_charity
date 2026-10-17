@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Donation;
 use App\Models\StandingDonation;
 use App\Models\StandingdonationDetail;
+use App\Models\Provoucher;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -337,12 +338,109 @@ class DeveloperToolDashboardController extends Controller
     }
 
     /**
-     * Voucher Book Monitoring Page
+     * Process Voucher Monitoring Page - Grouped by Date
      */
-    public function voucherBookMonitoring()
+    public function processVoucherMonitoring(Request $request)
     {
-        $voucherBooks = \App\Models\Order::whereNotNull('voucher_book_id')->latest()->paginate(25); 
-        return view('admin.developer.monitoring.voucher_books', compact('voucherBooks'));
+        if ($request->ajax()) {
+            $query = Provoucher::query()
+                ->selectRaw("
+                    DATE(created_at) as date_group,
+                    COUNT(*) as total_processed,
+                    SUM(CASE WHEN status = 1 AND waiting = 'No' AND expired = 'No' THEN 1 ELSE 0 END) as complete_count,
+                    SUM(CASE WHEN status = 0 AND waiting = 'No' AND expired = 'No' THEN 1 ELSE 0 END) as pending_count,
+                    SUM(CASE WHEN waiting = 'Yes' THEN 1 ELSE 0 END) as waiting_count,
+                    SUM(CASE WHEN expired = 'Yes' THEN 1 ELSE 0 END) as expired_count,
+                    SUM(amount) as total_amount
+                ")
+                ->groupBy('date_group')
+                ->orderBy('date_group', 'DESC');
+
+            return DataTables::of($query)
+                ->addColumn('date', function($row) {
+                    return '<span data-raw="'.$row->date_group.'">'.\Carbon\Carbon::parse($row->date_group)->format('d/m/Y').'</span>';
+                })
+                ->addColumn('total_processed', function($row) {
+                    return '<a href="javascript:void(0)" class="fw-bold text-primary view-pv-details" data-type="all" data-date="'.$row->date_group.'">'.$row->total_processed.'</a>';
+                })
+                ->addColumn('complete_count', function($row) {
+                    $count = $row->complete_count;
+                    return $count > 0 ? '<a href="javascript:void(0)" class="text-success fw-bold view-pv-details" data-type="complete" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                })
+                ->addColumn('pending_count', function($row) {
+                    $count = $row->pending_count;
+                    return $count > 0 ? '<a href="javascript:void(0)" class="text-warning fw-bold view-pv-details" data-type="pending" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                })
+                ->addColumn('waiting_count', function($row) {
+                    $count = $row->waiting_count;
+                    return $count > 0 ? '<a href="javascript:void(0)" class="text-info fw-bold view-pv-details" data-type="waiting" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                })
+                ->addColumn('expired_count', function($row) {
+                    $count = $row->expired_count;
+                    return $count > 0 ? '<a href="javascript:void(0)" class="text-danger fw-bold view-pv-details" data-type="expired" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                })
+                ->editColumn('total_amount', function($row) {
+                    return '£' . number_format($row->total_amount, 2);
+                })
+                ->rawColumns(['date', 'total_processed', 'complete_count', 'pending_count', 'waiting_count', 'expired_count'])
+                ->make(true);
+        }
+
+        // --- Summary Cards Data ---
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
+        $todayStats = Provoucher::whereDate('created_at', $today)
+            ->selectRaw("COUNT(*) as total, SUM(amount) as amount")->first();
+
+        $weekStats = Provoucher::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+            ->selectRaw("COUNT(*) as total, SUM(amount) as amount")->first();
+
+        $allTimeStats = Provoucher::selectRaw("COUNT(*) as total, SUM(amount) as amount")->first();
+
+        return view('admin.developer.monitoring.process_voucher', [
+            'todayCount' => $todayStats->total ?? 0,
+            'todayAmount' => $todayStats->amount ?? 0,
+            'weekCount' => $weekStats->total ?? 0,
+            'weekAmount' => $weekStats->amount ?? 0,
+            'allCount' => $allTimeStats->total ?? 0,
+            'allAmount' => $allTimeStats->amount ?? 0,
+        ]);
+    }
+
+    /**
+     * Get Process Voucher details for a specific date and type
+     */
+    public function getProcessVoucherDayDetails(Request $request)
+    {
+        $date = $request->date;
+        $type = $request->type;
+
+        $query = Provoucher::with(['charity', 'user'])
+            ->whereDate('created_at', $date);
+
+        if ($type == 'complete') {
+            $query->where('status', 1)->where('waiting', 'No')->where('expired', 'No');
+        } elseif ($type == 'pending') {
+            $query->where('status', 0)->where('waiting', 'No')->where('expired', 'No');
+        } elseif ($type == 'waiting') {
+            $query->where('waiting', 'Yes');
+        } elseif ($type == 'expired') {
+            $query->where('expired', 'Yes');
+        }
+
+        $data = $query->get();
+
+        return response()->json($data->map(function($item) {
+            return [
+                'charity' => $item->charity->name ?? 'N/A',
+                'donor'   => trim(($item->user->name ?? '') . ' ' . ($item->user->surname ?? '')),
+                'voucher' => $item->cheque_no,
+                'amount'  => '£' . number_format($item->amount, 2),
+                'status'  => $item->status == 1 ? '<span class="badge bg-success">Complete</span>' : '<span class="badge bg-warning text-dark">Pending</span>',
+            ];
+        }));
     }
 
     /**

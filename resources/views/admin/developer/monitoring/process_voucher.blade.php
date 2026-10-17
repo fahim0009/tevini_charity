@@ -52,6 +52,37 @@
         </div>
     </div>
 
+    <!-- Filter Section -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form id="filter-form" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Filter Type</label>
+                    <select id="filter_type" class="form-control form-control-sm">
+                        <option value="monthly" selected>Monthly</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="last7">Last 7 days</option>
+                        <option value="custom">Date to Date</option>
+                        <option value="all">ALL</option>
+                    </select>
+                </div>
+                <div class="col-md-2 date-range-wrap" style="display:none;">
+                    <label class="form-label small fw-bold">Date From</label>
+                    <input type="date" id="fromDate" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2 date-range-wrap" style="display:none;">
+                    <label class="form-label small fw-bold">Date To</label>
+                    <input type="date" id="toDate" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>
+                    <button type="button" id="reset-filter" class="btn btn-light btn-sm px-4">Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Main Table Section -->
     <div class="card shadow-sm border-0">
         <div class="card-body">
@@ -65,6 +96,7 @@
                             <th>Pending</th>
                             <th>Waiting</th>
                             <th>Expired</th>
+                            <th>Multiple</th> <!-- New Column -->
                             <th>Total Amount</th>
                         </tr>
                     </thead>
@@ -115,7 +147,11 @@
         lengthMenu: [[25, 50, 100, 200, -1], [25, 50, 100, 200, "All"]],
         ajax: {
             url: "{{ route('developer.process_voucher_monitoring') }}",
-            data: function (d) {}
+            data: function (d) {
+                d.filter_type = $('#filter_type').val();
+                d.fromDate = $('#fromDate').val();
+                d.toDate = $('#toDate').val();
+            }
         },
         columns: [
             {data: 'date', name: 'date', searchable: false},
@@ -124,6 +160,7 @@
             {data: 'pending_count', name: 'pending_count', orderable: false, searchable: false},
             {data: 'waiting_count', name: 'waiting_count', orderable: false, searchable: false},
             {data: 'expired_count', name: 'expired_count', orderable: false, searchable: false},
+            {data: 'multiple_count', name: 'multiple_count', orderable: false, searchable: false}, // New Column
             {data: 'total_amount', name: 'total_amount', searchable: false}
         ],
         order: [[0, 'desc']],
@@ -132,6 +169,27 @@
             { extend: 'excel', className: 'btn btn-sm btn-outline-success' },
             { extend: 'pdf', className: 'btn btn-sm btn-outline-danger', orientation: 'landscape' }
         ]
+    });
+
+    // Handle Filter Type Change
+    $('#filter_type').on('change', function() {
+        if ($(this).val() == 'custom') {
+            $('.date-range-wrap').show();
+        } else {
+            $('.date-range-wrap').hide();
+        }
+    });
+
+    // Filter Handlers
+    $('#filter-form').on('submit', function(e) {
+        e.preventDefault();
+        table.draw();
+    });
+
+    $('#reset-filter').on('click', function() {
+        $('#filter_type').val('monthly').trigger('change');
+        $('#fromDate, #toDate').val('');
+        table.draw();
     });
 
     // Handle View Details Click

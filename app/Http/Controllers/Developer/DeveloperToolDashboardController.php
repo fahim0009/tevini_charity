@@ -339,50 +339,75 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Process Voucher Monitoring Page - Grouped by Date
+     */    /**
+     * Process Voucher Monitoring Page - Grouped by Date
      */
     public function processVoucherMonitoring(Request $request)
     {
         if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+            $today = Carbon::today();
+
             $query = Provoucher::query()
                 ->selectRaw("
                     DATE(created_at) as date_group,
                     COUNT(*) as total_processed,
                     SUM(CASE WHEN status = 1 AND waiting = 'No' AND expired = 'No' THEN 1 ELSE 0 END) as complete_count,
                     SUM(CASE WHEN status = 0 AND waiting = 'No' AND expired = 'No' THEN 1 ELSE 0 END) as pending_count,
-                    SUM(CASE WHEN waiting = 'Yes' THEN 1 ELSE 0 END) as waiting_count,
-                    SUM(CASE WHEN expired = 'Yes' THEN 1 ELSE 0 END) as expired_count,
+                    SUM(CASE WHEN waiting = 'Yes' AND expired = 'No' THEN 1 ELSE 0 END) as waiting_count,
+                    SUM(CASE WHEN expired = 'Yes' AND waiting = 'No' THEN 1 ELSE 0 END) as expired_count,
+                    SUM(CASE WHEN waiting = 'Yes' AND expired = 'Yes' THEN 1 ELSE 0 END) as multiple_count,
                     SUM(amount) as total_amount
                 ")
                 ->groupBy('date_group')
                 ->orderBy('date_group', 'DESC');
+
+            // Apply Date Filters
+            if ($filterType == 'daily') {
+                $query->whereDate('created_at', $today);
+            } elseif ($filterType == 'weekly') {
+                $query->whereBetween('created_at', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($filterType == 'monthly') {
+                $query->whereMonth('created_at', $today->month)->whereYear('created_at', $today->year);
+            } elseif ($filterType == 'last7') {
+                $query->whereBetween('created_at', [$today->copy()->subDays(6), $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
 
             return DataTables::of($query)
                 ->addColumn('date', function($row) {
                     return '<span data-raw="'.$row->date_group.'">'.\Carbon\Carbon::parse($row->date_group)->format('d/m/Y').'</span>';
                 })
                 ->addColumn('total_processed', function($row) {
-                    return '<a href="javascript:void(0)" class="fw-bold text-primary view-pv-details" data-type="all" data-date="'.$row->date_group.'">'.$row->total_processed.'</a>';
+                    return '<a href="javascript:void(0)" class="badge bg-primary view-pv-details" data-type="all" data-date="'.$row->date_group.'">'.$row->total_processed.'</a>';
                 })
                 ->addColumn('complete_count', function($row) {
                     $count = $row->complete_count;
-                    return $count > 0 ? '<a href="javascript:void(0)" class="text-success fw-bold view-pv-details" data-type="complete" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                    return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-success view-pv-details" data-type="complete" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
                 })
                 ->addColumn('pending_count', function($row) {
                     $count = $row->pending_count;
-                    return $count > 0 ? '<a href="javascript:void(0)" class="text-warning fw-bold view-pv-details" data-type="pending" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                    return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-warning text-dark view-pv-details" data-type="pending" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
                 })
                 ->addColumn('waiting_count', function($row) {
                     $count = $row->waiting_count;
-                    return $count > 0 ? '<a href="javascript:void(0)" class="text-info fw-bold view-pv-details" data-type="waiting" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                    return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-info text-dark view-pv-details" data-type="waiting" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
                 })
                 ->addColumn('expired_count', function($row) {
                     $count = $row->expired_count;
-                    return $count > 0 ? '<a href="javascript:void(0)" class="text-danger fw-bold view-pv-details" data-type="expired" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="text-muted">0</span>';
+                    return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-danger view-pv-details" data-type="expired" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
+                })
+                ->addColumn('multiple_count', function($row) {
+                    $count = $row->multiple_count;
+                    return $count > 0 ? '<a href="javascript:void(0)" class="badge bg-dark view-pv-details" data-type="multiple" data-date="'.$row->date_group.'">'.$count.'</a>' : '<span class="badge bg-light text-muted">0</span>';
                 })
                 ->editColumn('total_amount', function($row) {
                     return '£' . number_format($row->total_amount, 2);
                 })
-                ->rawColumns(['date', 'total_processed', 'complete_count', 'pending_count', 'waiting_count', 'expired_count'])
+                ->rawColumns(['date', 'total_processed', 'complete_count', 'pending_count', 'waiting_count', 'expired_count', 'multiple_count'])
                 ->make(true);
         }
 
@@ -425,9 +450,11 @@ class DeveloperToolDashboardController extends Controller
         } elseif ($type == 'pending') {
             $query->where('status', 0)->where('waiting', 'No')->where('expired', 'No');
         } elseif ($type == 'waiting') {
-            $query->where('waiting', 'Yes');
+            $query->where('waiting', 'Yes')->where('expired', 'No');
         } elseif ($type == 'expired') {
-            $query->where('expired', 'Yes');
+            $query->where('expired', 'Yes')->where('waiting', 'No');
+        } elseif ($type == 'multiple') {
+            $query->where('waiting', 'Yes')->where('expired', 'Yes');
         }
 
         $data = $query->get();

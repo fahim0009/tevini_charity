@@ -53,6 +53,8 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
 
     Route::get('process-voucher-monitoring', [DeveloperToolDashboardController::class, 'processVoucherMonitoring'])->name('developer.process_voucher_monitoring');
     Route::get('process-voucher-monitoring/details', [DeveloperToolDashboardController::class, 'getProcessVoucherDayDetails'])->name('developer.process_voucher_monitoring.details');
+    Route::post('process-voucher-monitoring/check/{id}', [DeveloperToolDashboardController::class, 'checkVoucher'])->name('developer.process_voucher_monitoring.check');
+    Route::post('process-voucher-monitoring/uncheck/{id}', [DeveloperToolDashboardController::class, 'uncheckVoucher'])->name('developer.process_voucher_monitoring.uncheck');
 
     Route::get('vouchers', [DeveloperToolDashboardController::class, 'voucherMonitoring'])
         ->name('developer.vouchers');

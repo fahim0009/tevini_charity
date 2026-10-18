@@ -974,7 +974,7 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Process Voucher Monitoring Page - Grouped by Date
-     */     /**
+     */    /**
      * Process Voucher Monitoring Page - Grouped by Date
      */
     public function processVoucherMonitoring(Request $request)
@@ -1003,7 +1003,8 @@ class DeveloperToolDashboardController extends Controller
                             (waiting = 'Yes' AND expired = 'Yes')
                         ) THEN 1 ELSE 0 
                     END) as cancel_count,
-                    SUM(amount) as total_amount
+                    SUM(amount) as total_amount,
+                    '' as voucher_state
                 ")
                 ->groupBy('date_group')
                 ->orderBy('date_group', 'DESC');
@@ -1104,7 +1105,6 @@ class DeveloperToolDashboardController extends Controller
         } elseif ($type == 'multiple') {
             $query->where('waiting', 'Yes')->where('expired', 'Yes');
         } elseif ($type == 'cancel') {
-            // Catch all vouchers that don't fit into the above 5 categories
             $query->whereRaw("NOT (
                 (status = 1 AND waiting = 'No' AND expired = 'No') OR 
                 (status = 0 AND waiting = 'No' AND expired = 'No') OR 
@@ -1117,15 +1117,63 @@ class DeveloperToolDashboardController extends Controller
         $data = $query->get();
 
         return response()->json($data->map(function($item) {
+            $isChecked = !is_null($item->checked_by);
+            $checkBtn = $isChecked 
+                ? '<button class="btn btn-sm btn-success uncheck-voucher" data-id="'.$item->id.'"><i class="fas fa-check"></i> Checked</button>'
+                : '<button class="btn btn-sm btn-outline-primary check-voucher" data-id="'.$item->id.'"><i class="fas fa-check"></i> Check</button>';
+
             return [
                 'charity' => $item->charity->name ?? 'N/A',
+                'charity_balance' => '£' . number_format($item->charity->balance ?? 0, 2),
                 'donor'   => trim(($item->user->name ?? '') . ' ' . ($item->user->surname ?? '')),
+                'donor_balance' => '£' . number_format($item->user->balance ?? 0, 2),
+                'standard_amount' => '£' . number_format($item->user->standard_amount ?? 0, 2),
                 'voucher' => $item->cheque_no,
                 'amount'  => '£' . number_format($item->amount, 2),
                 'status'  => $item->status == 1 ? '<span class="badge bg-success">Complete</span>' : '<span class="badge bg-warning text-dark">Pending</span>',
+                'check_btn' => $checkBtn
             ];
         }));
     }
+
+    /**
+     * Check Voucher (AJAX)
+     */
+    public function checkVoucher(Request $request, $id)
+    {
+        $voucher = Provoucher::find($id);
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Voucher not found.'], 404);
+        }
+
+        $voucher->checked_by = auth()->user()->name ?? 'Developer';
+        $voucher->checked_date = now();
+        $voucher->save();
+
+        return response()->json(['success' => true, 'message' => 'Voucher checked successfully.']);
+    }
+
+    /**
+     * Uncheck Voucher (AJAX)
+     */
+    public function uncheckVoucher(Request $request, $id)
+    {
+        $voucher = Provoucher::find($id);
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Voucher not found.'], 404);
+        }
+
+        $voucher->checked_by = null;
+        $voucher->checked_date = null;
+        $voucher->save();
+
+        return response()->json(['success' => true, 'message' => 'Voucher unchecked successfully.']);
+    }
+
+
+
+
+
 
     /**
      * Voucher Monitoring Page - Shows Voucher Book Orders

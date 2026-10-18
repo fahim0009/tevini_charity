@@ -98,6 +98,7 @@
                                 <th>Expired</th>
                                 <th>Multiple</th>
                                 <th>Cancel</th>
+                                <th>Voucher State</th>
                                 <th>Total Amount</th>
                             </tr>
                         </thead>
@@ -109,7 +110,7 @@
 
 <!-- Details Modal -->
 <div class="modal fade" id="pvDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Voucher Details</h5>
@@ -121,10 +122,14 @@
                         <thead>
                             <tr>
                                 <th>Charity</th>
+                                <th>Charity Balance</th>
                                 <th>Donor</th>
+                                <th>Donor Balance</th>
+                                <th>Standard Amount</th>
                                 <th>Voucher No</th>
                                 <th>Amount</th>
                                 <th>Status</th>
+                                <th>Checked By Dev</th>
                             </tr>
                         </thead>
                         <tbody id="pv-details-content"></tbody>
@@ -163,6 +168,7 @@
             {data: 'expired_count', name: 'expired_count', orderable: false, searchable: false},
             {data: 'multiple_count', name: 'multiple_count', orderable: false, searchable: false},
             {data: 'cancel_count', name: 'cancel_count', orderable: false, searchable: false},
+            {data: 'voucher_state', name: 'voucher_state', orderable: false, searchable: false},
             {data: 'total_amount', name: 'total_amount', searchable: false}
         ],
         order: [[0, 'desc']],
@@ -201,27 +207,69 @@
             date: $(this).data('date')
         };
 
-        $('#pv-details-content').html('<tr><td colspan="5" class="text-center">Loading...</td></tr>');
+        $('#pv-details-content').html('<tr><td colspan="9" class="text-center">Loading...</td></tr>');
         $('#pvDetailsModal').modal('show');
 
         $.get("{{ route('developer.process_voucher_monitoring.details') }}", data, function(response) {
             let html = '';
             if(response.length === 0) {
-                html = '<tr><td colspan="5" class="text-center">No vouchers found</td></tr>';
+                html = '<tr><td colspan="9" class="text-center">No vouchers found</td></tr>';
             } else {
                 response.forEach(item => {
                     html += `<tr>
                         <td>${item.charity}</td>
+                        <td>${item.charity_balance}</td>
                         <td>${item.donor}</td>
+                        <td>${item.donor_balance}</td>
+                        <td>${item.standard_amount}</td>
                         <td>${item.voucher}</td>
                         <td>${item.amount}</td>
                         <td>${item.status}</td>
+                        <td>${item.check_btn}</td>
                     </tr>`;
                 });
             }
             $('#pv-details-content').html(html);
         }).fail(function() {
-            $('#pv-details-content').html('<tr><td colspan="5" class="text-center text-danger">Error loading details.</td></tr>');
+            $('#pv-details-content').html('<tr><td colspan="9" class="text-center text-danger">Error loading details.</td></tr>');
+        });
+    });
+
+    // Handle Check Voucher
+    $(document).on('click', '.check-voucher', function() {
+        var id = $(this).data('id');
+        var btn = $(this);
+        $.ajax({
+            url: `/admin/dev-team/process-voucher-monitoring/check/${id}`,
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}' },
+            success: function(res) {
+                if(res.success) {
+                    btn.removeClass('btn-outline-primary check-voucher').addClass('btn-success uncheck-voucher').html('<i class="fas fa-check"></i> Checked');
+                }
+            },
+            error: function() {
+                alert('Error checking voucher.');
+            }
+        });
+    });
+
+    // Handle Uncheck Voucher
+    $(document).on('click', '.uncheck-voucher', function() {
+        var id = $(this).data('id');
+        var btn = $(this);
+        $.ajax({
+            url: `/admin/dev-team/process-voucher-monitoring/uncheck/${id}`,
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}' },
+            success: function(res) {
+                if(res.success) {
+                    btn.removeClass('btn-success uncheck-voucher').addClass('btn-outline-primary check-voucher').html('<i class="fas fa-check"></i> Check');
+                }
+            },
+            error: function() {
+                alert('Error unchecking voucher.');
+            }
         });
     });
 });

@@ -595,13 +595,124 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Donor Monitoring Page
+     */    /**
+     * Donor Monitoring Page
      */
-    public function donorMonitoring()
+    public function donorMonitoring(Request $request)
     {
-        $donors = User::where('is_type', 'user')->latest()->paginate(25);
-        $negativeBalanceUsers = User::where('balance', '<', 0)->latest()->paginate(10);
+        if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+            $today = Carbon::today();
+
+            $query = User::where('is_type', 'user')
+                ->select('users.*')
+                ->orderBy('users.created_at', 'DESC');
+
+            // Apply Date Filters (based on donor registration date)
+            if ($filterType == 'daily') {
+                $query->whereDate('users.created_at', $today);
+            } elseif ($filterType == 'weekly') {
+                $query->whereBetween('users.created_at', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($filterType == 'monthly') {
+                $query->whereMonth('users.created_at', $today->month)->whereYear('users.created_at', $today->year);
+            } elseif ($filterType == 'last7') {
+                $query->whereBetween('users.created_at', [$today->copy()->subDays(6), $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $query->whereBetween('users.created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('donor', function($row) {
+                    $name = $row->name . ' ' . $row->surname;
+                    $email = $row->email;
+                    return '<span class="fw-bold text-success">' . $name . '</span><br><small>' . $email . '</small>';
+                })
+                ->addColumn('accountno', function($row) {
+                    return '<span class="badge bg-secondary">' . ($row->accountno ?? 'N/A') . '</span>';
+                })
+                ->addColumn('balance_in', function($row) {
+                    $in = Usertransaction::where('user_id', $row->id)->where('status', 1)->where('t_type', 'In')->sum('amount');
+                    return '£' . number_format($in, 2);
+                })
+                ->addColumn('balance_out', function($row) {
+                    $out = Usertransaction::where('user_id', $row->id)->where('status', 1)->where('t_type', 'Out')->sum('amount');
+                    return '£' . number_format($out, 2);
+                })
+                ->addColumn('difference', function($row) {
+                    $in = Usertransaction::where('user_id', $row->id)->where('status', 1)->where('t_type', 'In')->sum('amount');
+                    $out = Usertransaction::where('user_id', $row->id)->where('status', 1)->where('t_type', 'Out')->sum('amount');
+                    $diff = $in - $out;
+                    $color = $diff < 0 ? 'text-danger' : 'text-success';
+                    return '<span class="fw-bold ' . $color . '">£' . number_format($diff, 2) . '</span>';
+                })
+                ->addColumn('total_commission', function($row) {
+                    $commission = Usertransaction::where('user_id', $row->id)->where('status', 1)->sum('commission');
+                    return '£' . number_format($commission, 2);
+                })
+                ->addColumn('balance', function($row) {
+                    $color = $row->balance < 0 ? 'text-danger' : 'text-primary';
+                    return '<span class="fw-bold ' . $color . '">£' . number_format($row->balance, 2) . '</span>';
+                })
+                ->addColumn('limit', function($row) {
+                    return '<span class="fw-bold">£' . number_format($row->getAvailableLimit(), 2) . '</span>';
+                })
+                ->editColumn('expected_gift_aid', function($row) {
+                    return '£' . number_format($row->expected_gift_aid ?? 0, 2);
+                })
+                ->addColumn('status', function($row) {
+                    return $row->status == 1 
+                        ? '<span class="badge bg-success">Active</span>' 
+                        : '<span class="badge bg-danger">Inactive</span>';
+                })
+                ->filterColumn('donor', function($query, $keyword) {
+                    $query->whereRaw("CONCAT(name, ' ', surname) LIKE ?", ["%{$keyword}%"])
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                })
+                ->rawColumns(['donor', 'accountno', 'balance_in', 'balance_out', 'difference', 'total_commission', 'balance', 'limit', 'status'])
+                ->make(true);
+        }
+
+        // --- Summary Cards ---
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
+        // 1. Today's new donors
+        $todayNewDonors = User::where('is_type', 'user')->whereDate('created_at', $today)->count();
         
-        return view('admin.developer.monitoring.donors', compact('donors', 'negativeBalanceUsers'));
+        // 2. This week's new donors
+        $weekNewDonors = User::where('is_type', 'user')->whereBetween('created_at', [$startOfWeek, $endOfWeek])->count();
+        
+        // 3. Total active donors
+        $activeDonors = User::where('is_type', 'user')->where('status', 1)->count();
+        
+        // 4. Total inactive donors
+        $inactiveDonors = User::where('is_type', 'user')->where('status', 0)->count();
+        
+        // 5. Donors with no transactions
+        $noTransactionDonors = User::where('is_type', 'user')
+            ->whereDoesntHave('usertransaction')
+            ->count();
+        
+        // 6. Personal Account
+        $personalAccounts = User::where('is_type', 'user')->where('profile_type', 'Personal')->count();
+        
+        // 7. Company Account
+        $companyAccounts = User::where('is_type', 'user')->where('profile_type', 'Company')->count();
+        
+        // 8. Others Account
+        $othersAccounts = User::where('is_type', 'user')
+            ->whereNotIn('profile_type', ['Personal', 'Company'])
+            ->orWhereNull('profile_type')
+            ->count();
+
+        return view('admin.developer.monitoring.donors', compact(
+            'todayNewDonors', 'weekNewDonors', 'activeDonors', 'inactiveDonors',
+            'noTransactionDonors', 'personalAccounts', 'companyAccounts', 'othersAccounts'
+        ));
     }
 
     /**

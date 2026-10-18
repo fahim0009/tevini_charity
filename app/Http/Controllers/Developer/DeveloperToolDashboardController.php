@@ -230,13 +230,139 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Online Donation Monitoring Page
+     */    /**
+     * Online Donation Monitoring Page
      */
-    public function onlineDonations()
+    public function onlineDonations(Request $request)
     {
-        $donations = Donation::with(['user', 'charity'])->latest()->paginate(25);
-        $stripeSyncIssues = Donation::whereNotNull('stripe_payment_id')->where('status', 0)->with(['user', 'charity'])->latest()->paginate(10);
+        if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+            $today = Carbon::today();
+
+            $query = Donation::with(['user', 'charity'])
+                ->select('donations.*', 'usertransactions.t_id as tran_id')
+                ->leftJoin('usertransactions', 'donations.id', '=', 'usertransactions.donation_id')
+                ->orderBy('donations.created_at', 'DESC');
+
+            // Apply Date Filters
+            if ($filterType == 'daily') {
+                $query->whereDate('donations.created_at', $today);
+            } elseif ($filterType == 'weekly') {
+                $query->whereBetween('donations.created_at', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($filterType == 'monthly') {
+                $query->whereMonth('donations.created_at', $today->month)->whereYear('donations.created_at', $today->year);
+            } elseif ($filterType == 'last7') {
+                $query->whereBetween('donations.created_at', [$today->copy()->subDays(6), $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $query->whereBetween('donations.created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn() // For SL No.
+                ->addColumn('date', function($row) {
+                    return Carbon::parse($row->created_at)->format('d/m/Y H:i');
+                })
+                ->addColumn('tran_id', function($row) {
+                    return '<span class="fw-bold">' . ($row->tran_id ?? 'N/A') . '</span>';
+                })
+                ->addColumn('donor', function($row) {
+                    if ($row->user) {
+                        $name = $row->user->name . ' ' . $row->user->surname;
+                        $email = $row->user->email;
+                        return '<span class="fw-bold text-success">' . $name . '</span><br><small>' . $email . '</small>';
+                    } else {
+                        $name = trim(($row->guest_first_name ?? '') . ' ' . ($row->guest_last_name ?? '')) ?: 'Guest';
+                        $email = $row->guest_email ?? 'N/A';
+                        return '<span class="fw-bold text-danger">' . $name . '</span><br><small>' . $email . '</small>';
+                    }
+                })
+                ->addColumn('charity', function($row) {
+                    if ($row->charity) {
+                        $name = $row->charity->name;
+                        $email = $row->charity->email ?? '';
+                        return '<span class="fw-bold">' . $name . '</span><br><small>' . $email . '</small>';
+                    }
+                    return 'N/A';
+                })
+                ->addColumn('current_balance', function($row) {
+                    if ($row->user) {
+                        return '£' . number_format($row->user->getAvailableLimit(), 2);
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                })
+                ->addColumn('balance_in', function($row) {
+                    if ($row->user_id) {
+                        $in = Usertransaction::where('user_id', $row->user_id)
+                            ->where('status', 1)
+                            ->where('t_type', 'In')
+                            ->sum('amount');
+                        return '£' . number_format($in, 2);
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                })
+                ->addColumn('balance_out', function($row) {
+                    if ($row->user_id) {
+                        $out = Usertransaction::where('user_id', $row->user_id)
+                            ->where('status', 1)
+                            ->where('t_type', 'Out')
+                            ->sum('amount');
+                        return '£' . number_format($out, 2);
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                })
+                ->editColumn('amount', function($row) {
+                    return '<span class="fw-bold">£' . number_format($row->amount, 2) . '</span>';
+                })
+                ->editColumn('payment_method', function($row) {
+                    $badge = $row->payment_method == 'stripe' ? 'bg-primary' : 'bg-success';
+                    $text = $row->payment_method == 'stripe' ? 'Stripe' : 'Balance';
+                    return '<span class="badge ' . $badge . '">' . $text . '</span>';
+                })
+                ->filterColumn('donor', function($query, $keyword) {
+                    $query->whereHas('user', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('surname', 'like', "%{$keyword}%")
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                    })->orWhere('guest_first_name', 'like', "%{$keyword}%")
+                      ->orWhere('guest_last_name', 'like', "%{$keyword}%")
+                      ->orWhere('guest_email', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('charity', function($query, $keyword) {
+                    $query->whereHas('charity', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                    });
+                })
+                ->rawColumns(['tran_id', 'donor', 'charity', 'amount', 'payment_method', 'current_balance', 'balance_in', 'balance_out'])
+                ->make(true);
+        }
+
+        // --- Summary Cards Data ---
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
+        $todayStats = Donation::whereDate('created_at', $today)
+            ->selectRaw("COUNT(*) as total, SUM(amount) as amount, SUM(admin_charge) as fee")->first();
         
-        return view('admin.developer.monitoring.online_donations', compact('donations', 'stripeSyncIssues'));
+        $weekStats = Donation::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+            ->selectRaw("COUNT(*) as total, SUM(amount) as amount, SUM(admin_charge) as fee")->first();
+        
+        $allStats = Donation::selectRaw("COUNT(*) as total, SUM(amount) as amount, SUM(admin_charge) as fee")->first();
+
+        return view('admin.developer.monitoring.online_donations', [
+            'todayCount' => $todayStats->total ?? 0,
+            'todayAmount' => $todayStats->amount ?? 0,
+            'todayFee' => $todayStats->fee ?? 0,
+            'weekCount' => $weekStats->total ?? 0,
+            'weekAmount' => $weekStats->amount ?? 0,
+            'weekFee' => $weekStats->fee ?? 0,
+            'allCount' => $allStats->total ?? 0,
+            'allAmount' => $allStats->amount ?? 0,
+            'allFee' => $allStats->fee ?? 0,
+        ]);
     }
 
     /**

@@ -367,79 +367,177 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Standing Donation Monitoring Page
-     */
-        /**
+     */    /**
      * Standing Donation Monitoring Page
      */
-    public function standingDonations()
+    public function standingDonations(Request $request)
     {
-        // 1. Stat Cards Data
+        if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+            $today = Carbon::today();
+
+            $query = StandingDonation::with(['user', 'charity'])
+                ->select('standing_donations.*')
+                ->orderBy('standing_donations.created_at', 'DESC');
+
+            // Apply Date Filters (based on starting date)
+            if ($filterType == 'daily') {
+                $query->whereDate('standing_donations.starting', $today);
+            } elseif ($filterType == 'weekly') {
+                $query->whereBetween('standing_donations.starting', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($filterType == 'monthly') {
+                $query->whereMonth('standing_donations.starting', $today->month)->whereYear('standing_donations.starting', $today->year);
+            } elseif ($filterType == 'last7') {
+                $query->whereBetween('standing_donations.starting', [$today->copy()->subDays(6), $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $query->whereBetween('standing_donations.starting', [$fromDate, $toDate]);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('date', function($row) {
+                    return Carbon::parse($row->created_at)->format('d/m/Y');
+                })
+                ->addColumn('donor', function($row) {
+                    if ($row->user) {
+                        $name = $row->user->name . ' ' . $row->user->surname;
+                        $email = $row->user->email;
+                        return '<span class="fw-bold text-success">' . $name . '</span><br><small>' . $email . '</small>';
+                    }
+                    return '<span class="text-danger">N/A</span>';
+                })
+                ->addColumn('charity', function($row) {
+                    if ($row->charity) {
+                        return '<span class="fw-bold">' . $row->charity->name . '</span>';
+                    }
+                    return 'N/A';
+                })
+                ->addColumn('current_balance', function($row) {
+                    if ($row->user) {
+                        return '£' . number_format($row->user->getAvailableLimit(), 2);
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                })
+                ->addColumn('balance_in', function($row) {
+                    if ($row->user_id) {
+                        $in = Usertransaction::where('user_id', $row->user_id)->where('status', 1)->where('t_type', 'In')->sum('amount');
+                        return '£' . number_format($in, 2);
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                })
+                ->addColumn('balance_out', function($row) {
+                    if ($row->user_id) {
+                        $out = Usertransaction::where('user_id', $row->user_id)->where('status', 1)->where('t_type', 'Out')->sum('amount');
+                        return '£' . number_format($out, 2);
+                    }
+                    return '<span class="text-muted">N/A</span>';
+                })
+                ->editColumn('amount', function($row) {
+                    return '<span class="fw-bold">£' . number_format($row->amount, 2) . '</span>';
+                })
+                ->addColumn('payment_type', function($row) {
+                    return $row->payments == '1' ? '<span class="badge bg-info">Fixed</span>' : '<span class="badge bg-secondary">Continuous</span>';
+                })
+                ->addColumn('total_payments', function($row) {
+                    return $row->payments == '1' ? ($row->number_payments ?? 0) : '<span class="text-muted">∞</span>';
+                })
+                ->addColumn('payments_made', function($row) {
+                    $made = StandingdonationDetail::where('standing_donation_id', $row->id)->count();
+                    return '<span class="badge bg-success">' . $made . '</span>';
+                })
+                ->addColumn('payments_remaining', function($row) {
+                    if ($row->payments == '1') {
+                        $made = StandingdonationDetail::where('standing_donation_id', $row->id)->count();
+                        $remaining = ($row->number_payments ?? 0) - $made;
+                        return '<span class="badge bg-warning text-dark">' . max(0, $remaining) . '</span>';
+                    }
+                    return '<span class="text-muted">∞</span>';
+                })
+                ->addColumn('interval_text', function($row) {
+                    return $row->interval . ' Month(s)';
+                })
+                ->addColumn('start_date', function($row) {
+                    return Carbon::parse($row->starting)->format('d/m/Y');
+                })
+                ->addColumn('next_payment', function($row) {
+                    $lastDetail = StandingdonationDetail::where('standing_donation_id', $row->id)->latest('id')->first();
+                    $baseDate = $lastDetail ? Carbon::parse($lastDetail->instalment_date) : Carbon::parse($row->starting);
+                    $interval = is_numeric($row->interval) ? (int)$row->interval : 1;
+                    $nextDate = $baseDate->copy()->addMonths($interval);
+                    return $nextDate->format('d/m/Y');
+                })
+                ->addColumn('status', function($row) {
+                    if ($row->status == 1) return '<span class="badge bg-success">Active</span>';
+                    if ($row->status == 2) return '<span class="badge bg-secondary">Complete</span>';
+                    return '<span class="badge bg-danger">Inactive</span>';
+                })
+                ->filterColumn('donor', function($query, $keyword) {
+                    $query->whereHas('user', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('surname', 'like', "%{$keyword}%")
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('charity', function($query, $keyword) {
+                    $query->whereHas('charity', function($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->rawColumns(['donor', 'charity', 'amount', 'payment_type', 'total_payments', 'payments_made', 'payments_remaining', 'status', 'current_balance', 'balance_in', 'balance_out'])
+                ->make(true);
+        }
+
+        // --- Stat Cards ---
         $totalStanding = StandingDonation::count();
         $activeStanding = StandingDonation::where('status', 1)->count();
         $inactiveStanding = StandingDonation::where('status', 0)->count();
         $completeStanding = StandingDonation::where('status', 2)->count();
 
-        // 2. All Standing Donations (Removed pagination for DataTables)
-        $standingDonations = StandingDonation::with(['user', 'charity'])->latest()->get();
-
-        // 3. Today's Standing Order Transactions
-        // From your cron job, we know 'standing_donationdetails_id' is set for standing donations
+        // --- Today's Standing Order Transactions ---
         $todaysStandingTransactions = Usertransaction::whereNotNull('standing_donationdetails_id')
             ->whereDate('created_at', Carbon::today())
             ->with(['user', 'charity'])
             ->latest()
             ->get();
 
-        // 4. Upcoming 7 Days Standing Donations (Expected)
-        $intervalMap = [
-            'Monthly'   => 1, 'Quarterly' => 3, 'Yearly'    => 12,
-            'Annually'  => 12, 'Weekly'    => 0, 'Bi-Weekly' => 0,
-        ];
+        $todayCollected = $todaysStandingTransactions->sum('amount');
 
+        // --- This Week's Standing Order Transactions ---
+        $weekCollected = Usertransaction::whereNotNull('standing_donationdetails_id')
+            ->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->sum('amount');
+
+        // --- Upcoming 7 Days Standing Donations ---
+        $intervalMap = ['Monthly' => 1, 'Quarterly' => 3, 'Yearly' => 12, 'Annually' => 12, 'Weekly' => 0, 'Bi-Weekly' => 0];
         $next7DaysStart = Carbon::tomorrow()->startOfDay();
         $next7DaysEnd = Carbon::tomorrow()->addDays(6)->endOfDay();
-
         $upcoming7DaysDonations = collect();
 
         $activeOrders = StandingDonation::where('status', 1)
-            ->with(['user', 'charity', 'standingdonationDetail' => function($q) {
-                $q->latest('id')->limit(1);
-            }])
+            ->with(['user', 'charity', 'standingdonationDetail' => function($q) { $q->latest('id')->limit(1); }])
             ->get();
 
         foreach ($activeOrders as $order) {
             $detail = $order->standingdonationDetail->first();
             $start_date = $detail ? $detail->instalment_date : $order->starting;
             $start_date_carbon = Carbon::parse($start_date);
-
             $intervalValue = $order->interval;
-            if (is_string($intervalValue) && isset($intervalMap[$intervalValue])) {
-                $intervalMonths = $intervalMap[$intervalValue];
-            } elseif (is_numeric($intervalValue)) {
-                $intervalMonths = (int) $intervalValue;
-            } else {
-                $intervalMonths = 1;
-            }
-
-            // Match cron job fallback: Weekly/Bi-Weekly acts as Monthly
-            if ($intervalMonths === 0) {
-                $intervalMonths = 1;
-            }
+            $intervalMonths = is_numeric($intervalValue) ? (int)$intervalValue : ($intervalMap[$intervalValue] ?? 1);
+            if ($intervalMonths === 0) $intervalMonths = 1;
 
             $instalment_date_carbon = $start_date_carbon->copy()->addMonths($intervalMonths);
-
             if ($instalment_date_carbon->between($next7DaysStart, $next7DaysEnd)) {
                 $order->expected_date = $instalment_date_carbon->format('d M, Y');
                 $upcoming7DaysDonations->push($order);
             }
         }
-
-        // Sort by expected date
         $upcoming7DaysDonations = $upcoming7DaysDonations->sortBy('expected_date');
 
         return view('admin.developer.monitoring.standing_donations', compact(
             'totalStanding', 'activeStanding', 'inactiveStanding', 'completeStanding',
-            'standingDonations', 'todaysStandingTransactions', 'upcoming7DaysDonations'
+            'todaysStandingTransactions', 'upcoming7DaysDonations', 'todayCollected', 'weekCollected'
         ));
     }
 

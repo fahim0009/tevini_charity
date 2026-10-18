@@ -27,6 +27,13 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
         ->name('developer.dashboard');
 
 
+    Route::get('/get-topup-records', [DeveloperToolDashboardController::class, 'getTopupRecords'])
+        ->name('dev.getTopupRecords');
+    Route::get('/get-stuck-standing-donations', [DeveloperToolDashboardController::class, 'getStuckStandingDonations'])
+        ->name('dev.getStuckStandingDonations');
+    Route::get('/get-failing-standing-donations', [DeveloperToolDashboardController::class, 'getFailingStandingDonations'])
+        ->name('dev.getFailingStandingDonations');
+
     /*
     |----------------------------------------------------------------------
     | MONITORING PAGES
@@ -52,9 +59,6 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
 
     Route::get('vouchers/{id}/barcodes', [DeveloperToolDashboardController::class, 'getOrderBarcodes'])->name('developer.vouchers.barcodes');
 
-
-    Route::get('/get-topup-records', [DeveloperToolDashboardController::class, 'getTopupRecords'])
-        ->name('dev.getTopupRecords');
 
 
     // Donor Audit Routes

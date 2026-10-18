@@ -26,6 +26,8 @@ class DeveloperToolDashboardController extends Controller
 {
     /**
      * Main Developer Dashboard - Only Summaries & Issues
+     */     /**
+     * Main Developer Dashboard - Only Summaries & Issues (Lightweight)
      */
     public function dashboard()
     {
@@ -33,7 +35,6 @@ class DeveloperToolDashboardController extends Controller
         $totalCharities = Charity::count();
         $totalDonors = User::where('is_type', 'user')->count();
 
-        // User Transaction Stats (This Month & Last 30 Days)
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         $last30Days = Carbon::today()->subDays(30);
@@ -55,65 +56,96 @@ class DeveloperToolDashboardController extends Controller
             ->count();
 
         $todaysOnlineDonation = Donation::whereDate('created_at', Carbon::today())->sum('amount');
-        $weeklyOnlineDonation = Donation::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
         $todaysStandingDonation = StandingDonation::whereDate('created_at', Carbon::today())->sum('amount');
-        $weeklyStandingDonation = StandingDonation::whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
-
-        $pendingStandingDonations = Usertransaction::where('t_type', 'Standing')
-            ->where('status', 'Pending')
-            ->count();
 
         $cutoffHistory = DB::table('cutoff_histories')
             ->orderBy('effective_date', 'desc')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
-        // Fetch all records for DataTables (removed limit)
         $stripeSyncIssues = Donation::whereNotNull('stripe_payment_id')
             ->where('status', 0)
             ->with(['user', 'charity'])
             ->latest()
             ->get();
 
-        $pendingDonations = Donation::where('status', 0)
-            ->with(['user', 'charity'])
-            ->latest()
-            ->get();
-
-        $negativeBalanceUsers = User::where('balance', '<', 0)
-            ->latest()
-            ->get();
-
+        // Tomorrow & Next 7 Days Calculation (Lightweight - only sum)
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-        $intervalMap = [
-            'Monthly'   => 1, 'Quarterly' => 3, 'Yearly'    => 12,
-            'Annually'  => 12, 'Weekly'    => 0, 'Bi-Weekly' => 0,
-        ];
-
-                $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-        
-        // Next 7 days range
         $next7DaysStart = Carbon::tomorrow()->startOfDay();
         $next7DaysEnd = Carbon::tomorrow()->addDays(6)->endOfDay();
 
         $intervalMap = [
-            'Monthly'   => 1, 'Quarterly' => 3, 'Yearly'    => 12,
-            'Annually'  => 12, 'Weekly'    => 0, 'Bi-Weekly' => 0,
+            'Monthly' => 1, 'Quarterly' => 3, 'Yearly' => 12,
+            'Annually' => 12, 'Weekly' => 0, 'Bi-Weekly' => 0,
         ];
 
         $tomorrowStandingAmount = 0;
-        $next7DaysStandingAmount = 0; // NEW VARIABLE
-        $stuckStandingDonations = collect();
-        $failingStandingDonations = collect();
+        $next7DaysStandingAmount = 0;
 
-        $activeOrders = StandingDonation::where('status', 1)
-            ->with(['user', 'charity', 'standingdonationDetail' => function($q) {
-                $q->latest('id')->limit(1);
-            }])
-            ->get();
+        // Use simple select instead of loading relations for speed
+        $activeOrders = StandingDonation::where('status', 1)->select(['id', 'starting', 'interval', 'amount'])->get();
 
         foreach ($activeOrders as $order) {
-            $detail = $order->standingdonationDetail->first();
+            $lastDetail = StandingdonationDetail::where('standing_donation_id', $order->id)
+                ->latest('id')
+                ->value('instalment_date');
+            $start_date = $lastDetail ?? $order->starting;
+            $start_date_carbon = Carbon::parse($start_date);
+
+            $intervalValue = $order->interval;
+            if (is_string($intervalValue) && isset($intervalMap[$intervalValue])) {
+                $intervalMonths = $intervalMap[$intervalValue];
+            } elseif (is_numeric($intervalValue)) {
+                $intervalMonths = (int) $intervalValue;
+            } else {
+                $intervalMonths = 1;
+            }
+
+            if ($intervalMonths === 0) $intervalMonths = 1;
+
+            $instalment_date_carbon = $start_date_carbon->copy()->addMonths($intervalMonths);
+            $instalment_date = $instalment_date_carbon->format('Y-m-d');
+
+            if ($instalment_date == $tomorrow) {
+                $tomorrowStandingAmount += $order->amount;
+            }
+
+            if ($instalment_date_carbon->between($next7DaysStart, $next7DaysEnd)) {
+                $next7DaysStandingAmount += $order->amount;
+            }
+        }
+
+        return view('admin.developer.dashboard', compact(
+            'totalTransactions', 'totalCharities', 'totalDonors',
+            'successfulThisMonth', 'unsuccessfulThisMonth', 'successfulLast30Days', 'unsuccessfulLast30Days',
+            'todaysOnlineDonation', 'todaysStandingDonation',
+            'cutoffHistory', 'stripeSyncIssues',
+            'tomorrowStandingAmount', 'next7DaysStandingAmount'
+        ));
+    }
+
+    /**
+     * AJAX: Get Stuck Standing Donations
+     */
+    public function getStuckStandingDonations()
+    {
+        $today = Carbon::today()->format('Y-m-d');
+        $intervalMap = [
+            'Monthly' => 1, 'Quarterly' => 3, 'Yearly' => 12,
+            'Annually' => 12, 'Weekly' => 0, 'Bi-Weekly' => 0,
+        ];
+
+        $activeOrders = StandingDonation::where('status', 1)
+            ->with(['user', 'charity'])
+            ->get();
+
+        $data = [];
+
+        foreach ($activeOrders as $order) {
+            $detail = StandingdonationDetail::where('standing_donation_id', $order->id)
+                ->latest('id')
+                ->first();
+
             $start_date = $detail ? $detail->instalment_date : $order->starting;
             $start_date_carbon = Carbon::parse($start_date);
 
@@ -126,46 +158,107 @@ class DeveloperToolDashboardController extends Controller
                 $intervalMonths = 1;
             }
 
-            // Match cron job fallback: Weekly/Bi-Weekly acts as Monthly
-            if ($intervalMonths === 0) {
-                $intervalMonths = 1;
-            }
+            if ($intervalMonths === 0) $intervalMonths = 1;
 
             $instalment_date_carbon = $start_date_carbon->copy()->addMonths($intervalMonths);
             $instalment_date = $instalment_date_carbon->format('Y-m-d');
 
-            // Tomorrow's calculation
-            if ($instalment_date == $tomorrow) {
-                $tomorrowStandingAmount += $order->amount;
-            }
+            // Only stuck ones (overdue)
+            if ($instalment_date < $today) {
+                $days_overdue = Carbon::parse($instalment_date)->diffInDays(Carbon::today());
+                $payments_made = StandingdonationDetail::where('standing_donation_id', $order->id)->where('status', 0)->count();
+                $skipped_payments = StandingdonationDetail::where('standing_donation_id', $order->id)->where('status', 2)->count();
 
-            // Next 7 days calculation
-            if ($instalment_date_carbon->between($next7DaysStart, $next7DaysEnd)) {
-                $next7DaysStandingAmount += $order->amount;
-            }
+                // FIXED: Use null coalescing and avoid HTML in JSON
+                $lastPaymentDate = $detail ? Carbon::parse($detail->instalment_date)->format('d M, Y') : null;
+                $lastPaymentDisplay = $lastPaymentDate ? $lastPaymentDate : 'Never';
 
-            if ($instalment_date < Carbon::today()->format('Y-m-d') && $order->payment_made == 0 && $order->payments == 1) {
-                $stuckStandingDonations->push($order);
-            } elseif ($instalment_date < Carbon::today()->format('Y-m-d') && $order->payments == 2) {
-                $stuckStandingDonations->push($order);
-            }
-
-            if ($order->user && $order->user->getAvailableLimit() < $order->amount) {
-                $failingStandingDonations->push($order);
+                $data[] = [
+                    'id' => $order->id,
+                    'donor_name' => $order->user->name ?? 'N/A',
+                    'donor_acct' => $order->user->accountno ?? 'N/A',
+                    'donor_email' => $order->user->email ?? 'N/A',
+                    'charity' => $order->charity->name ?? 'N/A',
+                    'amount' => number_format($order->amount, 2),
+                    'type' => $order->payments == 1 ? 'Fixed' : 'Continuous',
+                    'interval' => $intervalMonths . ' Month(s)',
+                    'start_date' => Carbon::parse($order->starting)->format('d M, Y'),
+                    'last_payment' => $lastPaymentDisplay,
+                    'expected_date' => Carbon::parse($instalment_date)->format('d M, Y'),
+                    'days_overdue' => $days_overdue,
+                    'payments_made' => $payments_made,
+                    'skipped_payments' => $skipped_payments,
+                ];
             }
         }
 
-        // Add next7DaysStandingAmount to compact array
-        return view('admin.developer.dashboard', compact(
-            'totalTransactions', 'totalCharities', 'totalDonors',
-            'successfulThisMonth', 'unsuccessfulThisMonth', 'successfulLast30Days', 'unsuccessfulLast30Days',
-            'todaysOnlineDonation', 'weeklyOnlineDonation', 'todaysStandingDonation', 'weeklyStandingDonation',
-            'pendingStandingDonations', 'cutoffHistory', 'stripeSyncIssues', 'pendingDonations', 
-            'negativeBalanceUsers', 'tomorrowStandingAmount', 'next7DaysStandingAmount', 'stuckStandingDonations', 'failingStandingDonations'
-        ));
+        return response()->json(['data' => $data]);
     }
 
-        /**
+    /**
+     * AJAX: Get Failing Standing Donations (Insufficient Balance)
+     */
+    public function getFailingStandingDonations()
+    {
+        $intervalMap = [
+            'Monthly' => 1, 'Quarterly' => 3, 'Yearly' => 12,
+            'Annually' => 12, 'Weekly' => 0, 'Bi-Weekly' => 0,
+        ];
+
+        $activeOrders = StandingDonation::where('status', 1)
+            ->with(['user', 'charity'])
+            ->get();
+
+        $data = [];
+
+        foreach ($activeOrders as $order) {
+            if (!$order->user) continue;
+
+            $availableLimit = $order->user->getAvailableLimit();
+            
+            if ($availableLimit < $order->amount) {
+                $detail = StandingdonationDetail::where('standing_donation_id', $order->id)
+                    ->latest('id')
+                    ->first();
+
+                $start_date = $detail ? $detail->instalment_date : $order->starting;
+                $start_date_carbon = Carbon::parse($start_date);
+
+                $intervalValue = $order->interval;
+                if (is_string($intervalValue) && isset($intervalMap[$intervalValue])) {
+                    $intervalMonths = $intervalMap[$intervalValue];
+                } elseif (is_numeric($intervalValue)) {
+                    $intervalMonths = (int) $intervalValue;
+                } else {
+                    $intervalMonths = 1;
+                }
+
+                if ($intervalMonths === 0) $intervalMonths = 1;
+
+                $instalment_date_carbon = $start_date_carbon->copy()->addMonths($intervalMonths);
+
+                $shortfall = $order->amount - $availableLimit;
+
+                $data[] = [
+                    'id' => $order->id,
+                    'donor_name' => $order->user->name ?? 'N/A',
+                    'donor_acct' => $order->user->accountno ?? 'N/A',
+                    'donor_email' => $order->user->email ?? 'N/A',
+                    'charity' => $order->charity->name ?? 'N/A',
+                    'amount' => number_format($order->amount, 2),
+                    'available_limit' => number_format($availableLimit, 2),
+                    'shortfall' => number_format($shortfall, 2),
+                    'type' => $order->payments == 1 ? 'Fixed' : 'Continuous',
+                    'next_payment' => $instalment_date_carbon->format('d M, Y'),
+                    'interval' => $intervalMonths . ' Month(s)',
+                ];
+            }
+        }
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
      * Fetch TopUp Records via AJAX
      */
     public function getTopupRecords(Request $request)
@@ -227,6 +320,11 @@ class DeveloperToolDashboardController extends Controller
             ]
         ]);
     }
+
+
+
+
+
 
     /**
      * Online Donation Monitoring Page

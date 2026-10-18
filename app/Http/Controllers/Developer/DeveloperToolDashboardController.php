@@ -122,7 +122,7 @@ class DeveloperToolDashboardController extends Controller
         // ============================================================
         $today = Carbon::today();
 
-        // 1. Today's Total Charity IN = All Donations (Out) today
+        // 1. Today's Total Charity IN = All Donations (Out from Usertransaction)
         $todayCharityIN = Usertransaction::where('status', 1)
             ->where('t_type', 'Out')
             ->whereDate('created_at', $today)
@@ -134,14 +134,14 @@ class DeveloperToolDashboardController extends Controller
             ->whereDate('created_at', $today)
             ->sum('amount');
 
-        // 3. Today's Total Donor IN = Same as Charity IN (donations)
-        $todayDonorIN = $todayCharityIN;
-
-        // 4. Today's Total Donor OUT = Topups amount only (no commission)
-        $todayDonorOUT = Usertransaction::where('status', 1)
+        // 3. Today's Total Donor IN = Topup amount (In from Usertransaction)
+        $todayDonorIN = Usertransaction::where('status', 1)
             ->where('t_type', 'In')
             ->whereDate('created_at', $today)
             ->sum('amount');
+
+        // 4. Today's Total Donor OUT = Donations (Same as Charity IN)
+        $todayDonorOUT = $todayCharityIN;
 
         // 5. Today's Total Commission
         $todayCommission = Usertransaction::where('status', 1)
@@ -149,14 +149,16 @@ class DeveloperToolDashboardController extends Controller
             ->whereDate('created_at', $today)
             ->sum('commission');
 
-
         return view('admin.developer.dashboard', compact(
             'totalTransactions', 'totalCharities', 'totalDonors',
             'successfulThisMonth', 'unsuccessfulThisMonth', 'successfulLast30Days', 'unsuccessfulLast30Days',
             'todaysOnlineDonation', 'todaysStandingDonation',
             'cutoffHistory', 'stripeSyncIssues',
-            'tomorrowStandingAmount', 'next7DaysStandingAmount', 'todayCharityIN', 'todayCharityOUT', 'todayDonorIN', 'todayDonorOUT', 'todayCommission'
+            'tomorrowStandingAmount', 'next7DaysStandingAmount',
+            'todayCharityIN', 'todayCharityOUT', 'todayDonorIN', 'todayDonorOUT', 'todayCommission'
         ));
+
+        
     }
 
     /**

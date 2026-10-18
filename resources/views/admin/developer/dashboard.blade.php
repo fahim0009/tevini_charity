@@ -410,7 +410,7 @@
         </a>
     </div>
 
-        <!-- ===== NEW SECTION: TODAY'S CASHFLOW (Teal Background) ===== -->
+    <!-- ===== NEW SECTION: TODAY'S CASHFLOW (Teal Background) ===== -->
     <div class="dev-section">
         <div class="dev-section-title">
             <i class="fas fa-coins"></i> Today's Cashflow Summary
@@ -423,7 +423,7 @@
                     <p style="color: rgba(255,255,255,0.85);">Today's Total Charity IN</p>
                 </div>
                 <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
-                    <i class="fas fa-arrow-down"></i>
+                    <i class="fas fa-hand-holding-heart"></i>
                 </div>
             </div>
 
@@ -434,7 +434,7 @@
                     <p style="color: rgba(255,255,255,0.85);">Today's Total Charity OUT</p>
                 </div>
                 <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
-                    <i class="fas fa-arrow-up"></i>
+                    <i class="fas fa-university"></i>
                 </div>
             </div>
 
@@ -445,7 +445,7 @@
                     <p style="color: rgba(255,255,255,0.85);">Today's Total Donor IN</p>
                 </div>
                 <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
-                    <i class="fas fa-hand-holding-usd"></i>
+                    <i class="fas fa-wallet"></i>
                 </div>
             </div>
 
@@ -456,7 +456,7 @@
                     <p style="color: rgba(255,255,255,0.85);">Today's Total Donor OUT</p>
                 </div>
                 <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
-                    <i class="fas fa-wallet"></i>
+                    <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
 

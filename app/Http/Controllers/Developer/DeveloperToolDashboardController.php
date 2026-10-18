@@ -717,11 +717,113 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Charity Monitoring Page
+     */    /**
+     * Charity Monitoring Page
      */
-    public function charityMonitoring()
+    public function charityMonitoring(Request $request)
     {
-        $charities = Charity::latest()->paginate(25);
-        return view('admin.developer.monitoring.charities', compact('charities'));
+        if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
+            $fromDate = $request->get('fromDate');
+            $toDate = $request->get('toDate');
+            $today = Carbon::today();
+
+            $query = Charity::select('charities.*')
+                ->orderBy('charities.created_at', 'DESC');
+
+            // Apply Date Filters (based on charity registration date)
+            if ($filterType == 'daily') {
+                $query->whereDate('charities.created_at', $today);
+            } elseif ($filterType == 'weekly') {
+                $query->whereBetween('charities.created_at', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($filterType == 'monthly') {
+                $query->whereMonth('charities.created_at', $today->month)->whereYear('charities.created_at', $today->year);
+            } elseif ($filterType == 'last7') {
+                $query->whereBetween('charities.created_at', [$today->copy()->subDays(6), $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $query->whereBetween('charities.created_at', [$fromDate, $toDate . ' 23:59:59']);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('charity', function($row) {
+                    $name = $row->name;
+                    $email = $row->email;
+                    return '<span class="fw-bold text-success">' . $name . '</span><br><small>' . $email . '</small>';
+                })
+                ->addColumn('account_no', function($row) {
+                    return '<span class="badge bg-secondary">' . ($row->acc_no ?? 'N/A') . '</span>';
+                })
+                ->addColumn('balance_in', function($row) {
+                    $in = Transaction::where('charity_id', $row->id)->where('status', 1)->where('t_type', 'In')->sum('amount');
+                    return '£' . number_format($in, 2);
+                })
+                ->addColumn('balance_out', function($row) {
+                    $out = Transaction::where('charity_id', $row->id)->where('status', 1)->where('t_type', 'Out')->sum('amount');
+                    return '£' . number_format($out, 2);
+                })
+                ->addColumn('difference', function($row) {
+                    $in = Transaction::where('charity_id', $row->id)->where('status', 1)->where('t_type', 'In')->sum('amount');
+                    $out = Transaction::where('charity_id', $row->id)->where('status', 1)->where('t_type', 'Out')->sum('amount');
+                    $diff = $in - $out;
+                    $color = $diff < 0 ? 'text-danger' : 'text-success';
+                    return '<span class="fw-bold ' . $color . '">£' . number_format($diff, 2) . '</span>';
+                })
+                ->addColumn('balance', function($row) {
+                    $color = $row->balance < 0 ? 'text-danger' : 'text-primary';
+                    return '<span class="fw-bold ' . $color . '">£' . number_format($row->balance, 2) . '</span>';
+                })
+                ->addColumn('auto_payment', function($row) {
+                    return $row->auto_payment == 1 
+                        ? '<span class="badge bg-success">Enabled</span>' 
+                        : '<span class="badge bg-danger">Disabled</span>';
+                })
+                ->addColumn('status', function($row) {
+                    return $row->status == 1 
+                        ? '<span class="badge bg-success">Active</span>' 
+                        : '<span class="badge bg-danger">Inactive</span>';
+                })
+                ->filterColumn('charity', function($query, $keyword) {
+                    $query->where('name', 'like', "%{$keyword}%")
+                          ->orWhere('email', 'like', "%{$keyword}%");
+                })
+                ->rawColumns(['charity', 'account_no', 'balance_in', 'balance_out', 'difference', 'balance', 'auto_payment', 'status'])
+                ->make(true);
+        }
+
+        // --- Summary Cards ---
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
+        // 1. Today's new charities
+        $todayNewCharities = Charity::whereDate('created_at', $today)->count();
+        
+        // 2. This week's new charities
+        $weekNewCharities = Charity::whereBetween('created_at', [$startOfWeek, $endOfWeek])->count();
+        
+        // 3. Total active charities
+        $activeCharities = Charity::where('status', 1)->count();
+        
+        // 4. Total inactive charities
+        $inactiveCharities = Charity::where('status', 0)->count();
+        
+        // 5. No transaction charities
+        $noTransactionCharities = Charity::whereDoesntHave('transaction')->count();
+        
+        // 6. Auto Payment Enabled
+        $autoPaymentEnabled = Charity::where('auto_payment', 1)->count();
+        
+        // 7. Auto Payment Disabled
+        $autoPaymentDisabled = Charity::where('auto_payment', 0)->count();
+        
+        // 8. Total Charity Balance
+        $charityBalanceSum = Charity::sum('balance');
+
+        return view('admin.developer.monitoring.charities', compact(
+            'todayNewCharities', 'weekNewCharities', 'activeCharities', 'inactiveCharities',
+            'noTransactionCharities', 'autoPaymentEnabled', 'autoPaymentDisabled', 'charityBalanceSum'
+        ));
     }
 
     /**

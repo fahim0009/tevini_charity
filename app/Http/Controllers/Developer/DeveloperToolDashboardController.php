@@ -895,9 +895,12 @@ class DeveloperToolDashboardController extends Controller
 
     public function auditBalances(Request $request)
     {
+        
         if ($request->ajax()) {
+            $filterType = $request->get('filter_type', 'monthly');
             $fromDate = $request->get('fromDate');
             $toDate = $request->get('toDate');
+            $today = Carbon::today();
 
             // Paid Subquery (Using new business_date column)
             $paidSubquery = DB::table('transactions')
@@ -924,7 +927,7 @@ class DeveloperToolDashboardController extends Controller
                     DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
                     DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
                     DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
-                    DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"), // Added Card Sum
+                    DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
                     DB::raw("IFNULL(MAX(paid_data.total_paid), 0) as paid_sum"),
                     DB::raw("IFNULL(MAX(paid_data.current_status), 0) as payment_status")
                 ])
@@ -936,11 +939,24 @@ class DeveloperToolDashboardController extends Controller
                 ->orderByRaw('date_group DESC')
                 ->with('charity');
 
-            // Default Date Range if not provided
-            $startDate = $fromDate ?? '2026-02-09';
-            $endDate = $toDate ?? Carbon::yesterday()->toDateString();
+            // Apply Date Filters
+            if ($filterType == 'daily') {
+                $query->whereDate('usertransactions.business_date', $today);
+            } elseif ($filterType == 'weekly') {
+                $query->whereBetween('usertransactions.business_date', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+            } elseif ($filterType == 'monthly') {
+                $query->whereMonth('usertransactions.business_date', $today->month)->whereYear('usertransactions.business_date', $today->year);
+            } elseif ($filterType == 'last7') {
+                $query->whereBetween('usertransactions.business_date', [$today->copy()->subDays(6), $today]);
+            } elseif ($filterType == 'custom' && $fromDate && $toDate) {
+                $query->whereBetween('usertransactions.business_date', [$fromDate, $toDate]);
+            } else {
+                // 'all' - default range
+                $startDate = $fromDate ?? '2026-02-09';
+                $endDate = $toDate ?? Carbon::yesterday()->toDateString();
+                $query->whereBetween('usertransactions.business_date', [$startDate, $endDate]);
+            }
             
-            $query->whereBetween('usertransactions.business_date', [$startDate, $endDate]);
             $query->where('usertransactions.business_date', '>', '2026-02-07');
             
             // Filter unpaid and auto_payment enabled
@@ -970,10 +986,7 @@ class DeveloperToolDashboardController extends Controller
                 ->addColumn('action', function ($row) {
                     $total = $row->online_sum + $row->standing_sum + $row->voucher_sum + $row->campaign_sum + $row->card_sum;
                     $isChecked = ($row->payment_status == 1) ? 'checked' : '';
-                    return '<div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input status-switch" type="checkbox" role="switch" '.$isChecked.' 
-                                data-charity-id="'.$row->charity_id.'" data-date="'.$row->date_group.'" data-total="'.$total.'">
-                            </div>';
+                    return '';
                 })
                 ->editColumn('paid_sum', function($row) {
                     if ($row->paid_sum <= 0) return '<span class="text-muted">£0.00</span>';
@@ -1004,6 +1017,8 @@ class DeveloperToolDashboardController extends Controller
                 ->rawColumns(['date_group', 'online_sum', 'standing_sum', 'voucher_sum', 'campaign_sum', 'card_sum', 'paid_sum', 'charity_name', 'action'])
                 ->make(true);
         }
+
+
 
         // --- Summary Cards Data ---
         $today = Carbon::today();

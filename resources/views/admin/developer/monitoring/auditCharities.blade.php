@@ -83,15 +83,26 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <form id="filter-form" class="row g-3 align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Filter Type</label>
+                    <select id="filter_type" class="form-control form-control-sm">
+                        <option value="monthly" selected>Monthly</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="last7">Last 7 days</option>
+                        <option value="custom">Date to Date</option>
+                        <option value="all">ALL</option>
+                    </select>
+                </div>
+                <div class="col-md-2 date-range-wrap" style="display:none;">
                     <label class="form-label small fw-bold">Date From</label>
-                    <input type="date" id="fromDate" class="form-control form-control-sm" value="2026-02-09">
+                    <input type="date" id="fromDate" class="form-control form-control-sm">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2 date-range-wrap" style="display:none;">
                     <label class="form-label small fw-bold">Date To</label>
-                    <input type="date" id="toDate" class="form-control form-control-sm" value="{{ date('Y-m-d', strtotime('-1 day')) }}">
+                    <input type="date" id="toDate" class="form-control form-control-sm">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>
                     <button type="button" id="reset-filter" class="btn btn-light btn-sm px-4">Reset</button>
                 </div>
@@ -205,6 +216,7 @@
             url: "{{ route('admin.audit.balances') }}",
             data: function (d) {
                 d.t_type = 'Summary';
+                d.filter_type = $('#filter_type').val();
                 d.fromDate = $('#fromDate').val();
                 d.toDate = $('#toDate').val();
             }
@@ -216,7 +228,7 @@
             {data: 'standing_sum', name: 'standing_sum', searchable: false},
             {data: 'voucher_sum', name: 'voucher_sum', searchable: false},
             {data: 'campaign_sum', name: 'campaign_sum', searchable: false},
-            {data: 'card_sum', name: 'card_sum', searchable: false}, // Added Card Column
+            {data: 'card_sum', name: 'card_sum', searchable: false},
             {data: 'paid_sum', name: 'paid_sum', className: 'text-success', searchable: false},
             {data: 'balance', name: 'balance', className: 'fw-bold text-primary', searchable: false},
             {data: 'action', name: 'action', orderable: false, searchable: false}
@@ -229,14 +241,23 @@
         ]
     });
 
+    // Handle Filter Type Change
+    $('#filter_type').on('change', function() {
+        if ($(this).val() == 'custom') {
+            $('.date-range-wrap').show();
+        } else {
+            $('.date-range-wrap').hide();
+        }
+    });
+
     $('#filter-form').on('submit', function(e) { 
         e.preventDefault(); 
         table.draw(); 
     });
 
     $('#reset-filter').on('click', function() { 
-        $('#fromDate').val('2026-02-09');
-        $('#toDate').val('<?= date('Y-m-d', strtotime('-1 day')) ?>'); 
+        $('#filter_type').val('monthly').trigger('change');
+        $('#fromDate, #toDate').val('');
         table.draw(); 
     });
 

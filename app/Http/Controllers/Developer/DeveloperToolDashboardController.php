@@ -31,6 +31,8 @@ class DeveloperToolDashboardController extends Controller
      */
     public function dashboard()
     {
+        
+        $today = Carbon::today();
         $totalTransactions = Transaction::count();
         $totalCharities = Charity::count();
         $totalDonors = User::where('is_type', 'user')->count();
@@ -55,8 +57,18 @@ class DeveloperToolDashboardController extends Controller
             ->where('created_at', '>=', $last30Days)
             ->count();
 
-        $todaysOnlineDonation = Donation::whereDate('created_at', Carbon::today())->sum('amount');
-        $todaysStandingDonation = StandingDonation::whereDate('created_at', Carbon::today())->sum('amount');
+        // FIX: Query Usertransaction table directly for accurate daily totals
+        $todaysOnlineDonation = Usertransaction::where('status', 1)
+            ->where('t_type', 'Out')
+            ->whereNotNull('donation_id')
+            ->whereDate('created_at', $today)
+            ->sum('amount');
+
+        $todaysStandingDonation = Usertransaction::where('status', 1)
+            ->where('t_type', 'Out')
+            ->whereNotNull('standing_donationdetails_id')
+            ->whereDate('created_at', $today)
+            ->sum('amount');
 
         $cutoffHistory = DB::table('cutoff_histories')
             ->orderBy('effective_date', 'desc')
@@ -120,7 +132,6 @@ class DeveloperToolDashboardController extends Controller
         // ============================================================
         // NEW: 5 Dashboard Summary Cards
         // ============================================================
-        $today = Carbon::today();
 
         // 1. Today's Total Charity IN = All Donations (Out from Usertransaction)
         $todayCharityIN = Usertransaction::where('status', 1)
@@ -158,7 +169,7 @@ class DeveloperToolDashboardController extends Controller
             'todayCharityIN', 'todayCharityOUT', 'todayDonorIN', 'todayDonorOUT', 'todayCommission'
         ));
 
-        
+
     }
 
     /**

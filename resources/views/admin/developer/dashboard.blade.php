@@ -410,6 +410,69 @@
         </a>
     </div>
 
+        <!-- ===== NEW SECTION: TODAY'S CASHFLOW (Teal Background) ===== -->
+    <div class="dev-section">
+        <div class="dev-section-title">
+            <i class="fas fa-coins"></i> Today's Cashflow Summary
+        </div>
+        <div class="stat-cards-row">
+            <!-- 1. Today's Total Charity IN -->
+            <div class="stat-card-box" style="background: #18988B; border-left-color: #0d6e63;">
+                <div class="stat-info">
+                    <h3 style="color: white;">£{{ number_format($todayCharityIN, 2) }}</h3>
+                    <p style="color: rgba(255,255,255,0.85);">Today's Total Charity IN</p>
+                </div>
+                <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+            </div>
+
+            <!-- 2. Today's Total Charity OUT -->
+            <div class="stat-card-box" style="background: #18988B; border-left-color: #0d6e63;">
+                <div class="stat-info">
+                    <h3 style="color: white;">£{{ number_format($todayCharityOUT, 2) }}</h3>
+                    <p style="color: rgba(255,255,255,0.85);">Today's Total Charity OUT</p>
+                </div>
+                <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+            </div>
+
+            <!-- 3. Today's Total Donor IN -->
+            <div class="stat-card-box" style="background: #18988B; border-left-color: #0d6e63;">
+                <div class="stat-info">
+                    <h3 style="color: white;">£{{ number_format($todayDonorIN, 2) }}</h3>
+                    <p style="color: rgba(255,255,255,0.85);">Today's Total Donor IN</p>
+                </div>
+                <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+            </div>
+
+            <!-- 4. Today's Total Donor OUT -->
+            <div class="stat-card-box" style="background: #18988B; border-left-color: #0d6e63;">
+                <div class="stat-info">
+                    <h3 style="color: white;">£{{ number_format($todayDonorOUT, 2) }}</h3>
+                    <p style="color: rgba(255,255,255,0.85);">Today's Total Donor OUT</p>
+                </div>
+                <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+
+            <!-- 5. Today's Total Commission -->
+            <div class="stat-card-box" style="background: #18988B; border-left-color: #0d6e63;">
+                <div class="stat-info">
+                    <h3 style="color: white;">£{{ number_format($todayCommission, 2) }}</h3>
+                    <p style="color: rgba(255,255,255,0.85);">Today's Total Commission</p>
+                </div>
+                <div class="stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+                    <i class="fas fa-percentage"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== SECTION 1: TRANSACTION SUMMARY ===== -->
     <div class="dev-section">
         <div class="dev-section-title">

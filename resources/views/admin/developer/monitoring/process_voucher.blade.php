@@ -124,9 +124,9 @@
                                 <th>Charity</th>
                                 <th>Charity Balance</th>
                                 <th>Donor</th>
-                                <th>Donor Balance</th>
-                                <th>Standard Amount</th>
-                                <th>Voucher No</th>
+                                <th>Balance Limit.</th>
+                                <th>Std Amount</th>
+                                <th>Voucher</th>
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Checked By Dev</th>

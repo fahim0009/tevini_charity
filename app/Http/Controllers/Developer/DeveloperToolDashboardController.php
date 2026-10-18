@@ -1085,6 +1085,8 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Get Process Voucher details for a specific date and type
+     */     /**
+     * Get Process Voucher details for a specific date and type
      */
     public function getProcessVoucherDayDetails(Request $request)
     {
@@ -1122,11 +1124,36 @@ class DeveloperToolDashboardController extends Controller
                 ? '<button class="btn btn-sm btn-success uncheck-voucher" data-id="'.$item->id.'"><i class="fas fa-check"></i> Checked</button>'
                 : '<button class="btn btn-sm btn-outline-primary check-voucher" data-id="'.$item->id.'"><i class="fas fa-check"></i> Check</button>';
 
+            // Generate URLs for charity and donor profile links
+            $charityUrl = route('charity.tranview', ['id' => $item->charity_id]);
+            $donorUrl = route('donor.profile', ['id' => $item->user_id]);
+
+            // --- Charity Info ---
+            $charityName = $item->charity->name ?? 'N/A';
+            $charityEmail = $item->charity->email ?? 'N/A';
+            $charityHtml = '<div style="line-height: 1.4;">';
+            $charityHtml .= '<a href="'.$charityUrl.'" target="_blank" class="text-decoration-none fw-bold text-success">'.$charityName.'</a>';
+            $charityHtml .= '<br><span class="badge bg-light text-secondary" style="font-size: 0.7rem; font-weight: normal;">'.$charityEmail.'</span>';
+            $charityHtml .= '</div>';
+
+            // --- Donor Info ---
+            $donorName = trim(($item->user->name ?? '') . ' ' . ($item->user->surname ?? ''));
+            if (empty($donorName)) $donorName = 'N/A';
+            $donorEmail = $item->user->email ?? 'N/A';
+            $donorHtml = '<div style="line-height: 1.4;">';
+            $donorHtml .= '<a href="'.$donorUrl.'" target="_blank" class="text-decoration-none fw-bold text-primary">'.$donorName.'</a>';
+            $donorHtml .= '<br><span class="badge bg-light text-secondary" style="font-size: 0.7rem; font-weight: normal;">'.$donorEmail.'</span>';
+            $donorHtml .= '</div>';
+
+            // --- Donor Balance (using getAvailableLimit) ---
+            $donorBalance = $item->user ? $item->user->getAvailableLimit() : 0;
+            $donorBalanceColor = $donorBalance < 0 ? 'text-danger' : 'text-success';
+
             return [
-                'charity' => $item->charity->name ?? 'N/A',
+                'charity' => $charityHtml,
                 'charity_balance' => '£' . number_format($item->charity->balance ?? 0, 2),
-                'donor'   => trim(($item->user->name ?? '') . ' ' . ($item->user->surname ?? '')),
-                'donor_balance' => '£' . number_format($item->user->balance ?? 0, 2),
+                'donor'   => $donorHtml,
+                'donor_balance' => '<span class="'.$donorBalanceColor.' fw-bold">£' . number_format($donorBalance, 2) . '</span>',
                 'standard_amount' => '£' . number_format($item->user->standard_amount ?? 0, 2),
                 'voucher' => $item->cheque_no,
                 'amount'  => '£' . number_format($item->amount, 2),

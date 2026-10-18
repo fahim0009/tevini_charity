@@ -5,7 +5,7 @@
 @section('content')
 
 <style>
-    #standing-table td { vertical-align: middle; }
+    #standing-table-active td, #standing-table-inactive td { vertical-align: middle; }
     .text-muted { opacity: 0.5; font-weight: normal; }
     .summary-card {
         border-left: 4px solid #4a90e2; background: #fff; padding: 15px;
@@ -47,16 +47,16 @@
         </div>
         <div class="col-md-3 mb-3">
             <div class="summary-card" style="border-left-color: #ffc107;">
-                <div class="card-title">Inactive Standing Orders</div>
+                <div class="card-title">Inactive/Complete</div>
                 <div class="card-value text-warning">{{ $inactiveStanding }}</div>
-                <div class="card-note">Paused or not yet started.</div>
+                <div class="card-note">Paused, ended or complete.</div>
             </div>
         </div>
         <div class="col-md-3 mb-3">
             <div class="summary-card" style="border-left-color: #6c757d;">
-                <div class="card-title">Complete Standing Orders</div>
-                <div class="card-value text-secondary">{{ $completeStanding }}</div>
-                <div class="card-note">All payments completed (Fixed type).</div>
+                <div class="card-title">Total Collected (All Time)</div>
+                <div class="card-value text-secondary">£{{ number_format($totalCollected, 2) }}</div>
+                <div class="card-note">Total amount collected from all standing orders.</div>
             </div>
         </div>
         <div class="col-md-6 mb-3">
@@ -168,12 +168,12 @@
         </div>
     </div>
 
-    <!-- ===== All Standing Donations ===== -->
-    <div class="section-title">All Standing Donations</div>
-    <div class="card shadow-sm border-0">
+    <!-- ===== Active Standing Donations ===== -->
+    <div class="section-title">Active Standing Donations</div>
+    <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover w-100" id="standing-table">
+                <table class="table table-hover w-100" id="standing-table-active">
                     <thead>
                         <tr>
                             <th>SL</th>
@@ -185,8 +185,41 @@
                             <th>Total Out</th>
                             <th>Amount</th>
                             <th>Type</th>
-                            <th>Total Payments</th>
+                            <th>Total</th>
                             <th>Paid</th>
+                            <th>Skipped</th>
+                            <th>Remaining</th>
+                            <th>Interval</th>
+                            <th>Start Date</th>
+                            <th>Next Payment</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Inactive Standing Donations ===== -->
+    <div class="section-title">Inactive / Complete Standing Donations</div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover w-100" id="standing-table-inactive">
+                    <thead>
+                        <tr>
+                            <th>SL</th>
+                            <th>Date</th>
+                            <th>Donor</th>
+                            <th>Charity</th>
+                            <th>Current Balance</th>
+                            <th>Total In</th>
+                            <th>Total Out</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Skipped</th>
                             <th>Remaining</th>
                             <th>Interval</th>
                             <th>Start Date</th>
@@ -200,16 +233,67 @@
     </div>
 </div>
 
+<!-- Payment Details Modal -->
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Standing Donation Payment History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Donor</th>
+                                <th>Charity</th>
+                                <th>Amount</th>
+                                <th>Instalment Date</th>
+                                <th>Mode</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-details-content"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('script')
 <script>
  $(function() {
-    let table = $('#standing-table').DataTable({
+    // Common columns for both tables
+    const columns = [
+        {data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false},
+        {data: 'date', name: 'created_at', searchable: false},
+        {data: 'donor', name: 'donor', searchable: true},
+        {data: 'charity', name: 'charity', searchable: true},
+        {data: 'current_balance', name: 'current_balance', searchable: false, orderable: false},
+        {data: 'balance_in', name: 'balance_in', searchable: false, orderable: false},
+        {data: 'balance_out', name: 'balance_out', searchable: false, orderable: false},
+        {data: 'amount', name: 'amount', searchable: false},
+        {data: 'payment_type', name: 'payment_type', searchable: false},
+        {data: 'total_payments', name: 'total_payments', searchable: false},
+        {data: 'payments_made', name: 'payments_made', searchable: false},
+        {data: 'payments_skipped', name: 'payments_skipped', searchable: false},
+        {data: 'payments_remaining', name: 'payments_remaining', searchable: false},
+        {data: 'interval_text', name: 'interval_text', searchable: false},
+        {data: 'start_date', name: 'start_date', searchable: false},
+        {data: 'next_payment', name: 'next_payment', searchable: false},
+        {data: 'status', name: 'status', searchable: false}
+    ];
+
+    // Active Table
+    let tableActive = $('#standing-table-active').DataTable({
         processing: true,
         serverSide: true,
         scrollX: true,
-        pageLength: 100,
+        pageLength: 25,
         lengthMenu: [[25, 50, 100, 200, -1], [25, 50, 100, 200, "All"]],
         ajax: {
             url: "{{ route('developer.standing_donations') }}",
@@ -217,26 +301,35 @@
                 d.filter_type = $('#filter_type').val();
                 d.fromDate = $('#fromDate').val();
                 d.toDate = $('#toDate').val();
+                d.tab_type = 'active';
             }
         },
-        columns: [
-            {data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false},
-            {data: 'date', name: 'created_at', searchable: false},
-            {data: 'donor', name: 'donor', searchable: true},
-            {data: 'charity', name: 'charity', searchable: true},
-            {data: 'current_balance', name: 'current_balance', searchable: false, orderable: false},
-            {data: 'balance_in', name: 'balance_in', searchable: false, orderable: false},
-            {data: 'balance_out', name: 'balance_out', searchable: false, orderable: false},
-            {data: 'amount', name: 'amount', searchable: false},
-            {data: 'payment_type', name: 'payment_type', searchable: false},
-            {data: 'total_payments', name: 'total_payments', searchable: false},
-            {data: 'payments_made', name: 'payments_made', searchable: false},
-            {data: 'payments_remaining', name: 'payments_remaining', searchable: false},
-            {data: 'interval_text', name: 'interval_text', searchable: false},
-            {data: 'start_date', name: 'start_date', searchable: false},
-            {data: 'next_payment', name: 'next_payment', searchable: false},
-            {data: 'status', name: 'status', searchable: false}
-        ],
+        columns: columns,
+        order: [[1, 'desc']],
+        dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',
+        buttons: [
+            { extend: 'excel', className: 'btn btn-sm btn-outline-success' },
+            { extend: 'pdf', className: 'btn btn-sm btn-outline-danger', orientation: 'landscape' }
+        ]
+    });
+
+    // Inactive Table
+    let tableInactive = $('#standing-table-inactive').DataTable({
+        processing: true,
+        serverSide: true,
+        scrollX: true,
+        pageLength: 25,
+        lengthMenu: [[25, 50, 100, 200, -1], [25, 50, 100, 200, "All"]],
+        ajax: {
+            url: "{{ route('developer.standing_donations') }}",
+            data: function (d) {
+                d.filter_type = $('#filter_type').val();
+                d.fromDate = $('#fromDate').val();
+                d.toDate = $('#toDate').val();
+                d.tab_type = 'inactive';
+            }
+        },
+        columns: columns,
         order: [[1, 'desc']],
         dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',
         buttons: [
@@ -257,13 +350,45 @@
     // Filter Handlers
     $('#filter-form').on('submit', function(e) {
         e.preventDefault();
-        table.draw();
+        tableActive.draw();
+        tableInactive.draw();
     });
 
     $('#reset-filter').on('click', function() {
         $('#filter_type').val('monthly').trigger('change');
         $('#fromDate, #toDate').val('');
-        table.draw();
+        tableActive.draw();
+        tableInactive.draw();
+    });
+
+    // Handle View Payments Click
+    $(document).on('click', '.view-payments', function() {
+        const standingId = $(this).data('id');
+        const url = "{{ route('developer.standing_payments', ':id') }}".replace(':id', standingId);
+
+        $('#payment-details-content').html('<tr><td colspan="6" class="text-center">Loading...</td></tr>');
+        $('#paymentDetailsModal').modal('show');
+
+        $.get(url, function(response) {
+            let html = '';
+            if(response.length === 0) {
+                html = '<tr><td colspan="6" class="text-center">No payment records found.</td></tr>';
+            } else {
+                response.forEach(item => {
+                    html += `<tr>
+                        <td>${item.donor}</td>
+                        <td>${item.charity}</td>
+                        <td>${item.amount}</td>
+                        <td>${item.date}</td>
+                        <td>${item.mode}</td>
+                        <td>${item.status}</td>
+                    </tr>`;
+                });
+            }
+            $('#payment-details-content').html(html);
+        }).fail(function() {
+            $('#payment-details-content').html('<tr><td colspan="6" class="text-center text-danger">Error loading payment details.</td></tr>');
+        });
     });
 });
 </script>

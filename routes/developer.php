@@ -35,8 +35,8 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
     Route::get('online-donations', [DeveloperToolDashboardController::class, 'onlineDonations'])
         ->name('developer.online_donations');
 
-    Route::get('standing-donations', [DeveloperToolDashboardController::class, 'standingDonations'])
-        ->name('developer.standing_donations');
+    Route::get('standing-donations', [DeveloperToolDashboardController::class, 'standingDonations'])->name('developer.standing_donations');
+    Route::get('standing-donations/{id}/payments', [DeveloperToolDashboardController::class, 'getStandingPaymentDetails'])->name('developer.standing_payments');
 
     Route::get('donors', [DeveloperToolDashboardController::class, 'donorMonitoring'])
         ->name('developer.donors');

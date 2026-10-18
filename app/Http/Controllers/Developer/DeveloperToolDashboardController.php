@@ -376,11 +376,19 @@ class DeveloperToolDashboardController extends Controller
             $filterType = $request->get('filter_type', 'monthly');
             $fromDate = $request->get('fromDate');
             $toDate = $request->get('toDate');
+            $tabType = $request->get('tab_type', 'active'); // active or inactive
             $today = Carbon::today();
 
             $query = StandingDonation::with(['user', 'charity'])
                 ->select('standing_donations.*')
                 ->orderBy('standing_donations.created_at', 'DESC');
+
+            // Filter by tab type
+            if ($tabType == 'active') {
+                $query->where('status', 1);
+            } else {
+                $query->whereIn('status', [0, 2]); // Inactive or Complete
+            }
 
             // Apply Date Filters (based on starting date)
             if ($filterType == 'daily') {
@@ -444,13 +452,22 @@ class DeveloperToolDashboardController extends Controller
                     return $row->payments == '1' ? ($row->number_payments ?? 0) : '<span class="text-muted">∞</span>';
                 })
                 ->addColumn('payments_made', function($row) {
-                    $made = StandingdonationDetail::where('standing_donation_id', $row->id)->count();
-                    return '<span class="badge bg-success">' . $made . '</span>';
+                    // Show count of successfully paid instalments + link to modal
+                    $made = StandingdonationDetail::where('standing_donation_id', $row->id)->where('status', 0)->count();
+                    if ($made > 0) {
+                        return '<a href="javascript:void(0)" class="badge bg-success view-payments" data-id="'.$row->id.'">' . $made . ' (View)</a>';
+                    }
+                    return '<span class="badge bg-light text-muted">0</span>';
+                })
+                ->addColumn('payments_skipped', function($row) {
+                    $skipped = StandingdonationDetail::where('standing_donation_id', $row->id)->where('status', 2)->count();
+                    return $skipped > 0 ? '<span class="badge bg-danger">' . $skipped . '</span>' : '<span class="badge bg-light text-muted">0</span>';
                 })
                 ->addColumn('payments_remaining', function($row) {
                     if ($row->payments == '1') {
-                        $made = StandingdonationDetail::where('standing_donation_id', $row->id)->count();
-                        $remaining = ($row->number_payments ?? 0) - $made;
+                        $made = StandingdonationDetail::where('standing_donation_id', $row->id)->where('status', 0)->count();
+                        $skipped = StandingdonationDetail::where('standing_donation_id', $row->id)->where('status', 2)->count();
+                        $remaining = ($row->number_payments ?? 0) - $made - $skipped;
                         return '<span class="badge bg-warning text-dark">' . max(0, $remaining) . '</span>';
                     }
                     return '<span class="text-muted">∞</span>';
@@ -485,15 +502,18 @@ class DeveloperToolDashboardController extends Controller
                         $q->where('name', 'like', "%{$keyword}%");
                     });
                 })
-                ->rawColumns(['donor', 'charity', 'amount', 'payment_type', 'total_payments', 'payments_made', 'payments_remaining', 'status', 'current_balance', 'balance_in', 'balance_out'])
+                ->rawColumns(['donor', 'charity', 'amount', 'payment_type', 'total_payments', 'payments_made', 'payments_skipped', 'payments_remaining', 'status', 'current_balance', 'balance_in', 'balance_out'])
                 ->make(true);
         }
 
         // --- Stat Cards ---
         $totalStanding = StandingDonation::count();
         $activeStanding = StandingDonation::where('status', 1)->count();
-        $inactiveStanding = StandingDonation::where('status', 0)->count();
+        $inactiveStanding = StandingDonation::whereIn('status', [0, 2])->count();
         $completeStanding = StandingDonation::where('status', 2)->count();
+
+        // Total collected amounts (from successful instalments)
+        $totalCollected = StandingdonationDetail::where('status', 0)->sum('amount');
 
         // --- Today's Standing Order Transactions ---
         $todaysStandingTransactions = Usertransaction::whereNotNull('standing_donationdetails_id')
@@ -537,8 +557,40 @@ class DeveloperToolDashboardController extends Controller
 
         return view('admin.developer.monitoring.standing_donations', compact(
             'totalStanding', 'activeStanding', 'inactiveStanding', 'completeStanding',
-            'todaysStandingTransactions', 'upcoming7DaysDonations', 'todayCollected', 'weekCollected'
+            'todaysStandingTransactions', 'upcoming7DaysDonations', 'todayCollected', 'weekCollected', 'totalCollected'
         ));
+    }
+
+    /**
+     * Get Standing Donation Payment Details (For Modal)
+     */
+    public function getStandingPaymentDetails($id)
+    {
+        // Get all instalment records for this standing donation
+        $details = StandingdonationDetail::with(['user', 'charity'])
+            ->where('standing_donation_id', $id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        return response()->json($details->map(function($item) {
+            $statusBadge = '';
+            if ($item->status == 0) {
+                $statusBadge = '<span class="badge bg-success">Paid</span>';
+            } elseif ($item->status == 2) {
+                $statusBadge = '<span class="badge bg-danger">Skipped (Insufficient Balance)</span>';
+            } else {
+                $statusBadge = '<span class="badge bg-warning text-dark">Pending</span>';
+            }
+
+            return [
+                'donor'   => ($item->user->name ?? 'N/A') . ' ' . ($item->user->surname ?? ''),
+                'charity' => $item->charity->name ?? 'N/A',
+                'amount'  => '£' . number_format($item->amount, 2),
+                'date'    => Carbon::parse($item->instalment_date)->format('d/m/Y'),
+                'mode'    => $item->instalment_mode,
+                'status'  => $statusBadge
+            ];
+        }));
     }
 
     /**

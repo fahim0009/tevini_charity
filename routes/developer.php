@@ -200,8 +200,9 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
     | reconciliation
     |----------------------------------------------------------------------    
     */
-    Route::get('reconciliation', [ReconciliationController::class, 'index'])->name('developer.reconciliation');
-    Route::post('reconciliation/update-actual', [ReconciliationController::class, 'updateActualBalance'])->name('developer.reconciliation.update_actual');
+    Route::get('reconciliation', [\App\Http\Controllers\Developer\ReconciliationController::class, 'index'])->name('developer.reconciliation');
+    Route::post('reconciliation/update-actual', [\App\Http\Controllers\Developer\ReconciliationController::class, 'updateActualBalance'])->name('developer.reconciliation.update_actual');
+    Route::post('reconciliation/toggle-check', [\App\Http\Controllers\Developer\ReconciliationController::class, 'toggleReconciliationCheck'])->name('developer.reconciliation.toggle_check');
 
 
 

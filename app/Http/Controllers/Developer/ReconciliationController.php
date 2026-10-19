@@ -17,7 +17,7 @@ class ReconciliationController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Step 1: Get daily sums from Usertransactions (only successful)
+            // Step 1: Get daily sums from Usertransactions
             $dailyUserTx = Usertransaction::where('status', 1)
                 ->selectRaw("
                     DATE(created_at) as date,
@@ -29,7 +29,7 @@ class ReconciliationController extends Controller
                 ->orderBy('date')
                 ->get();
 
-            // Step 2: Get daily sums from Transactions (AutoCharityPayment Out)
+            // Step 2: Get daily sums from Transactions
             $dailyCharityTx = Transaction::where('t_type', 'Out')
                 ->where('status', 1)
                 ->selectRaw("DATE(created_at) as date, SUM(amount) as daily_charity_out")
@@ -37,33 +37,25 @@ class ReconciliationController extends Controller
                 ->orderBy('date')
                 ->get();
 
-            // Step 3: Convert to lookup maps
             $userTxMap = [];
-            foreach ($dailyUserTx as $tx) {
-                $userTxMap[$tx->date] = $tx;
-            }
+            foreach ($dailyUserTx as $tx) { $userTxMap[$tx->date] = $tx; }
 
             $charityTxMap = [];
-            foreach ($dailyCharityTx as $tx) {
-                $charityTxMap[$tx->date] = $tx;
-            }
+            foreach ($dailyCharityTx as $tx) { $charityTxMap[$tx->date] = $tx; }
 
-            // Step 3.5: Get all saved actual balances
-            $actualBalances = DB::table('reconciliation_balances')
-                ->pluck('actual_balance', 'date')
-                ->toArray();
+            // Step 3: Get saved records (actual balance & check status)
+            $savedRecords = DB::table('reconciliation_balances')
+                ->get()
+                ->keyBy('date');
 
             // Step 4: Merge all unique dates
             $allDates = array_unique(array_merge(array_keys($userTxMap), array_keys($charityTxMap)));
             sort($allDates);
 
-            // Step 5: Calculate cumulative sums (bottom to top)
-            $cumIn = 0;
-            $cumOut = 0;
-            $cumCommission = 0;
-            $cumCharityOut = 0;
-
+            // Step 5: Calculate cumulative sums
+            $cumIn = 0; $cumOut = 0; $cumCommission = 0; $cumCharityOut = 0;
             $results = [];
+
             foreach ($allDates as $date) {
                 $userTx = $userTxMap[$date] ?? null;
                 $charityTx = $charityTxMap[$date] ?? null;
@@ -72,14 +64,14 @@ class ReconciliationController extends Controller
                 $dailyOut = (float)($userTx->daily_out ?? 0);
                 $dailyCommission = (float)($userTx->daily_commission ?? 0);
                 $dailyCharityOut = (float)($charityTx->daily_charity_out ?? 0);
+                $dailyCharityIn = $dailyOut;
 
                 $cumIn += $dailyIn;
                 $cumOut += $dailyOut;
                 $cumCommission += $dailyCommission;
                 $cumCharityOut += $dailyCharityOut;
 
-                // Charity In = Donor Out (same transaction)
-                $dailyCharityIn = $dailyOut;
+                $savedRecord = $savedRecords[$date] ?? null;
 
                 $results[] = [
                     'date' => $date,
@@ -90,11 +82,11 @@ class ReconciliationController extends Controller
                     'daily_charity_out' => $dailyCharityOut,
                     'charity_balance' => $cumOut - $cumCharityOut,
                     'commission' => $cumCommission,
-                    'actual_balance' => $actualBalances[$date] ?? null,
+                    'actual_balance' => $savedRecord ? $savedRecord->actual_balance : null,
+                    'is_checked' => $savedRecord ? $savedRecord->is_checked : 0,
                 ];
             }
 
-            // Reverse: newest at top
             $results = array_reverse($results);
 
             // Step 6: DataTables pagination
@@ -103,13 +95,9 @@ class ReconciliationController extends Controller
             $search = $request->get('search')['value'] ?? '';
             $draw = (int)$request->get('draw', 1);
 
-            // Filter if searching
             if (!empty($search)) {
                 $results = array_filter($results, function($item) use ($search) {
-                    return stripos($item['date'], $search) !== false
-                        || stripos((string)$item['donor_balance'], $search) !== false
-                        || stripos((string)$item['charity_balance'], $search) !== false
-                        || stripos((string)$item['commission'], $search) !== false;
+                    return stripos($item['date'], $search) !== false;
                 });
                 $results = array_values($results);
             }
@@ -117,18 +105,32 @@ class ReconciliationController extends Controller
             $total = count($results);
             $pageData = array_slice($results, $start, $length);
 
-            // Format data for DataTables
             $formattedData = [];
             $sl = $start + 1;
+            
             foreach ($pageData as $row) {
                 $donorColor = $row['donor_balance'] < 0 ? 'text-danger' : 'text-success';
                 $charityColor = $row['charity_balance'] < 0 ? 'text-danger' : 'text-success';
 
+                // Check/Undo Button
+                $checkedBtn = $row['is_checked'] == 1 
+                    ? '<button class="btn btn-sm btn-success toggle-check-btn" data-date="'.$row['date'].'"><i class="fas fa-check-circle"></i> Checked</button>'
+                    : '<button class="btn btn-sm btn-outline-primary toggle-check-btn" data-date="'.$row['date'].'"><i class="fas fa-circle"></i> Check</button>';
+
                 // Actual Balance Input
                 $actualVal = $row['actual_balance'] !== null ? number_format($row['actual_balance'], 2, '.', '') : '';
                 $actualBalanceHtml = '<div class="input-group input-group-sm" style="max-width: 140px;">';
-                $actualBalanceHtml .= '<input type="number" step="0.01" class="form-control actual-balance-input" data-date="'.$row['date'].'" value="'.$actualVal.'" placeholder="0.00">';
-                $actualBalanceHtml .= '<button type="button" class="btn btn-outline-primary save-actual-balance" data-date="'.$row['date'].'"><i class="fas fa-save"></i></button>';
+                $actualBalanceHtml .= '<input type="number" step="0.01" class="form-control actual-balance-input" value="'.$actualVal.'" placeholder="0.00">';
+                $actualBalanceHtml .= '<button type="button" class="btn btn-outline-primary save-actual-balance" 
+                    data-date="'.$row['date'].'" 
+                    data-donor-in="'.$row['daily_donor_in'].'" 
+                    data-donor-out="'.$row['daily_donor_out'].'" 
+                    data-donor-bal="'.$row['donor_balance'].'" 
+                    data-charity-in="'.$row['daily_charity_in'].'" 
+                    data-charity-out="'.$row['daily_charity_out'].'" 
+                    data-charity-bal="'.$row['charity_balance'].'" 
+                    data-commission="'.$row['commission'].'">
+                    <i class="fas fa-save"></i></button>';
                 $actualBalanceHtml .= '</div>';
 
                 $formattedData[] = [
@@ -142,6 +144,7 @@ class ReconciliationController extends Controller
                     'charity_balance' => '<span class="'.$charityColor.' fw-bold">£' . number_format($row['charity_balance'], 2) . '</span>',
                     'commission' => '<span class="text-warning fw-bold">£' . number_format($row['commission'], 2) . '</span>',
                     'actual_balance' => $actualBalanceHtml,
+                    'checked_btn' => $checkedBtn
                 ];
             }
 
@@ -153,36 +156,17 @@ class ReconciliationController extends Controller
             ]);
         }
 
-        // --- Summary Cards (Latest Values) ---
-        $latestDonorIn = Usertransaction::where('status', 1)
-            ->where('t_type', 'In')
-            ->selectRaw("SUM(CAST(amount AS DECIMAL(10,2))) as total")
-            ->value('total') ?? 0;
-
-        $latestDonorOut = Usertransaction::where('status', 1)
-            ->where('t_type', 'Out')
-            ->selectRaw("SUM(CAST(amount AS DECIMAL(10,2))) as total")
-            ->value('total') ?? 0;
-
+        // Summary Cards
+        $latestDonorIn = Usertransaction::where('status', 1)->where('t_type', 'In')->selectRaw("SUM(CAST(amount AS DECIMAL(10,2))) as total")->value('total') ?? 0;
+        $latestDonorOut = Usertransaction::where('status', 1)->where('t_type', 'Out')->selectRaw("SUM(CAST(amount AS DECIMAL(10,2))) as total")->value('total') ?? 0;
         $latestDonorBalance = $latestDonorIn - $latestDonorOut;
 
-        $latestCharityIn = Usertransaction::where('status', 1)
-            ->where('t_type', 'Out')
-            ->selectRaw("SUM(CAST(amount AS DECIMAL(10,2))) as total")
-            ->value('total') ?? 0;
-
-        $latestCharityOut = Transaction::where('t_type', 'Out')
-            ->where('status', 1)
-            ->sum('amount') ?? 0;
-
+        $latestCharityIn = Usertransaction::where('status', 1)->where('t_type', 'Out')->selectRaw("SUM(CAST(amount AS DECIMAL(10,2))) as total")->value('total') ?? 0;
+        $latestCharityOut = Transaction::where('t_type', 'Out')->where('status', 1)->sum('amount') ?? 0;
         $latestCharityBalance = $latestCharityIn - $latestCharityOut;
 
-        $latestCommission = Usertransaction::where('status', 1)
-            ->where('t_type', 'In')
-            ->sum('commission') ?? 0;
-
-        $totalDates = Usertransaction::selectRaw('COUNT(DISTINCT DATE(created_at)) as count')->value('count')
-            + Transaction::selectRaw('COUNT(DISTINCT DATE(created_at)) as count')->value('count');
+        $latestCommission = Usertransaction::where('status', 1)->where('t_type', 'In')->sum('commission') ?? 0;
+        $totalDates = Usertransaction::selectRaw('COUNT(DISTINCT DATE(created_at)) as count')->value('count') + Transaction::selectRaw('COUNT(DISTINCT DATE(created_at)) as count')->value('count');
 
         return view('admin.developer.reconciliation', compact(
             'latestDonorBalance', 'latestCharityBalance', 'latestCommission', 'totalDates'
@@ -190,7 +174,7 @@ class ReconciliationController extends Controller
     }
 
     /**
-     * Save Actual Balance (AJAX)
+     * Save Actual Balance & All Calculations (AJAX)
      */
     public function updateActualBalance(Request $request)
     {
@@ -203,12 +187,52 @@ class ReconciliationController extends Controller
             ['date' => $request->date],
             [
                 'actual_balance' => $request->actual_balance,
+                'all_donor_in' => $request->all_donor_in ?? 0,
+                'all_donor_out' => $request->all_donor_out ?? 0,
+                'all_donor_total_balance' => $request->all_donor_total_balance ?? 0,
+                'all_charity_in' => $request->all_charity_in ?? 0,
+                'all_charity_out' => $request->all_charity_out ?? 0,
+                'all_charit_total_balance' => $request->all_charity_total_balance ?? 0, // Note: kept your migration typo
+                'total_commission' => $request->total_commission ?? 0,
                 'updated_by' => auth()->user()->name ?? 'Developer',
                 'updated_at' => now(),
                 'created_at' => now()
             ]
         );
 
-        return response()->json(['success' => true, 'message' => 'Actual balance saved successfully.']);
+        return response()->json(['success' => true, 'message' => 'Data saved successfully.']);
+    }
+
+    /**
+     * Toggle Check Status (AJAX)
+     */
+    public function toggleReconciliationCheck(Request $request)
+    {
+        $request->validate(['date' => 'required|date']);
+
+        $record = DB::table('reconciliation_balances')->where('date', $request->date)->first();
+
+        if ($record) {
+            $newStatus = $record->is_checked == 1 ? 0 : 1;
+            DB::table('reconciliation_balances')->where('date', $request->date)->update([
+                'is_checked' => $newStatus,
+                'checked_by' => auth()->id(),
+                'updated_by' => auth()->user()->name ?? 'Developer',
+                'updated_at' => now()
+            ]);
+        } else {
+            // If record doesn't exist, create one just for checking
+            DB::table('reconciliation_balances')->insert([
+                'date' => $request->date,
+                'is_checked' => 1,
+                'checked_by' => auth()->id(),
+                'updated_by' => auth()->user()->name ?? 'Developer',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            $newStatus = 1;
+        }
+
+        return response()->json(['success' => true, 'is_checked' => $newStatus]);
     }
 }

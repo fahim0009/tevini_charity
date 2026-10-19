@@ -108,6 +108,7 @@
                             <th>All Charity Total Balance</th>
                             <th>Total Commission</th>
                             <th>Actual Balance</th>
+                            <th>Checked</th> <!-- New Column -->
                         </tr>
                     </thead>
                 </table>
@@ -141,7 +142,8 @@
             {data: 'daily_charity_out', name: 'daily_charity_out', searchable: false, orderable: false},
             {data: 'charity_balance', name: 'charity_balance', searchable: false, orderable: false},
             {data: 'commission', name: 'commission', searchable: false, orderable: false},
-            {data: 'actual_balance', name: 'actual_balance', searchable: false, orderable: false}
+            {data: 'actual_balance', name: 'actual_balance', searchable: false, orderable: false},
+            {data: 'checked_btn', name: 'checked_btn', searchable: false, orderable: false} // New Column
         ],
         order: [[1, 'desc']],
         dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',
@@ -153,10 +155,9 @@
 
     // Handle Save Actual Balance
     $(document).on('click', '.save-actual-balance', function() {
-        var date = $(this).data('date');
-        var input = $(this).siblings('.actual-balance-input');
-        var value = input.val();
         var btn = $(this);
+        var input = btn.siblings('.actual-balance-input');
+        var value = input.val();
         var originalHtml = btn.html();
 
         if (value === '' || isNaN(value)) {
@@ -171,19 +172,24 @@
             type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
-                date: date,
-                actual_balance: value
+                date: btn.data('date'),
+                actual_balance: value,
+                all_donor_in: btn.data('donor-in'),
+                all_donor_out: btn.data('donor-out'),
+                all_donor_total_balance: btn.data('donor-bal'),
+                all_charity_in: btn.data('charity-in'),
+                all_charity_out: btn.data('charity-out'),
+                all_charity_total_balance: btn.data('charity-bal'),
+                total_commission: btn.data('commission')
             },
             success: function(res) {
                 if (res.success) {
                     btn.html('<i class="fas fa-check"></i>');
-                    setTimeout(function() {
-                        btn.html(originalHtml);
-                    }, 1500);
+                    setTimeout(function() { btn.html(originalHtml); }, 1500);
                 }
             },
             error: function() {
-                alert('Error saving actual balance.');
+                alert('Error saving data.');
                 btn.html(originalHtml);
             },
             complete: function() {
@@ -198,6 +204,39 @@
             e.preventDefault();
             $(this).siblings('.save-actual-balance').click();
         }
+    });
+
+    // Handle Check/Uncheck
+    $(document).on('click', '.toggle-check-btn', function() {
+        var btn = $(this);
+        var date = btn.data('date');
+        var originalHtml = btn.html();
+
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: "{{ route('developer.reconciliation.toggle_check') }}",
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}', date: date },
+            success: function(res) {
+                if (res.success) {
+                    if (res.is_checked == 1) {
+                        btn.removeClass('btn-outline-primary').addClass('btn-success');
+                        btn.html('<i class="fas fa-check-circle"></i> Checked');
+                    } else {
+                        btn.removeClass('btn-success').addClass('btn-outline-primary');
+                        btn.html('<i class="fas fa-circle"></i> Check');
+                    }
+                }
+            },
+            error: function() {
+                alert('Error updating check status.');
+                btn.html(originalHtml);
+            },
+            complete: function() {
+                btn.prop('disabled', false);
+            }
+        });
     });
 });
 </script>

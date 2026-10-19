@@ -112,6 +112,10 @@ class ReconciliationController extends Controller
                 $donorColor = $row['donor_balance'] < 0 ? 'text-danger' : 'text-success';
                 $charityColor = $row['charity_balance'] < 0 ? 'text-danger' : 'text-success';
 
+                // Generate Links for Audit Pages
+                $auditDonorUrl = route('dev.auditDonors') . '?filter_type=custom&fromDate=' . $row['date'] . '&toDate=' . $row['date'];
+                $auditCharityUrl = route('admin.audit.balances') . '?filter_type=custom&fromDate=' . $row['date'] . '&toDate=' . $row['date'];
+
                 // Check/Undo Button
                 $checkedBtn = $row['is_checked'] == 1 
                     ? '<button class="btn btn-sm btn-success toggle-check-btn" data-date="'.$row['date'].'"><i class="fas fa-check-circle"></i> Checked</button>'
@@ -138,10 +142,12 @@ class ReconciliationController extends Controller
                     'date' => '<span data-raw="'.$row['date'].'">' . Carbon::parse($row['date'])->format('d M, Y') . '</span>',
                     'daily_donor_in' => '<span class="text-success">£' . number_format($row['daily_donor_in'], 2) . '</span>',
                     'daily_donor_out' => '<span class="text-danger">£' . number_format($row['daily_donor_out'], 2) . '</span>',
-                    'donor_balance' => '<span class="'.$donorColor.' fw-bold">£' . number_format($row['donor_balance'], 2) . '</span>',
+                    // Make Donor Balance a Link
+                    'donor_balance' => '<a href="'.$auditDonorUrl.'" target="_blank" class="'.$donorColor.' fw-bold text-decoration-none hover-underline">£' . number_format($row['donor_balance'], 2) . '</a>',
                     'daily_charity_in' => '<span class="text-success">£' . number_format($row['daily_charity_in'], 2) . '</span>',
                     'daily_charity_out' => '<span class="text-danger">£' . number_format($row['daily_charity_out'], 2) . '</span>',
-                    'charity_balance' => '<span class="'.$charityColor.' fw-bold">£' . number_format($row['charity_balance'], 2) . '</span>',
+                    // Make Charity Balance a Link
+                    'charity_balance' => '<a href="'.$auditCharityUrl.'" target="_blank" class="'.$charityColor.' fw-bold text-decoration-none hover-underline">£' . number_format($row['charity_balance'], 2) . '</a>',
                     'commission' => '<span class="text-warning fw-bold">£' . number_format($row['commission'], 2) . '</span>',
                     'actual_balance' => $actualBalanceHtml,
                     'checked_btn' => $checkedBtn

@@ -228,21 +228,21 @@
                 <div class="col-md-2">
                     <label class="form-label small fw-bold">Filter Type</label>
                     <select id="filter_type" class="form-control form-control-sm">
-                        <option value="monthly" selected>Monthly</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="last7">Last 7 days</option>
-                        <option value="custom">Date to Date</option>
-                        <option value="all">ALL</option>
+                        <option value="monthly" @if(request('filter_type') == 'monthly') selected @endif>Monthly</option>
+                        <option value="daily" @if(request('filter_type') == 'daily') selected @endif>Daily</option>
+                        <option value="weekly" @if(request('filter_type') == 'weekly') selected @endif>Weekly</option>
+                        <option value="last7" @if(request('filter_type') == 'last7') selected @endif>Last 7 days</option>
+                        <option value="custom" @if(request('filter_type') == 'custom') selected @endif>Date to Date</option>
+                        <option value="all" @if(request('filter_type') == 'all') selected @endif>ALL</option>
                     </select>
                 </div>
-                <div class="col-md-2 date-range-wrap" style="display:none;">
+                <div class="col-md-2 date-range-wrap" style="display: {{ request('filter_type') == 'custom' ? 'block' : 'none' }};">
                     <label class="form-label small fw-bold">Date From</label>
-                    <input type="date" id="fromDate" class="form-control form-control-sm">
+                    <input type="date" id="fromDate" class="form-control form-control-sm" value="{{ request('fromDate') }}">
                 </div>
-                <div class="col-md-2 date-range-wrap" style="display:none;">
+                <div class="col-md-2 date-range-wrap" style="display: {{ request('filter_type') == 'custom' ? 'block' : 'none' }};">
                     <label class="form-label small fw-bold">Date To</label>
-                    <input type="date" id="toDate" class="form-control form-control-sm">
+                    <input type="date" id="toDate" class="form-control form-control-sm" value="{{ request('toDate') }}">
                 </div>
                 <div class="col-md-6">
                     <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filter</button>
@@ -330,6 +330,13 @@
             { extend: 'pdf', className: 'btn btn-sm btn-outline-danger', orientation: 'landscape' }
         ]
     });
+
+    if (window.location.search.includes('filter_type=custom')) {
+        // Ensure date range fields are visible
+        $('.date-range-wrap').show();
+        // Trigger a draw to load the specific date data immediately
+        table.draw();
+    }
 
     $('#filter_type').on('change', function() {
         if ($(this).val() == 'custom') {

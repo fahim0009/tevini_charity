@@ -585,6 +585,10 @@
                 <span><i class="fas fa-ticket-alt"></i> Vouchers Books</span>
                 <i class="fas fa-chevron-right"></i>
             </a>
+            <a href="{{ route('developer.reconciliation') }}" class="monitoring-link">
+                <span><i class="fas fa-balance-scale"></i> Balance Reconciliation</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
         </div>
     </div>
 

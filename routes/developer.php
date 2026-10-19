@@ -7,6 +7,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Developer\DeveloperToolController;
 use App\Http\Controllers\Developer\DeveloperToolDashboardController;
+use App\Http\Controllers\Developer\ReconciliationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -191,5 +192,17 @@ Route::group(['prefix' => 'admin/dev-team/', 'middleware' => ['auth', 'is_admin'
         ->name('charityPaymentCreate');
     Route::post('/charity-payment', [SystemController::class, 'charityPaymentStore'])
         ->name('charityPaymentStore');
+
+
+
+    /*
+    |----------------------------------------------------------------------    
+    | reconciliation
+    |----------------------------------------------------------------------    
+    */
+    Route::get('reconciliation', [ReconciliationController::class, 'index'])->name('developer.reconciliation');
+    Route::post('reconciliation/update-actual', [ReconciliationController::class, 'updateActualBalance'])->name('developer.reconciliation.update_actual');
+
+
 
 }); // End of Developer Routes

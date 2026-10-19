@@ -301,6 +301,14 @@
         {data: 'voucher_sum', name: 'voucher_sum', title: 'Voucher', searchable: false},
         {data: 'campaign_sum', name: 'campaign_sum', title: 'Campaign', searchable: false},
         {data: 'card_sum', name: 'card_sum', title: 'Card', searchable: false},
+
+        // --- NEW COLUMNS ---
+        {data: 'book_order_sum', name: 'book_order_sum', title: 'Book Order', searchable: false},
+        {data: 'delivery_cost_sum', name: 'delivery_cost_sum', title: 'Delivery Cost', searchable: false},
+        {data: 'tdf_sum', name: 'tdf_sum', title: 'TDF', searchable: false},
+        {data: 'gift_aid_sum', name: 'gift_aid_sum', title: 'Gift AID', searchable: false},
+        // -------------------
+        
         {data: 'topup_sum', name: 'topup_sum', title: 'Topup', searchable: false},
         {data: 'commission_sum', name: 'commission_sum', title: 'Commission', searchable: false},
         {data: 'total_sum', name: 'total_sum', title: 'Total', className: 'fw-bold text-primary', searchable: false},

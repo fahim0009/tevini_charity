@@ -18,22 +18,25 @@ class ReconciliationController extends Controller
     {
         if ($request->ajax()) {
             // Step 1: Get daily sums from Usertransactions
+            // Step 1: Get daily sums from Usertransactions (using business_date)
             $dailyUserTx = Usertransaction::where('status', 1)
+                ->whereNotNull('business_date')
                 ->selectRaw("
-                    DATE(created_at) as date,
+                    business_date as date,
                     SUM(CASE WHEN t_type = 'In' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_in,
                     SUM(CASE WHEN t_type = 'Out' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_out,
                     SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as daily_commission
                 ")
-                ->groupBy(DB::raw('DATE(created_at)'))
+                ->groupBy('business_date')
                 ->orderBy('date')
                 ->get();
 
-            // Step 2: Get daily sums from Transactions
+            // Step 2: Get daily sums from Transactions (using business_date)
             $dailyCharityTx = Transaction::where('t_type', 'Out')
                 ->where('status', 1)
-                ->selectRaw("DATE(created_at) as date, SUM(amount) as daily_charity_out")
-                ->groupBy(DB::raw('DATE(created_at)'))
+                ->whereNotNull('business_date')
+                ->selectRaw("business_date as date, SUM(amount) as daily_charity_out")
+                ->groupBy('business_date')
                 ->orderBy('date')
                 ->get();
 

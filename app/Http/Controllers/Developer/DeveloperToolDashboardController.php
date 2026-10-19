@@ -1395,9 +1395,15 @@ class DeveloperToolDashboardController extends Controller
                     DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
                     DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
                     
-                    // New Columns: Topup, Commission, Total, Balance
+                    // NEW COLUMNS (Before Topup)
+                    DB::raw("SUM(CASE WHEN title = 'Prepaid Voucher Book' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as book_order_sum"),
+                    DB::raw("SUM(CASE WHEN title = 'Delivery Charge' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as delivery_cost_sum"),
+                    DB::raw("SUM(CASE WHEN title = 'Transfer to TDF' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as tdf_sum"),
+                    DB::raw("SUM(CASE WHEN gift = 1 THEN (CAST(amount AS DECIMAL(10,2)) + commission) * 0.25 ELSE 0 END) as gift_aid_sum"),
+                    
+                    // Topup, Commission, Total, Balance
                     DB::raw("SUM(CASE WHEN t_type = 'In' THEN amount ELSE 0 END) as topup_sum"),
-                    DB::raw("SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as commission_sum"), // Added Commission
+                    DB::raw("SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as commission_sum"),
                     DB::raw("SUM(CASE WHEN t_type = 'Out' THEN amount ELSE 0 END) as total_sum"),
                     DB::raw("(SUM(CASE WHEN t_type = 'In' THEN amount ELSE 0 END) - SUM(CASE WHEN t_type = 'Out' THEN amount ELSE 0 END)) as balance_sum")
                 ])
@@ -1480,9 +1486,30 @@ class DeveloperToolDashboardController extends Controller
                     if ($row->card_sum <= 0) return '<span class="text-muted">£0.00</span>';
                     return '<a href="javascript:void(0)" class="view-details text-primary text-decoration-none fw-bold hover-underline" data-type="card" data-donor="'.$row->user_id.'" data-date="'.Carbon::parse($row->date_group)->format('Y-m-d').'">£' . number_format($row->card_sum, 2) . '</a>';
                 })
+
+                // --- NEW COLUMNS FORMATTING ---
+                ->editColumn('book_order_sum', function($row) {
+                    if ($row->book_order_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '£' . number_format($row->book_order_sum, 2);
+                })
+                ->editColumn('delivery_cost_sum', function($row) {
+                    if ($row->delivery_cost_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '£' . number_format($row->delivery_cost_sum, 2);
+                })
+                ->editColumn('tdf_sum', function($row) {
+                    if ($row->tdf_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '£' . number_format($row->tdf_sum, 2);
+                })
+                ->editColumn('gift_aid_sum', function($row) {
+                    if ($row->gift_aid_sum <= 0) return '<span class="text-muted">£0.00</span>';
+                    return '<span class="text-success">£' . number_format($row->gift_aid_sum, 2) . '</span>';
+                })
+                // -------------------------------
+
+
                 ->rawColumns([
                     'date_group', 'donor_name', 'topup_sum', 'commission_sum', 'total_sum', 'balance_sum', 'online_sum', 
-                    'standing_sum', 'voucher_sum', 'campaign_sum', 'card_sum'
+                    'standing_sum', 'voucher_sum', 'campaign_sum', 'card_sum','book_order_sum', 'delivery_cost_sum', 'tdf_sum', 'gift_aid_sum'
                 ])
                 ->make(true);
         }

@@ -101,14 +101,17 @@
                             <th>SL</th>
                             <th>Date</th>
                             <th>Donor IN (Topup)</th>
-                            <th>Donor OUT</th>
+                            <th>Book Order</th> <!-- New -->
+                            <th>Delivery Cost</th> <!-- New -->
+                            <th>TDF Transfer</th> <!-- New -->
+                            <th>Donor OUT (Total)</th>
                             <th>All Donor Total Balance</th>
                             <th>Charity IN</th>
                             <th>Charity OUT</th>
                             <th>All Charity Total Balance</th>
                             <th>Total Commission</th>
                             <th>Actual Balance</th>
-                            <th>Checked</th> <!-- New Column -->
+                            <th>Checked</th>
                         </tr>
                     </thead>
                 </table>
@@ -136,6 +139,9 @@
             {data: 'sl', name: 'sl', searchable: false, orderable: false},
             {data: 'date', name: 'date', searchable: true},
             {data: 'daily_donor_in', name: 'daily_donor_in', searchable: false, orderable: false},
+            {data: 'daily_book_order', name: 'daily_book_order', searchable: false, orderable: false}, // New
+            {data: 'daily_delivery', name: 'daily_delivery', searchable: false, orderable: false}, // New
+            {data: 'daily_tdf', name: 'daily_tdf', searchable: false, orderable: false}, // New
             {data: 'daily_donor_out', name: 'daily_donor_out', searchable: false, orderable: false},
             {data: 'donor_balance', name: 'donor_balance', searchable: false, orderable: false},
             {data: 'daily_charity_in', name: 'daily_charity_in', searchable: false, orderable: false},
@@ -143,7 +149,7 @@
             {data: 'charity_balance', name: 'charity_balance', searchable: false, orderable: false},
             {data: 'commission', name: 'commission', searchable: false, orderable: false},
             {data: 'actual_balance', name: 'actual_balance', searchable: false, orderable: false},
-            {data: 'checked_btn', name: 'checked_btn', searchable: false, orderable: false} // New Column
+            {data: 'checked_btn', name: 'checked_btn', searchable: false, orderable: false}
         ],
         order: [[1, 'desc']],
         dom: '<"row mb-3"<"col-md-4"l><"col-md-4 text-center"B><"col-md-4"f>>rt<"row"<"col-md-5"i><"col-md-7"p>>',

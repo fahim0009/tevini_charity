@@ -18,20 +18,23 @@ class ReconciliationController extends Controller
     {
         if ($request->ajax()) {
             // Step 1: Get daily sums from Usertransactions
-            // Step 1: Get daily sums from Usertransactions (using business_date)
             $dailyUserTx = Usertransaction::where('status', 1)
                 ->whereNotNull('business_date')
                 ->selectRaw("
                     business_date as date,
                     SUM(CASE WHEN t_type = 'In' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_in,
                     SUM(CASE WHEN t_type = 'Out' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_out,
-                    SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as daily_commission
+                    SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as daily_commission,
+                    SUM(CASE WHEN t_type = 'Out' AND charity_id IS NOT NULL THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_charity_in,
+                    SUM(CASE WHEN title = 'Prepaid Voucher Book' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_book_order,
+                    SUM(CASE WHEN title = 'Delivery Charge' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_delivery,
+                    SUM(CASE WHEN title = 'Transfer to TDF' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as daily_tdf
                 ")
                 ->groupBy('business_date')
                 ->orderBy('date')
                 ->get();
 
-            // Step 2: Get daily sums from Transactions (using business_date)
+            // Step 2: Get daily sums from Transactions
             $dailyCharityTx = Transaction::where('t_type', 'Out')
                 ->where('status', 1)
                 ->whereNotNull('business_date')
@@ -46,17 +49,12 @@ class ReconciliationController extends Controller
             $charityTxMap = [];
             foreach ($dailyCharityTx as $tx) { $charityTxMap[$tx->date] = $tx; }
 
-            // Step 3: Get saved records (actual balance & check status)
-            $savedRecords = DB::table('reconciliation_balances')
-                ->get()
-                ->keyBy('date');
+            $savedRecords = DB::table('reconciliation_balances')->get()->keyBy('date');
 
-            // Step 4: Merge all unique dates
             $allDates = array_unique(array_merge(array_keys($userTxMap), array_keys($charityTxMap)));
             sort($allDates);
 
-            // Step 5: Calculate cumulative sums
-            $cumIn = 0; $cumOut = 0; $cumCommission = 0; $cumCharityOut = 0;
+            $cumIn = 0; $cumOut = 0; $cumCommission = 0; $cumCharityOut = 0; $cumCharityIn = 0;
             $results = [];
 
             foreach ($allDates as $date) {
@@ -67,23 +65,30 @@ class ReconciliationController extends Controller
                 $dailyOut = (float)($userTx->daily_out ?? 0);
                 $dailyCommission = (float)($userTx->daily_commission ?? 0);
                 $dailyCharityOut = (float)($charityTx->daily_charity_out ?? 0);
-                $dailyCharityIn = $dailyOut;
+                $dailyCharityIn = (float)($userTx->daily_charity_in ?? 0);
+                $dailyBookOrder = (float)($userTx->daily_book_order ?? 0);
+                $dailyDelivery = (float)($userTx->daily_delivery ?? 0);
+                $dailyTdf = (float)($userTx->daily_tdf ?? 0);
 
                 $cumIn += $dailyIn;
                 $cumOut += $dailyOut;
                 $cumCommission += $dailyCommission;
                 $cumCharityOut += $dailyCharityOut;
+                $cumCharityIn += $dailyCharityIn;
 
                 $savedRecord = $savedRecords[$date] ?? null;
 
                 $results[] = [
                     'date' => $date,
                     'daily_donor_in' => $dailyIn,
+                    'daily_book_order' => $dailyBookOrder,
+                    'daily_delivery' => $dailyDelivery,
+                    'daily_tdf' => $dailyTdf,
                     'daily_donor_out' => $dailyOut,
                     'donor_balance' => $cumIn - $cumOut,
                     'daily_charity_in' => $dailyCharityIn,
                     'daily_charity_out' => $dailyCharityOut,
-                    'charity_balance' => $cumOut - $cumCharityOut,
+                    'charity_balance' => $cumCharityIn - $cumCharityOut,
                     'commission' => $cumCommission,
                     'actual_balance' => $savedRecord ? $savedRecord->actual_balance : null,
                     'is_checked' => $savedRecord ? $savedRecord->is_checked : 0,
@@ -115,16 +120,13 @@ class ReconciliationController extends Controller
                 $donorColor = $row['donor_balance'] < 0 ? 'text-danger' : 'text-success';
                 $charityColor = $row['charity_balance'] < 0 ? 'text-danger' : 'text-success';
 
-                // Generate Links for Audit Pages
                 $auditDonorUrl = route('dev.auditDonors') . '?filter_type=custom&fromDate=' . $row['date'] . '&toDate=' . $row['date'];
                 $auditCharityUrl = route('admin.audit.balances') . '?filter_type=custom&fromDate=' . $row['date'] . '&toDate=' . $row['date'];
 
-                // Check/Undo Button
                 $checkedBtn = $row['is_checked'] == 1 
                     ? '<button class="btn btn-sm btn-success toggle-check-btn" data-date="'.$row['date'].'"><i class="fas fa-check-circle"></i> Checked</button>'
                     : '<button class="btn btn-sm btn-outline-primary toggle-check-btn" data-date="'.$row['date'].'"><i class="fas fa-circle"></i> Check</button>';
 
-                // Actual Balance Input
                 $actualVal = $row['actual_balance'] !== null ? number_format($row['actual_balance'], 2, '.', '') : '';
                 $actualBalanceHtml = '<div class="input-group input-group-sm" style="max-width: 140px;">';
                 $actualBalanceHtml .= '<input type="number" step="0.01" class="form-control actual-balance-input" value="'.$actualVal.'" placeholder="0.00">';
@@ -144,12 +146,13 @@ class ReconciliationController extends Controller
                     'sl' => $sl++,
                     'date' => '<span data-raw="'.$row['date'].'">' . Carbon::parse($row['date'])->format('d M, Y') . '</span>',
                     'daily_donor_in' => '<span class="text-success">£' . number_format($row['daily_donor_in'], 2) . '</span>',
+                    'daily_book_order' => $row['daily_book_order'] > 0 ? '<span class="text-danger">£' . number_format($row['daily_book_order'], 2) . '</span>' : '<span class="text-muted">£0.00</span>',
+                    'daily_delivery' => $row['daily_delivery'] > 0 ? '<span class="text-danger">£' . number_format($row['daily_delivery'], 2) . '</span>' : '<span class="text-muted">£0.00</span>',
+                    'daily_tdf' => $row['daily_tdf'] > 0 ? '<span class="text-danger">£' . number_format($row['daily_tdf'], 2) . '</span>' : '<span class="text-muted">£0.00</span>',
                     'daily_donor_out' => '<span class="text-danger">£' . number_format($row['daily_donor_out'], 2) . '</span>',
-                    // Make Donor Balance a Link
                     'donor_balance' => '<a href="'.$auditDonorUrl.'" target="_blank" class="'.$donorColor.' fw-bold text-decoration-none hover-underline">£' . number_format($row['donor_balance'], 2) . '</a>',
                     'daily_charity_in' => '<span class="text-success">£' . number_format($row['daily_charity_in'], 2) . '</span>',
                     'daily_charity_out' => '<span class="text-danger">£' . number_format($row['daily_charity_out'], 2) . '</span>',
-                    // Make Charity Balance a Link
                     'charity_balance' => '<a href="'.$auditCharityUrl.'" target="_blank" class="'.$charityColor.' fw-bold text-decoration-none hover-underline">£' . number_format($row['charity_balance'], 2) . '</a>',
                     'commission' => '<span class="text-warning fw-bold">£' . number_format($row['commission'], 2) . '</span>',
                     'actual_balance' => $actualBalanceHtml,

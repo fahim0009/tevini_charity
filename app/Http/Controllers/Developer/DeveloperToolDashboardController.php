@@ -1085,7 +1085,7 @@ class DeveloperToolDashboardController extends Controller
 
     /**
      * Get Process Voucher details for a specific date and type
-     */     /**
+     */    /**
      * Get Process Voucher details for a specific date and type
      */
     public function getProcessVoucherDayDetails(Request $request)
@@ -1145,22 +1145,52 @@ class DeveloperToolDashboardController extends Controller
             $donorHtml .= '<br><span class="badge bg-light text-secondary" style="font-size: 0.7rem; font-weight: normal;">'.$donorEmail.'</span>';
             $donorHtml .= '</div>';
 
-            // --- Donor Balance (using getAvailableLimit) ---
+            // --- Donor Balance & Standard Amount ---
             $donorBalance = $item->user ? $item->user->getAvailableLimit() : 0;
             $donorBalanceColor = $donorBalance < 0 ? 'text-danger' : 'text-success';
+            $standardAmount = $item->user ? ($item->user->standard_amount ?: 500) : 500;
+
+            // --- Amount Red Logic ---
+            $isWarning = ($item->amount > $donorBalance || $item->amount >= $standardAmount);
+            $amountClass = $isWarning ? 'text-danger fw-bold' : '';
+
+            // --- Note Input ---
+                        // --- Dev Note Input ---
+            $noteInput = '<textarea class="form-control form-control-sm pv-note-input" data-id="'.$item->id.'" rows="1" placeholder="Add dev note">'.htmlspecialchars($item->dev_note ?? '').'</textarea>';
 
             return [
                 'charity' => $charityHtml,
                 'charity_balance' => '£' . number_format($item->charity->balance ?? 0, 2),
                 'donor'   => $donorHtml,
                 'donor_balance' => '<span class="'.$donorBalanceColor.' fw-bold">£' . number_format($donorBalance, 2) . '</span>',
-                'standard_amount' => '£' . number_format($item->user->standard_amount ?? 0, 2),
+                'standard_amount' => '£' . number_format($standardAmount, 2),
                 'voucher' => $item->cheque_no,
-                'amount'  => '£' . number_format($item->amount, 2),
+                'amount'  => '<span class="'.$amountClass.'">£' . number_format($item->amount, 2) . '</span>',
                 'status'  => $item->status == 1 ? '<span class="badge bg-success">Complete</span>' : '<span class="badge bg-warning text-dark">Pending</span>',
-                'check_btn' => $checkBtn
+                'check_btn' => $checkBtn,
+                'voucher_state' => $item->voucher_state ?? 'N/A',
+                'dev_note_input' => $noteInput
             ];
         }));
+    }
+
+    /**
+     * Update Voucher Note (AJAX)
+     */
+        /**
+     * Update Voucher Dev Note (AJAX)
+     */
+    public function updateVoucherNote(Request $request, $id)
+    {
+        $voucher = Provoucher::find($id);
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Voucher not found.'], 404);
+        }
+
+        $voucher->dev_note = $request->dev_note;
+        $voucher->save();
+
+        return response()->json(['success' => true, 'message' => 'Dev note saved successfully.']);
     }
 
     /**

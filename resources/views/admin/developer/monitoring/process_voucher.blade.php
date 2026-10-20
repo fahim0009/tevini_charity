@@ -130,6 +130,8 @@
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Checked By Dev</th>
+                                <th>Voucher State</th>
+                                <th>Dev Note</th>
                             </tr>
                         </thead>
                         <tbody id="pv-details-content"></tbody>
@@ -213,7 +215,7 @@
         $.get("{{ route('developer.process_voucher_monitoring.details') }}", data, function(response) {
             let html = '';
             if(response.length === 0) {
-                html = '<tr><td colspan="9" class="text-center">No vouchers found</td></tr>';
+                html = '<tr><td colspan="11" class="text-center">No vouchers found</td></tr>';
             } else {
                 response.forEach(item => {
                     html += `<tr>
@@ -226,12 +228,14 @@
                         <td>${item.amount}</td>
                         <td>${item.status}</td>
                         <td>${item.check_btn}</td>
+                        <td>${item.voucher_state}</td>
+                        <td style="min-width: 200px;">${item.dev_note_input}</td>
                     </tr>`;
                 });
             }
             $('#pv-details-content').html(html);
         }).fail(function() {
-            $('#pv-details-content').html('<tr><td colspan="9" class="text-center text-danger">Error loading details.</td></tr>');
+            $('#pv-details-content').html('<tr><td colspan="11" class="text-center text-danger">Error loading details.</td></tr>');
         });
     });
 
@@ -272,6 +276,30 @@
             }
         });
     });
+
+
+    // Handle Note Save on change (when clicking outside or pressing Enter)
+    $(document).on('change', '.pv-note-input', function() {
+        var id = $(this).data('id');
+        var note = $(this).val();
+        var input = $(this);
+
+        $.ajax({
+            url: `/admin/dev-team/process-voucher-monitoring/update-note/${id}`,
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}', dev_note: note },
+            success: function(res) {
+                input.css('border-color', '#28a745');
+                setTimeout(function() { input.css('border-color', ''); }, 1000);
+            },
+            error: function() {
+                input.css('border-color', '#dc3545');
+                alert('Error saving dev note.');
+            }
+        });
+    });
+
+
 });
 </script>
 @endsection

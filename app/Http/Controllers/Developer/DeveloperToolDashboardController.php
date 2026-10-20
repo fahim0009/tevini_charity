@@ -1694,6 +1694,17 @@ class DeveloperToolDashboardController extends Controller
                 $query->whereBetween('usertransactions.business_date', [$startDate, $endDate]);
             }
             
+            // Only apply these filters when NOT coming from reconciliation (custom date from URL)
+            $isFromReconciliation = request()->has('fromDate') && request()->has('toDate');
+            
+            if (!$isFromReconciliation) {
+                $query->where('usertransactions.business_date', '>', '2026-02-07');
+                $query->having('payment_status', '=', 0);
+                $query->whereHas('charity', function($q) {
+                    $q->where('auto_payment', 1);
+                });
+            }
+            
             $query->where('usertransactions.business_date', '>', '2026-02-07');
             
             // Filter unpaid and auto_payment enabled

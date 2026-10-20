@@ -7,49 +7,88 @@
         text-decoration: underline !important;
         color: #0056b3 !important; 
     }
-    #transaction-table td {
-        vertical-align: middle;
+    
+    /* Table Font Size Reduce (Fixed for DataTables ScrollX) */
+    #transaction-table {
+        font-size: 0.75rem !important; 
     }
+    #transaction-table tbody td {
+        padding: 8px 10px !important;
+        white-space: nowrap;
+    }
+    
+    /* Target the hidden duplicate header created by DataTables scrollX */
+    .dataTables_scrollHead thead th {
+        font-size: 0.75rem !important;
+        padding: 8px 10px !important;
+        white-space: nowrap;
+    }
+    
     .text-muted {
         opacity: 0.5;
         font-weight: normal;
     }
-    /* Card Styles */
-    .summary-card {
-        border-left: 4px solid #4a90e2;
+
+    /* Compact 8-Column Card Layout */
+    .cards-row-8 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .card-col-8 {
+        flex: 1 0 11%; 
+        min-width: 130px;
+    }
+    
+    .mini-card {
         background: #fff;
-        padding: 15px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        padding: 12px;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border-left: 3px solid #4a90e2;
         height: 100%;
+        display: flex;
+        flex-direction: column;
     }
-    .summary-card .card-title {
-        font-size: 14px;
-        color: #555;
+    .mini-card .m-title {
+        font-size: 0.7rem;
+        color: #718096;
         font-weight: 600;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    .summary-card .card-value {
-        font-size: 24px;
+    .mini-card .m-value {
+        font-size: 1.1rem; 
         font-weight: 700;
         color: #333;
+        line-height: 1.2;
+        margin-bottom: 6px;
     }
-    .summary-card .card-note {
-        font-size: 12px;
-        color: #888;
-        margin-top: 8px;
+    .mini-card .m-note {
+        font-size: 0.6rem; 
+        color: #a0aec0;
+        margin-top: auto;
         font-style: italic;
+        line-height: 1.3;
     }
+
     .section-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        margin-top: 20px;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #eee;
+        font-size: 1rem; 
+        font-weight: bold; 
+        color: #2d3748;
+        margin-top: 20px; 
+        margin-bottom: 15px; 
+        border-bottom: 2px solid #e2e8f0; 
         padding-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
+    .section-title i { color: #4a90e2; font-size: 1rem; }
 </style>
+
 
 <div class="dashboard-content p-4">
     <section class="profile purchase-status mb-4">
@@ -60,163 +99,169 @@
     </section>
 
     <!-- ===== Today's Summary ===== -->
-    <div class="section-title">Today's Summary</div>
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #28a745;">
-                <div class="card-title">Today's Donation</div>
-                <div class="card-value text-success">£{{ number_format($todayDonation, 2) }}</div>
-                <div class="card-note">Total of all donations made today.</div>
+    <div class="section-title">
+        <i class="fas fa-calendar-day"></i> Today's Summary
+    </div>
+    <div class="cards-row-8">
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #28a745;">
+                <div class="m-title">Donation</div>
+                <div class="m-value text-success">£{{ number_format($todayDonation, 2) }}</div>
+                <div class="m-note">Total of all donations made today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #007bff;">
-                <div class="card-title">Today's Online</div>
-                <div class="card-value text-primary">£{{ number_format($todayOnline, 2) }}</div>
-                <div class="card-note">Sum of online donations today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #007bff;">
+                <div class="m-title">Online</div>
+                <div class="m-value text-primary">£{{ number_format($todayOnline, 2) }}</div>
+                <div class="m-note">Sum of online donations today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #17a2b8;">
-                <div class="card-title">Today's Standing</div>
-                <div class="card-value" style="color: #17a2b8;">£{{ number_format($todayStanding, 2) }}</div>
-                <div class="card-note">Sum of standing order donations today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #17a2b8;">
+                <div class="m-title">Standing</div>
+                <div class="m-value" style="color: #17a2b8;">£{{ number_format($todayStanding, 2) }}</div>
+                <div class="m-note">Sum of standing order donations today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #dc3545;">
-                <div class="card-title">Today's Voucher</div>
-                <div class="card-value text-danger">£{{ number_format($todayVoucher, 2) }}</div>
-                <div class="card-note">Sum of voucher transactions today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #dc3545;">
+                <div class="m-title">Voucher</div>
+                <div class="m-value text-danger">£{{ number_format($todayVoucher, 2) }}</div>
+                <div class="m-note">Sum of voucher transactions today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #e83e8c;">
-                <div class="card-title">Today's Card</div>
-                <div class="card-value" style="color: #e83e8c;">£{{ number_format($todayCard, 2) }}</div>
-                <div class="card-note">Sum of card-based donations today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #e83e8c;">
+                <div class="m-title">Card</div>
+                <div class="m-value" style="color: #e83e8c;">£{{ number_format($todayCard, 2) }}</div>
+                <div class="m-note">Sum of card-based donations today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #6c757d;">
-                <div class="card-title">Today's Campaign</div>
-                <div class="card-value text-secondary">£{{ number_format($todayCampaign, 2) }}</div>
-                <div class="card-note">Sum of campaign donations today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #6c757d;">
+                <div class="m-title">Campaign</div>
+                <div class="m-value text-secondary">£{{ number_format($todayCampaign, 2) }}</div>
+                <div class="m-note">Sum of campaign donations today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #ffc107;">
-                <div class="card-title">Today's Topup</div>
-                <div class="card-value text-warning">£{{ number_format($todayTopup, 2) }}</div>
-                <div class="card-note">Total amount added by donors today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #ffc107;">
+                <div class="m-title">Topup</div>
+                <div class="m-value text-warning">£{{ number_format($todayTopup, 2) }}</div>
+                <div class="m-note">Total amount added by donors today.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #6f42c1;">
-                <div class="card-title">Today's Commission</div>
-                <div class="card-value" style="color: #6f42c1;">£{{ number_format($todayCommission, 2) }}</div>
-                <div class="card-note">Total commission collected today.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #6f42c1;">
+                <div class="m-title">Commission</div>
+                <div class="m-value" style="color: #6f42c1;">£{{ number_format($todayCommission, 2) }}</div>
+                <div class="m-note">Total commission collected today.</div>
             </div>
         </div>
     </div>
 
     <!-- ===== This Week's Summary ===== -->
-    <div class="section-title">This Week's Summary</div>
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #28a745;">
-                <div class="card-title">Week's Donation</div>
-                <div class="card-value text-success">£{{ number_format($weekDonation, 2) }}</div>
-                <div class="card-note">Total of all donations this week.</div>
+    <div class="section-title">
+        <i class="fas fa-calendar-week"></i> This Week's Summary
+    </div>
+    <div class="cards-row-8">
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #28a745;">
+                <div class="m-title">Donation</div>
+                <div class="m-value text-success">£{{ number_format($weekDonation, 2) }}</div>
+                <div class="m-note">Total of all donations this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #007bff;">
-                <div class="card-title">Week's Online</div>
-                <div class="card-value text-primary">£{{ number_format($weekOnline, 2) }}</div>
-                <div class="card-note">Sum of online donations this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #007bff;">
+                <div class="m-title">Online</div>
+                <div class="m-value text-primary">£{{ number_format($weekOnline, 2) }}</div>
+                <div class="m-note">Sum of online donations this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #17a2b8;">
-                <div class="card-title">Week's Standing</div>
-                <div class="card-value" style="color: #17a2b8;">£{{ number_format($weekStanding, 2) }}</div>
-                <div class="card-note">Sum of standing orders this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #17a2b8;">
+                <div class="m-title">Standing</div>
+                <div class="m-value" style="color: #17a2b8;">£{{ number_format($weekStanding, 2) }}</div>
+                <div class="m-note">Sum of standing orders this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #dc3545;">
-                <div class="card-title">Week's Voucher</div>
-                <div class="card-value text-danger">£{{ number_format($weekVoucher, 2) }}</div>
-                <div class="card-note">Sum of voucher transactions this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #dc3545;">
+                <div class="m-title">Voucher</div>
+                <div class="m-value text-danger">£{{ number_format($weekVoucher, 2) }}</div>
+                <div class="m-note">Sum of voucher transactions this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #e83e8c;">
-                <div class="card-title">Week's Card</div>
-                <div class="card-value" style="color: #e83e8c;">£{{ number_format($weekCard, 2) }}</div>
-                <div class="card-note">Sum of card donations this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #e83e8c;">
+                <div class="m-title">Card</div>
+                <div class="m-value" style="color: #e83e8c;">£{{ number_format($weekCard, 2) }}</div>
+                <div class="m-note">Sum of card donations this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #6c757d;">
-                <div class="card-title">Week's Campaign</div>
-                <div class="card-value text-secondary">£{{ number_format($weekCampaign, 2) }}</div>
-                <div class="card-note">Sum of campaign donations this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #6c757d;">
+                <div class="m-title">Campaign</div>
+                <div class="m-value text-secondary">£{{ number_format($weekCampaign, 2) }}</div>
+                <div class="m-note">Sum of campaign donations this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #ffc107;">
-                <div class="card-title">Week's Topup</div>
-                <div class="card-value text-warning">£{{ number_format($weekTopup, 2) }}</div>
-                <div class="card-note">Total amount added by donors this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #ffc107;">
+                <div class="m-title">Topup</div>
+                <div class="m-value text-warning">£{{ number_format($weekTopup, 2) }}</div>
+                <div class="m-note">Total amount added by donors this week.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #6f42c1;">
-                <div class="card-title">Week's Commission</div>
-                <div class="card-value" style="color: #6f42c1;">£{{ number_format($weekCommission, 2) }}</div>
-                <div class="card-note">Total commission collected this week.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #6f42c1;">
+                <div class="m-title">Commission</div>
+                <div class="m-value" style="color: #6f42c1;">£{{ number_format($weekCommission, 2) }}</div>
+                <div class="m-note">Total commission collected this week.</div>
             </div>
         </div>
     </div>
 
     <!-- ===== All-Time Category Totals ===== -->
-    <div class="section-title">All-Time Category Totals</div>
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #007bff;">
-                <div class="card-title">Total Online</div>
-                <div class="card-value text-primary">£{{ number_format($totalOnline, 2) }}</div>
-                <div class="card-note">All-time total sum of online donations.</div>
+    <div class="section-title">
+        <i class="fas fa-database"></i> All-Time Category Totals
+    </div>
+    <div class="cards-row-8">
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #007bff;">
+                <div class="m-title">Online</div>
+                <div class="m-value text-primary">£{{ number_format($totalOnline, 2) }}</div>
+                <div class="m-note">All-time total sum of online donations.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #17a2b8;">
-                <div class="card-title">Total Standing</div>
-                <div class="card-value" style="color: #17a2b8;">£{{ number_format($totalStanding, 2) }}</div>
-                <div class="card-note">All-time total sum of standing orders.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #17a2b8;">
+                <div class="m-title">Standing</div>
+                <div class="m-value" style="color: #17a2b8;">£{{ number_format($totalStanding, 2) }}</div>
+                <div class="m-note">All-time total sum of standing orders.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #dc3545;">
-                <div class="card-title">Total Voucher</div>
-                <div class="card-value text-danger">£{{ number_format($totalVoucher, 2) }}</div>
-                <div class="card-note">All-time total sum of voucher transactions.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #dc3545;">
+                <div class="m-title">Voucher</div>
+                <div class="m-value text-danger">£{{ number_format($totalVoucher, 2) }}</div>
+                <div class="m-note">All-time total sum of voucher transactions.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #e83e8c;">
-                <div class="card-title">Total Card</div>
-                <div class="card-value" style="color: #e83e8c;">£{{ number_format($totalCard, 2) }}</div>
-                <div class="card-note">All-time total sum of card donations.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #e83e8c;">
+                <div class="m-title">Card</div>
+                <div class="m-value" style="color: #e83e8c;">£{{ number_format($totalCard, 2) }}</div>
+                <div class="m-note">All-time total sum of card donations.</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="summary-card" style="border-left-color: #6c757d;">
-                <div class="card-title">Total Campaign</div>
-                <div class="card-value text-secondary">£{{ number_format($totalCampaign, 2) }}</div>
-                <div class="card-note">All-time total sum of campaign donations.</div>
+        <div class="card-col-8">
+            <div class="mini-card" style="border-left-color: #6c757d;">
+                <div class="m-title">Campaign</div>
+                <div class="m-value text-secondary">£{{ number_format($totalCampaign, 2) }}</div>
+                <div class="m-note">All-time total sum of campaign donations.</div>
             </div>
         </div>
     </div>
@@ -394,4 +439,4 @@
     });
 });
 </script>
-@endsection
+@endsection>

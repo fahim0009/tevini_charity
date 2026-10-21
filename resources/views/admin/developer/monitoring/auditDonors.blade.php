@@ -105,7 +105,7 @@
     <div class="cards-row-8">
         <div class="card-col-8">
             <div class="mini-card" style="border-left-color: #28a745;">
-                <div class="m-title">Donation</div>
+                <div class="m-title">Total</div>
                 <div class="m-value text-success">£{{ number_format($todayDonation, 2) }}</div>
                 <div class="m-note">Total of all donations made today.</div>
             </div>
@@ -168,7 +168,7 @@
     <div class="cards-row-8">
         <div class="card-col-8">
             <div class="mini-card" style="border-left-color: #28a745;">
-                <div class="m-title">Donation</div>
+                <div class="m-title">Total</div>
                 <div class="m-value text-success">£{{ number_format($weekDonation, 2) }}</div>
                 <div class="m-note">Total of all donations this week.</div>
             </div>

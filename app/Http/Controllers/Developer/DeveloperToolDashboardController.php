@@ -1423,7 +1423,7 @@ class DeveloperToolDashboardController extends Controller
                     DB::raw("SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as standing_sum"),
                     DB::raw("SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as voucher_sum"),
                     DB::raw("SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as campaign_sum"),
-                    DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as card_sum"),
+                    DB::raw("SUM(CASE WHEN onegiv_transaction_id IS NOT NULL OR title LIKE '%OneGiv Card%' OR source = 'OneGiv Card' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as card_sum"),
                     
                     // NEW COLUMNS (Before Topup)
                     DB::raw("SUM(CASE WHEN title = 'Prepaid Voucher Book' THEN CAST(amount AS DECIMAL(10,2)) ELSE 0 END) as book_order_sum"),
@@ -1549,6 +1549,7 @@ class DeveloperToolDashboardController extends Controller
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
 
+
         // 1. Today's Stats (Out = Donations, In = Topups/Commissions)
         $todayStats = Usertransaction::where('status', 1)
             ->whereDate('created_at', $today)
@@ -1558,7 +1559,7 @@ class DeveloperToolDashboardController extends Controller
                 SUM(CASE WHEN t_type = 'Out' AND standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as today_standing,
                 SUM(CASE WHEN t_type = 'Out' AND cheque_no IS NOT NULL THEN amount ELSE 0 END) as today_voucher,
                 SUM(CASE WHEN t_type = 'Out' AND campaign_id IS NOT NULL THEN amount ELSE 0 END) as today_campaign,
-                SUM(CASE WHEN t_type = 'Out' AND onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as today_card,
+                SUM(CASE WHEN t_type = 'Out' AND (onegiv_transaction_id IS NOT NULL OR title LIKE '%OneGiv Card%' OR source = 'OneGiv Card') THEN amount ELSE 0 END) as today_card,
                 SUM(CASE WHEN t_type = 'In' THEN amount ELSE 0 END) as today_topup,
                 SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as today_commission
             ")->first();
@@ -1572,7 +1573,7 @@ class DeveloperToolDashboardController extends Controller
                 SUM(CASE WHEN t_type = 'Out' AND standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as week_standing,
                 SUM(CASE WHEN t_type = 'Out' AND cheque_no IS NOT NULL THEN amount ELSE 0 END) as week_voucher,
                 SUM(CASE WHEN t_type = 'Out' AND campaign_id IS NOT NULL THEN amount ELSE 0 END) as week_campaign,
-                SUM(CASE WHEN t_type = 'Out' AND onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as week_card,
+                SUM(CASE WHEN t_type = 'Out' AND (onegiv_transaction_id IS NOT NULL OR title LIKE '%OneGiv Card%' OR source = 'OneGiv Card') THEN amount ELSE 0 END) as week_card,
                 SUM(CASE WHEN t_type = 'In' THEN amount ELSE 0 END) as week_topup,
                 SUM(CASE WHEN t_type = 'In' THEN commission ELSE 0 END) as week_commission
             ")->first();
@@ -1584,7 +1585,7 @@ class DeveloperToolDashboardController extends Controller
                 SUM(CASE WHEN standing_donationdetails_id IS NOT NULL THEN amount ELSE 0 END) as total_standing,
                 SUM(CASE WHEN cheque_no IS NOT NULL THEN amount ELSE 0 END) as total_voucher,
                 SUM(CASE WHEN campaign_id IS NOT NULL THEN amount ELSE 0 END) as total_campaign,
-                SUM(CASE WHEN onegiv_transaction_id IS NOT NULL THEN amount ELSE 0 END) as total_card
+                SUM(CASE WHEN onegiv_transaction_id IS NOT NULL OR title LIKE '%OneGiv Card%' OR source = 'OneGiv Card' THEN amount ELSE 0 END) as total_card
             ")->first();
 
         // Assign to variables for easy use in view
@@ -1635,7 +1636,13 @@ class DeveloperToolDashboardController extends Controller
         if ($request->type == 'standing') $query->whereNotNull('standing_donationdetails_id');
         if ($request->type == 'voucher') $query->whereNotNull('cheque_no');
         if ($request->type == 'campaign') $query->whereNotNull('campaign_id');
-        if ($request->type == 'card') $query->whereNotNull('onegiv_transaction_id');
+                if ($request->type == 'card') {
+            $query->where(function($q) {
+                $q->whereNotNull('onegiv_transaction_id')
+                  ->orWhere('title', 'LIKE', '%Tevini Card%')
+                  ->orWhere('source', 'Tevini Card');
+            });
+        }
         
         // Added condition for Topup details
         if ($request->type == 'topup') $query->where('t_type', 'In');

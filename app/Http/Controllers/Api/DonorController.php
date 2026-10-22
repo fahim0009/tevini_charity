@@ -152,12 +152,16 @@ class DonorController extends Controller
 
     public function userStandingrecod()
     {
-        $data = StandingDonation::where([
-            ['user_id','=', auth()->user()->id]
-        ])->where('status', 1)->orderBy('id','DESC')->get();
+        $data = StandingDonation::with('standingdonationDetail')
+            ->withCount(['standingdonationDetail as donations_count'])
+            ->where([
+                ['user_id', '=', auth()->user()->id]
+            ])
+            ->orderBy('id', 'DESC')
+            ->get();
 
         $success['data'] = $data;
-        return response()->json(['success'=>true,'response'=> $success], 200);
+        return response()->json(['success' => true, 'response' => $success], 200);
     }
 
     public function usersingleStanding($id)

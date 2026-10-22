@@ -122,15 +122,27 @@ class TransactionController extends Controller
         //     ->orderBy('id', 'DESC')
         //     ->get();
 
-        $outTransactionsQuery = Usertransaction::where('t_type', 'Out')->with('provoucher')
-            ->where('user_id', $userId)
-            ->where(function ($query){
-                    $query->where('status', '1');
-            })->orWhere(function ($query) {
-                $query->where('t_type', 'Out')->where('pending', '0');
-            });
 
-        $outtransactions = $outTransactionsQuery->orderByDesc('id')->get();
+
+        // ---------------------------------------------------------
+        // 4. Out Transactions (Including Pending)
+        // ---------------------------------------------------------
+        $outtransactions = Usertransaction::where('t_type', 'Out')
+            ->with('provoucher')
+            ->where('user_id', $userId)  // user_id সবসময় থাকবে
+            ->where(function ($query) {
+                $query->where('status', '1')
+                      ->orWhere(function ($q) {
+                          $q->where('pending', '0');
+                      });
+            })
+            ->where(function ($q) {
+                $q->whereNull('expired')->orWhere('expired', '1');
+            })
+            ->when($hasDateRange, fn($q) => $q->whereBetween('created_at', [$fromDate, $toDate]))
+            ->orderBy('id', 'DESC')
+            ->get();
+
 
 
         // ---------------------------------------------------------

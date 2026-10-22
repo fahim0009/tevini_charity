@@ -170,11 +170,10 @@ class DonorController extends Controller
     {
 
         $singleStddonation = StandingdonationDetail::where([
-            ['id','=', $id],
+            ['standing_donation_id','=', $id],
             ['user_id','=', auth()->user()->id]
         ])->orderBy('id','DESC')->get();
 
-        
         Log::info('User standing donation records details retrieved.', ['singleStddonation' => $singleStddonation]);
 
         $success['data'] = $singleStddonation;

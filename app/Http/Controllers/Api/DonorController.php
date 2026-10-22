@@ -174,6 +174,9 @@ class DonorController extends Controller
             ['user_id','=', auth()->user()->id]
         ])->orderBy('id','DESC')->get();
 
+        
+        Log::info('User standing donation records details retrieved.', ['singleStddonation' => $singleStddonation]);
+
         $success['data'] = $singleStddonation;
         return response()->json(['success'=>true,'response'=> $success], 200);
 

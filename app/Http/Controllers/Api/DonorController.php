@@ -160,6 +160,8 @@ class DonorController extends Controller
             ->orderBy('id', 'DESC')
             ->get();
 
+        Log::info('User standing donation records retrieved.', ['data' => $data]);
+
         $success['data'] = $data;
         return response()->json(['success' => true, 'response' => $success], 200);
     }

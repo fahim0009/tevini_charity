@@ -462,13 +462,13 @@ class VoucherBookOrderService
         string $paymentIntentId,
         float $paidAmount
     ): Order {
-        // 1. Idempotency check
+        // 1. Idempotency check (application level)
         $existing = Order::where('stripe_payment_intent_id', $paymentIntentId)->first();
         if ($existing) {
             return $existing;
         }
 
-        // 2. Validate & calculate (recalculate server-side, don't trust frontend)
+        // 2. Validate & calculate (recalculate server-side)
         $validation = $this->validateAndCalculate($data);
 
         // 3. Recalculate platform fee server-side
@@ -477,18 +477,31 @@ class VoucherBookOrderService
         // 4. Verify paid amount matches expected total
         $expectedTotal = $validation['amount_to_deduct'] + $fee;
         if (abs($paidAmount - $expectedTotal) > 0.01) {
-            Log::warning('Stripe payment amount mismatch', [
+            Log::error('Stripe payment amount mismatch - order rejected', [
                 'expected'  => $expectedTotal,
                 'paid'      => $paidAmount,
                 'intent_id' => $paymentIntentId,
+                'donor_id'  => $data->donorId,
             ]);
-            // You may want to throw an exception here
+            throw new \Exception("Payment amount mismatch. Expected: £{$expectedTotal}, Paid: £{$paidAmount}.");
         }
 
-        // 5. Persist order (no balance deduction, no Usertransaction)
-        $order = DB::transaction(function () use ($data, $validation, $paymentIntentId, $fee) {
-            return $this->persistStripeOrder($data, $validation, $paymentIntentId, $fee);
-        });
+        // 5. Persist order with race condition protection
+        try {
+            $order = DB::transaction(function () use ($data, $validation, $paymentIntentId, $fee) {
+                return $this->persistStripeOrder($data, $validation, $paymentIntentId, $fee);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // FIX: Handle unique constraint violation (race condition)
+            if ($e->errorInfo[1] == 1062) { // MySQL duplicate entry error code
+                Log::info('Duplicate Stripe order prevented by unique constraint', [
+                    'intent_id' => $paymentIntentId,
+                ]);
+                // Return the existing order
+                return Order::where('stripe_payment_intent_id', $paymentIntentId)->first();
+            }
+            throw $e; // Re-throw other database errors
+        }
 
         // 6. Create PaymentLog
         $this->createPaymentLog($order, $paymentIntentId, $paidAmount, $data->donorId);

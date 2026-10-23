@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TDFTransactionController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\Api\CharityApiController;
+use App\Http\Controllers\Api\StripeConfigController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,7 +40,7 @@ use App\Http\Controllers\Api\CharityApiController;
 Route::post('signup', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
 Route::post('charity_login', [RegisterController::class, 'charity_login']);
-
+Route::get('stripe-config', [StripeConfigController::class, 'getStripeConfig']);
 
 Route::post('/authorisations', [CardServiceController::class, 'authorisation']);
 Route::post('/settlement', [CardServiceController::class, 'settlement']);
@@ -50,7 +51,6 @@ Route::get('/address-finder-api', [DashboardController::class, 'addressFinderApi
 Route::get('make-donation', [DonorController::class, 'getMakeDonation'])->middleware('auth.token.session');
 Route::post('make-online-donation', [DonorController::class, 'userOnlineDonationStore'])->middleware('auth.token.session');
 Route::get('make-donation-success', [DonorController::class, 'makeDonationAppMessage'])->middleware('auth.token.session');
-
 
 Route::group(['middleware' => ['auth:api']], function () {
     // return $request->user();
@@ -119,6 +119,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     
     Route::post('stripe-top-up', [StripePaymentController::class, 'stripetopUpPost']);
+    Route::post('create-payment-intent', [StripePaymentController::class, 'createPaymentIntent']);
 
     // fund transfer api start
     Route::get('fund-transfer', [FundTransferController::class, 'balanceTransfer']);

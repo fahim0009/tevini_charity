@@ -262,6 +262,20 @@ class DeductStandingDonation extends Command
                 if ($is_past_expected_month) {
                     // The month has passed without a successful payment. Permanently skip it.
                     DB::transaction(function () use ($activestand_order, $expected_date) {
+
+                        // FIX: Check if instalment already exists (defensive)
+                        $alreadyExists = StandingdonationDetail::where('standing_donation_id', $activestand_order->id)
+                            ->where('instalment_date', $expected_date->format('Y-m-d'))
+                            ->exists();
+                        
+                        if ($alreadyExists) {
+                            Log::info('Instalment already exists, skipping', [
+                                'standing_donation_id' => $activestand_order->id,
+                                'instalment_date'       => $expected_date->format('Y-m-d'),
+                            ]);
+                            return; 
+                        }
+
                         $doncaldetl = new StandingdonationDetail;
                         $doncaldetl->standing_donation_id = $activestand_order->id;
                         $doncaldetl->user_id = $activestand_order->user_id;
@@ -322,6 +336,18 @@ class DeductStandingDonation extends Command
 
                     // Enough balance! Process payment inside DB transaction
                     DB::transaction(function () use ($activestand_order, $expected_date) {
+
+                        // FIX: Check if skip record already exists
+                        $alreadyExists = StandingdonationDetail::where('standing_donation_id', $activestand_order->id)
+                            ->where('instalment_date', $expected_date->format('Y-m-d'))
+                            ->exists();
+                        
+                        if ($alreadyExists) {
+                            return; 
+                        }
+
+
+
                         $doncaldetl = new StandingdonationDetail;
                         $doncaldetl->standing_donation_id = $activestand_order->id;
                         $doncaldetl->user_id = $activestand_order->user_id;

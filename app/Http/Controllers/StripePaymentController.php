@@ -113,11 +113,12 @@ class StripePaymentController extends Controller
             ], 422);
         }
 
-        // FIX: Use env() instead of hardcoded key
+        // FIX: Verify payment with Stripe + check ownership + check currency
         try {
             Stripe::setApiKey(env('STRIPE_SECRET'));
             $intent = PaymentIntent::retrieve($paymentIntentId);
 
+            // 1. Check payment status
             if ($intent->status !== 'succeeded') {
                 return response()->json([
                     'success' => false,
@@ -125,8 +126,49 @@ class StripePaymentController extends Controller
                 ], 400);
             }
 
-            // Verify amount matches
-            $paidAmount = $intent->amount / 100; // Convert from pence
+            // 2. FIX: Verify ownership - PaymentIntent must belong to this donor
+            if (!isset($intent->metadata['donor_id']) || 
+                $intent->metadata['donor_id'] != $user->id) {
+                Log::error('Topup ownership mismatch', [
+                    'user_id' => $user->id,
+                    'intent_donor_id' => $intent->metadata['donor_id'] ?? 'null',
+                    'intent_id' => $paymentIntentId,
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment ownership verification failed.'
+                ], 403);
+            }
+
+            // 3. FIX: Verify purpose - must be wallet topup
+            if (!isset($intent->metadata['purpose']) || 
+                $intent->metadata['purpose'] !== 'wallet_topup') {
+                Log::error('Topup purpose mismatch', [
+                    'user_id' => $user->id,
+                    'purpose' => $intent->metadata['purpose'] ?? 'null',
+                    'intent_id' => $paymentIntentId,
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payment purpose.'
+                ], 403);
+            }
+
+            // 4. FIX: Verify currency is GBP
+            if (strtolower($intent->currency) !== 'gbp') {
+                Log::error('Topup currency mismatch', [
+                    'user_id' => $user->id,
+                    'currency' => $intent->currency,
+                    'intent_id' => $paymentIntentId,
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid currency. Only GBP is accepted.'
+                ], 400);
+            }
+
+            // 5. Verify amount matches (in pence)
+            $paidAmount = $intent->amount / 100;
             if (abs($paidAmount - $amt) > 0.01) {
                 Log::error('Topup amount mismatch', [
                     'user_id' => $user->id,
@@ -176,18 +218,25 @@ class StripePaymentController extends Controller
         try {
             Stripe::setApiKey(env('STRIPE_SECRET'));
 
+            $user = Auth::user();
+
             $paymentIntent = PaymentIntent::create([
                 'amount' => (int)($request->amount * 100),
                 'currency' => strtolower($request->currency),
-                // FIX: Use automatic_payment_methods instead of payment_method_types
                 'automatic_payment_methods' => [
                     'enabled' => true,
-                    'allow_redirects' => 'never', // Disable redirect-based methods
+                    'allow_redirects' => 'never',
+                ],
+                // FIX: Add metadata to bind PaymentIntent to donor and purpose
+                'metadata' => [
+                    'donor_id' => $user->id,
+                    'purpose' => 'wallet_topup',
+                    'user_email' => $user->email,
                 ],
             ]);
 
             Log::info('PaymentIntent created', [
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'amount' => $request->amount,
                 'intent_id' => $paymentIntent->id,
             ]);

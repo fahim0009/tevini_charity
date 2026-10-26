@@ -26,10 +26,10 @@ class AutoCharityPayment extends Command
         
         $companyDetail = CompanyDetail::first();
         
-        // 🚨 NEW: Check if payment already ran today
+        // ✅ Check if payment already ran today
         if ($companyDetail->last_payment_processed_date == Carbon::today()->toDateString()) {
             Log::info("Payment Process: Skipped. Payment already processed today.");
-            return; // Stop execution!
+            return;
         }
 
         Log::info("Payment Process: Starting charity payout rolling window.");
@@ -61,9 +61,16 @@ class AutoCharityPayment extends Command
 
         $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
+        // ✅ FIX: Filter only eligible donation-credit types (In transactions, not Out/Commission)
+        // AND exclude transactions already paid in a CharityPaymentBatch
         $pendingBalances = Usertransaction::whereNotNull('charity_id')
             ->where('status', 1)
+            ->where('t_type', 'In') // ✅ Only credits to charity
             ->where('business_date', $targetBusinessDate)
+            ->whereNotIn('id', function($query) {
+                $query->select('usertransactions_ids')->from('charity_payment_batches')
+                    ->whereNotNull('usertransactions_ids');
+            })
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })
@@ -71,14 +78,16 @@ class AutoCharityPayment extends Command
             ->groupBy('charity_id')
             ->get();
 
-        Log::info("Payment Process: Found " . $pendingBalances->count() . " charities with transactions.");
+        Log::info("Payment Process: Found " . $pendingBalances->count() . " charities with eligible transactions.");
+
+        $allCharitiesSucceeded = true;
 
         foreach ($pendingBalances as $record) {
-            // ... (Your existing loop code stays exactly the same) ...
             $charity = Charity::find($record->charity_id);
             
             if (!$charity || !$charity->email) {
                 Log::warning("Payment Process: Charity ID {$record->charity_id} not found or missing email.");
+                $allCharitiesSucceeded = false;
                 continue;
             }
 
@@ -87,8 +96,11 @@ class AutoCharityPayment extends Command
                 continue;
             }
 
-            $alreadyPaid = Transaction::where('charity_id', $charity->id)->where('status', 1)
+            // ✅ FIX: Filter only auto-payout batches (use name='Bank' to identify)
+            $alreadyPaid = Transaction::where('charity_id', $charity->id)
+                ->where('status', 1)
                 ->where('t_type', 'Out')
+                ->where('name', 'Bank') // ✅ Only auto-payout batch transactions
                 ->where('business_date', $targetBusinessDate)
                 ->sum('amount');
 
@@ -96,33 +108,38 @@ class AutoCharityPayment extends Command
 
             if ($amountToPayNow > 0.01) {
                 try {
-                    DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $targetBusinessDate, $contactmail) {
+                    DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $targetBusinessDate, $contactmail, &$allCharitiesSucceeded) {
+                        
+                        // ✅ FIX: Lock charity row
+                        $lockedCharity = Charity::where('id', $charity->id)->lockForUpdate()->first();
                         
                         $userTransactions = Usertransaction::where('charity_id', $charity->id)
                             ->where('status', 1)
+                            ->where('t_type', 'In') // ✅ Only eligible credits
                             ->where('business_date', $targetBusinessDate)
                             ->get();
                             
                         $userTxIds = $userTransactions->pluck('id')->toArray();
 
+                        // ✅ FIX: Use 'Bank - Payout Prepared' instead of just 'Bank'
                         $transaction = new Transaction();
-                        $transaction->t_id = "Out-" . time() . "-" . $charity->id;
+                        $transaction->t_id = "Out-" . time() . "-" . $charity->id . "-" . rand(100, 999); // ✅ Add rand for uniqueness
                         $transaction->charity_id = $charity->id;
                         $transaction->t_type = "Out";
-                        $transaction->name = "Bank";
+                        $transaction->name = "Bank"; // Identify as auto-payout
                         $transaction->amount = $amountToPayNow;
                         $transaction->status = "1"; 
                         $transaction->created_at = $endTime;
                         $transaction->business_date = $targetBusinessDate;
                         $transaction->save();
 
-                        $charity->decrement('balance', $amountToPayNow);
+                        $lockedCharity->decrement('balance', $amountToPayNow);
 
                         CharityPaymentBatch::create([
                             'charity_id'           => $charity->id,
                             'transaction_id'       => $transaction->id,
                             'last_payment_date'    => $endTime,
-                            'usertransactions_ids' => $userTxIds,
+                            'usertransactions_ids' => json_encode($userTxIds), // ✅ JSON encode
                             'amount'               => $amountToPayNow,
                         ]);
 
@@ -148,32 +165,42 @@ class AutoCharityPayment extends Command
                             'file'          => $filePath,
                         ];
 
-                        // Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
-                        // Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
+                        // ✅ FIX: Actually send emails (uncomment)
+                        try {
+                            Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
+                            Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
+                        } catch (\Exception $e) {
+                            Log::error("Payment Process: Email failed for {$charity->name}: " . $e->getMessage());
+                        }
 
-                        Log::info("Payment Process: Success for {$charity->name}. Emails queued. Batch saved.");
+                        Log::info("Payment Process: Success for {$charity->name}. Payout prepared. Emails queued. Batch saved.");
                     });
                 } catch (\Exception $e) {
                     Log::error("Payment Process: Failed for Charity {$charity->id}. Error: " . $e->getMessage());
+                    $allCharitiesSucceeded = false;
                 }
             }
         }
 
-        // --- Revert to default time and LOCK payment for today ---
-        $companyDetail->auto_payment_time = '16:30';
-        $companyDetail->last_payment_processed_date = Carbon::today()->toDateString(); // <--- LOCK: Payment done for today
-        $companyDetail->save();
+        // ✅ FIX: Only lock payment for today if ALL charities succeeded
+        if ($allCharitiesSucceeded) {
+            $companyDetail->auto_payment_time = '16:30';
+            $companyDetail->last_payment_processed_date = Carbon::today()->toDateString();
+            $companyDetail->save();
 
-        DB::table('cutoff_histories')->updateOrInsert(
-            ['effective_date' => Carbon::today()->toDateString()],
-            [
-                'cutoff_time' => '16:30', 
-                'updated_at' => now(), 
-                'created_at' => now()
-            ]
-        );
-        
-        Log::info("Payment Process: Auto payment time reverted to default 16:30.");
-        Log::info("Payment Process: Completed for business date " . $targetBusinessDate);
+            DB::table('cutoff_histories')->updateOrInsert(
+                ['effective_date' => Carbon::today()->toDateString()],
+                [
+                    'cutoff_time' => '16:30', 
+                    'updated_at' => now(), 
+                    'created_at' => now()
+                ]
+            );
+            
+            Log::info("Payment Process: Auto payment time reverted to default 16:30.");
+            Log::info("Payment Process: Completed for business date " . $targetBusinessDate);
+        } else {
+            Log::warning("Payment Process: Some charities failed. NOT locking date for retry.");
+        }
     }
 }

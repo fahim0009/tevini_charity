@@ -252,26 +252,67 @@ class HomepageController extends Controller
     public function apidonationCheck(Request $request)
     {
         // 1. Initial Validation
-        if (empty($request->password)) {
-            return response()->json([
-                'status' => 303,
-                'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Enter password</span>'
-            ]);
-        }
+    if (empty($request->password)) {
+        return response()->json([
+            'status' => 303,
+            'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Enter password</span>'
+        ]);
+    }
 
-        // 2. Fetch required data
-        try {
-            $campaign_dtls = Campaign::findOrFail($request->tevini_campaignid);
-            $gateway = Gateway::findOrFail($request->identifier);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Log::error("Campaign/Gateway Not Found", ['request' => $request->all()]);
-            return response()->json(['status' => 303, 'message' => 'Invalid campaign or gateway.']);
-        }
-        
-        $return_url = $gateway->return_url;
+    // ✅ FIX: Server-side HMAC verification
+    try {
+        $campaign_dtls = Campaign::findOrFail($request->tevini_campaignid);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['status' => 303, 'message' => 'Invalid campaign.']);
+    }
+
+    // ✅ Reconstruct the hash and verify
+    $mhash = "?campaign=" . $request->tevini_campaignid 
+           . "&transid=" . $request->transid 
+           . "&cid=" . $request->acc 
+           . "&donation=" . $request->amt;
+    $expectedHash = hash_hmac("sha256", $mhash, $campaign_dtls->hash_code);
+
+    if (!hash_equals($expectedHash, $request->hash)) {
+        Log::warning('Donation HMAC verification failed', [
+            'campaign_id' => $request->tevini_campaignid,
+            'transid' => $request->transid,
+            'acc' => $request->acc,
+            'ip' => $request->ip(),
+        ]);
+        return response()->json([
+            'status' => 303,
+            'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Security verification failed.</span>'
+        ]);
+    }
+
+    // ✅ FIX: Reject zero/negative amounts
+    $amt = (float) str_replace(',', '', $request->amt ?? 0);
+    if ($amt <= 0) {
+        return response()->json([
+            'status' => 303,
+            'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Invalid donation amount.</span>'
+        ]);
+    }
+
+    try {
+        $gateway = Gateway::findOrFail($request->identifier);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['status' => 303, 'message' => 'Invalid gateway.']);
+    }
+    
+    $return_url = $gateway->return_url;
         
         // Clean and cast the amount
         $amt = (float) str_replace(',', '', $request->amt ?? 0);
+
+        // FIX: Reject zero, negative, or malformed amounts
+        if ($amt <= 0) {
+            return response()->json([
+                'status' => 303,
+                'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Invalid donation amount.</span>'
+            ]);
+        }
 
         // 3. Attempt Authentication
         if (auth()->attempt(['accountno' => $request->acc, 'password' => $request->password])) {
@@ -280,66 +321,137 @@ class HomepageController extends Controller
             $user = auth()->user(); 
             Log::info("Donation Auth Success", ['user_id' => $user->id, 'amount' => $amt]);
 
-            // 4. Check Balance BEFORE opening a transaction (Saves DB resources)
-            if ($user->getAvailableLimit() < $amt) {
-                Log::warning("Donation Failed: Insufficient Funds", [
-                    'user_id' => $user->id, 
-                    'requested_amount' => $amt, 
-                    'available_limit' => $user->getAvailableLimit()
+            // FIX: Replay protection - check if this transid already processed
+            $replayCheckTId = 'CAMP-' . $request->identifier . '-' . $request->transid;
+            $existingTxn = Usertransaction::where('t_id', $replayCheckTId)->first();
+            
+            if ($existingTxn) {
+                Log::info('Donation replay detected - returning original success', [
+                    'transid' => $request->transid,
+                    'existing_txn_id' => $existingTxn->id,
+                    'user_id' => $user->id,
                 ]);
-                return response()->json([
-                    'status' => 303,
-                    'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Insufficient funds. Overdrawn limit exceeded.</span>'
-                ]);
-            }
-
-            // 5. Wrap DB operations in a transaction
-            return DB::transaction(function () use ($request, $campaign_dtls, $amt, $return_url, $user) {
                 
-                // Create User Transaction Record
-                $utransaction = new Usertransaction();
-                $utransaction->t_id = time() . "-" . $user->id;
-                $utransaction->charity_id = $campaign_dtls->charity_id;
-                $utransaction->user_id = $user->id;
-                $utransaction->t_type = "Out";
-                $utransaction->amount = $amt;
-                $utransaction->note = $request->comment;
-                $utransaction->title = "Online Campaign (" . $campaign_dtls->campaign_title . ")";
-                $utransaction->gateway_id = $request->identifier;
-                $utransaction->campaign_id = $campaign_dtls->id;
-                $utransaction->status = 1;
-                $utransaction->save();
-
-                // ⚠️ REMOVED: $user->decrement('balance', $amt); 
-                // Because getLiveBalance() calculates from transactions dynamically, 
-                // saving this "Out" transaction is enough!
-
-                // Update Charity Balance
-                $charity = Charity::findOrFail($campaign_dtls->charity_id);
-                $charity->increment('balance', $amt);
-
-                // Generate Success Hash and URL
+                // Return original success URL
                 $success_params = [
                     'campaign' => $request->tevini_campaignid,
                     'transid'  => $request->transid,
                     'cid'      => $request->acc,
-                    'donation' => $amt,
-                    'intid'    => $utransaction->id,
+                    'donation' => $existingTxn->amount,
+                    'intid'    => $existingTxn->id,
                     'rtncode'  => 0
                 ];
                 
                 $success_query = "?" . http_build_query($success_params);
                 $tevini_hash = hash_hmac("sha256", $success_query, $campaign_dtls->hash_code);
                 $success_url = $return_url . $success_query . "&hash=" . $tevini_hash;
-
-                Log::info("Donation Success & Committed", ['transaction_id' => $utransaction->id, 'amount' => $amt]);
-
+                
                 return response()->json([
                     'status' => 300,
                     'url' => $success_url,
-                    'message' => '<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>'
+                    'message' => '<span id="msg" style="color: rgb(0,128,0);">Donation already processed.</span>'
                 ]);
-            });
+            }
+
+            // 5. Wrap DB operations in a transaction with row locking
+            try {
+                return DB::transaction(function () use ($request, $campaign_dtls, $amt, $return_url, $user, $replayCheckTId) {
+                    
+                    // FIX: Lock user row for concurrent safety
+                    $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
+                    
+                    // FIX: Check balance INSIDE transaction with lock held
+                    if ($lockedUser->getAvailableLimit() < $amt) {
+                        Log::warning("Donation Failed: Insufficient Funds", [
+                            'user_id' => $lockedUser->id, 
+                            'requested_amount' => $amt, 
+                            'available_limit' => $lockedUser->getAvailableLimit()
+                        ]);
+                        throw new \Exception('Insufficient funds. Overdrawn limit exceeded.');
+                    }
+
+                    // Create User Transaction Record
+                    $utransaction = new Usertransaction();
+                    // FIX: Robust unique transaction ID including gateway + transid
+                    $utransaction->t_id = $replayCheckTId;
+                    $utransaction->charity_id = $campaign_dtls->charity_id;
+                    $utransaction->user_id = $lockedUser->id;
+                    $utransaction->t_type = "Out";
+                    $utransaction->amount = $amt;
+                    $utransaction->note = $request->comment;
+                    $utransaction->title = "Online Campaign (" . $campaign_dtls->campaign_title . ")";
+                    $utransaction->gateway_id = $request->identifier;
+                    $utransaction->campaign_id = $campaign_dtls->id;
+                    $utransaction->status = 1;
+                    $utransaction->save();
+
+                    // Update Charity Balance
+                    $charity = Charity::findOrFail($campaign_dtls->charity_id);
+                    $charity->increment('balance', $amt);
+
+                    // Generate Success Hash and URL
+                    $success_params = [
+                        'campaign' => $request->tevini_campaignid,
+                        'transid'  => $request->transid,
+                        'cid'      => $request->acc,
+                        'donation' => $amt,
+                        'intid'    => $utransaction->id,
+                        'rtncode'  => 0
+                    ];
+                    
+                    $success_query = "?" . http_build_query($success_params);
+                    $tevini_hash = hash_hmac("sha256", $success_query, $campaign_dtls->hash_code);
+                    $success_url = $return_url . $success_query . "&hash=" . $tevini_hash;
+
+                    Log::info("Donation Success & Committed", ['transaction_id' => $utransaction->id, 'amount' => $amt]);
+
+                    return response()->json([
+                        'status' => 300,
+                        'url' => $success_url,
+                        'message' => '<span id="msg" style="color: rgb(0,128,0);">Donation complete successfully</span>'
+                    ]);
+                });
+            } catch (\Exception $e) {
+                if (strpos($e->getMessage(), 'Insufficient funds') !== false) {
+                    return response()->json([
+                        'status' => 303,
+                        'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Insufficient funds. Overdrawn limit exceeded.</span>'
+                    ]);
+                }
+                
+                // FIX: Handle duplicate key (race condition)
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    Log::info('Donation replay caught by unique constraint', [
+                        'transid' => $request->transid,
+                    ]);
+                    $existingTxn = Usertransaction::where('t_id', $replayCheckTId)->first();
+                    if ($existingTxn) {
+                        $success_params = [
+                            'campaign' => $request->tevini_campaignid,
+                            'transid'  => $request->transid,
+                            'cid'      => $request->acc,
+                            'donation' => $existingTxn->amount,
+                            'intid'    => $existingTxn->id,
+                            'rtncode'  => 0
+                        ];
+                        $success_query = "?" . http_build_query($success_params);
+                        $tevini_hash = hash_hmac("sha256", $success_query, $campaign_dtls->hash_code);
+                        $success_url = $return_url . $success_query . "&hash=" . $tevini_hash;
+                        
+                        return response()->json([
+                            'status' => 300,
+                            'url' => $success_url,
+                            'message' => '<span id="msg" style="color: rgb(0,128,0);">Donation already processed.</span>'
+                        ]);
+                    }
+                }
+                
+                Log::error('Donation processing failed', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'status' => 303,
+                    'message' => '<span id="msg" style="color: rgb(255, 0, 0);">Donation processing failed. Please try again.</span>'
+                ]);
+            }
 
         } else {
             // 6. Handle Authentication Failure

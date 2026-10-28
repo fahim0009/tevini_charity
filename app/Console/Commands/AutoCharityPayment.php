@@ -61,32 +61,30 @@ class AutoCharityPayment extends Command
 
         $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
-        // ✅ FIX: Filter only eligible donation-credit types (In transactions, not Out/Commission)
-        // AND exclude transactions already paid in a CharityPaymentBatch
-        $pendingBalances = Usertransaction::whereNotNull('charity_id')
-            ->where('status', 1)
-            ->where('t_type', 'In') // ✅ Only credits to charity
+        // ✅ FIX: Use Transaction (charity ledger) instead of Usertransaction
+        // Charity income = Transaction where t_type='In' (money received by charity)
+        // Already paid = Transaction where t_type='Out' AND name='Bank' (auto-payout)
+        // This avoids JSON batch membership entirely!
+        
+        $charityIds = Transaction::where('status', 1)
             ->where('business_date', $targetBusinessDate)
-            ->whereNotIn('id', function($query) {
-                $query->select('usertransactions_ids')->from('charity_payment_batches')
-                    ->whereNotNull('usertransactions_ids');
-            })
+            ->where('t_type', 'In')
+            ->whereNotNull('charity_id')
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })
-            ->select(['charity_id', DB::raw("SUM(amount) as total")])
-            ->groupBy('charity_id')
-            ->get();
+            ->distinct()
+            ->pluck('charity_id');
 
-        Log::info("Payment Process: Found " . $pendingBalances->count() . " charities with eligible transactions.");
+        Log::info("Payment Process: Found " . $charityIds->count() . " charities with eligible transactions.");
 
         $allCharitiesSucceeded = true;
 
-        foreach ($pendingBalances as $record) {
-            $charity = Charity::find($record->charity_id);
+        foreach ($charityIds as $charityId) {
+            $charity = Charity::find($charityId);
             
             if (!$charity || !$charity->email) {
-                Log::warning("Payment Process: Charity ID {$record->charity_id} not found or missing email.");
+                Log::warning("Payment Process: Charity ID {$charityId} not found or missing email.");
                 $allCharitiesSucceeded = false;
                 continue;
             }
@@ -96,93 +94,119 @@ class AutoCharityPayment extends Command
                 continue;
             }
 
-            // ✅ FIX: Filter only auto-payout batches (use name='Bank' to identify)
-            $alreadyPaid = Transaction::where('charity_id', $charity->id)
-                ->where('status', 1)
-                ->where('t_type', 'Out')
-                ->where('name', 'Bank') // ✅ Only auto-payout batch transactions
-                ->where('business_date', $targetBusinessDate)
-                ->sum('amount');
+            try {
+                DB::transaction(function () use ($charity, $targetBusinessDate, $endTime, $contactmail, &$allCharitiesSucceeded) {
+                    
+                    // ✅ FIX: Lock charity row
+                    $lockedCharity = Charity::where('id', $charity->id)->lockForUpdate()->first();
+                    
+                    // ✅ FIX: Calculate income from charity Transaction ledger (In type)
+                    $totalIncome = Transaction::where('charity_id', $charity->id)
+                        ->where('status', 1)
+                        ->where('t_type', 'In')
+                        ->where('business_date', $targetBusinessDate)
+                        ->sum('amount');
 
-            $amountToPayNow = $record->total - $alreadyPaid;
+                    // ✅ FIX: Calculate already paid (Bank Out transactions)
+                    $alreadyPaid = Transaction::where('charity_id', $charity->id)
+                        ->where('status', 1)
+                        ->where('t_type', 'Out')
+                        ->where('name', 'Bank')
+                        ->where('business_date', $targetBusinessDate)
+                        ->sum('amount');
 
-            if ($amountToPayNow > 0.01) {
-                try {
-                    DB::transaction(function () use ($charity, $amountToPayNow, $endTime, $targetBusinessDate, $contactmail, &$allCharitiesSucceeded) {
-                        
-                        // ✅ FIX: Lock charity row
-                        $lockedCharity = Charity::where('id', $charity->id)->lockForUpdate()->first();
-                        
-                        $userTransactions = Usertransaction::where('charity_id', $charity->id)
-                            ->where('status', 1)
-                            ->where('t_type', 'In') // ✅ Only eligible credits
-                            ->where('business_date', $targetBusinessDate)
-                            ->get();
-                            
-                        $userTxIds = $userTransactions->pluck('id')->toArray();
+                    $amountToPayNow = $totalIncome - $alreadyPaid;
 
-                        // ✅ FIX: Use 'Bank - Payout Prepared' instead of just 'Bank'
-                        $transaction = new Transaction();
-                        $transaction->t_id = "Out-" . time() . "-" . $charity->id . "-" . rand(100, 999); // ✅ Add rand for uniqueness
-                        $transaction->charity_id = $charity->id;
-                        $transaction->t_type = "Out";
-                        $transaction->name = "Bank"; // Identify as auto-payout
-                        $transaction->amount = $amountToPayNow;
-                        $transaction->status = "1"; 
-                        $transaction->created_at = $endTime;
-                        $transaction->business_date = $targetBusinessDate;
-                        $transaction->save();
+                    Log::info("Payment Process: {$charity->name} - Income: {$totalIncome}, Already Paid: {$alreadyPaid}, To Pay: {$amountToPayNow}");
 
-                        $lockedCharity->decrement('balance', $amountToPayNow);
+                    if ($amountToPayNow <= 0.01) {
+                        Log::info("Payment Process: {$charity->name} - Nothing to pay. Skipping.");
+                        return;
+                    }
 
-                        CharityPaymentBatch::create([
-                            'charity_id'           => $charity->id,
-                            'transaction_id'       => $transaction->id,
-                            'last_payment_date'    => $endTime,
-                            'usertransactions_ids' => json_encode($userTxIds), // ✅ JSON encode
-                            'amount'               => $amountToPayNow,
-                        ]);
+                    // ✅ FIX: Create payout transaction with unique ID
+                    $transaction = new Transaction();
+                    $transaction->t_id = "Out-" . time() . "-" . $charity->id . "-" . uniqid();
+                    $transaction->charity_id = $charity->id;
+                    $transaction->t_type = "Out";
+                    $transaction->name = "Bank";
+                    $transaction->amount = $amountToPayNow;
+                    $transaction->status = "1"; 
+                    $transaction->created_at = $endTime;
+                    $transaction->business_date = $targetBusinessDate;
+                    $transaction->save();
 
-                        $details = $userTransactions->load(['user', 'donation']);
+                    $lockedCharity->decrement('balance', $amountToPayNow);
 
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
-                            'charity' => $charity,
-                            'details' => $details,
-                            'total'   => $amountToPayNow,
-                            'date'    => $targetBusinessDate
-                        ]);
+                    // ✅ FIX: Store batch record for audit (no JSON query needed)
+                    // Pass array directly - Eloquent cast will handle encoding
+                    $incomeTransactionIds = Transaction::where('charity_id', $charity->id)
+                        ->where('status', 1)
+                        ->where('t_type', 'In')
+                        ->where('business_date', $targetBusinessDate)
+                        ->pluck('id')
+                        ->toArray();
 
-                        $fileName = 'Statement-' . $charity->id . '-' . $endTime->format('Y-m-d-Hi') . '.pdf';
-                        $filePath = public_path('/invoices/' . $fileName);
-                        file_put_contents($filePath, $pdf->output());
+                    CharityPaymentBatch::create([
+                        'charity_id'           => $charity->id,
+                        'transaction_id'       => $transaction->id,
+                        'last_payment_date'    => $endTime,
+                        'usertransactions_ids' => $incomeTransactionIds, // ✅ Array, not json_encode
+                        'amount'               => $amountToPayNow,
+                    ]);
 
-                        $mailData = [
-                            'name'          => $charity->name,
-                            'transactionid' => $transaction->t_id,
-                            'total'         => number_format($amountToPayNow, 2),
-                            'date'          => $targetBusinessDate,
-                            'subject'       => 'Daily Statement - ' . $targetBusinessDate,
-                            'file'          => $filePath,
-                        ];
+                    // Generate PDF and send email
+                    $details = Transaction::where('charity_id', $charity->id)
+                        ->where('status', 1)
+                        ->where('business_date', $targetBusinessDate)
+                        ->where('t_type', 'In')
+                        ->with(['user', 'donation'])
+                        ->get();
 
-                        // ✅ FIX: Actually send emails (uncomment)
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
+                        'charity' => $charity,
+                        'details' => $details,
+                        'total'   => $amountToPayNow,
+                        'date'    => $targetBusinessDate
+                    ]);
+
+                    $fileName = 'Statement-' . $charity->id . '-' . $endTime->format('Y-m-d-Hi') . '.pdf';
+                    $filePath = public_path('/invoices/' . $fileName);
+                    file_put_contents($filePath, $pdf->output());
+
+                    $mailData = [
+                        'name'          => $charity->name,
+                        'transactionid' => $transaction->t_id,
+                        'total'         => number_format($amountToPayNow, 2),
+                        'date'          => $targetBusinessDate,
+                        'subject'       => 'Daily Statement - ' . $targetBusinessDate,
+                        'file'          => $filePath,
+                    ];
+
+                    // ✅ FIX: Send emails OUTSIDE transaction (queue after commit)
+                    // But we need to prepare it inside, so we use dispatch after commit
+                    $emailData = $mailData;
+                    $emailData['charity_email'] = $charity->email;
+                    $emailData['contactmail'] = $contactmail;
+                    
+                    DB::afterCommit(function () use ($emailData) {
                         try {
-                            Mail::to($charity->email)->queue(new CharityDailyReport($mailData));
-                            Mail::to($contactmail)->queue(new CharityDailyReport($mailData));
+                            Mail::to($emailData['charity_email'])->queue(new CharityDailyReport($emailData));
+                            Mail::to($emailData['contactmail'])->queue(new CharityDailyReport($emailData));
                         } catch (\Exception $e) {
-                            Log::error("Payment Process: Email failed for {$charity->name}: " . $e->getMessage());
+                            Log::error("Payment Process: Email failed for {$emailData['name']}: " . $e->getMessage());
                         }
-
-                        Log::info("Payment Process: Success for {$charity->name}. Payout prepared. Emails queued. Batch saved.");
                     });
-                } catch (\Exception $e) {
-                    Log::error("Payment Process: Failed for Charity {$charity->id}. Error: " . $e->getMessage());
-                    $allCharitiesSucceeded = false;
-                }
+
+                    Log::info("Payment Process: Success for {$charity->name}. Payout prepared. Batch saved.");
+                });
+            } catch (\Exception $e) {
+                Log::error("Payment Process: Failed for Charity {$charity->id}. Error: " . $e->getMessage());
+                $allCharitiesSucceeded = false;
             }
         }
 
-        // ✅ FIX: Only lock payment for today if ALL charities succeeded
+        // ✅ Only lock payment for today if ALL charities succeeded
         if ($allCharitiesSucceeded) {
             $companyDetail->auto_payment_time = '16:30';
             $companyDetail->last_payment_processed_date = Carbon::today()->toDateString();

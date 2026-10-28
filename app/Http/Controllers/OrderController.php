@@ -2924,12 +2924,10 @@ class OrderController extends Controller
             $oldStatus = $order->status;
             $newStatus = $request->status;
 
-            // Idempotency - skip if already in requested state
             if ($oldStatus == $newStatus) {
                 return response()->json(['status' => 300, 'message' => "Order already in this status.", 'order' => $order->orderhistories]);
             }
 
-            // Explicit transition matrix
             $allowedTransitions = [
                 0 => [1, 3], // Pending → Complete, Cancel
                 1 => [3],    // Complete → Cancel
@@ -2942,58 +2940,68 @@ class OrderController extends Controller
 
             // 1. Handle Cancellation (Status 3)
             if ($newStatus == "3") {
-                foreach ($order->orderhistories as $orderhistory) {
-                    $chkvoucher = Voucher::where('id', $orderhistory->voucher_id)->first();
-                    
-                    if ($chkvoucher && $chkvoucher->type == "Prepaid") {
-                        $accountMapping = ['0.50' => '000', '1.00' => '1111', '2.00' => '222', '3.00' => '333', '5.00' => '5555'];
-                        $lookupKey = number_format((float)$chkvoucher->single_amount, 2, '.', '');
-                        $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+                
+                // A. Reverse holding credits IF the order was Complete (1 -> 3)
+                if ($oldStatus == 1) {
+                    foreach ($order->orderhistories as $orderhistory) {
+                        $chkvoucher = Voucher::where('id', $orderhistory->voucher_id)->first();
                         
-                        if ($targetAccountNo) {
-                            $targetUser = User::where('accountno', $targetAccountNo)->lockForUpdate()->first();
-                            if ($targetUser) {
-                                $creditAmount = $orderhistory->amount;
-                                
-                                // ✅ FIX: Check if THIS specific orderhistory was credited
-                                $settleTId = "Settle-Order-{$order->id}-Hist-{$orderhistory->id}";
-                                $existingCredit = Usertransaction::where('t_id', $settleTId)->where('status', 1)->first();
-                                
-                                if ($existingCredit) {
-                                    // ✅ FIX: Reverse exactly this line's credit
-                                    $targetUser->decrement('balance', $creditAmount);
-                                    $existingCredit->update(['status' => 0]); // Mark original credit as reversed
+                        if ($chkvoucher && $chkvoucher->type == "Prepaid") {
+                            $accountMapping = ['0.50' => '000', '1.00' => '1111', '2.00' => '222', '3.00' => '333', '5.00' => '5555'];
+                            $lookupKey = number_format((float)$chkvoucher->single_amount, 2, '.', '');
+                            $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+                            
+                            if ($targetAccountNo) {
+                                $targetUser = User::where('accountno', $targetAccountNo)->lockForUpdate()->first();
+                                if ($targetUser) {
+                                    $creditAmount = $orderhistory->amount;
+                                    $settleTId = "Settle-Order-{$order->id}-Hist-{$orderhistory->id}";
                                     
-                                    // Create reversal transaction
-                                    $reversalTxn = new Usertransaction();
-                                    $reversalTxn->t_id = "Reverse-Order-{$order->id}-Hist-{$orderhistory->id}";
-                                    $reversalTxn->user_id = $targetUser->id;
-                                    $reversalTxn->t_type = "Out";
-                                    $reversalTxn->amount = $creditAmount;
-                                    $reversalTxn->note = "Holding reversal (Order cancelled: {$order->order_id})";
-                                    $reversalTxn->title = 'Reversal';
-                                    $reversalTxn->status = 1;
-                                    $reversalTxn->order_id = $order->id;
-                                    $reversalTxn->save();
+                                    // Check if THIS specific orderhistory was credited
+                                    $existingCredit = Usertransaction::where('t_id', $settleTId)->where('status', 1)->first();
+                                    
+                                    if ($existingCredit) {
+                                        // ✅ FIX: Append-only reversal for Holding Account
+                                        $targetUser->decrement('balance', $creditAmount);
+                                        
+                                        $reversalTxn = new Usertransaction();
+                                        $reversalTxn->t_id = "REV-" . uniqid() . "-Order-{$order->id}-Hist-{$orderhistory->id}";
+                                        $reversalTxn->user_id = $targetUser->id;
+                                        $reversalTxn->t_type = "Out";
+                                        $reversalTxn->amount = $creditAmount;
+                                        $reversalTxn->note = "Holding account reversal (Order cancelled: {$order->order_id})";
+                                        $reversalTxn->title = 'Reversal';
+                                        $reversalTxn->status = 1;
+                                        $reversalTxn->order_id = $order->id;
+                                        $reversalTxn->save();
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // Refund donor for prepaid vouchers
-                $orders = OrderHistory::where('order_id', $request->orderId)->get();
-                foreach ($orders as $ord) {
-                    $voucher = Voucher::where('id', $ord->voucher_id)->first();
-                    if ($voucher && $voucher->type == "Prepaid") {
-                        $amount = $voucher->amount;
-                        if ($order->user_id) {
-                            $donor = User::find($order->user_id);
-                            if ($donor) {
-                                $donor->increment('balance', $amount * $ord->number_voucher);
-                                // Mark donor's original Out transactions as cancelled
-                                Usertransaction::where('order_id', $request->orderId)->where('t_type', 'Out')->update(['status' => '0']);
-                            }
+                // B. Refund donor for the total order amount (includes prepaid + delivery)
+                // ✅ FIX: Append-only refund for Donor. Do not set original Out to status=0!
+                if ($order->user_id) {
+                    $donor = User::where('id', $order->user_id)->lockForUpdate()->first();
+                    if ($donor && $order->amount > 0) {
+                        $refundTId = "REFUND-Order-{$order->id}";
+                        $alreadyRefunded = Usertransaction::where('t_id', $refundTId)->where('status', 1)->exists();
+                        
+                        if (!$alreadyRefunded) {
+                            $donor->increment('balance', $order->amount);
+                            
+                            $refundTxn = new Usertransaction();
+                            $refundTxn->t_id = $refundTId;
+                            $refundTxn->user_id = $donor->id;
+                            $refundTxn->t_type = "In";
+                            $refundTxn->amount = $order->amount;
+                            $refundTxn->note = "Voucher order cancelled refund (Order: {$order->order_id})";
+                            $refundTxn->title = 'Refund';
+                            $refundTxn->status = 1;
+                            $refundTxn->order_id = $order->id;
+                            $refundTxn->save();
                         }
                     }
                 }
@@ -3016,7 +3024,6 @@ class OrderController extends Controller
                         if ($targetUser) {
                             $creditAmount = $orderhistories->amount;
 
-                            // ✅ FIX: Check by deterministic t_id for THIS orderhistory
                             $settleTId = "Settle-Order-{$order->id}-Hist-{$orderhistories->id}";
                             $alreadyCredited = Usertransaction::where('t_id', $settleTId)->exists();
                             

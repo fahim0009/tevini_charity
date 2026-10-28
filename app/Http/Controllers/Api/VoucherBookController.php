@@ -456,7 +456,7 @@ class VoucherBookController extends Controller
                     //user transaction out if voucher is/are prepaid
                     if(Voucher::where('id',$vdata['voucherIds'])->first()->type == "Prepaid"){
                         $utransaction = new Usertransaction();
-                        $utransaction->t_id = time() . "-" . Auth::user()->id;
+                        $utransaction->t_id =  "TXN-" . uniqid() . "-" . Auth::user()->id;
                         $utransaction->user_id = Auth::user()->id;
                         $utransaction->t_type = "Out";
                         $utransaction->amount =  $vdata['qtys']*$amount;
@@ -477,7 +477,7 @@ class VoucherBookController extends Controller
                 if($delivery_opt == "Delivery"){
                     if ($prepaid_amount < 200) {
                         $udtransaction = new Usertransaction();
-                        $udtransaction->t_id = time() . "-" . Auth::user()->id;
+                        $udtransaction->t_id =  "TXN-" . uniqid() . "-" . Auth::user()->id;
                         $udtransaction->user_id = Auth::user()->id;
                         $udtransaction->t_type = "Out";
                         $udtransaction->amount =  3.50;

@@ -97,7 +97,7 @@ class FundTransferController extends Controller
 
             // send
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".Auth::user()->id;
+            $udtransaction->t_id = "TXN-" . uniqid() . "-" . $user->id;
             $udtransaction->user_id = Auth::user()->id;
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $request->amount;
@@ -108,7 +108,7 @@ class FundTransferController extends Controller
 
             // receive
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".$transferTo->id;
+            $udtransaction->t_id = "TXN-" . uniqid() . "-" . $user->id;
             $udtransaction->user_id = $transferTo->id;
             $udtransaction->t_type = "In";
             $udtransaction->amount =  $request->amount;

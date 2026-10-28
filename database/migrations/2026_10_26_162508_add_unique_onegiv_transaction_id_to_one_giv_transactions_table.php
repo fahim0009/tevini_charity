@@ -4,56 +4,32 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class AddUniqueOnegivTransactionIdToOneGivTransactionsTable extends Migration
 {
     public function up()
     {
-        // ✅ FIX: Don't DELETE duplicates. Mark them as 'duplicate' status.
-        // This preserves audit trail and linked transactions.
-        // Keep the oldest record (smallest id) as the active one.
-        
-        // Find all duplicate onegiv_transaction_ids
-        $duplicateIds = DB::table('one_giv_transactions')
-            ->select('onegiv_transaction_id')
-            ->whereNotNull('onegiv_transaction_id')
-            ->groupBy('onegiv_transaction_id')
-            ->havingRaw('COUNT(*) > 1')
-            ->pluck('onegiv_transaction_id');
+        // ✅ FIX: MySQL compatible. Append ID to make duplicates unique without deleting.
+        DB::statement("UPDATE one_giv_transactions n1
+                       INNER JOIN (
+                           SELECT onegiv_transaction_id, MIN(id) as min_id
+                           FROM one_giv_transactions
+                           WHERE onegiv_transaction_id IS NOT NULL
+                           GROUP BY onegiv_transaction_id
+                           HAVING COUNT(*) > 1
+                       ) n2 ON n1.onegiv_transaction_id = n2.onegiv_transaction_id AND n1.id > n2.min_id
+                       SET n1.onegiv_transaction_id = CONCAT(n1.onegiv_transaction_id, '-DUP-', n1.id),
+                           n1.status = 'duplicate'");
 
-        foreach ($duplicateIds as $dupId) {
-            // Keep the oldest (smallest id), mark others as 'duplicate'
-            $keepId = DB::table('one_giv_transactions')
-                ->where('onegiv_transaction_id', $dupId)
-                ->orderBy('id', 'asc')
-                ->value('id');
-
-            // Mark newer duplicates (not delete!)
-            DB::table('one_giv_transactions')
-                ->where('onegiv_transaction_id', $dupId)
-                ->where('id', '!=', $keepId)
-                ->update(['status' => 'duplicate']);
-            
-            // Log for investigation
-            Log::warning('OneGiv duplicate marked (not deleted)', [
-                'onegiv_transaction_id' => $dupId,
-                'kept_id' => $keepId,
-                'marked_duplicate_count' => DB::table('one_giv_transactions')
-                    ->where('onegiv_transaction_id', $dupId)
-                    ->where('id', '!=', $keepId)
-                    ->count(),
-            ]);
-        }
-
-        // Now add unique constraint
-        // ✅ FIX: Use partial unique index to exclude 'duplicate' status rows
-        // This allows duplicates to coexist with status='duplicate'
-        DB::statement("CREATE UNIQUE INDEX onegiv_txn_id_unique ON one_giv_transactions (onegiv_transaction_id) WHERE status != 'duplicate'");
+        Schema::table('one_giv_transactions', function (Blueprint $table) {
+            $table->unique('onegiv_transaction_id', 'onegiv_txn_id_unique');
+        });
     }
 
     public function down()
     {
-        DB::statement("DROP INDEX IF EXISTS onegiv_txn_id_unique");
+        Schema::table('one_giv_transactions', function (Blueprint $table) {
+            $table->dropUnique('onegiv_txn_id_unique');
+        });
     }
 }

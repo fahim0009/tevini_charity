@@ -661,21 +661,15 @@ class OnlineDonationService
 
     private function createPaymentLog(Donation $donation, string $intentId, float $amount, ?int $userId): void
     {
-        try {
-            PaymentLog::create([
-                'user_id'           => $userId,
-                'payment_intent_id' => $intentId,
-                'amount'            => $amount,
-                'currency'          => 'gbp',
-                'status'            => 'succeeded',
-                'type'              => 'online_donation',
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Donation PaymentLog failed', [
-                'donation_id' => $donation->id,
-                'error'       => $e->getMessage(),
-            ]);
-        }
+        // ✅ FIX: Removed try-catch. If this fails, the transaction MUST rollback.
+        PaymentLog::create([
+            'user_id'           => $userId,
+            'payment_intent_id' => $intentId,
+            'amount'            => $amount,
+            'currency'          => 'gbp',
+            'status'            => 'succeeded',
+            'type'              => 'online_donation',
+        ]);
     }
 
     // ====================================================================

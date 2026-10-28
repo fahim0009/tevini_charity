@@ -74,7 +74,7 @@ class BalanceTransferController extends Controller
 
             // send
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".Auth::user()->id;
+            $udtransaction->t_id =  "TXN-" . uniqid() . "-" .Auth::user()->id;
             $udtransaction->user_id = Auth::user()->id;
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $request->amount;
@@ -85,7 +85,7 @@ class BalanceTransferController extends Controller
 
             // receive
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".$transferTo->id;
+            $udtransaction->t_id =  "TXN-" . uniqid() . "-" .$transferTo->id;
             $udtransaction->user_id = $transferTo->id;
             $udtransaction->t_type = "In";
             $udtransaction->amount =  $request->amount;
@@ -132,7 +132,7 @@ class BalanceTransferController extends Controller
 
             // send
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".$transfer_from;
+            $udtransaction->t_id =  "TXN-" . uniqid() . "-" .$transfer_from;
             $udtransaction->user_id = $transfer_from;
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $amount;
@@ -143,7 +143,7 @@ class BalanceTransferController extends Controller
 
             // receive
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".$transfer_to;
+            $udtransaction->t_id =  "TXN-" . uniqid() . "-" .$transfer_to;
             $udtransaction->user_id = $transfer_to;
             $udtransaction->t_type = "In";
             $udtransaction->amount =  $amount;

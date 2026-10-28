@@ -9,12 +9,18 @@ class AddUniquePaymentIntentIdToPaymentLogsTable extends Migration
 {
     public function up()
     {
-        // Clean up existing duplicates first
-        DB::statement("DELETE n1 FROM payment_logs n1, payment_logs n2 
-                       WHERE n1.id > n2.id 
-                       AND n1.payment_intent_id = n2.payment_intent_id
-                       AND n1.payment_intent_id IS NOT NULL");
+        // ✅ FIX: Don't DELETE duplicates. Append '-DUP-id' to make them unique.
+        DB::statement("UPDATE payment_logs n1
+                       INNER JOIN (
+                           SELECT payment_intent_id, MIN(id) as min_id
+                           FROM payment_logs
+                           WHERE payment_intent_id IS NOT NULL
+                           GROUP BY payment_intent_id
+                           HAVING COUNT(*) > 1
+                       ) n2 ON n1.payment_intent_id = n2.payment_intent_id AND n1.id > n2.min_id
+                       SET n1.payment_intent_id = CONCAT(n1.payment_intent_id, '-DUP-', n1.id)");
 
+        // Now add unique constraint safely
         DB::statement('CREATE UNIQUE INDEX payment_logs_intent_unique ON payment_logs (payment_intent_id)');
     }
 

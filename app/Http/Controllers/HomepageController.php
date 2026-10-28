@@ -183,7 +183,7 @@ class HomepageController extends Controller
 
                 // 4. Create User Transaction Record
                 $utransaction = new Usertransaction();
-                $utransaction->t_id = time() . "-" . $user->id;
+                $utransaction->t_id = uniqid() . "-" . $user->id;
                 $utransaction->charity_id = $campaign_dtls->charity_id;
                 $utransaction->user_id = $user->id;
                 $utransaction->t_type = "Out";

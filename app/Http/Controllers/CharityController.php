@@ -278,7 +278,7 @@ class CharityController extends Controller
 
         if (isset($request->bank_statement)) {
             $rand = mt_rand(100000, 999999);
-            $imageName = time() . $rand . '.' . $request->bank_statement->extension();
+            $imageName = uniqid() . $rand . '.' . $request->bank_statement->extension();
             $request->bank_statement->move(public_path('images'), $imageName);
             $user->bank_statement = $imageName;
         }
@@ -365,7 +365,7 @@ class CharityController extends Controller
             }
 
             $rand = mt_rand(100000, 999999);
-            $imageName = time() . $rand . '.' . $request->bank_statement->extension();
+            $imageName = uniqid() . $rand . '.' . $request->bank_statement->extension();
             $request->bank_statement->move(public_path('images'), $imageName);
             $user->bank_statement = $imageName;
         }
@@ -481,7 +481,7 @@ class CharityController extends Controller
 
         $charity_bal = Charity::find($request->topupid);
         $charity_bal->decrement('balance',$request->balance);
-        $t_id = time() . "-" . $request->topupid;
+        $t_id = uniqid() . "-" . $request->topupid;
         $createdAt = Carbon::parse($request->created_at);
 
         $charity = Charity::where('id','=',$request->topupid)->first();
@@ -610,7 +610,7 @@ class CharityController extends Controller
                 unlink(public_path($charity->profile_image));
             }
             
-            $imageName = time() . '_' . mt_rand(100000, 999999) . '.' . $request->profile_image->extension();
+            $imageName = uniqid() . '_' . mt_rand(100000, 999999) . '.' . $request->profile_image->extension();
             $request->profile_image->move(public_path('images'), $imageName);
             $charity->profile_image = 'images/' . $imageName;
         }
@@ -926,7 +926,7 @@ class CharityController extends Controller
                 $limitChk = $u_bal + $overdrawn;
 
                 $utransaction = new Usertransaction();
-                $utransaction->t_id = time() . "-" . $donor_id;
+                $utransaction->t_id = uniqid() . "-" . $donor_id;
                 $utransaction->user_id = $donor_id;
                 $utransaction->charity_id = $charity_id;
                 $utransaction->t_type = "Out";
@@ -1058,7 +1058,7 @@ class CharityController extends Controller
 
             // Create user transaction
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $donor_id;
+            $utransaction->t_id = uniqid() . "-" . $donor_id;
             $utransaction->user_id = $donor_id;
             $utransaction->charity_id = $charity_id;
             $utransaction->t_type = "Out";

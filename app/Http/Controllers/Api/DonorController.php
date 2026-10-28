@@ -97,7 +97,7 @@ class DonorController extends Controller
         if($data->save()){
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . Auth::user()->id;
+            $utransaction->t_id = uniqid() . "-" . Auth::user()->id;
             $utransaction->user_id = Auth::user()->id;
             $utransaction->charity_id = $request->charity_id;
             $utransaction->donation_id = $data->id;

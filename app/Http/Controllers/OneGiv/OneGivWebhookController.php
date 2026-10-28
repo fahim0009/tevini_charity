@@ -204,7 +204,7 @@ class OneGivWebhookController extends Controller
 
                 // Save Usertransaction
                 $utran = new \App\Models\Usertransaction();
-                $utran->t_id                  = 'OneGiv-' . time() . '-' . $lockedUser->id;
+                $utran->t_id                  = 'OneGiv-' . uniqid() . '-' . $lockedUser->id;
                 $utran->user_id               = $lockedUser->id;
                 $utran->charity_id            = $charity->id;
                 $utran->t_type                = 'Out';

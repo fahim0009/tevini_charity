@@ -269,7 +269,7 @@ class DonorController extends Controller
                 $topup->save();
             }
             $transaction = new Transaction();
-            $transaction->t_id = time() . "-" . $request->topupid;
+            $transaction->t_id = uniqid() . "-" . $request->topupid;
             $transaction->user_id = $request->topupid;
             $transaction->t_type = "In";
             $transaction->name = $request->source;
@@ -280,7 +280,7 @@ class DonorController extends Controller
             $transaction->save();
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $request->topupid;
+            $utransaction->t_id = uniqid() . "-" . $request->topupid;
             $utransaction->date = $request->date;
             $utransaction->user_id = $request->topupid;
             $utransaction->source = $request->source;
@@ -390,7 +390,7 @@ class DonorController extends Controller
         $commissionAmount = (float) $request->commission;
 
         // Generate the new Transaction ID (e.g., TP-1715683405-15)
-        $transactionId = 'TP-' . time() . '-' . $request->topupid;
+        $transactionId = 'TP-' . uniqid() . '-' . $request->topupid;
 
         // Start Database Transaction to ensure data integrity
         \DB::beginTransaction();
@@ -1321,7 +1321,7 @@ class DonorController extends Controller
             if($data->save()){
 
                 $utransaction = new Usertransaction();
-                $utransaction->t_id = time() . "-" . $userid;
+                $utransaction->t_id = uniqid() . "-" . $userid;
                 $utransaction->user_id = $userid;
                 $utransaction->charity_id = $request->charity_id;
                 $utransaction->donation_id = $data->id;
@@ -1435,7 +1435,7 @@ class DonorController extends Controller
         if($data->save()){
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $userid;
+            $utransaction->t_id = uniqid() . "-" . $userid;
             $utransaction->user_id = $userid;
             $utransaction->charity_id = $request->charity_id;
             $utransaction->donation_id = $data->id;
@@ -1557,7 +1557,7 @@ class DonorController extends Controller
         if($data->save()){
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $donner_id;
+            $utransaction->t_id = uniqid() . "-" . $donner_id;
             $utransaction->user_id = $donner_id;
             $utransaction->charity_id = $request->charity_id;
             $utransaction->donation_id = $data->id;
@@ -1658,7 +1658,7 @@ class DonorController extends Controller
             $doncaldetl->save();
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $data->user_id;
+            $utransaction->t_id = uniqid() . "-" . $data->user_id;
             $utransaction->user_id = $data->user_id;
             $utransaction->charity_id = $data->charity_id;
             $utransaction->standing_donationdetails_id = $data->id;
@@ -2213,7 +2213,7 @@ class DonorController extends Controller
                 $pdf = PDF::loadView('invoices.donations_report_charity', compact('charity', 'donations'));
                 
                 // Added timestamp to prevent file overwriting conflicts
-                $fileName = 'Donation-report-charity-' . $charity->id . '-' . time() . '.pdf';
+                $fileName = 'Donation-report-charity-' . $charity->id . '-' . uniqid() . '.pdf';
                 $filePath = public_path('invoices/' . $fileName);
                 
                 file_put_contents($filePath, $pdf->output());

@@ -539,7 +539,7 @@ class DonationController extends Controller
                                 $doncaldetl->save();
 
                                 $utransaction = new Usertransaction();
-                                $utransaction->t_id = time() . "-" . $activestand_order->user_id;
+                                $utransaction->t_id = uniqid() . "-" . $activestand_order->user_id;
                                 $utransaction->user_id = $activestand_order->user_id;
                                 $utransaction->charity_id = $activestand_order->charity_id;
                                 $utransaction->standing_donationdetails_id = $activestand_order->id;
@@ -574,7 +574,7 @@ class DonationController extends Controller
                         $doncaldetl->save();
 
                         $utransaction = new Usertransaction();
-                        $utransaction->t_id = time() . "-" . $activestand_order->user_id;
+                        $utransaction->t_id = uniqid() . "-" . $activestand_order->user_id;
                         $utransaction->user_id = $activestand_order->user_id;
                         $utransaction->charity_id = $activestand_order->charity_id;
                         $utransaction->standing_donationdetails_id = $activestand_order->id;

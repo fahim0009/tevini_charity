@@ -111,7 +111,7 @@ class BatchController extends Controller
             }
 
             $image = $request->file('barcode_image');
-            $name = time() . '_' . $image->getClientOriginalName();
+            $name = uniqid() . '_' . $image->getClientOriginalName();
             $destinationPath = public_path('/images/barcodes');
             $image->move($destinationPath, $name);
             
@@ -450,7 +450,7 @@ class BatchController extends Controller
 
                 // Create User Transaction
                 $transaction = new Usertransaction();
-                $transaction->t_id = time() . "-" . $donorId;
+                $transaction->t_id = uniqid() . "-" . $donorId;
                 $transaction->user_id = $donorId;
                 $transaction->charity_id = $charityId;
                 $transaction->t_type = "Out";

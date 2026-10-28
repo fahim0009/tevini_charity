@@ -116,7 +116,7 @@ class GuestVoucherController extends Controller
                 return response()->json(['status' => 300, 'message' => $message]);
             } else {
                 // New item
-                $newId = 'guest_' . time() . '_' . rand(100, 999);
+                $newId = 'guest_' . uniqid() . '_' . rand(100, 999);
                 $cart[] = [
                     'id'            => $newId,
                     'voucher_id'    => $request->voucherID,

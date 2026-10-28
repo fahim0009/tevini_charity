@@ -417,7 +417,7 @@ class CharityApiController extends Controller
 
                     // Create user transaction
                     $utransaction = new Usertransaction();
-                    $utransaction->t_id       = time() . "-" . $donor_id;
+                    $utransaction->t_id       = uniqid() . "-" . $donor_id;
                     $utransaction->user_id    = $donor_id;
                     $utransaction->charity_id = $charity_id;
                     $utransaction->t_type     = "Out";

@@ -795,7 +795,7 @@ class CardServiceController extends Controller
                 $user->save();
 
                 // Create Usertransaction (Out)
-                $tId = 'TXN-' . time() . '-' . $user->id;
+                $tId = 'TXN-' . uniqid() . '-' . $user->id;
                 $utran = new Usertransaction;
                 $utran->t_id = $tId;
                 $utran->user_id = $user->id;
@@ -1112,7 +1112,7 @@ class CardServiceController extends Controller
                         $user->save();
     
                         $utran = new Usertransaction;
-                        $utran->t_id =  time() . "-" . $chkuser->user_id;
+                        $utran->t_id =  uniqid() . "-" . $chkuser->user_id;
                         $utran->user_id = $chkuser->user_id;
                         $utran->t_type = "Out";
                         $utran->source = "Tevini Card";
@@ -1221,7 +1221,7 @@ class CardServiceController extends Controller
                         $user->save();
     
                         $utran = new Usertransaction;
-                        $utran->t_id =  time() . "-" . $chkuser->user_id;
+                        $utran->t_id =  uniqid() . "-" . $chkuser->user_id;
                         $utran->user_id = $chkuser->user_id;
                         $utran->t_type = "In";
                         $utran->source = "Tevini Card";
@@ -1532,7 +1532,7 @@ class CardServiceController extends Controller
 
     //                     $user->decrement('balance', $request->billAmt);
 
-    //                     $t_id = time() . "-" . $user->id;
+    //                     $t_id = uniqid() . "-" . $user->id;
 
     //                     Usertransaction::create([
     //                         't_id' => $t_id,
@@ -1573,7 +1573,7 @@ class CardServiceController extends Controller
 
     //                     $user->increment('balance', $request->billAmt);
 
-    //                     $t_id = time() . "-" . $user->id;
+    //                     $t_id = uniqid() . "-" . $user->id;
 
     //                     Usertransaction::create([
     //                         't_id' => $t_id,

@@ -150,7 +150,7 @@ class VoucherBookController extends Controller
 
             $order = new Order();
             $order->user_id = Auth::id();
-            $order->order_id = time() . "-" . Auth::id();
+            $order->order_id = uniqid() . "-" . Auth::id();
             $order->amount = $prepaid_amount + $delivery_charge;
             $order->delivery_charge = $delivery_charge;
             $order->delivery_option = $delivery_opt;
@@ -168,7 +168,7 @@ class VoucherBookController extends Controller
                 
                 // Loop for unique records
                 for ($x = 0; $x < $qty; $x++) {
-                    $uniqueCode = time() . rand(100, 999);
+                    $uniqueCode = uniqid() . rand(100, 999);
                     
                     if ($voucher->type == "Mixed") {
                         $this->voucherDetailsStore($order, $voucher->id, $voucher->amount, $uniqueCode, $voucher, 1);
@@ -187,7 +187,7 @@ class VoucherBookController extends Controller
                     if ($voucher->type == "Prepaid") {
                         // Create Donor "Out" Transaction
                         Usertransaction::create([
-                            't_id' => "VCH-" . time() . "-" . rand(10,99),
+                            't_id' => "VCH-" . uniqid() . "-" . rand(10,99),
                             'user_id' => Auth::id(),
                             't_type' => "Out",
                             'amount' => $voucher->amount,
@@ -209,7 +209,7 @@ class VoucherBookController extends Controller
                     'user_id' => Auth::id(),
                     't_type' => "Out",
                     'amount' => $delivery_charge,
-                    't_unq' => time() . rand(1, 100),
+                    't_unq' => uniqid() . rand(1, 100),
                     'order_id' => $order->id,
                     'title' => "Delivery Charge",
                     'status' => 1
@@ -368,7 +368,7 @@ class VoucherBookController extends Controller
 
 
         $order->user_id = Auth::user()->id;
-        $order->order_id = time() . "-" . Auth::user()->id;
+        $order->order_id = uniqid() . "-" . Auth::user()->id;
 
         if ($prepaid_amount < 200) {
 

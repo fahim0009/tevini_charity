@@ -124,7 +124,7 @@ class OneGivCardAdminController extends Controller
 
             // ✅ Step 3: Deduct £5 from donor balance
             $utran                        = new Usertransaction();
-            $utran->t_id                  = time() . '-' . $user->id;
+            $utran->t_id                  = uniqid() . '-' . $user->id;
             $utran->user_id               = $user->id;
             $utran->t_type                = 'Out';
             $utran->source                = 'OneGiv Card (Admin Ordered)';

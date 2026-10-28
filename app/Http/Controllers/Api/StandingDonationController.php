@@ -74,7 +74,7 @@ class StandingDonationController extends Controller
             $doncaldetl->save();
 
             $utransaction = new Usertransaction();
-            $utransaction->t_id = time() . "-" . $data->user_id;
+            $utransaction->t_id = uniqid() . "-" . $data->user_id;
             $utransaction->user_id = $data->user_id;
             $utransaction->charity_id = $data->charity_id;
             $utransaction->standing_donationdetails_id = $data->id;

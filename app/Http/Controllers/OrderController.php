@@ -257,7 +257,7 @@ class OrderController extends Controller
 
         $order = new Order();
         $order->user_id = $request->did;
-        $order->order_id = time() . "-" . $request->did;
+        $order->order_id = uniqid() . "-" . $request->did;
 
         if ($delivery_opt = "Delivery") {
             $order->amount = $prepaid_amount + $request->delivery_charge;
@@ -545,7 +545,7 @@ class OrderController extends Controller
 
             $order = new Order();
             $order->user_id = $request->did;
-            $order->order_id = time() . "-" . $request->did;
+            $order->order_id = uniqid() . "-" . $request->did;
             $order->amount = $prepaid_amount + $delivery_charge;
             $order->delivery_charge = $delivery_charge;
             $order->delivery_option = $delivery_opt;
@@ -561,7 +561,7 @@ class OrderController extends Controller
                 
                 // Loop for each individual voucher to create unique records
                 for ($x = 0; $x < $qty; $x++) {
-                    $uniqueCode = time() . rand(100, 999);
+                    $uniqueCode = uniqid() . rand(100, 999);
                     
                     if ($voucher->type == "Mixed") {
                         $this->voucherDetailsStore($order, $id, $uniqueCode);
@@ -681,7 +681,7 @@ class OrderController extends Controller
                     'user_id' => $request->did,
                     't_type' => "Out",
                     'amount' => $delivery_charge,
-                    't_unq' => time() . rand(1, 100),
+                    't_unq' => uniqid() . rand(1, 100),
                     'order_id' => $order->id,
                     'title' => "Delivery Charge",
                     'status' => 1
@@ -1459,7 +1459,7 @@ class OrderController extends Controller
             $barcodeImagePath = $this->moveBarcodeImageAndGetPath($chequeNo);
 
             $transaction                     = new Usertransaction();
-            $transaction->t_id               = time() . "-" . $donorId;
+            $transaction->t_id               = uniqid() . "-" . $donorId;
             $transaction->user_id            = $donorId;
             $transaction->charity_id         = $charityId;
             $transaction->t_type             = "Out";

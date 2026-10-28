@@ -119,7 +119,7 @@ class SystemController extends Controller
         ]);
 
         $charity   = Charity::findOrFail($request->topupid);
-        $t_id      = time() . "-" . $request->topupid;
+        $t_id      = uniqid() . "-" . $request->topupid;
         $createdAt = Carbon::parse($request->created_at);
 
         $transaction             = new Transaction();

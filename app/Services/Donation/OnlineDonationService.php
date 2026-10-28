@@ -26,6 +26,9 @@ class OnlineDonationService
     /**
      * Create a one-time donation.
      * Handles: admin, web, app (balance) + guest (stripe)
+     * 
+     * FIX: Balance check moved INSIDE DB::transaction with lockForUpdate
+     * FIX: Stripe PaymentIntent verification added for guest donations
      */
     public function createOneTimeDonation(OnlineDonationData $data): Donation
     {
@@ -36,17 +39,36 @@ class OnlineDonationService
         $fee = $this->calculateFee($data->amount, $data->paymentMethod);
         $totalChargeable = $data->amount + $fee;
 
-        // 3. Balance check (only for balance payments)
-        if ($data->paymentMethod === 'balance' && $data->donorId) {
-            $this->ensureSufficientBalance($data->donorId, $totalChargeable);
+        // 3. FIX: For Stripe guest donations, verify PaymentIntent server-side BEFORE transaction
+        if ($data->isStripePayment() && $data->stripePaymentIntentId) {
+            $this->verifyStripePaymentIntent($data, $totalChargeable);
         }
 
-        // 4. Persist
+        // 4. Persist inside transaction (balance check moved inside)
         $donation = DB::transaction(function () use ($data, $fee, $totalChargeable) {
+            // FIX: Lock user row for concurrent safety (balance payments only)
+            if ($data->paymentMethod === 'balance' && $data->donorId) {
+                $lockedUser = User::where('id', $data->donorId)->lockForUpdate()->first();
+                
+                if (!$lockedUser) {
+                    throw new InsufficientBalanceException();
+                }
+                
+                $available = $lockedUser->getAvailableLimit();
+                if ($available < $totalChargeable) {
+                    Log::warning('Donation failed: Insufficient balance (inside transaction)', [
+                        'user_id' => $lockedUser->id,
+                        'available' => $available,
+                        'required' => $totalChargeable,
+                    ]);
+                    throw new InsufficientBalanceException();
+                }
+            }
+            
             return $this->persistOneTimeDonation($data, $fee, $totalChargeable);
         });
 
-        // 5. Create PaymentLog for Stripe
+        // 5. Create PaymentLog for Stripe (after successful commit)
         if ($data->isStripePayment() && $data->stripePaymentIntentId) {
             $this->createPaymentLog($donation, $data->stripePaymentIntentId, $totalChargeable, $data->donorId);
         }
@@ -64,23 +86,39 @@ class OnlineDonationService
     /**
      * Create a standing order donation.
      * Always uses balance payment (no Stripe for standing orders).
+     * 
+     * FIX: Balance check moved INSIDE DB::transaction with lockForUpdate
      */
     public function createStandingDonation(OnlineDonationData $data): StandingDonation
     {
         // 1. Validate
         $this->validateStandingDonation($data);
 
-        // 2. Balance check
-        if ($data->donorId) {
-            $this->ensureSufficientBalance($data->donorId, $data->amount);
-        }
-
-        // 3. Persist
+        // 2. Persist inside transaction (balance check moved inside)
         $standingDonation = DB::transaction(function () use ($data) {
+            // FIX: Lock user row for concurrent safety
+            if ($data->donorId) {
+                $lockedUser = User::where('id', $data->donorId)->lockForUpdate()->first();
+                
+                if (!$lockedUser) {
+                    throw new InsufficientBalanceException();
+                }
+                
+                $available = $lockedUser->getAvailableLimit();
+                if ($available < $data->amount) {
+                    Log::warning('Standing donation failed: Insufficient balance (inside transaction)', [
+                        'user_id' => $lockedUser->id,
+                        'available' => $available,
+                        'required' => $data->amount,
+                    ]);
+                    throw new InsufficientBalanceException();
+                }
+            }
+            
             return $this->persistStandingDonation($data);
         });
 
-        // 4. Send email
+        // 3. Send email
         $this->sendStandingDonationEmail($standingDonation, $data->donorId);
 
         return $standingDonation;
@@ -154,14 +192,20 @@ class OnlineDonationService
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
         $paymentIntent = \Stripe\PaymentIntent::create([
-            'amount'   => round($total * 100),
+            'amount'   => (int) round($total * 100), // FIX: Integer pence
             'currency' => 'gbp',
+            'automatic_payment_methods' => [
+                'enabled' => true,
+                'allow_redirects' => 'never',
+            ],
             'metadata' => [
                 'type'        => 'online_donation',
                 'charity_id'  => (string) $data->charityId,
-                'base_amount' => $data->amount,
-                'fee'         => $fee,
+                'base_amount' => (string) $data->amount,
+                'fee'         => (string) $fee,
+                'total'       => (string) $total,
                 'user_id'     => $data->donorId ? (string) $data->donorId : 'guest',
+                'purpose'     => 'online_donation',
                 'session_id'  => session()->getId(),
             ],
             'description' => 'Donation to charity ID: ' . $data->charityId,
@@ -236,7 +280,7 @@ class OnlineDonationService
     }
 
     // ====================================================================
-    // PRIVATE: Balance Check
+    // PRIVATE: Balance Check (kept for backward compat, but main check is in transaction)
     // ====================================================================
 
     private function ensureSufficientBalance(int $donorId, float $amountNeeded): void
@@ -250,6 +294,110 @@ class OnlineDonationService
 
         if ($available < $amountNeeded) {
             throw new InsufficientBalanceException();
+        }
+    }
+
+    // ====================================================================
+    // PRIVATE: FIX - Verify Stripe PaymentIntent server-side
+    // ====================================================================
+
+    /**
+     * FIX: Verify Stripe PaymentIntent before processing donation
+     * Checks: status=succeeded, currency=gbp, amount matches, purpose=online_donation
+     */    /**
+     * FIX: Verify Stripe PaymentIntent before processing donation
+     * Checks: status=succeeded, currency=gbp, amount matches, purpose=online_donation
+     */
+    private function verifyStripePaymentIntent(OnlineDonationData $data, float $totalChargeable): void
+    {
+        try {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            $intent = \Stripe\PaymentIntent::retrieve($data->stripePaymentIntentId);
+
+            // 1. Check payment status
+            if ($intent->status !== 'succeeded') {
+                Log::error('Donation Stripe verification failed: Payment not succeeded', [
+                    'intent_id' => $data->stripePaymentIntentId,
+                    'status' => $intent->status,
+                ]);
+                throw new \RuntimeException('Payment not completed on Stripe.');
+            }
+
+            // 2. Check currency is GBP
+            if (strtolower($intent->currency) !== 'gbp') {
+                Log::error('Donation Stripe verification failed: Currency mismatch', [
+                    'intent_id' => $data->stripePaymentIntentId,
+                    'currency' => $intent->currency,
+                ]);
+                throw new \RuntimeException('Invalid currency. Only GBP is accepted.');
+            }
+
+            // 3. Check amount matches (integer pence comparison)
+            $expectedAmountPence = (int) round($totalChargeable * 100);
+            $stripeAmountPence = (int) $intent->amount;
+
+            if ($expectedAmountPence !== $stripeAmountPence) {
+                Log::error('Donation Stripe verification failed: Amount mismatch', [
+                    'intent_id' => $data->stripePaymentIntentId,
+                    'expected_pence' => $expectedAmountPence,
+                    'stripe_pence' => $stripeAmountPence,
+                ]);
+                throw new \RuntimeException('Amount mismatch.');
+            }
+
+            // 4. Check purpose metadata
+            if (!isset($intent->metadata['purpose']) || $intent->metadata['purpose'] !== 'online_donation') {
+                Log::error('Donation Stripe verification failed: Purpose mismatch', [
+                    'intent_id' => $data->stripePaymentIntentId,
+                    'purpose' => $intent->metadata['purpose'] ?? 'null',
+                ]);
+                throw new \RuntimeException('Invalid payment purpose.');
+            }
+
+            // 5. Check charity_id matches
+            if (!isset($intent->metadata['charity_id']) || $intent->metadata['charity_id'] != $data->charityId) {
+                Log::error('Donation Stripe verification failed: Charity mismatch', [
+                    'intent_id' => $data->stripePaymentIntentId,
+                    'metadata_charity_id' => $intent->metadata['charity_id'] ?? 'null',
+                    'request_charity_id' => $data->charityId,
+                ]);
+                throw new \RuntimeException('Charity verification failed.');
+            }
+
+            // 6. Check ownership (if authenticated user)
+            if ($data->donorId) {
+                $metadataUserId = $intent->metadata['user_id'] ?? 'guest';
+                if ($metadataUserId !== 'guest' && $metadataUserId != $data->donorId) {
+                    Log::error('Donation Stripe verification failed: Ownership mismatch', [
+                        'intent_id' => $data->stripePaymentIntentId,
+                        'metadata_user_id' => $metadataUserId,
+                        'request_user_id' => $data->donorId,
+                    ]);
+                    throw new \RuntimeException('Payment ownership verification failed.');
+                }
+            }
+
+            // 7. Idempotency check - if PaymentLog already exists, this is a replay
+            $existingLog = PaymentLog::where('payment_intent_id', $data->stripePaymentIntentId)->first();
+            if ($existingLog) {
+                Log::info('Donation Stripe: Duplicate request detected', [
+                    'intent_id' => $data->stripePaymentIntentId,
+                    'existing_log_id' => $existingLog->id,
+                ]);
+                throw new \RuntimeException('Payment already processed.');
+            }
+
+            Log::info('Donation Stripe verification passed', [
+                'intent_id' => $data->stripePaymentIntentId,
+                'amount_pence' => $stripeAmountPence,
+                'charity_id' => $data->charityId,
+            ]);
+
+        } catch (\RuntimeException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Donation Stripe verification error: ' . $e->getMessage());
+            throw new \RuntimeException('Payment verification failed.');
         }
     }
 

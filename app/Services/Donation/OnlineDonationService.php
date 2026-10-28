@@ -23,12 +23,11 @@ class OnlineDonationService
     // PUBLIC: One-Time Donation
     // ====================================================================
 
-    /**
+        /**
      * Create a one-time donation.
      * Handles: admin, web, app (balance) + guest (stripe)
      * 
-     * FIX: Balance check moved INSIDE DB::transaction with lockForUpdate
-     * FIX: Stripe PaymentIntent verification added for guest donations
+     * FIX: PaymentLog now created INSIDE DB::transaction for atomic idempotency
      */
     public function createOneTimeDonation(OnlineDonationData $data): Donation
     {
@@ -39,13 +38,14 @@ class OnlineDonationService
         $fee = $this->calculateFee($data->amount, $data->paymentMethod);
         $totalChargeable = $data->amount + $fee;
 
-        // 3. FIX: For Stripe guest donations, verify PaymentIntent server-side BEFORE transaction
+        // 3. FIX: For Stripe, verify PaymentIntent BEFORE transaction (but don't check PaymentLog yet)
         if ($data->isStripePayment() && $data->stripePaymentIntentId) {
-            $this->verifyStripePaymentIntent($data, $totalChargeable);
+            $this->verifyStripePaymentIntentOnly($data, $totalChargeable);
         }
 
-        // 4. Persist inside transaction (balance check moved inside)
+        // 4. Persist inside transaction (PaymentLog + balance check + donation ALL inside)
         $donation = DB::transaction(function () use ($data, $fee, $totalChargeable) {
+            
             // FIX: Lock user row for concurrent safety (balance payments only)
             if ($data->paymentMethod === 'balance' && $data->donorId) {
                 $lockedUser = User::where('id', $data->donorId)->lockForUpdate()->first();
@@ -65,18 +65,96 @@ class OnlineDonationService
                 }
             }
             
-            return $this->persistOneTimeDonation($data, $fee, $totalChargeable);
+            // ✅ FIX: PaymentLog idempotency check INSIDE transaction (with lockForUpdate)
+            if ($data->isStripePayment() && $data->stripePaymentIntentId) {
+                $existingLog = PaymentLog::where('payment_intent_id', $data->stripePaymentIntentId)
+                    ->lockForUpdate()
+                    ->first();
+                    
+                if ($existingLog) {
+                    Log::info('Donation: Duplicate Stripe request detected inside transaction', [
+                        'intent_id' => $data->stripePaymentIntentId,
+                        'existing_log_id' => $existingLog->id,
+                    ]);
+                    throw new \RuntimeException('Payment already processed.');
+                }
+            }
+            
+            // Create donation
+            $donation = $this->persistOneTimeDonation($data, $fee, $totalChargeable);
+            
+            // ✅ FIX: Create PaymentLog INSIDE transaction (atomic with donation)
+            if ($data->isStripePayment() && $data->stripePaymentIntentId) {
+                $this->createPaymentLog($donation, $data->stripePaymentIntentId, $totalChargeable, $data->donorId);
+            }
+            
+            return $donation;
         });
 
-        // 5. Create PaymentLog for Stripe (after successful commit)
-        if ($data->isStripePayment() && $data->stripePaymentIntentId) {
-            $this->createPaymentLog($donation, $data->stripePaymentIntentId, $totalChargeable, $data->donorId);
-        }
-
-        // 6. Send email
+        // 5. Send email (after commit)
         $this->sendOneTimeDonationEmail($donation, $data->donorId);
 
         return $donation;
+    }
+
+    /**
+     * FIX: New method - verify Stripe PaymentIntent only (no PaymentLog check)
+     * PaymentLog check moved inside transaction
+     */
+    private function verifyStripePaymentIntentOnly(OnlineDonationData $data, float $totalChargeable): void
+    {
+        try {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            $intent = \Stripe\PaymentIntent::retrieve($data->stripePaymentIntentId);
+
+            // 1. Check payment status
+            if ($intent->status !== 'succeeded') {
+                throw new \RuntimeException('Payment not completed on Stripe.');
+            }
+
+            // 2. Check currency is GBP
+            if (strtolower($intent->currency) !== 'gbp') {
+                throw new \RuntimeException('Invalid currency. Only GBP is accepted.');
+            }
+
+            // 3. Check amount matches (integer pence comparison)
+            $expectedAmountPence = (int) round($totalChargeable * 100);
+            $stripeAmountPence = (int) $intent->amount;
+
+            if ($expectedAmountPence !== $stripeAmountPence) {
+                throw new \RuntimeException('Amount mismatch.');
+            }
+
+            // 4. Check purpose metadata
+            if (!isset($intent->metadata['purpose']) || $intent->metadata['purpose'] !== 'online_donation') {
+                throw new \RuntimeException('Invalid payment purpose.');
+            }
+
+            // 5. Check charity_id matches
+            if (!isset($intent->metadata['charity_id']) || $intent->metadata['charity_id'] != $data->charityId) {
+                throw new \RuntimeException('Charity verification failed.');
+            }
+
+            // 6. Check ownership (if authenticated user)
+            if ($data->donorId) {
+                $metadataUserId = $intent->metadata['user_id'] ?? 'guest';
+                if ($metadataUserId !== 'guest' && $metadataUserId != $data->donorId) {
+                    throw new \RuntimeException('Payment ownership verification failed.');
+                }
+            }
+
+            Log::info('Donation Stripe verification passed (intent only)', [
+                'intent_id' => $data->stripePaymentIntentId,
+                'amount_pence' => $stripeAmountPence,
+                'charity_id' => $data->charityId,
+            ]);
+
+        } catch (\RuntimeException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Donation Stripe verification error: ' . $e->getMessage());
+            throw new \RuntimeException('Payment verification failed.');
+        }
     }
 
     // ====================================================================

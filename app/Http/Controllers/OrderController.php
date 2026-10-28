@@ -2912,115 +2912,6 @@ class OrderController extends Controller
 
 
 
-    public function orderStatus2(Request $request)
-    {
-
-        if($request->status == "3"){
-
-            $orders = OrderHistory::where('order_id',$request->orderId)->get();
-
-            foreach($orders as $order){
-
-                if(Voucher::where('id',$order->voucher_id)->first()->type == "Prepaid"){
-
-                    $amount = Voucher::where('id',$order->voucher_id)->first()->amount;
-                    $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
-                    $donor->increment('balance',$amount*$order->number_voucher);
-                    $donor->save();
-                    Usertransaction::where(['order_id'=>$request->orderId])->update(['status'=>'0']);
-                }
-
-            }
-
-         }
-
-
-        $order = Order::find($request->orderId);
-        $order->status = $request->status;
-        if($order->save()){
-            if ($request->status == 1) {
-                
-                foreach ($order->orderhistories as $key => $orderhistories) {
-                    $chkvoucher = Voucher::where('id', $orderhistories->voucher_id)->first();
-
-                    // Define the mapping of single_amount to accountno
-                    $accountMapping = [
-                        '0.50' => '000',
-                        '1.00' => '1111',
-                        '2.00' => '222',
-                        '3.00' => '333',
-                        '5.00' => '5555',
-                    ];
-
-                    $lookupKey = number_format((float)$chkvoucher->single_amount, 2, '.', '');
-                    $targetAccountNo = $accountMapping[$lookupKey] ?? null;
-                    if ($targetAccountNo) {
-                        $targetUser = User::where('accountno', $targetAccountNo)->first();
-                        
-                        if ($targetUser) {
-                            $creditAmount = $orderhistories->amount;
-
-                            // 2. Create Global Transaction (In)
-                            $transaction = new Transaction();
-                            $transaction->t_id = "In-" . time() . "-" . $targetUser->id;
-                            $transaction->user_id = $targetUser->id;
-                            $transaction->t_type = "In";
-                            $transaction->amount = $creditAmount;
-                            $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
-                            $transaction->status = "1";
-                            $transaction->save();
-
-                            // 3. Create User Transaction for the System Account (In)
-                            $utransactionIn = new Usertransaction();
-                            $utransactionIn->t_id = $transaction->t_id;
-                            $utransactionIn->user_id = $targetUser->id;
-                            $utransactionIn->t_type = "In";
-                            $utransactionIn->amount = $creditAmount;
-                            $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
-                            $utransactionIn->title = 'Credit';
-                            $utransactionIn->status = 1;
-                            $utransactionIn->order_id = $order->id;
-                            $utransactionIn->save();
-
-                            // 4. Update the System User's actual balance
-                            $targetUser->increment('balance', $creditAmount);
-
-                            \Log::warning('Step 1 Success: Target user found', [
-                                'account_no' => $targetAccountNo
-                            ]);
-                            
-                        } else {
-                            \Log::warning('Step 2 Failed: Target user not found', [
-                                'account_no' => $targetAccountNo
-                            ]);
-                        }
-                    } else {
-                        \Log::warning('Step 1 Failed: Target account not found in mapping', [
-                            'available_mappings' => array_keys($accountMapping)
-                        ]);
-                    }
-                }
-
-                // email 
-                $donor = User::find(Order::where('id',$request->orderId)->first()->user_id);
-                $contactmail = ContactMail::where('id', 1)->first()->name;
-                $array['subject'] = 'Voucher order complete';
-                $array['from'] = 'info@tevini.co.uk';
-                $array['cc'] = $contactmail;
-                $array['name'] = $donor->name;
-                $email = $donor->email;
-
-                Mail::to($email)
-                ->cc($contactmail)
-                ->send(new VoucherOrderBookStatusMail($array));
-                // email 
-            }
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Order status change successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message,'order'=>$order->orderhistories]);
-        }
-
-    }
-
     public function orderStatus(Request $request)
     {
         // ✅ FIX: Wrap entire operation in DB transaction with row locking
@@ -3046,16 +2937,91 @@ class OrderController extends Controller
                 ]);
             }
 
-            // 1. Handle Cancellation (Status 3) - only if not already cancelled
-            if ($newStatus == "3" && $oldStatus != "3") {
-                $orders = OrderHistory::where('order_id', $request->orderId)->get();
+            // ✅ FIX: Explicit transition matrix - block invalid transitions
+            $allowedTransitions = [
+                0 => [1, 3], // Pending → Complete, Cancel
+                1 => [3],    // Complete → Cancel (NO going back to Pending!)
+                3 => [],     // Cancel → (NO transitions allowed)
+            ];
 
+            if (!in_array($newStatus, $allowedTransitions[$oldStatus] ?? [])) {
+                Log::warning("Invalid status transition blocked", [
+                    'order_id' => $order->id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $newStatus,
+                ]);
+                return response()->json([
+                    'status' => 303,
+                    'message' => "<div class='alert alert-danger'>Invalid status transition. Cannot change from {$oldStatus} to {$newStatus}.</div>"
+                ]);
+            }
+
+            // 1. Handle Cancellation (Status 3) - Reverse holding credits AND refund donor
+            if ($newStatus == "3" && $oldStatus == 1) {
+                // Order was Complete, now being Cancelled → Reverse holding credits
+                foreach ($order->orderhistories as $orderhistory) {
+                    $chkvoucher = Voucher::where('id', $orderhistory->voucher_id)->first();
+                    
+                    if ($chkvoucher && $chkvoucher->type == "Prepaid") {
+                        $accountMapping = [
+                            '0.50' => '000',
+                            '1.00' => '1111',
+                            '2.00' => '222',
+                            '3.00' => '333',
+                            '5.00' => '5555',
+                        ];
+
+                        $lookupKey = number_format((float)$chkvoucher->single_amount, 2, '.', '');
+                        $targetAccountNo = $accountMapping[$lookupKey] ?? null;
+                        
+                        if ($targetAccountNo) {
+                            $targetUser = User::where('accountno', $targetAccountNo)->lockForUpdate()->first();
+                            
+                            if ($targetUser) {
+                                $creditAmount = $orderhistory->amount;
+
+                                // ✅ FIX: Check if this orderhistory was credited (per line, not per order)
+                                $existingCredit = Usertransaction::where('order_id', $order->id)
+                                    ->where('user_id', $targetUser->id)
+                                    ->where('t_type', 'In')
+                                    ->where('note', 'LIKE', "%Order: {$order->order_id}%")
+                                    ->where('status', 1)
+                                    ->exists();
+                                
+                                if ($existingCredit) {
+                                    // Reverse the holding-account credit
+                                    $targetUser->decrement('balance', $creditAmount);
+                                    
+                                    // Mark the original credit as reversed (status 0)
+                                    Usertransaction::where('order_id', $order->id)
+                                        ->where('user_id', $targetUser->id)
+                                        ->where('t_type', 'In')
+                                        ->where('status', 1)
+                                        ->update(['status' => 0, 'note' => 'REVERSED - Order cancelled: ' . $order->order_id]);
+                                    
+                                    // Create reversal transaction record
+                                    $reversalTxn = new Usertransaction();
+                                    $reversalTxn->t_id = "REV-" . time() . "-" . $targetUser->id . "-" . $order->id;
+                                    $reversalTxn->user_id = $targetUser->id;
+                                    $reversalTxn->t_type = "Out";
+                                    $reversalTxn->amount = $creditAmount;
+                                    $reversalTxn->note = "Holding account reversal (Order cancelled: {$order->order_id})";
+                                    $reversalTxn->title = 'Reversal';
+                                    $reversalTxn->status = 1;
+                                    $reversalTxn->order_id = $order->id;
+                                    $reversalTxn->save();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Refund donor for prepaid vouchers
+                $orders = OrderHistory::where('order_id', $request->orderId)->get();
                 foreach ($orders as $ord) {
                     $voucher = Voucher::where('id', $ord->voucher_id)->first();
-
                     if ($voucher && $voucher->type == "Prepaid") {
                         $amount = $voucher->amount;
-
                         if ($order->user_id) {
                             $donor = User::find($order->user_id);
                             if ($donor) {
@@ -3063,8 +3029,25 @@ class OrderController extends Controller
                                 $donor->save();
                                 Usertransaction::where(['order_id' => $request->orderId])->update(['status' => '0']);
                             }
-                        } else {
-                            \Log::info("Order #{$order->order_id} cancelled. Guest user refund skipped.");
+                        }
+                    }
+                }
+            }
+            
+            // Handle cancellation from Pending (no holding credits to reverse)
+            if ($newStatus == "3" && $oldStatus == 0) {
+                $orders = OrderHistory::where('order_id', $request->orderId)->get();
+                foreach ($orders as $ord) {
+                    $voucher = Voucher::where('id', $ord->voucher_id)->first();
+                    if ($voucher && $voucher->type == "Prepaid") {
+                        $amount = $voucher->amount;
+                        if ($order->user_id) {
+                            $donor = User::find($order->user_id);
+                            if ($donor) {
+                                $donor->increment('balance', $amount * $ord->number_voucher);
+                                $donor->save();
+                                Usertransaction::where(['order_id' => $request->orderId])->update(['status' => '0']);
+                            }
                         }
                     }
                 }
@@ -3074,8 +3057,8 @@ class OrderController extends Controller
             $order->status = $newStatus;
             $order->save();
 
-            // 3. Handle Completion (Status 1) - only if transitioning from non-complete
-            if ($newStatus == 1 && $oldStatus != 1) {
+            // 3. Handle Completion (Status 1) - only from Pending (0)
+            if ($newStatus == 1 && $oldStatus == 0) {
                 
                 foreach ($order->orderhistories as $key => $orderhistories) {
                     $chkvoucher = Voucher::where('id', $orderhistories->voucher_id)->first();
@@ -3097,20 +3080,22 @@ class OrderController extends Controller
                         if ($targetUser) {
                             $creditAmount = $orderhistories->amount;
 
-                            // ✅ FIX: Check if already credited for this order_history
+                            // ✅ FIX: Per order-history idempotency check
                             $alreadyCredited = Usertransaction::where('order_id', $order->id)
                                 ->where('user_id', $targetUser->id)
                                 ->where('t_type', 'In')
+                                ->where('status', 1)
+                                ->where('note', 'LIKE', "%Order: {$order->order_id}%")
                                 ->exists();
                             
                             if (!$alreadyCredited) {
                                 // Create Global Transaction (In)
                                 $transaction = new Transaction();
-                                $transaction->t_id = "In-" . time() . "-" . $targetUser->id . "-" . $order->id; // ✅ Add order_id for uniqueness
+                                $transaction->t_id = "In-" . time() . "-" . $targetUser->id . "-" . $order->id . "-" . $orderhistories->id; // ✅ Add orderhistory id for uniqueness
                                 $transaction->user_id = $targetUser->id;
                                 $transaction->t_type = "In";
                                 $transaction->amount = $creditAmount;
-                                $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                                $transaction->note = "TopUp by donor voucher purchase (Order: {$order->order_id}, History: {$orderhistories->id})";
                                 $transaction->status = "1";
                                 $transaction->save();
 
@@ -3120,7 +3105,7 @@ class OrderController extends Controller
                                 $utransactionIn->user_id = $targetUser->id;
                                 $utransactionIn->t_type = "In";
                                 $utransactionIn->amount = $creditAmount;
-                                $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id})";
+                                $utransactionIn->note = "TopUp by donor voucher purchase (Order: {$order->order_id}, History: {$orderhistories->id})";
                                 $utransactionIn->title = 'Credit';
                                 $utransactionIn->status = 1;
                                 $utransactionIn->order_id = $order->id;
@@ -3128,13 +3113,13 @@ class OrderController extends Controller
 
                                 $targetUser->increment('balance', $creditAmount);
                             } else {
-                                Log::info("Order #{$order->order_id}: Already credited to account {$targetAccountNo}, skipping.");
+                                Log::info("Order #{$order->order_id}, History #{$orderhistories->id}: Already credited to account {$targetAccountNo}, skipping.");
                             }
                         }
                     }
                 }
 
-                // --- Email Logic (AFTER commit) ---
+                // --- Email Logic ---
                 $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
                 $array['subject'] = 'Voucher order complete';
                 $array['from'] = 'info@tevini.co.uk';
@@ -3166,6 +3151,10 @@ class OrderController extends Controller
             ]);
         });
     }
+
+
+
+
     public function newOrder(Request $request)
     {
 

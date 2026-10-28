@@ -23,42 +23,19 @@ use Illuminate\Support\Facades\DB;
 
 class DeductStandingDonation extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'donation:deduct-standing';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Deduct standing donation amount from donor balance & add to charity balance';
 
-    /**
-     * Create a new console command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
     public function handle()
     {
-        
         $current_date = now()->format('Y-m-d');
         $current_date_carbon = Carbon::parse($current_date);
 
-        // Counters for summary log
         $campaignsProcessed = 0;
         $campaignsFailed = 0;
         $donationsProcessed = 0;
@@ -70,31 +47,22 @@ class DeductStandingDonation extends Command
         ]);
 
         // ============================================================
-        // Campaign report part start
+        // Campaign report part (unchanged)
         // ============================================================
         $campaigns = Campaign::where('end_date', '<=', $current_date)
             ->where('emailsend', 0)
             ->get();
 
-        Log::info('Campaigns pending report', [
-            'count' => $campaigns->count(),
-        ]);
-
         foreach ($campaigns as $campaign) {
             try {
                 $charity = Charity::find($campaign->charity_id);
                 if (!$charity) {
-                    Log::error('Charity not found for campaign, skipping', [
-                        'campaign_id' => $campaign->id,
-                        'charity_id'  => $campaign->charity_id,
-                    ]);
                     $campaignsFailed++;
                     continue;
                 }
 
                 $contactMailModel = ContactMail::where('id', 1)->first();
                 if (!$contactMailModel) {
-                    Log::error('ContactMail record not found (id=1), skipping campaign report');
                     $campaignsFailed++;
                     continue;
                 }
@@ -107,7 +75,6 @@ class DeductStandingDonation extends Command
                     ->get();
 
                 $reportid = rand(1000, 9999);
-
                 $array = [];
                 $array['cc'] = $contactmail;
 
@@ -132,34 +99,22 @@ class DeductStandingDonation extends Command
                 $updateCampaign->save();
 
                 $campaignsProcessed++;
-                Log::info('Campaign report sent successfully', [
-                    'campaign_id'  => $campaign->id,
-                    'charity_name' => $charity->name,
-                    'report_id'    => $reportid,
-                    'transactions' => $data->count(),
-                ]);
             } catch (\Exception $e) {
                 $campaignsFailed++;
-                Log::error('Failed to process campaign report', [
-                    'campaign_id' => $campaign->id,
-                    'error'       => $e->getMessage(),
-                    'trace'       => $e->getTraceAsString(),
-                ]);
                 continue;
             }
         }
-        // ============================================================
-        // Campaign report part end
-        // ============================================================
 
-        // Map string-based interval labels to numeric month values
+        // ============================================================
+        // Standing donation part
+        // ============================================================
         $intervalMap = [
             'Monthly'   => 1,
             'Quarterly' => 3,
             'Yearly'    => 12,
             'Annually'  => 12,
-            'Weekly'    => 0,
-            'Bi-Weekly' => 0,
+            'Weekly'    => 0,  // ✅ FIX: Use days, not months
+            'Bi-Weekly' => 0,  // ✅ FIX: Use days, not months
         ];
 
         $activestand_orders = StandingDonation::where('status', '=', '1')
@@ -172,42 +127,25 @@ class DeductStandingDonation extends Command
 
         foreach ($activestand_orders as $activestand_order) {
             try {
-                $array = [];
-
-                // ----------------------------------------------------------
                 // Validate essential fields
-                // ----------------------------------------------------------
                 if (!$activestand_order->user_id || !$activestand_order->charity_id || !$activestand_order->amount) {
-                    Log::warning('Standing donation has missing required fields, skipping', [
-                        'standing_donation_id' => $activestand_order->id,
-                    ]);
                     $donationsSkipped++;
                     continue;
                 }
 
                 if (!$activestand_order->starting) {
-                    Log::warning('Standing donation has no starting date, skipping', [
-                        'standing_donation_id' => $activestand_order->id,
-                    ]);
                     $donationsSkipped++;
                     continue;
                 }
 
-                // ----------------------------------------------------------
                 // Check if Fixed donation is already completed
-                // ----------------------------------------------------------
                 if ($activestand_order->payments == 1 && $activestand_order->payment_made >= $activestand_order->number_payments) {
-                    $activestand_order->status = 0; // Mark as inactive
+                    $activestand_order->status = 0;
                     $activestand_order->save();
-                    Log::info('Fixed standing donation completed, deactivated', [
-                        'standing_donation_id' => $activestand_order->id,
-                    ]);
                     continue;
                 }
 
-                // ----------------------------------------------------------
-                // Determine expected instalment date (from last detail or starting field)
-                // ----------------------------------------------------------
+                // Determine expected instalment date
                 $donationdetails = StandingdonationDetail::where('standing_donation_id', '=', $activestand_order->id)
                     ->orderBy('id', 'desc')
                     ->first();
@@ -218,132 +156,151 @@ class DeductStandingDonation extends Command
                     $last_date_carbon = Carbon::parse($activestand_order->starting);
                 }
 
-                // ----------------------------------------------------------
-                // Resolve interval to numeric months
-                // ----------------------------------------------------------
+                // ✅ FIX: Resolve interval with proper weekly/bi-weekly support
                 $intervalValue = $activestand_order->interval;
-                if (is_string($intervalValue) && isset($intervalMap[$intervalValue])) {
-                    $intervalMonths = $intervalMap[$intervalValue];
+                $expected_date = null;
+
+                if (is_string($intervalValue) && $intervalValue === 'Weekly') {
+                    $expected_date = $last_date_carbon->copy()->addDays(7);
+                } elseif (is_string($intervalValue) && $intervalValue === 'Bi-Weekly') {
+                    $expected_date = $last_date_carbon->copy()->addDays(14);
+                } elseif (is_string($intervalValue) && isset($intervalMap[$intervalValue])) {
+                    $expected_date = $last_date_carbon->copy()->addMonths($intervalMap[$intervalValue]);
                 } elseif (is_numeric($intervalValue)) {
-                    $intervalMonths = (int) $intervalValue;
+                    $expected_date = $last_date_carbon->copy()->addMonths((int) $intervalValue);
                 } else {
-                    $intervalMonths = 1;
-                    Log::warning('Unknown interval value, defaulting to 1 (monthly)', [
-                        'standing_donation_id' => $activestand_order->id,
-                        'interval_value'        => $intervalValue,
-                    ]);
+                    $expected_date = $last_date_carbon->copy()->addMonths(1);
                 }
 
-                // Prevent infinite loops for weekly/bi-weekly (fallback to 1 month)
-                if ($intervalMonths === 0) {
-                    $intervalMonths = 1;
-                }
-
-                $expected_date = $last_date_carbon->copy()->addMonths($intervalMonths);
+                $expectedDateStr = $expected_date->format('Y-m-d');
+                $currentDateStr = $current_date_carbon->format('Y-m-d');
 
                 Log::info('Standing donation date calculation', [
                     'standing_donation_id' => $activestand_order->id,
                     'user_id'              => $activestand_order->user_id,
                     'last_date'            => $last_date_carbon->format('Y-m-d'),
-                    'interval_months'      => $intervalMonths,
-                    'expected_date'        => $expected_date->format('Y-m-d'),
-                    'current_date'         => $current_date,
-                    'payments_type'        => $activestand_order->payments,
-                    'payment_made'         => $activestand_order->payment_made,
-                    'number_payments'      => $activestand_order->number_payments,
+                    'expected_date'        => $expectedDateStr,
+                    'current_date'         => $currentDateStr,
+                    'interval_value'       => $intervalValue,
                 ]);
 
                 // ============================================================
-                // NEW STRICT SKIP LOGIC: Check if due date has arrived
+                // ✅ FIX: CRITICAL — Only process on EXACT due date
                 // ============================================================
-                if (!$current_date_carbon->gte($expected_date)) {
-                    // Not yet due, skip and wait
-                    Log::info('Standing donation not yet due', [
-                        'standing_donation_id' => $activestand_order->id,
-                        'expected_date'         => $expected_date->format('Y-m-d'),
-                    ]);
-                    continue;
-                }
-
-                // Due date has arrived - check if instalment already exists (idempotency)
-                $alreadyExists = StandingdonationDetail::where('standing_donation_id', $activestand_order->id)
-                    ->where('instalment_date', $expected_date->format('Y-m-d'))
-                    ->exists();
                 
-                if ($alreadyExists) {
-                    Log::info('Instalment already exists, skipping', [
-                        'standing_donation_id' => $activestand_order->id,
-                        'instalment_date'       => $expected_date->format('Y-m-d'),
-                    ]);
+                // Case 1: Current date is AFTER expected date (late cron!)
+                if ($currentDateStr > $expectedDateStr) {
+                    // We missed the due date! Cannot prove balance was sufficient on due date.
+                    // Permanently skip.
+                    
+                    // Check if skip record already exists
+                    $alreadyExists = StandingdonationDetail::where('standing_donation_id', $activestand_order->id)
+                        ->where('instalment_date', $expectedDateStr)
+                        ->exists();
+                    
+                    if (!$alreadyExists) {
+                        DB::transaction(function () use ($activestand_order, $expectedDateStr) {
+                            $doncaldetl = new StandingdonationDetail;
+                            $doncaldetl->standing_donation_id = $activestand_order->id;
+                            $doncaldetl->user_id = $activestand_order->user_id;
+                            $doncaldetl->charity_id = $activestand_order->charity_id;
+                            $doncaldetl->amount = 0;
+                            $doncaldetl->instalment_date = $expectedDateStr;
+                            $doncaldetl->instalment_mode = $activestand_order->payments == 1 ? "Fixed" : "continuous";
+                            $doncaldetl->status = 2; // Skipped
+                            $doncaldetl->save();
+
+                            if ($activestand_order->payments == 1) {
+                                $activestand_order->increment('payment_made', 1);
+                                if ($activestand_order->payment_made >= $activestand_order->number_payments) {
+                                    $activestand_order->status = 0;
+                                }
+                                $activestand_order->save();
+                            }
+                        });
+
+                        Log::warning('Standing donation PERMANENTLY SKIPPED - cron was late (past due date)', [
+                            'standing_donation_id' => $activestand_order->id,
+                            'expected_date'         => $expectedDateStr,
+                            'current_date'          => $currentDateStr,
+                        ]);
+                    }
+                    
                     $donationsSkipped++;
                     continue;
                 }
 
-                // ----------------------------------------------------------
-                // STRICT SKIP: Check balance on due date
-                // ----------------------------------------------------------
+                // Case 2: Current date is BEFORE expected date (not due yet)
+                if ($currentDateStr < $expectedDateStr) {
+                    Log::info('Standing donation not yet due', [
+                        'standing_donation_id' => $activestand_order->id,
+                        'expected_date'         => $expectedDateStr,
+                    ]);
+                    continue;
+                }
+
+                // Case 3: Current date IS the expected date (due today!)
+                // Check if already processed (idempotency)
+                $alreadyExists = StandingdonationDetail::where('standing_donation_id', $activestand_order->id)
+                    ->where('instalment_date', $expectedDateStr)
+                    ->exists();
+                
+                if ($alreadyExists) {
+                    $donationsSkipped++;
+                    continue;
+                }
+
+                // Due today! Lock user and check balance
                 $user = User::find($activestand_order->user_id);
                 if (!$user) {
-                    Log::error('User not found for standing donation', [
-                        'standing_donation_id' => $activestand_order->id,
-                        'user_id'              => $activestand_order->user_id,
-                    ]);
                     $donationsFailed++;
                     continue;
                 }
 
-                $availableLimit = $user->getAvailableLimit();
-                
-                // ============================================================
-                // STRICT SKIP: If balance insufficient on due date, skip permanently
-                // ============================================================
-                if ($availableLimit < $activestand_order->amount) {
-                    Log::warning('Standing donation PERMANENTLY SKIPPED - insufficient balance on due date', [
-                        'standing_donation_id' => $activestand_order->id,
-                        'user_id'              => $user->id,
-                        'available_limit'       => $availableLimit,
-                        'amount'                => $activestand_order->amount,
-                        'expected_date'         => $expected_date->format('Y-m-d'),
-                    ]);
+                // ✅ FIX: Process payment with lockForUpdate inside transaction
+                DB::transaction(function () use ($activestand_order, $expectedDateStr, $user, &$donationsProcessed) {
+                    
+                    // ✅ FIX: Lock user row for concurrent safety
+                    $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
+                    $availableLimit = $lockedUser->getAvailableLimit();
 
-                    // Create skip record inside transaction
-                    DB::transaction(function () use ($activestand_order, $expected_date) {
+                    // Insufficient balance on due date → permanently skip
+                    if ($availableLimit < $activestand_order->amount) {
+                        Log::warning('Standing donation SKIPPED - insufficient balance ON due date', [
+                            'standing_donation_id' => $activestand_order->id,
+                            'user_id'              => $lockedUser->id,
+                            'available_limit'       => $availableLimit,
+                            'amount'                => $activestand_order->amount,
+                            'expected_date'         => $expectedDateStr,
+                        ]);
+
                         $doncaldetl = new StandingdonationDetail;
                         $doncaldetl->standing_donation_id = $activestand_order->id;
                         $doncaldetl->user_id = $activestand_order->user_id;
                         $doncaldetl->charity_id = $activestand_order->charity_id;
-                        $doncaldetl->amount = 0; // 0 amount because it was skipped
-                        $doncaldetl->instalment_date = $expected_date->format('Y-m-d');
+                        $doncaldetl->amount = 0;
+                        $doncaldetl->instalment_date = $expectedDateStr;
                         $doncaldetl->instalment_mode = $activestand_order->payments == 1 ? "Fixed" : "continuous";
-                        $doncaldetl->status = 2; // 2 = Skipped due to insufficient balance
+                        $doncaldetl->status = 2; // Skipped
                         $doncaldetl->save();
 
-                        // Increment payment_made so total interval count decreases for fixed plans
                         if ($activestand_order->payments == 1) {
                             $activestand_order->increment('payment_made', 1);
-                            
-                            // Check if plan is completed after skipping
                             if ($activestand_order->payment_made >= $activestand_order->number_payments) {
-                                $activestand_order->status = 0; // Deactivate
+                                $activestand_order->status = 0;
                             }
                             $activestand_order->save();
                         }
-                    });
+                        return;
+                    }
 
-                    $donationsSkipped++;
-                    continue;
-                }
-
-                // ============================================================
-                // Balance sufficient - Process payment inside DB transaction
-                // ============================================================
-                DB::transaction(function () use ($activestand_order, $expected_date) {
+                    // Sufficient balance! Process payment
                     $doncaldetl = new StandingdonationDetail;
                     $doncaldetl->standing_donation_id = $activestand_order->id;
                     $doncaldetl->user_id = $activestand_order->user_id;
                     $doncaldetl->charity_id = $activestand_order->charity_id;
                     $doncaldetl->amount = $activestand_order->amount;
-                    $doncaldetl->instalment_date = $expected_date->format('Y-m-d'); // Lock to expected date
+                    $doncaldetl->instalment_date = $expectedDateStr;
                     $doncaldetl->instalment_mode = $activestand_order->payments == 1 ? "Fixed" : "continuous";
                     $doncaldetl->status = 0;
                     $doncaldetl->save();
@@ -359,24 +316,29 @@ class DeductStandingDonation extends Command
                     $utransaction->status = 1;
                     $utransaction->save();
 
-                    $u = User::find($activestand_order->user_id);
-                    $u->decrement('balance', $activestand_order->amount);
+                    $lockedUser->decrement('balance', $activestand_order->amount);
 
                     $ch = Charity::find($activestand_order->charity_id);
                     $ch->increment('balance', $activestand_order->amount);
 
-                    // Increment payment_made if Fixed
                     if ($activestand_order->payments == 1) {
                         $activestand_order->increment('payment_made', 1);
-                        
                         if ($activestand_order->payment_made >= $activestand_order->number_payments) {
-                            $activestand_order->status = 0; // Deactivate
+                            $activestand_order->status = 0;
                         }
                         $activestand_order->save();
                     }
+
+                    $donationsProcessed++;
+                    
+                    Log::info('Standing donation processed successfully', [
+                        'standing_donation_id' => $activestand_order->id,
+                        'amount'               => $activestand_order->amount,
+                        'instalment_date'      => $expectedDateStr,
+                    ]);
                 });
 
-                // Send Email Notification
+                // Send Email Notification (after commit)
                 $user = User::find($activestand_order->user_id);
                 $charity = Charity::find($activestand_order->charity_id);
                 $contactMailModel = ContactMail::where('id', 1)->first();
@@ -408,13 +370,6 @@ class DeductStandingDonation extends Command
                     }
                 }
 
-                $donationsProcessed++;
-                Log::info('Standing donation processed successfully', [
-                    'standing_donation_id' => $activestand_order->id,
-                    'amount'               => $activestand_order->amount,
-                    'instalment_date'      => $expected_date->format('Y-m-d'),
-                ]);
-
             } catch (\Exception $e) {
                 $donationsFailed++;
                 Log::error('Failed to process standing donation', [
@@ -425,9 +380,6 @@ class DeductStandingDonation extends Command
             }
         }
 
-        // ============================================================
-        // Summary log
-        // ============================================================
         Log::info('========== DeductStandingDonation command finished ==========', [
             'campaigns_processed'  => $campaignsProcessed,
             'campaigns_failed'      => $campaignsFailed,
@@ -435,10 +387,6 @@ class DeductStandingDonation extends Command
             'donations_skipped'     => $donationsSkipped,
             'donations_failed'      => $donationsFailed,
         ]);
-
-        $this->info("Summary:");
-        $this->info("  Campaigns  — processed: {$campaignsProcessed}, failed: {$campaignsFailed}");
-        $this->info("  Donations  — processed: {$donationsProcessed}, skipped: {$donationsSkipped}, failed: {$donationsFailed}");
 
         return 0;
     }

@@ -26,7 +26,7 @@ class AutoCharityPayment extends Command
         
         $companyDetail = CompanyDetail::first();
         
-        // ✅ Check if payment already ran today
+        // Check if payment already ran today
         if ($companyDetail->last_payment_processed_date == Carbon::today()->toDateString()) {
             Log::info("Payment Process: Skipped. Payment already processed today.");
             return;
@@ -61,22 +61,18 @@ class AutoCharityPayment extends Command
 
         $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
-        // ✅ FIX: Use Transaction (charity ledger) instead of Usertransaction
-        // Charity income = Transaction where t_type='In' (money received by charity)
-        // Already paid = Transaction where t_type='Out' AND name='Bank' (auto-payout)
-        // This avoids JSON batch membership entirely!
-        
-        $charityIds = Transaction::where('status', 1)
+        // ✅ FIX: Find all charities that have donations (Usertransaction Out) for this date
+        $charityIds = Usertransaction::whereNotNull('charity_id')
+            ->where('status', 1)
+            ->where('t_type', 'Out') // ✅ Donations are recorded as Out from donor's wallet
             ->where('business_date', $targetBusinessDate)
-            ->where('t_type', 'In')
-            ->whereNotNull('charity_id')
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })
             ->distinct()
             ->pluck('charity_id');
 
-        Log::info("Payment Process: Found " . $charityIds->count() . " charities with eligible transactions.");
+        Log::info("Payment Process: Found " . $charityIds->count() . " charities with eligible donations.");
 
         $allCharitiesSucceeded = true;
 
@@ -97,17 +93,17 @@ class AutoCharityPayment extends Command
             try {
                 DB::transaction(function () use ($charity, $targetBusinessDate, $endTime, $contactmail, &$allCharitiesSucceeded) {
                     
-                    // ✅ FIX: Lock charity row
+                    // Lock charity row
                     $lockedCharity = Charity::where('id', $charity->id)->lockForUpdate()->first();
                     
-                    // ✅ FIX: Calculate income from charity Transaction ledger (In type)
-                    $totalIncome = Transaction::where('charity_id', $charity->id)
+                    // ✅ FIX: Calculate total donations from Usertransaction (Out type)
+                    $totalIncome = Usertransaction::where('charity_id', $charity->id)
                         ->where('status', 1)
-                        ->where('t_type', 'In')
+                        ->where('t_type', 'Out')
                         ->where('business_date', $targetBusinessDate)
                         ->sum('amount');
 
-                    // ✅ FIX: Calculate already paid (Bank Out transactions)
+                    // Calculate already paid (Bank Out transactions in Transaction table)
                     $alreadyPaid = Transaction::where('charity_id', $charity->id)
                         ->where('status', 1)
                         ->where('t_type', 'Out')
@@ -124,7 +120,7 @@ class AutoCharityPayment extends Command
                         return;
                     }
 
-                    // ✅ FIX: Create payout transaction with unique ID
+                    // Create payout transaction
                     $transaction = new Transaction();
                     $transaction->t_id = "Out-" . time() . "-" . $charity->id . "-" . uniqid();
                     $transaction->charity_id = $charity->id;
@@ -138,28 +134,29 @@ class AutoCharityPayment extends Command
 
                     $lockedCharity->decrement('balance', $amountToPayNow);
 
-                    // ✅ FIX: Store batch record for audit (no JSON query needed)
-                    // Pass array directly - Eloquent cast will handle encoding
-                    $incomeTransactionIds = Transaction::where('charity_id', $charity->id)
+                    // Store batch record
+                    $incomeTransactionIds = Usertransaction::where('charity_id', $charity->id)
                         ->where('status', 1)
-                        ->where('t_type', 'In')
+                        ->where('t_type', 'Out')
                         ->where('business_date', $targetBusinessDate)
                         ->pluck('id')
                         ->toArray();
 
+                    // ✅ FIX: Rename column usage conceptually. We store Usertransaction IDs.
+                    // Ensure model cast handles array to JSON.
                     CharityPaymentBatch::create([
                         'charity_id'           => $charity->id,
                         'transaction_id'       => $transaction->id,
                         'last_payment_date'    => $endTime,
-                        'usertransactions_ids' => $incomeTransactionIds, // ✅ Array, not json_encode
+                        'usertransactions_ids' => $incomeTransactionIds, 
                         'amount'               => $amountToPayNow,
                     ]);
 
-                    // Generate PDF and send email
-                    $details = Transaction::where('charity_id', $charity->id)
+                    // Generate PDF and prepare email
+                    $details = Usertransaction::where('charity_id', $charity->id)
                         ->where('status', 1)
                         ->where('business_date', $targetBusinessDate)
-                        ->where('t_type', 'In')
+                        ->where('t_type', 'Out')
                         ->with(['user', 'donation'])
                         ->get();
 
@@ -183,8 +180,7 @@ class AutoCharityPayment extends Command
                         'file'          => $filePath,
                     ];
 
-                    // ✅ FIX: Send emails OUTSIDE transaction (queue after commit)
-                    // But we need to prepare it inside, so we use dispatch after commit
+                    // Send emails OUTSIDE transaction (queue after commit)
                     $emailData = $mailData;
                     $emailData['charity_email'] = $charity->email;
                     $emailData['contactmail'] = $contactmail;
@@ -206,7 +202,7 @@ class AutoCharityPayment extends Command
             }
         }
 
-        // ✅ Only lock payment for today if ALL charities succeeded
+        // Only lock payment for today if ALL charities succeeded
         if ($allCharitiesSucceeded) {
             $companyDetail->auto_payment_time = '16:30';
             $companyDetail->last_payment_processed_date = Carbon::today()->toDateString();

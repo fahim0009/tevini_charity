@@ -636,7 +636,7 @@ class OnlineDonationService
     private function createUserTransaction(array $params): void
     {
         $utransaction = new Usertransaction();
-        $utransaction->t_id     = 'TXN-' . time() . '-' . rand(1000, 9999);
+        $utransaction->t_id     = 'TXN-' . uniqid() . $params['userId'];
         $utransaction->user_id   = $params['userId'];
         $utransaction->charity_id = $params['charityId'] ?? null;
 

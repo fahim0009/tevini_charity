@@ -22,10 +22,12 @@ class AddUniquePaymentIntentIdToPaymentLogsTable extends Migration
 
         // Now add unique constraint safely
         DB::statement('CREATE UNIQUE INDEX payment_logs_intent_unique ON payment_logs (payment_intent_id)');
+        DB::statement('CREATE UNIQUE INDEX donations_stripe_payment_id_unique ON donations (stripe_payment_id)');
     }
 
     public function down()
     {
         DB::statement('DROP INDEX payment_logs_intent_unique ON payment_logs');
+        DB::statement('DROP INDEX IF EXISTS donations_stripe_payment_id_unique ON donations');
     }
 }

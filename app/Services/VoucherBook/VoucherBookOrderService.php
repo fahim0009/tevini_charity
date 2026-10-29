@@ -321,7 +321,7 @@ class VoucherBookOrderService
         string $title
     ): void {
         Usertransaction::create([
-            't_id'     => 'TXN-' . time() . '-' . rand(1000, 9999),
+            't_id'     => 'TXN-' . uniqid() . '-' . rand(1000, 9999),
             'user_id'  => $userId,
             't_type'   => 'Out',
             'amount'   => $amount,
@@ -333,11 +333,11 @@ class VoucherBookOrderService
     }
 
     /**
-     * Generate unique order ID (more robust than just time())
+     * Generate unique order ID (more robust than just uniqid())
      */
     private function generateOrderId(int $userId): string
     {
-        return time() . '-' . $userId . '-' . rand(100, 999);
+        return uniqid() . '-' . $userId . '-' . rand(100, 999);
     }
 
     /**
@@ -345,7 +345,7 @@ class VoucherBookOrderService
      */
     private function generateUniqueCode(): string
     {
-        return time() . rand(1000, 9999);
+        return uniqid() . rand(1000, 9999);
     }
 
     /**

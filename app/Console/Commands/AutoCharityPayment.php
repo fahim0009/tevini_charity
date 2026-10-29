@@ -26,7 +26,7 @@ class AutoCharityPayment extends Command
         
         $companyDetail = CompanyDetail::first();
         
-        // Check if payment already ran today
+        // Prevent multiple runs on the same day
         if ($companyDetail->last_payment_processed_date == Carbon::today()->toDateString()) {
             Log::info("Payment Process: Skipped. Payment already processed today.");
             return;
@@ -35,7 +35,6 @@ class AutoCharityPayment extends Command
         Log::info("Payment Process: Starting charity payout rolling window.");
 
         $autoPaymentTime = $companyDetail->auto_payment_time ?? '16:30';
-        
         $timeParts = explode(':', $autoPaymentTime);
         $hour = (int) $timeParts[0];
         $minute = (int) $timeParts[1];
@@ -43,12 +42,14 @@ class AutoCharityPayment extends Command
         $now = now();
         $baseCutoff = $now->copy()->setTime($hour, $minute, 0);
 
+        // If the script runs before the cutoff time today, we target yesterday's cutoff
         if ($now->lt($baseCutoff)) {
             $baseCutoff->subDay();
         }
 
         $dayOfWeek = $baseCutoff->dayOfWeek;
 
+        // Weekend Logic: Skip processing if the cutoff lands on Saturday or Sunday.
         if (in_array($dayOfWeek, [0, 6])) {
             Log::info("Payment Process: Skipped. Target cutoff is a weekend. Will process on Monday.");
             return;
@@ -61,11 +62,8 @@ class AutoCharityPayment extends Command
 
         $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
-        // ✅ FIX: Find all charities that have donations (Usertransaction Out) for this date
-        $charityIds = Usertransaction::whereNotNull('charity_id')
-            ->where('status', 1)
-            ->where('t_type', 'Out') // ✅ Donations are recorded as Out from donor's wallet
-            ->where('business_date', $targetBusinessDate)
+        // ✅ FIX: Use shared query method with business_date for Charity IDs
+        $charityIds = $this->getEligibleDonationsQuery($targetBusinessDate)
             ->whereHas('charity', function ($q) {
                 $q->where('auto_payment', 1);
             })
@@ -93,17 +91,11 @@ class AutoCharityPayment extends Command
             try {
                 DB::transaction(function () use ($charity, $targetBusinessDate, $endTime, $contactmail, &$allCharitiesSucceeded) {
                     
-                    // Lock charity row
                     $lockedCharity = Charity::where('id', $charity->id)->lockForUpdate()->first();
                     
-                    // ✅ FIX: Calculate total donations from Usertransaction (Out type)
-                    $totalIncome = Usertransaction::where('charity_id', $charity->id)
-                        ->where('status', 1)
-                        ->where('t_type', 'Out')
-                        ->where('business_date', $targetBusinessDate)
-                        ->sum('amount');
+                    // ✅ FIX: Shared query for Total Income
+                    $totalIncome = $this->getEligibleDonationsQuery($targetBusinessDate, $charity->id)->sum('amount');
 
-                    // Calculate already paid (Bank Out transactions in Transaction table)
                     $alreadyPaid = Transaction::where('charity_id', $charity->id)
                         ->where('status', 1)
                         ->where('t_type', 'Out')
@@ -120,9 +112,8 @@ class AutoCharityPayment extends Command
                         return;
                     }
 
-                    // Create payout transaction
                     $transaction = new Transaction();
-                    $transaction->t_id = "Out-" . time() . "-" . $charity->id . "-" . uniqid();
+                    $transaction->t_id = "Out-" . uniqid() . "-" . $charity->id;
                     $transaction->charity_id = $charity->id;
                     $transaction->t_type = "Out";
                     $transaction->name = "Bank";
@@ -134,16 +125,11 @@ class AutoCharityPayment extends Command
 
                     $lockedCharity->decrement('balance', $amountToPayNow);
 
-                    // Store batch record
-                    $incomeTransactionIds = Usertransaction::where('charity_id', $charity->id)
-                        ->where('status', 1)
-                        ->where('t_type', 'Out')
-                        ->where('business_date', $targetBusinessDate)
+                    // ✅ FIX: Shared query for Batch IDs
+                    $incomeTransactionIds = $this->getEligibleDonationsQuery($targetBusinessDate, $charity->id)
                         ->pluck('id')
                         ->toArray();
 
-                    // ✅ FIX: Rename column usage conceptually. We store Usertransaction IDs.
-                    // Ensure model cast handles array to JSON.
                     CharityPaymentBatch::create([
                         'charity_id'           => $charity->id,
                         'transaction_id'       => $transaction->id,
@@ -152,24 +138,10 @@ class AutoCharityPayment extends Command
                         'amount'               => $amountToPayNow,
                     ]);
 
-                    // Generate PDF and prepare email
-                    $details = Usertransaction::where('charity_id', $charity->id)
-                        ->where('status', 1)
-                        ->where('business_date', $targetBusinessDate)
-                        ->where('t_type', 'Out')
+                    // ✅ FIX: Shared query for PDF Details
+                    $details = $this->getEligibleDonationsQuery($targetBusinessDate, $charity->id)
                         ->with(['user', 'donation'])
                         ->get();
-
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
-                        'charity' => $charity,
-                        'details' => $details,
-                        'total'   => $amountToPayNow,
-                        'date'    => $targetBusinessDate
-                    ]);
-
-                    $fileName = 'Statement-' . $charity->id . '-' . $endTime->format('Y-m-d-Hi') . '.pdf';
-                    $filePath = public_path('/invoices/' . $fileName);
-                    file_put_contents($filePath, $pdf->output());
 
                     $mailData = [
                         'name'          => $charity->name,
@@ -177,20 +149,32 @@ class AutoCharityPayment extends Command
                         'total'         => number_format($amountToPayNow, 2),
                         'date'          => $targetBusinessDate,
                         'subject'       => 'Daily Statement - ' . $targetBusinessDate,
-                        'file'          => $filePath,
+                        'charity_email' => $charity->email,
+                        'contactmail'   => $contactmail,
+                        'charity_id'    => $charity->id,
+                        'end_time_str'  => $endTime->format('Y-m-d-Hi'),
+                        'details'       => $details,
                     ];
 
-                    // Send emails OUTSIDE transaction (queue after commit)
-                    $emailData = $mailData;
-                    $emailData['charity_email'] = $charity->email;
-                    $emailData['contactmail'] = $contactmail;
-                    
-                    DB::afterCommit(function () use ($emailData) {
+                    DB::afterCommit(function () use ($mailData) {
                         try {
-                            Mail::to($emailData['charity_email'])->queue(new CharityDailyReport($emailData));
-                            Mail::to($emailData['contactmail'])->queue(new CharityDailyReport($emailData));
+                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.charity_report', [
+                                'charity' => Charity::find($mailData['charity_id']),
+                                'details' => $mailData['details'],
+                                'total'   => $mailData['total'],
+                                'date'    => $mailData['date']
+                            ]);
+
+                            $fileName = 'Statement-' . $mailData['charity_id'] . '-' . $mailData['end_time_str'] . '.pdf';
+                            $filePath = public_path('/invoices/' . $fileName);
+                            file_put_contents($filePath, $pdf->output());
+
+                            $mailData['file'] = $filePath;
+
+                            Mail::to($mailData['charity_email'])->queue(new CharityDailyReport($mailData));
+                            Mail::to($mailData['contactmail'])->queue(new CharityDailyReport($mailData));
                         } catch (\Exception $e) {
-                            Log::error("Payment Process: Email failed for {$emailData['name']}: " . $e->getMessage());
+                            Log::error("Payment Process: PDF/Email failed for {$mailData['name']}: " . $e->getMessage());
                         }
                     });
 
@@ -202,25 +186,36 @@ class AutoCharityPayment extends Command
             }
         }
 
-        // Only lock payment for today if ALL charities succeeded
         if ($allCharitiesSucceeded) {
             $companyDetail->auto_payment_time = '16:30';
             $companyDetail->last_payment_processed_date = Carbon::today()->toDateString();
             $companyDetail->save();
-
-            DB::table('cutoff_histories')->updateOrInsert(
-                ['effective_date' => Carbon::today()->toDateString()],
-                [
-                    'cutoff_time' => '16:30', 
-                    'updated_at' => now(), 
-                    'created_at' => now()
-                ]
-            );
             
             Log::info("Payment Process: Auto payment time reverted to default 16:30.");
             Log::info("Payment Process: Completed for business date " . $targetBusinessDate);
         } else {
             Log::warning("Payment Process: Some charities failed. NOT locking date for retry.");
         }
+    }
+
+    /**
+     * ✅ FIX: Shared query method to ensure consistent filters across all 4 uses
+     * Uses business_date. Excludes expired vouchers, includes all settled (status=1) donations.
+     */
+    private function getEligibleDonationsQuery(string $businessDate, ?int $charityId = null)
+    {
+        $query = Usertransaction::whereNotNull('charity_id')
+            ->where('status', 1)
+            ->where('t_type', 'Out')
+            ->where(function($q) {
+                $q->where('expired', 1)->orWhereNull('expired');
+            })
+            ->where('business_date', $businessDate);
+
+        if ($charityId) {
+            $query->where('charity_id', $charityId);
+        }
+
+        return $query;
     }
 }

@@ -26,7 +26,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('donation:deduct-standing')->daily();
+        //$schedule->command('donation:deduct-standing')->daily();
+        $schedule->command('donation:deduct-standing')
+            ->daily()
+            ->withoutOverlapping()
+            ->onOneServer();
         
         try {
             $companyDetail = CompanyDetail::first();
@@ -39,7 +43,11 @@ class Kernel extends ConsoleKernel
             $autoPaymentTime = '16:30';
         }
 
-        $schedule->command('payments:process-charity')->dailyAt($autoPaymentTime);
+        // $schedule->command('payments:process-charity')->dailyAt($autoPaymentTime);
+        $schedule->command('payments:process-charity')
+                    ->dailyAt($autoPaymentTime)
+                    ->withoutOverlapping()
+                    ->onOneServer();
     }
 
     /**

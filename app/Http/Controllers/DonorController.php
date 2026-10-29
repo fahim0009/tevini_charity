@@ -1168,17 +1168,17 @@ class DonorController extends Controller
             $user->save();
 
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".$donor_id;
+            $udtransaction->t_id = uniqid()."-".$donor_id;
             $udtransaction->user_id = $donor_id;
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $request->tdfamount;
-            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->t_unq = uniqid().rand(1,100);
             $udtransaction->title ="Transfer to TDF";
             $udtransaction->status =  1;
             $udtransaction->save();
 
             $transaction = new Transaction();
-            $transaction->t_id = time()."-".$donor_id;
+            $transaction->t_id = uniqid()."-".$donor_id;
             $transaction->user_id = $donor_id;
             $transaction->t_type = "Out";
             $transaction->amount =  $request->tdfamount;

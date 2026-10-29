@@ -72,17 +72,17 @@ class TDFTransactionController extends Controller
             $user->save();
 
             $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".auth()->user()->id;
+            $udtransaction->t_id = uniqid()."-".auth()->user()->id;
             $udtransaction->user_id = auth()->user()->id;
             $udtransaction->t_type = "Out";
             $udtransaction->amount =  $request->tdfamount;
-            $udtransaction->t_unq = time().rand(1,100);
+            $udtransaction->t_unq = uniqid().rand(1,100);
             $udtransaction->title ="Transfer to TDF";
             $udtransaction->status =  1;
             $udtransaction->save();
 
             $transaction = new Transaction();
-            $transaction->t_id = time()."-".auth()->user()->id;
+            $transaction->t_id = uniqid()."-".auth()->user()->id;
             $transaction->user_id = auth()->user()->id;
             $transaction->t_type = "Out";
             $transaction->amount =  $request->tdfamount;

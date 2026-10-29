@@ -205,7 +205,7 @@ class VoucherBookController extends Controller
             // Delivery Charge Transaction
             if ($delivery_charge > 0) {
                 Usertransaction::create([
-                    't_id' => "DEL-" . time(),
+                    't_id' => "DEL-" . uniqid(),
                     'user_id' => Auth::id(),
                     't_type' => "Out",
                     'amount' => $delivery_charge,
@@ -407,7 +407,7 @@ class VoucherBookController extends Controller
 
                         for($x = 0; $x < $vdata['qtys']; $x++)
                         {
-                        $unique = time().rand(1,100);
+                        $unique = uniqid().rand(1,100);
                         //order history
                         $amount =  Voucher::where('id', $vdata['voucherIds'])->first()->amount;
                         $voucherDtl =  Voucher::where('id', $vdata['voucherIds'])->first();
@@ -427,7 +427,7 @@ class VoucherBookController extends Controller
                         }
                     }else{
 
-                        $unique = time().rand(1,100);
+                        $unique = uniqid().rand(1,100);
 
                         //order history
                         $amount =  Voucher::where('id', $vdata['voucherIds'])->first()->amount;
@@ -481,7 +481,7 @@ class VoucherBookController extends Controller
                         $udtransaction->user_id = Auth::user()->id;
                         $udtransaction->t_type = "Out";
                         $udtransaction->amount =  3.50;
-                        $udtransaction->t_unq = time().rand(1,100);
+                        $udtransaction->t_unq = uniqid().rand(1,100);
                         $udtransaction->order_id = $order->id;
                         $udtransaction->title ="Delivery Charge";
                         $udtransaction->status =  1;

@@ -291,7 +291,7 @@ class OrderController extends Controller
 
                         for($x = 0; $x < $qtys[$key]; $x++)
                         {
-                        $unique = time().rand(1,100);
+                        $unique = uniqid().rand(1,100);
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
                         $voucherDtl =  Voucher::where('id',$voucher_id)->first();
@@ -318,7 +318,7 @@ class OrderController extends Controller
 
                     }else{
 
-                        $unique = time().rand(1,100);
+                        $unique = uniqid().rand(1,100);
 
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
@@ -333,7 +333,7 @@ class OrderController extends Controller
                         $vqtys = $qtys[$key];
                         
                         if ($voucherDtl->type == "Mixed") {
-                            $unique2 = time().rand(1,100);
+                            $unique2 = uniqid().rand(1,100);
                             $this->voucherDetailsStore($order, $voucher_id, $amount, $unique2, $voucherDtl, $vqtys);
                         } else {
                             OrderHistory::create($input);
@@ -370,7 +370,7 @@ class OrderController extends Controller
                         $udtransaction->user_id = $request->did;
                         $udtransaction->t_type = "Out";
                         $udtransaction->amount =  3.50;
-                        $udtransaction->t_unq = time().rand(1,100);
+                        $udtransaction->t_unq = uniqid().rand(1,100);
                         $udtransaction->order_id = $order->id;
                         $udtransaction->title ="Delivery Charge";
                         $udtransaction->status =  1;
@@ -677,7 +677,7 @@ class OrderController extends Controller
             // Handle Delivery Charge Transaction
             if ($delivery_charge > 0 && $prepaid_amount > 0) {
                 Usertransaction::create([
-                    't_id' => "DEL-" . time(),
+                    't_id' => "DEL-" . uniqid(),
                     'user_id' => $request->did,
                     't_type' => "Out",
                     'amount' => $delivery_charge,
@@ -745,7 +745,7 @@ class OrderController extends Controller
         $values = ($voucher_id == 176) ? ["3", "5", "10", "18"] : ["20", "25", "36", "50", "72"];
 
         
-        $unique = time().rand(1,100);
+        $unique = uniqid().rand(1,100);
         foreach ($values as $val) {
             OrderHistory::create([
                 'order_id' => $order->id,
@@ -887,7 +887,7 @@ class OrderController extends Controller
 
                         for($x = 0; $x < $qtys[$key]; $x++)
                         {
-                        $unique = time().rand(1,100);
+                        $unique = uniqid().rand(1,100);
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
                         $voucherDtl =  Voucher::where('id',$voucher_id)->first();
@@ -908,7 +908,7 @@ class OrderController extends Controller
 
                     }else{
 
-                        $unique = time().rand(1,100);
+                        $unique = uniqid().rand(1,100);
 
                         //order history
                         $amount =  Voucher::where('id',$voucher_id)->first()->amount;
@@ -959,7 +959,7 @@ class OrderController extends Controller
                         $udtransaction->user_id = $request->did;
                         $udtransaction->t_type = "Out";
                         $udtransaction->amount =  3.50;
-                        $udtransaction->t_unq = time().rand(1,100);
+                        $udtransaction->t_unq = uniqid().rand(1,100);
                         $udtransaction->order_id = $order->id;
                         $udtransaction->title ="Delivery Charge";
                         $udtransaction->status =  1;
@@ -2056,7 +2056,7 @@ class OrderController extends Controller
             if (empty($orderHistory->o_unq)) {
                 $unique = $orderHistory->order_id 
                             . '_' . $orderHistory->voucher_id 
-                            . '_' . time();
+                            . '_' . uniqid();
 
                 OrderHistory::where('order_id', $orderHistory->order_id)
                     ->where('voucher_id', $orderHistory->voucher_id)
@@ -2121,7 +2121,7 @@ class OrderController extends Controller
                 return $item->order_id . '_' . $item->voucher_id;
             });
 
-        $baseTime = time();
+        $baseTime = uniqid();
 
         foreach ($needsUpdate as $group) {
             $chunks = $group->chunk(4);

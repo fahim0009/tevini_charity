@@ -63,11 +63,11 @@ class TDFTransactionController extends Controller
         $user->save();
 
         $udtransaction = new Usertransaction();
-        $udtransaction->t_id = time()."-".$user_id;
+        $udtransaction->t_id = uniqid()."-".$user_id;
         $udtransaction->user_id = $user_id;
         $udtransaction->t_type = "In";
         $udtransaction->amount =  $tdf_amount;
-        $udtransaction->t_unq = time().rand(1,100);
+        $udtransaction->t_unq = uniqid().rand(1,100);
         $udtransaction->title ="Return from TDF";
         $udtransaction->status =  1;
         $udtransaction->save();

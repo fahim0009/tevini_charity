@@ -24,6 +24,7 @@ use App\Models\ContactMail;
 use App\Models\UserDetail;
 use Illuminate\Support\Str;
 use App\Mail\VerifyEmailMail;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -190,7 +191,7 @@ class UserController extends Controller
                     'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 ]);
                 $rand = mt_rand(100000, 999999);
-                $imageName = time(). $rand .'.'.$request->image->extension();
+                $imageName = uniqid(). $rand .'.'.$request->image->extension();
                 $request->image->move(public_path('images'), $imageName);
                 $userdata->photo= $imageName;
             }
@@ -274,7 +275,7 @@ class UserController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
             $rand = mt_rand(100000, 999999);
-            $imageName = time(). $rand .'.'.$request->image->extension();
+            $imageName = uniqid(). $rand .'.'.$request->image->extension();
             $request->image->move(public_path('images'), $imageName);
             $user->photo= $imageName;
 
@@ -303,83 +304,86 @@ class UserController extends Controller
             exit();
         }
 
-
         if(empty($request->tdfamount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
 
-        // donor balance
-        $userTransactionBalance = Usertransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', auth()->user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=',  auth()->user()->id],
-                ['pending','=', '1']
-            ])
-            ->first();
-        // donor balance end
-        
-        $donorBlanacewithLimit = $userTransactionBalance->balance + auth()->user()->overdrawn_amount;
+        try {
+            // ✅ FIX: Wrap entire operation in DB transaction with row locking
+            DB::transaction(function () use ($request) {
+                
+                // ✅ Lock donor row for concurrent safety
+                $user = User::where('id', auth()->user()->id)->lockForUpdate()->first();
+                
+                // ✅ FIX: Use User model's getAvailableLimit() method for accurate balance
+                $donorBlanacewithLimit = $user->getAvailableLimit();
 
-        if($request->tdfamount  > $donorBlanacewithLimit){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        
-        $data = new TdfTransaction();
-        $data->issue_date = date('Y-m-d');
-        $data->user_id = auth()->user()->id;
-        $data->tdfaccount = $request->tdfaccount;
-        $data->tdf_amount = $request->tdfamount;
-        $data->current_dollar_amount = $request->tdfamount;
-        if ($data->save()) {
+                if($request->tdfamount > $donorBlanacewithLimit){
+                    throw new \Exception("You don't have enough balance to transfer.");
+                }
+                
+                // Save TDF record
+                $data = new TdfTransaction();
+                $data->issue_date = date('Y-m-d');
+                $data->user_id = auth()->user()->id;
+                $data->tdfaccount = $request->tdfaccount;
+                $data->tdf_amount = $request->tdfamount;
+                $data->current_dollar_amount = $request->tdfamount;
+                $data->save();
 
-            $user = User::find(auth()->user()->id);
-            $user->balance = $user->balance - $request->tdfamount;
-            $user->save();
+                // Decrement balance
+                $user->balance = $user->balance - $request->tdfamount;
+                $user->save();
 
-            $udtransaction = new Usertransaction();
-            $udtransaction->t_id = time()."-".auth()->user()->id;
-            $udtransaction->user_id = auth()->user()->id;
-            $udtransaction->t_type = "Out";
-            $udtransaction->amount =  $request->tdfamount;
-            $udtransaction->t_unq = time().rand(1,100);
-            $udtransaction->title ="Transfer to TDF";
-            $udtransaction->status =  1;
-            $udtransaction->save();
+                // Save Usertransaction
+                $udtransaction = new Usertransaction();
+                $udtransaction->t_id =  "TDF-" . uniqid() . "-" . auth()->user()->id;
+                $udtransaction->user_id = auth()->user()->id;
+                $udtransaction->t_type = "Out";
+                $udtransaction->amount =  $request->tdfamount;
+                $udtransaction->t_unq = uniqid().rand(1,100);
+                $udtransaction->title ="Transfer to TDF";
+                $udtransaction->status =  1;
+                $udtransaction->save();
 
-            $transaction = new Transaction();
-            $transaction->t_id = time()."-".auth()->user()->id;
-            $transaction->user_id = auth()->user()->id;
-            $transaction->t_type = "Out";
-            $transaction->amount =  $request->tdfamount;
-            $transaction->note ="Transfer to TDF";
-            $transaction->status =  1;
-            $transaction->save();
+                // Save Transaction
+                $transaction = new Transaction();
+                $transaction->t_id =  "TDF-" . uniqid() . "-" . auth()->user()->id;
+                $transaction->user_id = auth()->user()->id;
+                $transaction->t_type = "Out";
+                $transaction->amount =  $request->tdfamount;
+                $transaction->note ="Transfer to TDF";
+                $transaction->status =  1;
+                $transaction->save();
+                
+                // Prepare email data to be sent AFTER commit
+                $contactmail = ContactMail::where('id', 1)->first()->name;
+                $array['name'] = auth()->user()->name;
+                $array['subject'] = 'Urgent request';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['cc'] = $contactmail;
+                $email = auth()->user()->email;
 
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $array['name'] = auth()->user()->name;
-            $array['subject'] = 'Urgent request';
-            $array['from'] = 'info@tevini.co.uk';
-            $array['cc'] = $contactmail;
-            $email = auth()->user()->email;
-
-            Mail::to($email)
-                    ->cc($contactmail)
-                    ->send(new TDFTransfer($array));
-
+                // ✅ FIX: Send email after transaction is committed
+                DB::afterCommit(function () use ($array, $email) {
+                    Mail::to($email)
+                        ->cc($array['cc'])
+                        ->send(new TDFTransfer($array));
+                });
+            });
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
-        } else {
-            return response()->json(['status'=> 303,'message'=>'Server error!!']);
+
+        } catch (\Exception $e) {
+            $errorMessage = $e->getMessage() === "You don't have enough balance to transfer." 
+                ? $e->getMessage() 
+                : "Server error!!";
+
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>".$errorMessage."</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
         }
         
     }

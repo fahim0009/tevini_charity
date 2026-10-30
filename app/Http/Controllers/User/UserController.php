@@ -313,6 +313,13 @@ class UserController extends Controller
             exit();
         }
 
+        // ✅ FIX: Use Regex for exact 2 decimal places validation
+        if (!preg_match('/^\d+(\.\d{1,2})?$/', $request->tdfamount)) {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Invalid amount format.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
         // ✅ FIX: Prepare email data OUTSIDE the transaction to prevent rollback on missing record
         $userId = auth()->user()->id;
         $userName = auth()->user()->name;

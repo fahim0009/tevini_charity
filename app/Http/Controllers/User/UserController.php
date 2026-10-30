@@ -25,6 +25,7 @@ use App\Models\UserDetail;
 use Illuminate\Support\Str;
 use App\Mail\VerifyEmailMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -298,26 +299,20 @@ class UserController extends Controller
             exit();
         }
 
-        if($request->tdfamount < 18){
+        // ✅ FIX: Validate numeric and minimum amount
+        if(!is_numeric($request->tdfamount) || $request->tdfamount < 18){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Minimum transfer is £18.00.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
 
-        if(empty($request->tdfamount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
         try {
-            // ✅ FIX: Wrap entire operation in DB transaction with row locking
             DB::transaction(function () use ($request) {
                 
-                // ✅ Lock donor row for concurrent safety
+                // ✅ Lock donor row
                 $user = User::where('id', auth()->user()->id)->lockForUpdate()->first();
                 
-                // ✅ FIX: Use User model's getAvailableLimit() method for accurate balance
+                // Check balance
                 $donorBlanacewithLimit = $user->getAvailableLimit();
 
                 if($request->tdfamount > $donorBlanacewithLimit){
@@ -358,7 +353,7 @@ class UserController extends Controller
                 $transaction->status =  1;
                 $transaction->save();
                 
-                // Prepare email data to be sent AFTER commit
+                // Prepare email data
                 $contactmail = ContactMail::where('id', 1)->first()->name;
                 $array['name'] = auth()->user()->name;
                 $array['subject'] = 'Urgent request';
@@ -366,11 +361,15 @@ class UserController extends Controller
                 $array['cc'] = $contactmail;
                 $email = auth()->user()->email;
 
-                // ✅ FIX: Send email after transaction is committed
+                // ✅ FIX: Isolate email failure. If email fails, log it but DO NOT throw error to user.
                 DB::afterCommit(function () use ($array, $email) {
-                    Mail::to($email)
-                        ->cc($array['cc'])
-                        ->send(new TDFTransfer($array));
+                    try {
+                        Mail::to($email)
+                            ->cc($array['cc'])
+                            ->send(new TDFTransfer($array));
+                    } catch (\Exception $e) {
+                        Log::error('TDF Transfer email failed for user ' . auth()->user()->id . ': ' . $e->getMessage());
+                    }
                 });
             });
 
@@ -387,7 +386,6 @@ class UserController extends Controller
         }
         
     }
-
 
     public function checkCurrencyAmount(Request $request)
     {

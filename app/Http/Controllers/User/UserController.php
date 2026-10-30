@@ -299,18 +299,31 @@ class UserController extends Controller
             exit();
         }
 
-        // ✅ FIX: Validate numeric and minimum amount
+        // ✅ FIX: Validate numeric, minimum amount, and max 2 decimal places
         if(!is_numeric($request->tdfamount) || $request->tdfamount < 18){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Minimum transfer is £18.00.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }
+        
+        // Check for more than 2 decimal places
+        if (floor($request->tdfamount * 100) != $request->tdfamount * 100) {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Invalid amount format.</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
+            exit();
+        }
+
+        // ✅ FIX: Prepare email data OUTSIDE the transaction to prevent rollback on missing record
+        $userId = auth()->user()->id;
+        $userName = auth()->user()->name;
+        $userEmail = auth()->user()->email;
+        $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
         try {
-            DB::transaction(function () use ($request) {
+            DB::transaction(function () use ($request, $userId) {
                 
                 // ✅ Lock donor row
-                $user = User::where('id', auth()->user()->id)->lockForUpdate()->first();
+                $user = User::where('id', $userId)->lockForUpdate()->first();
                 
                 // Check balance
                 $donorBlanacewithLimit = $user->getAvailableLimit();
@@ -322,7 +335,7 @@ class UserController extends Controller
                 // Save TDF record
                 $data = new TdfTransaction();
                 $data->issue_date = date('Y-m-d');
-                $data->user_id = auth()->user()->id;
+                $data->user_id = $userId;
                 $data->tdfaccount = $request->tdfaccount;
                 $data->tdf_amount = $request->tdfamount;
                 $data->current_dollar_amount = $request->tdfamount;
@@ -334,8 +347,8 @@ class UserController extends Controller
 
                 // Save Usertransaction
                 $udtransaction = new Usertransaction();
-                $udtransaction->t_id =  "TDF-" . uniqid() . "-" . auth()->user()->id;
-                $udtransaction->user_id = auth()->user()->id;
+                $udtransaction->t_id =  "TDF-" . uniqid() . "-" . $userId;
+                $udtransaction->user_id = $userId;
                 $udtransaction->t_type = "Out";
                 $udtransaction->amount =  $request->tdfamount;
                 $udtransaction->t_unq = uniqid().rand(1,100);
@@ -345,33 +358,28 @@ class UserController extends Controller
 
                 // Save Transaction
                 $transaction = new Transaction();
-                $transaction->t_id =  "TDF-" . uniqid() . "-" . auth()->user()->id;
-                $transaction->user_id = auth()->user()->id;
+                $transaction->t_id =  "TDF-" . uniqid() . "-" . $userId;
+                $transaction->user_id = $userId;
                 $transaction->t_type = "Out";
                 $transaction->amount =  $request->tdfamount;
                 $transaction->note ="Transfer to TDF";
                 $transaction->status =  1;
                 $transaction->save();
-                
-                // Prepare email data
-                $contactmail = ContactMail::where('id', 1)->first()->name;
-                $array['name'] = auth()->user()->name;
+            });
+
+            // ✅ FIX: Email sent completely outside transaction scope using pre-fetched data
+            try {
+                $array['name'] = $userName;
                 $array['subject'] = 'Urgent request';
                 $array['from'] = 'info@tevini.co.uk';
                 $array['cc'] = $contactmail;
-                $email = auth()->user()->email;
-
-                // ✅ FIX: Isolate email failure. If email fails, log it but DO NOT throw error to user.
-                DB::afterCommit(function () use ($array, $email) {
-                    try {
-                        Mail::to($email)
-                            ->cc($array['cc'])
-                            ->send(new TDFTransfer($array));
-                    } catch (\Exception $e) {
-                        Log::error('TDF Transfer email failed for user ' . auth()->user()->id . ': ' . $e->getMessage());
-                    }
-                });
-            });
+                
+                Mail::to($userEmail)
+                    ->cc($contactmail)
+                    ->send(new TDFTransfer($array));
+            } catch (\Exception $e) {
+                Log::error('TDF Transfer email failed for user ' . $userId . ': ' . $e->getMessage());
+            }
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);

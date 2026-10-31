@@ -52,24 +52,36 @@ class TDFTransactionController extends Controller
 
     public function changeStatus(Request $request)
     {
-        $order = TdfTransaction::find($request->tdfid);
-        if (!$order) {
-            return response()->json(['status' => 303, 'message' => 'TDF Transaction not found.']);
-        }
-
-        // ✅ FIX: Prevent double cancellation/refund
-        if ($order->status == 3 && $request->status == 3) {
-             return response()->json(['status' => 303, 'message' => 'Already cancelled.']);
-        }
-
-        $user_id = $order->user_id;
-        $tdf_amount = $order->tdf_amount;
-        $newStatus = $request->status;
-
         try {
-            // ✅ FIX: Wrap financial updates in DB transaction with row locking
-            DB::transaction(function () use ($order, $user_id, $tdf_amount, $newStatus) {
+            // ✅ FIX: Wrap status lookup, cancellation check, and refund inside DB transaction with row locking
+            return DB::transaction(function () use ($request) {
                 
+                // ✅ FIX: Lock TDF row to prevent concurrent status changes
+                $order = TdfTransaction::where('id', $request->tdfid)->lockForUpdate()->first();
+                
+                if (!$order) {
+                    return response()->json(['status' => 303, 'message' => 'TDF Transaction not found.']);
+                }
+
+                $user_id = $order->user_id;
+                $tdf_amount = $order->tdf_amount;
+                $newStatus = $request->status;
+                $oldStatus = $order->status;
+
+                // ✅ FIX: Prevent refunds/cancellations from completed status
+                $allowedTransitions = [
+                    0 => [1, 3], // Pending -> Complete, Cancel
+                    1 => [],     // Complete -> (No transitions allowed, no refund!)
+                    3 => [],     // Cancel -> (No transitions allowed)
+                ];
+
+                if (!in_array($newStatus, $allowedTransitions[$oldStatus] ?? [])) {
+                    return response()->json([
+                        'status' => 303,
+                        'message' => "<div class='alert alert-danger'><b>Invalid status transition. Cannot cancel a completed transfer.</b></div>"
+                    ]);
+                }
+
                 $order->status = $newStatus;
                 $order->save();
 
@@ -80,7 +92,6 @@ class TDFTransactionController extends Controller
                     $user->save();
 
                     $udtransaction = new Usertransaction();
-                    // ✅ FIX: Use prefixed uniqid() for t_id
                     $udtransaction->t_id = "TDF-RET-" . uniqid() . "-" . $user_id;
                     $udtransaction->user_id = $user_id;
                     $udtransaction->t_type = "In";
@@ -90,30 +101,31 @@ class TDFTransactionController extends Controller
                     $udtransaction->status =  1;
                     $udtransaction->save();
                 }
-            });
 
-            // ✅ FIX: Email sent completely outside transaction scope
-            if ($newStatus == 1) {
-                $donor = User::find($user_id);
-                $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
-                $array['subject'] = 'TDF transfer complete';
-                $array['from'] = 'info@tevini.co.uk';
-                $array['cc'] = $contactmail;
-                $array['name'] = $donor->name;
-                $email = $donor->email;
+                // ✅ FIX: Email sent completely outside transaction scope (DB::afterCommit)
+                if ($newStatus == 1) {
+                    DB::afterCommit(function () use ($user_id) {
+                        $donor = User::find($user_id);
+                        $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
+                        $array['subject'] = 'TDF transfer complete';
+                        $array['from'] = 'info@tevini.co.uk';
+                        $array['cc'] = $contactmail;
+                        $array['name'] = $donor->name;
+                        $email = $donor->email;
 
-                try {
-                    Mail::to($email)
-                        ->cc($contactmail)
-                        ->send(new TDFCompleteMail($array));
-                } catch (\Exception $e) {
-                    Log::error('TDF Complete email failed for user ' . $user_id . ': ' . $e->getMessage());
+                        try {
+                            Mail::to($email)
+                                ->cc($contactmail)
+                                ->send(new TDFCompleteMail($array));
+                        } catch (\Exception $e) {
+                            Log::error('TDF Complete email failed for user ' . $user_id . ': ' . $e->getMessage());
+                        }
+                    });
                 }
-            }
 
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Status change successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-
+                $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Status change successfully.</b></div>";
+                return response()->json(['status'=> 300,'message'=>$message]);
+            });
         } catch (\Exception $e) {
             Log::error('Admin TDF status change failed for TDF ID ' . $request->tdfid . ': ' . $e->getMessage());
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Server Error!!</b></div>";

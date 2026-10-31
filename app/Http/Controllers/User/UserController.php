@@ -306,9 +306,10 @@ class UserController extends Controller
             exit();
         }
         
-        // Check for more than 2 decimal places
-        if (floor($request->tdfamount * 100) != $request->tdfamount * 100) {
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Invalid amount format.</b></div>";
+        
+                // ✅ FIX: Regex validation for exactly up to 2 decimal places (removed floor())
+        if (!preg_match('/^\d+(\.\d{1,2})?$/', $request->tdfamount)) {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Invalid amount format. Use up to 2 decimal places.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
             exit();
         }

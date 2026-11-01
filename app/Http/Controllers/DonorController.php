@@ -26,10 +26,10 @@ use App\Models\ExpectedGiftAid;
 use App\Models\TdfTransaction;
 use Yajra\DataTables\Facades\DataTables;
 use PDF;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Facades\DB;
 use App\DTOs\OnlineDonationData;
 use App\Exceptions\Donation\DonationException;
 use App\Services\Donation\OnlineDonationService;
@@ -108,50 +108,60 @@ class DonorController extends Controller
 
     public function donorStore(Request $request)
     {
-        $email=User::where('email', $request->email)->count();
-        if( $email == 1){
-            $message ="This email already used!!";
-            return back()->with('error', $message);
-            exit();
-        }
-
-
-        $this->validate($request,[
-            'title' => 'required',
-            'fname' => 'required',
-            'surname' => 'required',
-            'email' => 'required|email'
+        // ✅ FIX: Comprehensive validation with proper rules
+        $this->validate($request, [
+            'prefix_name' => 'nullable|string|max:191',
+            'fname' => 'required|string|max:255',
+            'surname' => 'required|string|max:50',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:256',
+            'street' => 'nullable|string|max:256',
+            'postcode' => 'nullable|string|max:50',
+            'houseno' => 'nullable|string|max:256',
+            'town' => 'nullable|string|max:50',
+            'accno' => 'nullable|string|max:50',
+            'balance' => 'nullable|numeric'
         ]);
 
-        $user = new User;
-        $user->prefix_name = $request->prefix_name;
-        $user->name = $request->fname;
-        $user->surname = $request->surname;
-        $user->email = $request->email;
-        $user->phone = $request->phone;
-        $user->title = $request->title;
-        $user->street = $request->street;
-        $user->postcode = $request->postcode;
-        $user->houseno = $request->houseno;
-        $user->town = $request->town;
-        if($request->accno){
-        $user->accountno = $request->accno;
-        $user->status = "1";
-        }
-        if(empty($request->balance)){
-        $user->balance = 00;
-        }else{
-        $user->balance = $request->balance;
-        }
-        $user->password = Hash::make('123456');
-        if($user->save()){
+        try {
+            DB::beginTransaction();
 
-            $message ="Donor Created Successfully";
-            return back()->with('message', $message);
+            $user = new User;
+            $user->prefix_name = $request->prefix_name;
+            $user->name = $request->fname;
+            $user->surname = $request->surname;
+            $user->email = $request->email;
+            $user->phone = $request->phone;
+            $user->title = $request->title;
+            $user->street = $request->street;
+            $user->postcode = $request->postcode;
+            $user->houseno = $request->houseno;
+            $user->town = $request->town;
+            $user->is_type = 'user'; // ✅ Ensure is_type is set
+            
+            if($request->accno){
+                $user->accountno = $request->accno;
+                $user->status = "1";
+            } else {
+                $user->status = "0"; // Default status
+            }
+            
+            $user->balance = $request->filled('balance') ? $request->balance : 0.00;
+            $user->password = Hash::make('123456');
+            
+            $user->save();
+
+            DB::commit();
+
+            return back()->with('message', 'Donor Created Successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // ✅ FIX: Log the error to find exact issue
+            Log::error('Admin Donor Store Failed: ' . $e->getMessage());
+            return back()->with('error', 'Server Error!! Could not create donor.')->withInput();
         }
-        return back()->with(['status'=> 303,'message'=>'Server Error!!']);
-
-
     }
 
     public function donorEdit($id)
@@ -160,7 +170,6 @@ class DonorController extends Controller
         $users = User::where('id','=' ,decrypt($id))->first();
         return view('donor.editdonor', compact('users'));
 
-        // return response()->json($info);
     }
 
     public function donorUpdate(Request $request, $id)
@@ -215,12 +224,15 @@ class DonorController extends Controller
 
             $message ="Donor Update Successfully";
 
-        return redirect()->route('donor')->with(['status'=> 303,'message'=> $message]);
+            return redirect()->route('donor')->with(['status'=> 303,'message'=> $message]);
         }
         return back()->with(['status'=> 303,'message'=>'Server Error!!']);
 
 
     }
+
+
+
 
     public function deleteDonor(Request $request)
     {

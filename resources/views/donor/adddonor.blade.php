@@ -73,105 +73,114 @@
                         
                         <div class="card-body p-4">
                             <form action="{{ route('donor.store') }}" method="POST" enctype="multipart/form-data" id="createThisForm">
-                                @csrf
-                                <input type="hidden" name="donorid" id="donorid">
+    @csrf
+    <input type="hidden" name="donorid" id="donorid">
 
-                                <div class="row g-4">
-                                    <div class="col-md-6 border-end-md">
-                                        <h6 class="text-primary fw-bold mb-3">Identity Details</h6>
-                                        
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-md-4">
-                                                <label class="form-label small fw-bold">Prefix</label>
-                                                <select name="prefix_name" id="prefix_name" class="form-select border-radius-8">
-                                                    <option value="">Select</option>
-                                                    <option value="Mr">Mr</option>
-                                                    <option value="Mrs">Mrs</option>
-                                                    <option value="Ms">Ms</option>
-                                                    <option value="Dr">Dr</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <label for="title" class="form-label small fw-bold">Title/Position</label>
-                                                <input type="text" name="title" id="title" placeholder="e.g. Manager" class="form-control @error('title') is-invalid @enderror">
-                                            </div>
-                                        </div>
+    <div class="row g-4">
+        <div class="col-md-6 border-end-md">
+            <h6 class="text-primary fw-bold mb-3">Identity Details</h6>
+            
+            <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Prefix</label>
+                    <select name="prefix_name" id="prefix_name" class="form-select border-radius-8">
+                        <option value="">Select</option>
+                        <option value="Mr" @if(old('prefix_name') == 'Mr') selected @endif>Mr</option>
+                        <option value="Mrs" @if(old('prefix_name') == 'Mrs') selected @endif>Mrs</option>
+                        <option value="Ms" @if(old('prefix_name') == 'Ms') selected @endif>Ms</option>
+                        <option value="Dr" @if(old('prefix_name') == 'Dr') selected @endif>Dr</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label for="title" class="form-label small fw-bold">Title/Position</label>
+                    <input type="text" name="title" id="title" placeholder="e.g. Manager" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror">
+                    @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
 
-                                        <div class="mb-3">
-                                            <label for="fname" class="form-label small fw-bold">First Name</label>
-                                            <input type="text" name="fname" id="fname" placeholder="Enter first name" class="form-control @error('fname') is-invalid @enderror">
-                                        </div>
+            <div class="mb-3">
+                <label for="fname" class="form-label small fw-bold">First Name</label>
+                <input type="text" name="fname" id="fname" placeholder="Enter first name" value="{{ old('fname') }}" class="form-control @error('fname') is-invalid @enderror">
+                @error('fname') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
 
-                                        <div class="mb-3">
-                                            <label for="surname" class="form-label small fw-bold">Surname</label>
-                                            <input type="text" name="surname" id="surname" placeholder="Enter surname" class="form-control @error('surname') is-invalid @enderror">
-                                        </div>
+            <div class="mb-3">
+                <label for="surname" class="form-label small fw-bold">Surname</label>
+                <input type="text" name="surname" id="surname" placeholder="Enter surname" value="{{ old('surname') }}" class="form-control @error('surname') is-invalid @enderror">
+                @error('surname') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
 
-                                        <div class="mb-3">
-                                            <label for="email" class="form-label small fw-bold">Email Address</label>
-                                            <input type="email" name="email" id="email" placeholder="email@example.com" class="form-control @error('email') is-invalid @enderror">
-                                        </div>
+            <div class="mb-3">
+                <label for="email" class="form-label small fw-bold">Email Address</label>
+                <input type="email" name="email" id="email" placeholder="email@example.com" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror">
+                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
 
-                                        <div class="mb-3">
-                                            <label for="phone" class="form-label small fw-bold">Phone Number</label>
-                                            <input type="text" name="phone" id="phone" placeholder="+123456789" class="form-control @error('phone') is-invalid @enderror">
-                                        </div>
-                                    </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label small fw-bold">Phone Number</label>
+                <input type="text" name="phone" id="phone" placeholder="+123456789" value="{{ old('phone') }}" class="form-control @error('phone') is-invalid @enderror">
+                @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+        </div>
 
-                                    <div class="col-md-6">
-                                        <h6 class="text-primary fw-bold mb-3">Address & Account</h6>
+        <div class="col-md-6">
+            <h6 class="text-primary fw-bold mb-3">Address & Account</h6>
 
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-md-8">
-                                                <label for="street" class="form-label small fw-bold">Street</label>
-                                                <input type="text" name="street" id="street" placeholder="Street name" class="form-control @error('street') is-invalid @enderror">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="houseno" class="form-label small fw-bold">House No</label>
-                                                <input type="text" name="houseno" id="houseno" placeholder="No." class="form-control @error('houseno') is-invalid @enderror">
-                                            </div>
-                                        </div>
+            <div class="row g-2 mb-3">
+                <div class="col-md-8">
+                    <label for="street" class="form-label small fw-bold">Street</label>
+                    <input type="text" name="street" id="street" placeholder="Street name" value="{{ old('street') }}" class="form-control @error('street') is-invalid @enderror">
+                    @error('street') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="col-md-4">
+                    <label for="houseno" class="form-label small fw-bold">House No</label>
+                    <input type="text" name="houseno" id="houseno" placeholder="No." value="{{ old('houseno') }}" class="form-control @error('houseno') is-invalid @enderror">
+                    @error('houseno') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
 
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-md-6">
-                                                <label for="town" class="form-label small fw-bold">Town/City</label>
-                                                <input type="text" name="town" id="town" placeholder="Town" class="form-control @error('town') is-invalid @enderror">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="postcode" class="form-label small fw-bold">Postcode</label>
-                                                <input type="text" name="postcode" id="postcode" placeholder="Postcode" class="form-control @error('postcode') is-invalid @enderror">
-                                            </div>
-                                        </div>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label for="town" class="form-label small fw-bold">Town/City</label>
+                    <input type="text" name="town" id="town" placeholder="Town" value="{{ old('town') }}" class="form-control @error('town') is-invalid @enderror">
+                    @error('town') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="col-md-6">
+                    <label for="postcode" class="form-label small fw-bold">Postcode</label>
+                    <input type="text" name="postcode" id="postcode" placeholder="Postcode" value="{{ old('postcode') }}" class="form-control @error('postcode') is-invalid @enderror">
+                    @error('postcode') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
 
-                                        <hr class="my-4 opacity-50">
+            <hr class="my-4 opacity-50">
 
-                                        <div class="mb-3">
-                                            <label for="accno" class="form-label small fw-bold">Account Number</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light text-muted"><i class="iconify" data-icon="fluent:badge-24-regular"></i></span>
-                                                <input type="text" name="accno" id="accno" placeholder="ACC-0000" class="form-control">
-                                            </div>
-                                        </div>
+            <div class="mb-3">
+                <label for="accno" class="form-label small fw-bold">Account Number</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="iconify" data-icon="fluent:badge-24-regular"></i></span>
+                    <input type="text" name="accno" id="accno" placeholder="ACC-0000" value="{{ old('accno') }}" class="form-control">
+                </div>
+            </div>
 
-                                        <div class="mb-3">
-                                            <label for="balance" class="form-label small fw-bold">Opening Balance</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light text-muted">£</span>
-                                                <input type="text" name="balance" id="balance" placeholder="0.00" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="mb-3">
+                <label for="balance" class="form-label small fw-bold">Opening Balance</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted">£</span>
+                    <input type="text" name="balance" id="balance" placeholder="0.00" value="{{ old('balance') }}" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
 
-                                <div class="row mt-4 pt-3 border-top">
-                                    <div class="col-12 d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-light px-4 fw-semibold" id="FormCloseBtn">Cancel</button>
-                                        <button type="submit" class="btn btn-primary px-5 fw-semibold shadow-sm">
-                                            <span class="iconify me-1" data-icon="fluent:add-circle-24-regular"></span> Create Donor
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
+    <div class="row mt-4 pt-3 border-top">
+        <div class="col-12 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-light px-4 fw-semibold" id="FormCloseBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary px-5 fw-semibold shadow-sm">
+                <span class="iconify me-1" data-icon="fluent:add-circle-24-regular"></span> Create Donor
+            </button>
+        </div>
+    </div>
+</form>
                         </div>
                     </div>
                 </div>
@@ -294,7 +303,15 @@ $(document).ready(function () {
     $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
     // Hide form by default
+        // Hide form by default
     $("#addThisFormContainer").hide();
+
+    // ✅ FIX: Show form automatically if there are validation errors
+    @if ($errors->any() || session('error'))
+        $("#newBtn").hide();
+        $("#addThisFormContainer").show(300);
+    @endif
+
 
     // Toggle form visibility
     $("#newBtn").click(function() {

@@ -577,7 +577,7 @@ class DonorController extends Controller
     }
 
 
-    // Monthly statement in admin
+    // M statement in admin
     public function userReportinAdmin(Request $request, $id)
     {
         $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
@@ -657,72 +657,78 @@ class DonorController extends Controller
 
     public function userReportMailinAdmin(Request $request)
     {
-            $id = $request->user_id;
-            $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
-            if(!empty($request->input('fromdate')) && !empty($request->input('todate'))){
-                $fromDate = $request->input('fromdate');
-                $toDate   = $request->input('todate');
-                $report = Usertransaction::where([
-                    ['user_id','=', $id],
-                    ['created_at', '>=', $fromDate],
-                    ['created_at', '<=', $toDate.' 23:59:59'],
-                    ['status','=', '1']
-                ])->orwhere([
-                    ['user_id','=', $id],
-                    ['pending','=', '0']
-                    ])->orderBy('id','DESC')->get();
+        $id = $request->user_id;
+        
+        // Fetch User Record
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['status' => 303, 'message' => 'User not found.']);
+        }
 
-              }else{
+        // ✅ FIX: Get balance directly from User Model
+        $userBalance = $user->getLiveBalance();
 
-                $report = Usertransaction::where([
-                    ['user_id','=', $id],
-                    ['status','=', '1']
-                ])->orwhere([
-                   ['user_id','=', $id],
-                   ['pending','=', '0']
-                   ])->orderBy('id','DESC')->get();
+        $tamount = Usertransaction::where('user_id','=', $id)
+            ->where('status','=', '1')
+            ->orderBy('id','DESC')
+            ->get();
 
+        if(!empty($request->input('fromdate')) && !empty($request->input('todate'))){
+            $fromDate = $request->input('fromdate');
+            $toDate   = $request->input('todate');
+            
+            // ✅ FIX: Grouped where conditions to prevent OR condition from ignoring user_id
+            $report = Usertransaction::where('user_id', $id)
+                ->where(function($query) use ($fromDate, $toDate) {
+                    $query->where([
+                        ['created_at', '>=', $fromDate],
+                        ['created_at', '<=', $toDate.' 23:59:59'],
+                        ['status','=', '1']
+                    ])
+                    ->orWhere([
+                        ['pending','=', '0']
+                    ]);
+                })
+                ->orderBy('id','DESC')
+                ->get();
 
-                $fromDate = "";
-                $toDate   = "";
-            }
-            $user = User::find($id);
-            // donor balance
-            $userTransactionBalance = Usertransaction::selectRaw('
-                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                    SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                ')
-                ->where([
-                    ['user_id','=', $user->id],
-                    ['status','=', '1']
-                ])->orwhere([
-                    ['user_id','=',  $user->id],
-                    ['pending','=', '1']
-                ])
-                ->first();
-            // donor balance end
+        } else {
+            // ✅ FIX: Grouped where conditions
+            $report = Usertransaction::where('user_id', $id)
+                ->where(function($query) {
+                    $query->where('status', '1')
+                          ->orWhere('pending', '0');
+                })
+                ->orderBy('id','DESC')
+                ->get();
 
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $array['cc'] = $contactmail;
-            $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
-            $output = $pdf->output();
-            file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
-            $array['name'] = $user->name;
-            $array['userbalance'] =  number_format($userTransactionBalance->balance, 2);
-            $array['view'] = 'mail.donorreport';
-            $array['subject'] = 'Monthly statement';
-            $array['from'] = 'info@tevini.co.uk';
-            $array['content'] = 'Hi, Your donation report has been placed';
-            $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
-            $array['file_name'] = 'Report#'.$id.'.pdf';
-            $array['subjectsingle'] = 'Report Placed - '.$id;
+            $fromDate = "";
+            $toDate   = "";
+        }
 
-            Mail::to($user->email)->queue(new DonerReport($array));
+        $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
+        $array['cc'] = $contactmail;
+        
+        $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
+        $output = $pdf->output();
+        $pdfPath = public_path().'/invoices/Report#'.$id.'.pdf';
+        file_put_contents($pdfPath, $output);
+        
+        $array['name'] = $user->name;
+        // ✅ FIX: Use model balance variable
+        $array['userbalance'] =  number_format($userBalance, 2);
+        $array['view'] = 'mail.donorreport';
+        $array['subject'] = 'Monthly statement';
+        $array['from'] = 'info@tevini.co.uk';
+        $array['content'] = 'Hi, Your donation report has been placed';
+        $array['file'] = $pdfPath;
+        $array['file_name'] = 'Report#'.$id.'.pdf';
+        $array['subjectsingle'] = 'Report Placed - '.$id;
 
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
+        Mail::to($user->email)->queue(new DonerReport($array));
 
-
+        $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
+        return response()->json(['status'=> 300,'message'=>$message]);
     }
 
 
@@ -763,174 +769,7 @@ class DonorController extends Controller
 
     // report to multiple donor
 
-    public function multiUserreport2(Request $request)
-    {
-        $checkAll = $request->checkAll;
-        $donorIds = $request->donorIds;
-        $fromDate = $request->fromdate;
-        $toDate   = $request->todate;
 
-        if(empty($request->donorIds)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select donor.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(empty($request->fromdate)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select From Date.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(empty($request->todate)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select To Date.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if ($checkAll == "all") {
-
-            $activedonorIds = User::where('is_type', 'user')->where('status', 1)->get();
-            foreach($activedonorIds as $duser)
-            {
-
-                $tamount = Usertransaction::where('user_id','=', $duser->id)->where('status','=', '1')->orderBy('id','DESC')->get();
-                if(!empty($fromDate) && !empty($toDate)){
-
-                    $report = Usertransaction::where([
-                        ['user_id','=', $duser->id],
-                        ['created_at', '>=', $fromDate],
-                        ['created_at', '<=', $toDate.' 23:59:59'],
-                        ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $duser->id],
-                        ['pending','=', '0']
-                        ])->orderBy('id','DESC')->get();
-                }else{
-                    $report = Usertransaction::where([
-                        ['user_id','=', $duser->id],
-                        ['status','=', '1']
-                    ])->orwhere([
-                    ['user_id','=', $duser->id],
-                    ['pending','=', '0']
-                    ])->orderBy('id','DESC')->get();
-                    $fromDate = "";
-                    $toDate   = "";
-                }
-                $user = User::find($duser->id);
-
-                // donor balance
-                $userTransactionBalance = Usertransaction::selectRaw('
-                        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                    ')
-                    ->where([
-                        ['user_id','=', $user->id],
-                        ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=',  $user->id],
-                        ['pending','=', '1']
-                    ])
-                    ->first();
-                // donor balance end
-
-
-
-                $contactmail = ContactMail::where('id', 1)->first()->name;
-                $array['cc'] = $contactmail;
-                $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
-                $output = $pdf->output();
-                file_put_contents(public_path().'/invoices/'.'Report#'.$duser->id.'.pdf', $output);
-                $array['userbalance'] =  number_format($userTransactionBalance->balance, 2);
-                $array['name'] = $user->name;
-                $array['view'] = 'mail.donorreport';
-                $array['subject'] = 'Monthly statement';
-                $array['from'] = 'info@tevini.co.uk';
-                $array['content'] = 'Hi, Your donation report has been placed';
-                $array['file'] = public_path().'/invoices/Report#'.$duser->id.'.pdf';
-                $array['file_name'] = 'Report#'.$duser->id.'.pdf';
-                $array['subjectsingle'] = 'Report Placed - '.$duser->id;
-                
-                if ($user->email_verified_at) {
-                    Mail::to($user->email)->queue(new DonerReport($array));
-                }
-
-            }
-            
-        } else {
-            
-            foreach($donorIds as $id)
-            {
-
-                $tamount = Usertransaction::where('user_id','=', $id)->where('status','=', '1')->orderBy('id','DESC')->get();
-                if(!empty($fromDate) && !empty($toDate)){
-
-                    $report = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['created_at', '>=', $fromDate],
-                        ['created_at', '<=', $toDate.' 23:59:59'],
-                        ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $id],
-                        ['pending','=', '0']
-                        ])->orderBy('id','DESC')->get();
-                }else{
-                    $report = Usertransaction::where([
-                        ['user_id','=', $id],
-                        ['status','=', '1']
-                    ])->orwhere([
-                    ['user_id','=', $id],
-                    ['pending','=', '0']
-                    ])->orderBy('id','DESC')->get();
-                    $fromDate = "";
-                    $toDate   = "";
-                }
-
-                // donor balance
-                $userTransactionBalance = Usertransaction::selectRaw('
-                        SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                        SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                    ')
-                    ->where([
-                        ['user_id','=', $id],
-                        ['status','=', '1']
-                    ])->orwhere([
-                        ['user_id','=', $id],
-                        ['pending','=', '1']
-                    ])
-                    ->first();
-                // donor balance end
-
-
-                $user = User::find($id);
-                $contactmail = ContactMail::where('id', 1)->first()->name;
-                $array['cc'] = $contactmail;
-                $pdf = PDF::loadView('invoices.donor_report', compact('report','fromDate','toDate','user','tamount'));
-                $output = $pdf->output();
-                file_put_contents(public_path().'/invoices/'.'Report#'.$id.'.pdf', $output);
-                $array['userbalance'] = number_format($userTransactionBalance->balance, 2);
-                $array['name'] = $user->name;
-                $array['view'] = 'mail.donorreport';
-                $array['subject'] = 'Monthly statement';
-                $array['from'] = 'info@tevini.co.uk';
-                $array['content'] = 'Hi, Your donation report has been placed';
-                $array['file'] = public_path().'/invoices/Report#'.$id.'.pdf';
-                $array['file_name'] = 'Report#'.$id.'.pdf';
-                $array['subjectsingle'] = 'Report Placed - '.$id;
-
-                // if ($user->email_verified_at) {
-                //     Mail::to($user->email)->queue(new DonerReport($array));
-                // }
-                Mail::to($user->email)->cc($contactmail)->send(new DonerReport($array));
-
-            }
-        }
-        
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Mail sent successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-
-
-    }
 
     public function multiUserreport_new(Request $request)
     {
@@ -955,7 +794,7 @@ class DonorController extends Controller
             return response()->json(['status' => 303, 'message' => $this->alert('danger', 'Please select To Date.')]);
         }
 
-        $contactmail = ContactMail::where('id', 1)->value('name');
+        $contactmail = ContactMail::where('id', 1)->value('name') ?? 'info@tevini.co.uk';
 
         $processUser = function ($user) use ($fromDate, $toDate, $contactmail) {
             $tamount = Usertransaction::where('user_id', $user->id)
@@ -963,27 +802,19 @@ class DonorController extends Controller
                 ->orderBy('id', 'DESC')
                 ->get();
 
+            // ✅ FIX: Grouped where conditions to prevent OR condition from ignoring user_id
             $report = Usertransaction::where('user_id', $user->id)
                 ->where(function ($query) use ($fromDate, $toDate) {
-                    $query->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
-                        ->where('status', 1);
-                })
-                ->orWhere(function ($query) use ($user) {
-                    $query->where('user_id', $user->id)->where('pending', 0);
+                    $query->where(function($q) use ($fromDate, $toDate) {
+                        $q->whereBetween('created_at', [$fromDate, $toDate . ' 23:59:59'])
+                          ->where('status', 1);
+                    })->orWhere('pending', 0);
                 })
                 ->orderBy('id', 'DESC')
                 ->get();
 
-            $userTransactionBalance = Usertransaction::selectRaw('
-                    SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                    SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-                ')
-                ->where('user_id', $user->id)
-                ->where('status', 1)
-                ->orWhere(function ($query) use ($user) {
-                    $query->where('user_id', $user->id)->where('pending', 1);
-                })
-                ->first();
+            // ✅ FIX: Get balance directly from User Model
+            $userBalance = $user->getLiveBalance();
 
             $pdf = PDF::loadView('invoices.donor_report', compact('report', 'fromDate', 'toDate', 'user', 'tamount'));
             $filePath = public_path('/invoices/Report#' . $user->id . '.pdf');
@@ -991,7 +822,8 @@ class DonorController extends Controller
 
             $array = [
                 'cc' => $contactmail,
-                'userbalance' => number_format($userTransactionBalance->balance, 2),
+                // ✅ FIX: Use model balance variable
+                'userbalance' => number_format($userBalance, 2),
                 'name' => $user->name,
                 'view' => 'mail.donorreport',
                 'subject' => 'Monthly statement',
@@ -1136,99 +968,109 @@ class DonorController extends Controller
 
     public function tdfTransferStore(Request $request)
     {
-
         $donor_id = $request->donner_id;
+
         if(empty($request->tdfaccount)){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Account Field Required.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
 
-        if($request->tdfamount < 18){
+        // ✅ FIX: Validate numeric, minimum amount, and max 2 decimal places
+        if(!is_numeric($request->tdfamount) || $request->tdfamount < 18){
             $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Minimum transfer is £18.00.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
-
-
-        if(empty($request->tdfamount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Amount Field Required.</b></div>";
+        
+        // ✅ FIX: Use Regex for exact 2 decimal places validation
+        if (!preg_match('/^\d+(\.\d{1,2})?$/', $request->tdfamount)) {
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Invalid amount format.</b></div>";
             return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
         }
 
-        // donor balance
-        $userTransactionBalance = Usertransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', $donor_id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=',  $donor_id],
-                ['pending','=', '1']
-            ])
-            ->first();
-        // donor balance end
-        
-        
-        $overdrownlimit = User::where('id', $donor_id)->first()->overdrawn_amount;
-        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
-
-        if($request->tdfamount  > $donorBlanacewithLimit){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have enough balance to transfer.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
+        // ✅ FIX: Prepare email data OUTSIDE the transaction
+        $user = User::find($donor_id);
+        if (!$user) {
+            return response()->json(['status'=> 303,'message'=>'Donor not found.']);
         }
-        
-        $data = new TdfTransaction();
-        $data->issue_date = date('Y-m-d');
-        $data->user_id = $donor_id;
-        $data->tdfaccount = $request->tdfaccount;
-        $data->tdf_amount = $request->tdfamount;
-        $data->current_dollar_amount = $request->tdfamount;
-        if ($data->save()) {
+        $userName = $user->name;
+        $userEmail = $user->email;
+        $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
 
-            $user = User::find($donor_id);
-            $user->balance = $user->balance - $request->tdfamount;
-            $user->save();
+        try {
+            // ✅ FIX: Wrap entire operation in DB transaction with row locking
+            DB::transaction(function () use ($request, $donor_id) {
+                
+                // ✅ FIX: Lock donor row for concurrent safety
+                $user = User::where('id', $donor_id)->lockForUpdate()->first();
+                
+                // ✅ FIX: Use User model's getAvailableLimit() method for accurate balance
+                $donorBlanacewithLimit = $user->getAvailableLimit();
 
-            $udtransaction = new Usertransaction();
-            $udtransaction->t_id = uniqid()."-".$donor_id;
-            $udtransaction->user_id = $donor_id;
-            $udtransaction->t_type = "Out";
-            $udtransaction->amount =  $request->tdfamount;
-            $udtransaction->t_unq = uniqid().rand(1,100);
-            $udtransaction->title ="Transfer to TDF";
-            $udtransaction->status =  1;
-            $udtransaction->save();
+                if($request->tdfamount > $donorBlanacewithLimit){
+                    throw new \Exception("You don't have enough balance to transfer.");
+                }
+                
+                // Save TDF record
+                $data = new TdfTransaction();
+                $data->issue_date = date('Y-m-d');
+                $data->user_id = $donor_id;
+                $data->tdfaccount = $request->tdfaccount;
+                $data->tdf_amount = $request->tdfamount;
+                $data->current_dollar_amount = $request->tdfamount;
+                $data->save();
 
-            $transaction = new Transaction();
-            $transaction->t_id = uniqid()."-".$donor_id;
-            $transaction->user_id = $donor_id;
-            $transaction->t_type = "Out";
-            $transaction->amount =  $request->tdfamount;
-            $transaction->note ="Transfer to TDF";
-            $transaction->status =  1;
-            $transaction->save();
+                // Decrement balance
+                $user->balance = $user->balance - $request->tdfamount;
+                $user->save();
 
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $array['name'] = $user->name;
-            $array['subject'] = 'Urgent request';
-            $array['from'] = 'info@tevini.co.uk';
-            $array['cc'] = $contactmail;
-            $email = $user->email;
+                // Save Usertransaction
+                $udtransaction = new Usertransaction();
+                $udtransaction->t_id =  "TDF-" . uniqid() . "-" . $donor_id;
+                $udtransaction->user_id = $donor_id;
+                $udtransaction->t_type = "Out";
+                $udtransaction->amount =  $request->tdfamount;
+                $udtransaction->t_unq = uniqid().rand(1,100);
+                $udtransaction->title ="Transfer to TDF";
+                $udtransaction->status =  1;
+                $udtransaction->save();
 
-            Mail::to($email)
+                // Save Transaction
+                $transaction = new Transaction();
+                $transaction->t_id =  "TDF-" . uniqid() . "-" . $donor_id;
+                $transaction->user_id = $donor_id;
+                $transaction->t_type = "Out";
+                $transaction->amount =  $request->tdfamount;
+                $transaction->note ="Transfer to TDF";
+                $transaction->status =  1;
+                $transaction->save();
+            });
+
+            // ✅ FIX: Email sent completely outside transaction scope
+            try {
+                $array['name'] = $userName;
+                $array['subject'] = 'TDF Transfer';
+                $array['from'] = 'info@tevini.co.uk';
+                $array['cc'] = $contactmail;
+                
+                Mail::to($userEmail)
                     ->cc($contactmail)
                     ->send(new TDFTransfer($array));
-
+            } catch (\Exception $e) {
+                Log::error('Admin TDF Transfer email failed for user ' . $donor_id . ': ' . $e->getMessage());
+            }
 
             $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Successfully transferred to TDF.</b></div>";
             return response()->json(['status'=> 300,'message'=>$message]);
-        } else {
-            return response()->json(['status'=> 303,'message'=>'Server error!!']);
+
+        } catch (\Exception $e) {
+            Log::error('Admin TDF Transfer failed for user ' . $donor_id . ': ' . $e->getMessage());
+            
+            $errorMessage = $e->getMessage() === "You don't have enough balance to transfer." 
+                ? $e->getMessage() 
+                : "Server error!!";
+
+            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>".$errorMessage."</b></div>";
+            return response()->json(['status'=> 303,'message'=>$message]);
         }
     }
 
@@ -1238,524 +1080,6 @@ class DonorController extends Controller
         return view('donor.onlinedonation',compact('donor_id'));
     }
 
-    public function userOnlineDonationStorePrev(Request $request) 
-    {
-        
-
-        if ($request->standard == "on") {
-            
-            $rules = [
-                'userid' => 'required',
-                'charity_id' => 'required',
-                'payments_type' => 'required',
-                'number_payments' => 'required_if:payments_type,1|integer',
-                'starting' => 'required',
-                'interval' => 'required',
-                'amount' => 'required|integer',
-                'confirm_donation' => 'required'
-            ];
-            $customMessages = [
-                'userid.required' => 'Server error!!!',
-                'charity_id.required' => 'Please select a charity.',
-                'payments_type.required' => 'Please select payment type.',
-                'number_payments.required' => 'Number of payment field is required',
-                'starting.required' => 'Starting field is required.',
-                'interval.required' => 'Interval field is required.',
-                'confirm_donation.required' => 'Please check confirmed about your donation.',
-                'required' => 'The :attribute field is required.',
-            ];
-            $this->validate($request, $rules, $customMessages);
-
-
-            $userid = $request->userid;
-            $data = new StandingDonation;
-            $data->user_id = $userid;
-            $data->charity_id = $request->charity_id;
-            $data->amount = $request->amount;
-            $data->currency = "GBP";
-            $data->ano_donation = $request->ano_donation;
-            $data->standing_order = $request->standard;
-            $data->payments = $request->payments_type;
-            $data->number_payments = $request->number_payments;
-            $data->payment_made = 0;
-            $data->starting = $request->starting;
-            $data->interval = $request->interval;   
-            $data->charitynote = $request->charitynote;
-            $data->mynote = $request->mynote;
-            $data->notification = 1;
-            $data->status = 0;
-
-            if($data->save()){
-
-                $user = User::where('id',$userid)->first();
-                $contactmail = ContactMail::where('id', 1)->first()->name;
-                $charity = Charity::where('id',$request->charity_id)->first();
-                $donation = StandingDonation::where('id',$data->id)->first();
-
-
-                $array['name'] = $user->name;
-                $array['donation'] = $donation;
-                $array['cc'] = $contactmail;
-                $array['client_no'] = $user->accountno;
-                $email = $user->email;
-                $array['amount'] = $request->amount;
-                $array['charity_note'] = $request->charitynote;
-                $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
-
-                Mail::to($email)
-                ->cc($contactmail)
-                ->send(new DonationstandingReport($array));
-                
-                // return redirect()->route('onlinedonation.appview')->with('success', 'Standing order donation submited Successfully.');
-
-                // return view('frontend.user.donationsuccess', ['success' => 'Standing order donation submited Successfully.', 'userid' => $userid]);
-
-                return view('frontend.user.donationsuccess')->with('success', 'Donation submited Successfully.')->with('userid', $userid);
-
-            }
-
-        } else {
-
-            
-            $rules = [
-                'userid' => 'required',
-                'charity_id' => 'required',
-                'amount' => 'required|integer',
-                'confirm_donation' => 'required'
-            ];
-            $customMessages = [
-                'userid.required' => 'Server error!!!',
-                'charity_id.required' => 'Please select a charity.',
-                'confirm_donation.required' => 'Please check confirmed about your donation.',
-                'required' => 'The :attribute field is required.',
-            ];
-            $this->validate($request, $rules, $customMessages);
-
-            $userid = $request->userid;
-            $data = new Donation;
-            $data->user_id = $userid;
-            $data->charity_id = $request->charity_id;
-            $data->amount = $request->amount;
-            $data->currency = "GBP";
-            $data->ano_donation = $request->ano_donation;
-            $data->standing_order = $request->standard ?? "false";
-            $data->confirm_donation = $request->c_donation ?? "true";
-            $data->charitynote = $request->charitynote;
-            $data->mynote = $request->mynote;
-            $data->notification = 1;
-            $data->status = 0;
-
-            if($data->save()){
-
-                $utransaction = new Usertransaction();
-                $utransaction->t_id = uniqid() . "-" . $userid;
-                $utransaction->user_id = $userid;
-                $utransaction->charity_id = $request->charity_id;
-                $utransaction->donation_id = $data->id;
-                $utransaction->t_type = "Out";
-                $utransaction->amount =  $request->amount;
-                $utransaction->title =  "Online Donation";
-                $utransaction->status =  1;
-                $utransaction->save();
-
-                $user = User::find($userid);
-                $user->decrement('balance',$request->amount);
-                $user->save();
-
-                $charity = Charity::find($request->charity_id);
-                $charity->increment('balance',$request->amount);
-                $charity->save();
-
-                $user = User::where('id',$userid)->first();
-                $contactmail = ContactMail::where('id', 1)->first()->name;
-                $charity = Charity::where('id',$request->charity_id)->first();
-                $donation = Donation::where('id',$data->id)->first();
-
-                $array['name'] = $user->name;
-                $array['cc'] = $contactmail;
-                $array['client_no'] = $user->accountno;
-                $email = $user->email;
-                $array['amount'] = $request->amount;
-                $array['charity_note'] = $request->charitynote;
-                $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
-
-                Mail::to($email)
-                ->cc($contactmail)
-                ->send(new DonationReport($array));
-                
-                // return view('frontend.user.donationsuccess', ['success' => 'Donation submited Successfully.', 'userid' => $userid]);
-                return view('frontend.user.donationsuccess')->with('success', 'Donation submited Successfully.')->with('userid', $userid);
-                // return redirect()->route('onlinedonation.appview')->with('success', 'Donation submited Successfully.');
-            }
-
-        }
-
-    }
-
-
-
-    public function userDonationStoreprev(Request $request)
-    {
-        
-        $userid = $request->userid;
-
-        if(empty($request->charity_id)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(empty($request->amount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        if($request->c_donation == "false"){
-            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        // donor balance
-        $userTransactionBalance = Usertransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', $userid],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=',  $userid],
-                ['pending','=', '1']
-            ])
-            ->first();
-        // donor balance end
-        $overdrownlimit = User::where('id', $userid)->first()->overdrawn_amount;
-        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
-
-        if ($donorBlanacewithLimit < $request->amount) {
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have sufficient balance for this donation.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        
-
-        $data = new Donation;
-        $data->user_id = $userid;
-        $data->charity_id = $request->charity_id;
-        $data->amount = $request->amount;
-        $data->currency = "GBP";
-        $data->ano_donation = $request->ano_donation;
-        $data->standing_order = $request->standard;
-        $data->confirm_donation = $request->c_donation;
-        $data->charitynote = $request->charitynote;
-        $data->mynote = $request->mynote;
-        $data->notification = 1;
-        $data->status = 0;
-
-        if($data->save()){
-
-            $utransaction = new Usertransaction();
-            $utransaction->t_id = uniqid() . "-" . $userid;
-            $utransaction->user_id = $userid;
-            $utransaction->charity_id = $request->charity_id;
-            $utransaction->donation_id = $data->id;
-            $utransaction->t_type = "Out";
-            $utransaction->amount =  $request->amount;
-            $utransaction->title =  "Online Donation";
-            $utransaction->status =  1;
-            $utransaction->save();
-
-            $user = User::find($userid);
-            $user->decrement('balance',$request->amount);
-            $user->save();
-
-            $charity = Charity::find($request->charity_id);
-            $charity->increment('balance',$request->amount);
-            $charity->save();
-
-            $user = User::where('id',$userid)->first();
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $charity = Charity::where('id',$request->charity_id)->first();
-            $donation = Donation::where('id',$data->id)->first();
-
-
-            // charity mail
-            $pdf = PDF::loadView('invoices.donation_report_charity', compact('user','charity','donation'));
-            $output = $pdf->output();
-            file_put_contents(public_path().'/invoices/'.'Donation-report-charity#'.$charity->id.'.pdf', $output);
-            $array['file'] = public_path().'/invoices/Donation-report-charity#'.$charity->id.'.pdf';
-            $array['file_name'] = 'Donation-report-charity#'.$charity->id.'.pdf';
-            $array['cc'] = $contactmail;
-            $array['charity'] = $charity;
-            $array['user'] = $user;
-            $email = $charity->email;
-
-            // Mail::to($email)
-            // ->cc($contactmail)
-            // ->send(new DonationreportCharity($array));
-
-
-            $array['name'] = $user->name;
-            $array['cc'] = $contactmail;
-            $array['client_no'] = $user->accountno;
-            $email = $user->email;
-            $array['amount'] = $request->amount;
-            $array['charity_note'] = $request->charitynote;
-            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
-
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new DonationReport($array));
-
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation submited Successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
-
-
-    }
-
-    public function userDonationAdminStoreprev(Request $request)
-    {
-
-
-        if(empty($request->charity_id)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(empty($request->amount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if($request->c_donation == "false"){
-            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        $donner_id = $request->donner_id;
-
-        // donor balance
-        $userTransactionBalance = Usertransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', $donner_id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=',  $donner_id],
-                ['pending','=', '1']
-            ])
-            ->first();
-        // donor balance end
-        $overdrownlimit = User::where('id', $donner_id)->first()->overdrawn_amount;
-        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
-
-        if ($donorBlanacewithLimit < $request->amount) {
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>You don't have sufficient balance for this donation.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        $data = new Donation;
-        $data->user_id = $donner_id;
-        $data->charity_id = $request->charity_id;
-        $data->amount = $request->amount;
-        $data->currency = "GBP";
-        $data->ano_donation = $request->ano_donation;
-        $data->standing_order = $request->standard;
-        $data->confirm_donation = $request->c_donation;
-        $data->charitynote = $request->charitynote;
-        $data->mynote = $request->mynote;
-        $data->notification = 1;
-        $data->status = 0;
-
-        if($data->save()){
-
-            $utransaction = new Usertransaction();
-            $utransaction->t_id = uniqid() . "-" . $donner_id;
-            $utransaction->user_id = $donner_id;
-            $utransaction->charity_id = $request->charity_id;
-            $utransaction->donation_id = $data->id;
-            $utransaction->t_type = "Out";
-            $utransaction->amount =  $request->amount;
-            $utransaction->title =  "Online Donation";
-            $utransaction->status =  1;
-            $utransaction->save();
-
-            $user = User::find($donner_id);
-            $user->decrement('balance',$request->amount);
-            $user->save();
-
-            $charity = Charity::find($request->charity_id);
-            $charity->increment('balance',$request->amount);
-            $charity->save();
-
-            $user = User::where('id',$donner_id)->first();
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-
-            $array['name'] = $user->name;
-            $array['cc'] = $contactmail;
-            $array['client_no'] = $user->accountno;
-            $email = $user->email;
-            $array['amount'] = $request->amount;
-            $array['charity_note'] = $request->charitynote;
-            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
-
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new DonationReport($array));
-
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donation submited Successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
-    }
-
-
-    public function userstandingDonationAdminStoreprev(Request $request)
-    {
-
-
-        if(empty($request->charity_id)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please select beneficiary field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(empty($request->amount)){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill amount field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Please fill number of payments field.</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-        if($request->c_donation == "false"){
-            $message ="<div class='alert alert-danger'>Please accept condition.</div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
-        }
-
-        $donner_id = $request->donner_id;
-
-        $data = new StandingDonation;
-        $data->user_id = $donner_id;
-        $data->charity_id = $request->charity_id;
-        $data->amount = $request->amount;
-        $data->currency = "GBP";
-        $data->ano_donation = $request->ano_donation;
-        $data->standing_order = $request->standard;
-        $data->payments = $request->payments_type;
-        $data->number_payments = $request->number_payments;
-        $data->starting = $request->starting;
-        $data->interval = $request->interval;
-        $data->charitynote = $request->charitynote;
-        $data->mynote = $request->mynote;
-        $data->payment_made = 0;
-        $data->notification = 1;
-        $data->created_by = Auth::user()->id;
-        $data->status = 1;
-
-        if($data->save()){
-
-        
-
-            $doncaldetl = new StandingdonationDetail();
-            $doncaldetl->standing_donation_id = $data->id;
-            $doncaldetl->user_id = $data->user_id;
-            $doncaldetl->charity_id = $data->charity_id;
-            $doncaldetl->amount = $data->amount;
-            $doncaldetl->instalment_date = $request->starting;
-            $doncaldetl->instalment_mode = $request->payments_type == "1" ? "Fixed" : "continuous";
-            $doncaldetl->status = 0;
-            $doncaldetl->save();
-
-            $utransaction = new Usertransaction();
-            $utransaction->t_id = uniqid() . "-" . $data->user_id;
-            $utransaction->user_id = $data->user_id;
-            $utransaction->charity_id = $data->charity_id;
-            $utransaction->standing_donationdetails_id = $data->id;
-            $utransaction->t_type = "Out";
-            $utransaction->amount =   $data->amount;
-            $utransaction->title =  "Standing order donation";
-            $utransaction->status =  1;
-            $utransaction->save();
-
-            $user = User::where('id',$donner_id)->first();
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $donation = StandingDonation::where('id',$data->id)->first();
-
-            $array['name'] = $user->name;
-            $array['cc'] = $contactmail;
-            $array['client_no'] = $user->accountno;
-            $email = $user->email;
-            $array['amount'] = $request->amount;
-            $array['donation'] = $donation;
-            $array['charity_note'] = $request->charitynote;
-            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
-
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new DonationstandingReport($array));
-
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Standing order donation submited successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }
-
-    }
-
-    public function userstandingDonationAdminUpdateprev(Request $request)
-    {
-        // Basic Validation
-        if(empty($request->amount)){
-            $message = "<div class='alert alert-danger'><b>Please fill amount field.</b></div>";
-            return response()->json(['status'=> 303, 'message'=>$message]);
-        }
-
-        if(($request->payments == "1") && (empty($request->number_payments))){
-            $message = "<div class='alert alert-danger'><b>Please fill number of payments field.</b></div>";
-            return response()->json(['status'=> 303, 'message'=>$message]);
-        }
-
-        // Find the donation
-        $data = StandingDonation::find($request->donation_id);
-
-        if(!$data) {
-            $message = "<div class='alert alert-danger'><b>Donation not found.</b></div>";
-            return response()->json(['status'=> 303, 'message'=>$message]);
-        }
-
-        // Update fields
-        $data->amount = $request->amount;
-        $data->starting = $request->starting;
-        $data->payments = $request->payments;
-        $data->number_payments = ($request->payments == "2") ? null : $request->number_payments; // Null if continuous
-        $data->interval = $request->interval;
-        $data->charitynote = $request->charitynote;
-        $data->mynote = $request->mynote;
-
-        if($data->save()){
-            $message = "<div class='alert alert-success'><b>Standing order updated successfully.</b></div>";
-            return response()->json(['status'=> 300, 'message'=>$message]);
-        } else {
-            $message = "<div class='alert alert-danger'><b>Failed to update standing order.</b></div>";
-            return response()->json(['status'=> 303, 'message'=>$message]);
-        }
-    }
 
 
     // ================================================================

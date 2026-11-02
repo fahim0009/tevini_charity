@@ -24,6 +24,7 @@ use App\Mail\DonationreportCharity;
 use PDF;
 use Hash;
 use Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Client;
@@ -33,8 +34,6 @@ class DonorController extends Controller
 {
     public function userDonationStore(Request $request)
     {
-
-
         if ((empty($request->charity_id))) {
             $success['message'] = 'Please select beneficiary field..';
             return response()->json(['success'=>false,'response'=> $success], 202);
@@ -50,91 +49,96 @@ class DonorController extends Controller
             return response()->json(['success'=>false,'response'=> $success], 202);
         }
 
-        
-
         if(($request->standard == "true") && ($request->payments_type == "1") && (empty($request->number_payments))){
-            
             $success['message'] = 'You have to fill number of payment field!.';
             return response()->json(['success'=>false,'response'=> $success], 202);
         }
 
-        // donor balance
-        $userTransactionBalance = Usertransaction::selectRaw('
-                SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-                SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-            ')
-            ->where([
-                ['user_id','=', Auth::user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=',  Auth::user()->id],
-                ['pending','=', '1']
-            ])
-            ->first();
-        // donor balance end
-        $overdrownlimit = User::where('id', Auth::user()->id)->first()->overdrawn_amount;
-        $donorBlanacewithLimit = $userTransactionBalance->balance + $overdrownlimit;
+        // ✅ FIX: Prepare email data OUTSIDE the transaction
+        $userId = Auth::user()->id;
+        $user = User::find($userId);
+        $contactmail = ContactMail::where('id', 1)->first()->name ?? 'info@tevini.co.uk';
+        $charityName = Charity::where('id', $request->charity_id)->value('name');
 
-        if ($donorBlanacewithLimit < $request->amount) {
-            $success['message'] = 'You don\'t have sufficient balance for this donation.';
-            return response()->json(['success'=>false,'response'=> $success], 202);
-        }
-        
+        try {
+            // ✅ FIX: Wrap entire operation in DB transaction with row locking
+            DB::transaction(function () use ($request, $userId, $user, $contactmail, $charityName) {
+                
+                // ✅ FIX: Lock donor row for concurrent safety
+                $lockedUser = User::where('id', $userId)->lockForUpdate()->first();
+                
+                // ✅ FIX: Use User model's getAvailableLimit() method for accurate balance
+                $donorBlanacewithLimit = $lockedUser->getAvailableLimit();
 
-        $data = new Donation;
-        $data->user_id = Auth::user()->id;
-        $data->charity_id = $request->charity_id;
-        $data->amount = $request->amount;
-        $data->currency = "GBP";
-        $data->ano_donation = $request->ano_donation;
-        $data->standing_order = $request->standard;
-        $data->confirm_donation = $request->c_donation;
-        $data->charitynote = $request->charitynote;
-        $data->mynote = $request->mynote;
-        $data->notification = 1;
-        $data->status = 0;
+                if ($donorBlanacewithLimit < $request->amount) {
+                    throw new \Exception("You don't have sufficient balance for this donation.");
+                }
 
-        if($data->save()){
+                $data = new Donation;
+                $data->user_id = $userId;
+                $data->charity_id = $request->charity_id;
+                $data->amount = $request->amount;
+                $data->currency = "GBP";
+                $data->ano_donation = $request->ano_donation;
+                $data->standing_order = $request->standard;
+                $data->confirm_donation = $request->c_donation;
+                $data->charitynote = $request->charitynote;
+                $data->mynote = $request->mynote;
+                $data->notification = 1;
+                $data->status = 0;
+                $data->save();
 
-            $utransaction = new Usertransaction();
-            $utransaction->t_id = uniqid() . "-" . Auth::user()->id;
-            $utransaction->user_id = Auth::user()->id;
-            $utransaction->charity_id = $request->charity_id;
-            $utransaction->donation_id = $data->id;
-            $utransaction->t_type = "Out";
-            $utransaction->amount =  $request->amount;
-            $utransaction->title =  "Online Donation";
-            $utransaction->status =  1;
-            $utransaction->save();
+                $utransaction = new Usertransaction();
+                // ✅ FIX: Use prefixed uniqid() for t_id
+                $utransaction->t_id = "DON-" . uniqid() . "-" . $userId;
+                $utransaction->user_id = $userId;
+                $utransaction->charity_id = $request->charity_id;
+                $utransaction->donation_id = $data->id;
+                $utransaction->t_type = "Out";
+                $utransaction->amount =  $request->amount;
+                $utransaction->title =  "Online Donation";
+                $utransaction->status =  1;
+                $utransaction->save();
 
-            $user = User::find(Auth::user()->id);
-            $user->decrement('balance',$request->amount);
-            $user->save();
+                $lockedUser->decrement('balance', $request->amount);
 
-            $charity = Charity::find($request->charity_id);
-            $charity->increment('balance',$request->amount);
-            $charity->save();
+                $charity = Charity::find($request->charity_id);
+                $charity->increment('balance', $request->amount);
 
-            $user = User::where('id',Auth::user()->id)->first();
-            $contactmail = ContactMail::where('id', 1)->first()->name;
-            $charity = Charity::where('id',$request->charity_id)->first();
-            $donation = Donation::where('id',$data->id)->first();
+                // ✅ FIX: Email sent completely outside transaction scope (DB::afterCommit)
+                $email = $lockedUser->email;
+                $array = [
+                    'name' => $lockedUser->name,
+                    'cc' => $contactmail,
+                    'client_no' => $lockedUser->accountno,
+                    'amount' => $request->amount,
+                    'charity_note' => $request->charitynote,
+                    'charity_name' => $charityName
+                ];
 
-            $array['name'] = $user->name;
-            $array['cc'] = $contactmail;
-            $array['client_no'] = $user->accountno;
-            $email = $user->email;
-            $array['amount'] = $request->amount;
-            $array['charity_note'] = $request->charitynote;
-            $array['charity_name'] = Charity::where('id',$request->charity_id)->first()->name;
-
-            Mail::to($email)
-            ->cc($contactmail)
-            ->send(new DonationReport($array));
+                DB::afterCommit(function () use ($array, $email) {
+                    try {
+                        Mail::to($email)
+                            ->cc($array['cc'])
+                            ->send(new DonationReport($array));
+                    } catch (\Exception $e) {
+                        Log::error('Donation email failed for user ' . $email . ': ' . $e->getMessage());
+                    }
+                });
+            });
 
             $success['message'] = 'Donation create Successfully.';
-            $success['data'] = $data;
             return response()->json(['success'=>true,'response'=> $success], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Donation store failed for user ' . $userId . ': ' . $e->getMessage());
+            
+            $errorMessage = $e->getMessage() === "You don't have sufficient balance for this donation." 
+                ? $e->getMessage() 
+                : "Server error!!";
+
+            $success['message'] = $errorMessage;
+            return response()->json(['success'=>false,'response'=> $success], 400);
         }
     }
 

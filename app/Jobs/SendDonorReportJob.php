@@ -13,6 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Log;
 
 class SendDonorReportJob implements ShouldQueue
 {
@@ -28,7 +29,8 @@ class SendDonorReportJob implements ShouldQueue
         $this->userId = $userId;
         $this->fromDate = $fromDate;
         $this->toDate = $toDate;
-        $this->$checkAll = $checkAll;
+        // ✅ FIX: Removed extra $ sign from $this->checkAll
+        $this->checkAll = $checkAll;
     }
 
     public function handle()
@@ -41,29 +43,21 @@ class SendDonorReportJob implements ShouldQueue
             ->orderBy('id', 'DESC')
             ->get();
 
+        // ✅ FIX: Grouped where conditions to prevent fetching other users' data
         $report = Usertransaction::where('user_id', $user->id)
             ->where(function ($query) {
-                $query->whereBetween('created_at', [$this->fromDate, $this->toDate . ' 23:59:59'])
-                    ->where('status', 1);
-            })
-            ->orWhere(function ($query) use ($user) {
-                $query->where('user_id', $user->id)->where('pending', 0);
+                $query->where(function($q) {
+                    $q->whereBetween('created_at', [$this->fromDate, $this->toDate . ' 23:59:59'])
+                      ->where('status', 1);
+                })->orWhere('pending', 0);
             })
             ->orderBy('id', 'DESC')
             ->get();
 
-        $userTransactionBalance = Usertransaction::selectRaw('
-            SUM(CASE WHEN t_type = "In" THEN amount ELSE 0 END) -
-            SUM(CASE WHEN t_type = "Out" THEN amount ELSE 0 END) as balance
-        ')
-            ->where('user_id', $user->id)
-            ->where('status', 1)
-            ->orWhere(function ($query) use ($user) {
-                $query->where('user_id', $user->id)->where('pending', 1);
-            })
-            ->first();
+        // ✅ FIX: Get balance directly from User Model
+        $userBalance = $user->getLiveBalance();
 
-        $contactmail = ContactMail::where('id', 1)->value('name');
+        $contactmail = ContactMail::where('id', 1)->value('name') ?? 'info@tevini.co.uk';
 
         $pdf = Pdf::loadView('invoices.donor_report', [
             'report' => $report,
@@ -77,7 +71,8 @@ class SendDonorReportJob implements ShouldQueue
 
         $array = [
             'cc' => $contactmail,
-            'userbalance' => number_format($userTransactionBalance->balance, 2),
+            // ✅ FIX: Use model balance variable
+            'userbalance' => number_format($userBalance, 2),
             'name' => $user->name,
             'fromDate' => $this->fromDate,
             'toDate' => $this->toDate,
@@ -98,8 +93,6 @@ class SendDonorReportJob implements ShouldQueue
             Mail::to($user->email)->send(new DonerReport($array));
         }
         
-        \Log::info("Sending mail to " . $user->email);
-
+        Log::info("Sending mail to " . $user->email);
     }
-
 }

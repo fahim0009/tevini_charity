@@ -508,101 +508,101 @@ class DonationController extends Controller
         $activestand_orders = StandingDonation::where('status', '=' ,'1')->orderBy('id','DESC')->get();
 
         
-        foreach($activestand_orders as $activestand_order)
-        {
+        // foreach($activestand_orders as $activestand_order)
+        // {
             
-            $donationdetails = StandingdonationDetail::where('standing_donation_id', '=' , $activestand_order->id)->orderBy('id', 'desc')->first();
+        //     $donationdetails = StandingdonationDetail::where('standing_donation_id', '=' , $activestand_order->id)->orderBy('id', 'desc')->first();
 
-                if(isset($donationdetails)){
-                    $start_date = $donationdetails->instalment_date;
-                }else{
-                    $start_date = $activestand_order->starting;
-                }
+        //         if(isset($donationdetails)){
+        //             $start_date = $donationdetails->instalment_date;
+        //         }else{
+        //             $start_date = $activestand_order->starting;
+        //         }
 
-                $start_date_carbon = Carbon::parse($start_date);
-                $instalment_date_carbon = $start_date_carbon->addMonths($activestand_order->interval);
-                $instalment_date = $instalment_date_carbon->format('Y-m-d');
+        //         $start_date_carbon = Carbon::parse($start_date);
+        //         $instalment_date_carbon = $start_date_carbon->addMonths($activestand_order->interval);
+        //         $instalment_date = $instalment_date_carbon->format('Y-m-d');
                 
-                if($activestand_order->payments == 2){
+        //         if($activestand_order->payments == 2){
 
 
-                    if (($current_date >= $instalment_date)) {
+        //             if (($current_date >= $instalment_date)) {
 
-                                $doncaldetl = new StandingdonationDetail;
-                                $doncaldetl->standing_donation_id = $activestand_order->id;
-                                $doncaldetl->user_id = $activestand_order->user_id;
-                                $doncaldetl->charity_id = $activestand_order->charity_id;
-                                $doncaldetl->amount = $activestand_order->amount;
-                                $doncaldetl->instalment_date = $instalment_date;
-                                $doncaldetl->instalment_mode = "continuous";
-                                $doncaldetl->status = 0;
-                                $doncaldetl->save();
+        //                         $doncaldetl = new StandingdonationDetail;
+        //                         $doncaldetl->standing_donation_id = $activestand_order->id;
+        //                         $doncaldetl->user_id = $activestand_order->user_id;
+        //                         $doncaldetl->charity_id = $activestand_order->charity_id;
+        //                         $doncaldetl->amount = $activestand_order->amount;
+        //                         $doncaldetl->instalment_date = $instalment_date;
+        //                         $doncaldetl->instalment_mode = "continuous";
+        //                         $doncaldetl->status = 0;
+        //                         $doncaldetl->save();
 
-                                $utransaction = new Usertransaction();
-                                $utransaction->t_id = uniqid() . "-" . $activestand_order->user_id;
-                                $utransaction->user_id = $activestand_order->user_id;
-                                $utransaction->charity_id = $activestand_order->charity_id;
-                                $utransaction->standing_donationdetails_id = $activestand_order->id;
-                                $utransaction->t_type = "Out";
-                                $utransaction->amount =   $activestand_order->amount;
-                                $utransaction->title =  "Standing order donation";
-                                $utransaction->status =  1;
-                                $utransaction->save();
+        //                         $utransaction = new Usertransaction();
+        //                         $utransaction->t_id = uniqid() . "-" . $activestand_order->user_id;
+        //                         $utransaction->user_id = $activestand_order->user_id;
+        //                         $utransaction->charity_id = $activestand_order->charity_id;
+        //                         $utransaction->standing_donationdetails_id = $activestand_order->id;
+        //                         $utransaction->t_type = "Out";
+        //                         $utransaction->amount =   $activestand_order->amount;
+        //                         $utransaction->title =  "Standing order donation";
+        //                         $utransaction->status =  1;
+        //                         $utransaction->save();
 
-                                $user = User::find($activestand_order->user_id);
-                                $user->decrement('balance',$activestand_order->amount);
-                                $user->save();
+        //                         $user = User::find($activestand_order->user_id);
+        //                         $user->decrement('balance',$activestand_order->amount);
+        //                         $user->save();
 
-                                $charity = Charity::find($activestand_order->charity_id);
-                                $charity->increment('balance',$activestand_order->amount);
-                                $charity->save();
+        //                         $charity = Charity::find($activestand_order->charity_id);
+        //                         $charity->increment('balance',$activestand_order->amount);
+        //                         $charity->save();
 
-                    }
+        //             }
 
-                }elseif($activestand_order->payments == 1){
+        //         }elseif($activestand_order->payments == 1){
 
-                    if (($current_date >= $instalment_date) && ($activestand_order->payment_made < $activestand_order->number_payments)) {
+        //             if (($current_date >= $instalment_date) && ($activestand_order->payment_made < $activestand_order->number_payments)) {
 
-                        $doncaldetl = new StandingdonationDetail;
-                        $doncaldetl->standing_donation_id = $activestand_order->id;
-                        $doncaldetl->user_id = $activestand_order->user_id;
-                        $doncaldetl->charity_id = $activestand_order->charity_id;
-                        $doncaldetl->amount = $activestand_order->amount;
-                        $doncaldetl->instalment_date = $instalment_date;
-                        $doncaldetl->instalment_mode = "Fixed";
-                        $doncaldetl->status = 0;
-                        $doncaldetl->save();
+        //                 $doncaldetl = new StandingdonationDetail;
+        //                 $doncaldetl->standing_donation_id = $activestand_order->id;
+        //                 $doncaldetl->user_id = $activestand_order->user_id;
+        //                 $doncaldetl->charity_id = $activestand_order->charity_id;
+        //                 $doncaldetl->amount = $activestand_order->amount;
+        //                 $doncaldetl->instalment_date = $instalment_date;
+        //                 $doncaldetl->instalment_mode = "Fixed";
+        //                 $doncaldetl->status = 0;
+        //                 $doncaldetl->save();
 
-                        $utransaction = new Usertransaction();
-                        $utransaction->t_id = uniqid() . "-" . $activestand_order->user_id;
-                        $utransaction->user_id = $activestand_order->user_id;
-                        $utransaction->charity_id = $activestand_order->charity_id;
-                        $utransaction->standing_donationdetails_id = $activestand_order->id;
-                        $utransaction->t_type = "Out";
-                        $utransaction->amount =   $activestand_order->amount;
-                        $utransaction->title =  "Standing order donation";
-                        $utransaction->status =  1;
-                        $utransaction->save();
+        //                 $utransaction = new Usertransaction();
+        //                 $utransaction->t_id = uniqid() . "-" . $activestand_order->user_id;
+        //                 $utransaction->user_id = $activestand_order->user_id;
+        //                 $utransaction->charity_id = $activestand_order->charity_id;
+        //                 $utransaction->standing_donationdetails_id = $activestand_order->id;
+        //                 $utransaction->t_type = "Out";
+        //                 $utransaction->amount =   $activestand_order->amount;
+        //                 $utransaction->title =  "Standing order donation";
+        //                 $utransaction->status =  1;
+        //                 $utransaction->save();
 
-                        $user = User::find($activestand_order->user_id);
-                        $user->decrement('balance',$activestand_order->amount);
-                        $user->save();
+        //                 $user = User::find($activestand_order->user_id);
+        //                 $user->decrement('balance',$activestand_order->amount);
+        //                 $user->save();
 
-                        $charity = Charity::find($activestand_order->charity_id);
-                        $charity->increment('balance',$activestand_order->amount);
-                        $charity->save();
+        //                 $charity = Charity::find($activestand_order->charity_id);
+        //                 $charity->increment('balance',$activestand_order->amount);
+        //                 $charity->save();
 
-                        $standing_order = StandingDonation::find($activestand_order->id);
-                        $standing_order->increment('payment_made',1);
-                        $standing_order->save();
+        //                 $standing_order = StandingDonation::find($activestand_order->id);
+        //                 $standing_order->increment('payment_made',1);
+        //                 $standing_order->save();
 
-                 }
+        //          }
 
 
-                }
+        //         }
 
-        }
-        return "Run";
+        // }
+        // return "Run";
     }
 
 

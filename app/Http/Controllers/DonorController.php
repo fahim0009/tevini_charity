@@ -236,13 +236,28 @@ class DonorController extends Controller
 
     public function deleteDonor(Request $request)
     {
-        if( User::destroy($request->donorId)){
-            $message ="<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donor deleted successfully.</b></div>";
-            return response()->json(['status'=> 300,'message'=>$message]);
-        }else{
-            $message ="<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Delete Fail...</b></div>";
-            return response()->json(['status'=> 303,'message'=>$message]);
-            exit();
+        // ✅ FIX: Check if donor has any transactions before deleting
+        $hasTransactions = Usertransaction::where('user_id', $request->donorId)->exists();
+
+        if ($hasTransactions) {
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Cannot delete donor. This donor has existing transactions.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+
+        // ✅ Check if donor has any standing orders
+        $hasStandingOrders = StandingDonation::where('user_id', $request->donorId)->exists();
+        if ($hasStandingOrders) {
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Cannot delete donor. This donor has existing standing orders.</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
+        }
+
+        // If no transactions or standing orders, proceed to delete
+        if (User::destroy($request->donorId)) {
+            $message = "<div class='alert alert-success'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Donor deleted successfully.</b></div>";
+            return response()->json(['status' => 300, 'message' => $message]);
+        } else {
+            $message = "<div class='alert alert-danger'><a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a><b>Delete Fail...</b></div>";
+            return response()->json(['status' => 303, 'message' => $message]);
         }
     }
 

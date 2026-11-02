@@ -26,25 +26,6 @@
         </div>
     </section>
 
-    @php
-        // Cleaner Eloquent query using closure grouping
-        $gettrans = \App\Models\Usertransaction::where('user_id', $topup->id)
-            ->where(function ($query) {
-                $query->where('status', '1')
-                      ->orWhere('pending', '1');
-            })
-            ->orderBy('id', 'DESC')
-            ->get();
-
-        $donorUpBalance = 0;
-        foreach ($gettrans as $tran) {
-            if ($tran->t_type == "In") {
-                $donorUpBalance += $tran->amount;
-            } elseif ($tran->t_type == "Out") {
-                $donorUpBalance -= $tran->amount;
-            }
-        }
-    @endphp
 
     <!-- Image loader -->
     <div id="loading" style="display:none;">
@@ -72,7 +53,7 @@
                                     <tr><td>Phone</td><td>{{ $topup->phone }}</td></tr>
                                     <tr><td>Address</td><td>{{ $topup->address }}</td></tr>
                                     <tr><td>Account</td><td>{{ $topup->accountno }}</td></tr>
-                                    <tr><td>Balance</td><td>{{ number_format($donorUpBalance, 2) }}</td></tr>
+                                    <tr><td>Balance</td><td>{{ number_format($topup->getLiveBalance(), 2) }}</td></tr>
                                     <tr><td>Expected gift aid</td><td>{{ $topup->expected_gift_aid }}</td></tr>
                                 </tbody>
                             </table>

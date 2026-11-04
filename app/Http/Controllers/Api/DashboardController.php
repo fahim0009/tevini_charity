@@ -21,138 +21,91 @@ class DashboardController extends Controller
 
     public function index()
     {
-
-        $pending_transactions = Usertransaction::where([
-            ['t_type','=', 'Out'],
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '0']
-        ])->sum('amount');
-
         $user = auth()->user();
 
-
-
+        // Pending transactions sum
+        $pending_transactions = Usertransaction::where('user_id', $user->id)
+            ->where('t_type', 'Out')
+            ->where('pending', '0')
+            ->sum('amount');
 
         $currentTaxYearStart = now()->month >= 4 ? now()->month(4)->startOfMonth() : now()->subYear()->month(4)->startOfMonth();
         $lastTaxYearStart = $currentTaxYearStart->copy()->subYear();
     
         $currentyramount = Usertransaction::where('user_id', $user->id)
-        ->where('gift', 1)->where('status', 1)
-        ->whereBetween('created_at', [$currentTaxYearStart, now()])
-        ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
+            ->where('gift', 1)->where('status', 1)
+            ->whereBetween('created_at', [$currentTaxYearStart, now()])
+            ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
 
         $currentyramountExpGiftAid = $currentyramount * 0.25;
         
-
         $lastTaxYearAmount = Usertransaction::where('user_id', $user->id)
-        ->where('gift', 1)->where('status', 1)
-        ->whereBetween('created_at', [$lastTaxYearStart, $currentTaxYearStart->copy()->subDay()])
-        ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
+            ->where('gift', 1)->where('status', 1)
+            ->whereBetween('created_at', [$lastTaxYearStart, $currentTaxYearStart->copy()->subDay()])
+            ->selectRaw('SUM(amount + commission) as total')->value('total') ?? 0;
 
         $lastTaxYearAmountExpGiftAid = $lastTaxYearAmount * 0.25;
 
-
-
         $finalTotalPrevYear = (int)($user->prev_yr_gift_aid > 0 ? $user->prev_yr_gift_aid : $lastTaxYearAmountExpGiftAid);
         $finalTotalCurrYear = (int)($user->current_yr_gift_aid > 0 ? $user->current_yr_gift_aid : $currentyramountExpGiftAid);
-        $finalExpectedGiftAid = $user->gift_aid_currenction > 0 ? $user->gift_aid_currenction : $user->expected_gift_aid;
 
-        $tamount = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->get();
+        // ✅ FIX: Safe grouped where conditions
+        $tamount = Usertransaction::where('user_id', $user->id)
+            ->where(function($q) {
+                $q->where('status', '1')->orWhere('pending', '1');
+            })
+            ->orderBy('id','DESC')
+            ->get();
             
-        $alltransactions = Usertransaction::where([
-                ['user_id','=', auth()->user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['user_id','=', auth()->user()->id],
-                ['pending','=', '1']
-            ])->orderBy('id','DESC')->limit(5)->get();
+        // 5 latest transactions to show on dashboard
+        $alltransactions = Usertransaction::where('user_id', $user->id)
+            ->where(function($q) {
+                $q->where('status', '1')->orWhere('pending', '1');
+            })
+            ->orderBy('id','DESC')
+            ->limit(5)
+            ->get();
 
-            // previous balance calculation
-        $preamntIn = Usertransaction::where([
-                ['t_type','=', 'In'],
-                ['user_id','=', auth()->user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['t_type','=', 'In'],
-                ['user_id','=', auth()->user()->id],
-                ['pending','=', '1']
-            ])->orderBy('id','DESC')->sum('amount');
+        // ✅ FIX: Calculate Previous Balance correctly
+        $latestbalance = $user->getLiveBalance();
 
-        $precommission = Usertransaction::where([
-                ['t_type','=', 'In'],
-                ['user_id','=', auth()->user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['t_type','=', 'In'],
-                ['user_id','=', auth()->user()->id],
-                ['pending','=', '1']
-            ])->orderBy('id','DESC')->sum('commission');
-
-        $preamntOut = Usertransaction::where([
-                ['t_type','=', 'Out'],
-                ['user_id','=', auth()->user()->id],
-                ['status','=', '1']
-            ])->orwhere([
-                ['t_type','=', 'Out'],
-                ['user_id','=', auth()->user()->id],
-                ['pending','=', '1']
-            ])->orderBy('id','DESC')->sum('amount');
-
-        $prebalance = $preamntIn + $precommission - $preamntOut;
-
-
-
-        $tinAmt = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1'],
-            ['t_type','=', 'In']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1'],
-            ['t_type','=', 'In']
-            ])->orderBy('id','DESC')->sum('amount');
-
-        $toutAmt = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1'],
-            ['t_type','=', 'Out']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1'],
-            ['t_type','=', 'Out']
-            ])->orderBy('id','DESC')->sum('amount');
-
-
-        $latestbalance = $tinAmt - $toutAmt;
-
-        $gettrans = Usertransaction::where([
-            ['user_id','=', auth()->user()->id],
-            ['status','=', '1']
-        ])->orwhere([
-            ['user_id','=', auth()->user()->id],
-            ['pending','=', '1']
-            ])->orderBy('id','DESC')->limit(5)->get();
-
-            $tbalance = $latestbalance;
-
-            foreach ($gettrans as $key => $tran) {
-                if ($tran->t_type == "In") {
-                    $tbalance = $tbalance - $tran->amount;
-                }elseif ($tran->t_type == "Out") {
-                    $tbalance = $tbalance + $tran->amount;
-                } else {
-                    # code...
+        $tbalance = $latestbalance;
+        foreach ($alltransactions as $tran) {
+            if ($tran->t_type == "In") {
+                $tbalance = $tbalance - $tran->amount;
+                if ($tran->commission > 0) {
+                    $tbalance = $tbalance - $tran->commission;
                 }
+            } elseif ($tran->t_type == "Out") {
+                $tbalance = $tbalance + $tran->amount;
             }
-            
-        $donation_req = CharityLink::where('email',auth()->user()->email)->where('donor_notification','0')->get();
+        }
 
+        // ✅ FIX: Calculate pre-amounts safely
+        $preamntIn = Usertransaction::where('user_id', $user->id)
+            ->where('t_type', 'In')
+            ->where(function($q) {
+                $q->where('status', '1')->orWhere('pending', '1');
+            })
+            ->sum('amount');
+
+        $precommission = Usertransaction::where('user_id', $user->id)
+            ->where('t_type', 'In')
+            ->where(function($q) {
+                $q->where('status', '1')->orWhere('pending', '1');
+            })
+            ->sum('commission');
+
+        $preamntOut = Usertransaction::where('user_id', $user->id)
+            ->where('t_type', 'Out')
+            ->where(function($q) {
+                $q->where('status', '1')->orWhere('pending', '1');
+            })
+            ->sum('amount');
+
+        $donation_req = CharityLink::where('email', $user->email)
+            ->where('donor_notification','0')
+            ->get();
 
         $responseArray = [
             'status'=>'ok',
@@ -160,16 +113,16 @@ class DashboardController extends Controller
             'currentyramount'=>$finalTotalCurrYear,
             'totalamount'=>$finalTotalPrevYear,
             'tamount'=>$tamount,
-            'previousBalance'=>$tbalance,
+            'previousBalance'=>$tbalance, 
             'preamntIn'=>$preamntIn,
             'precommission'=>$precommission,
             'preamntOut'=>$preamntOut,
             'alltransactions'=>$alltransactions,
             'donation_request'=>$donation_req,
         ]; 
-        return response()->json($responseArray,200);
+        
+        return response()->json($responseArray, 200);
     }
-
     
     
 
